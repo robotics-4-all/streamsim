@@ -1,0 +1,36 @@
+map:
+  width: 20
+  height: 20
+  resolution: 0.05
+
+robots:
+  -
+    name: robot_1
+    sensors:
+      microphone: 1 # 1 for existance, 0 for non-existance
+      sonars: {0, 90, 180, -90} # orientations in degrees
+      tofs: {0} # orientations in degrees
+      camera: {0} # orientations in degrees
+      imu: 1
+      buttons: 8
+      env: 1
+    effectors:
+      speaker: 1
+      leds: 1
+      pan_tilt: 1
+      touch_screen: 1
+
+actors:
+  humans:
+    - {x: 1, y: 3, move: 0}
+    - {x: 2, y: 3, move: 1}
+  sound_sources:
+    - {x: 1, y: 3, lang: EL}
+  qrs:
+    - {x: 1, y: 3}
+  barcodes:
+    - {x: 1, y: 3}
+  colors:
+    - {x: 1, y: 3, r: 255, g: 0, b: 0}
+  texts:
+    - {x: 1, y: 3, text: this is a text}
