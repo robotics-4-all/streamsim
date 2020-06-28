@@ -26,14 +26,14 @@ robots:
 actors:
   humans:
     - {x: 1, y: 3, move: 0}
-    - {x: 2, y: 3, move: 1}
+    - {x: 2, y: 3, move: 1} # move is for motion detection, no dyn obstacles yet
   sound_sources:
-    - {x: 1, y: 3, lang: EL}
+    - {x: 1, y: 3, lang: EL} # lang for language detection
   qrs:
-    - {x: 1, y: 3}
+    - {x: 1, y: 3, message: test}
   barcodes:
-    - {x: 1, y: 3}
+    - {x: 1, y: 3, message: EL3341}
   colors:
-    - {x: 1, y: 3, r: 255, g: 0, b: 0}
+    - {x: 1, y: 3, r: 255, g: 0, b: 0} # for dominant color
   texts:
-    - {x: 1, y: 3, text: this is a text}
+    - {x: 1, y: 3, text: this is a text} # for OCR
