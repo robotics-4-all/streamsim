@@ -8,6 +8,7 @@ import numpy
 import logging
 
 from stream_simulator import Logger
+from stream_simulator import Publisher
 
 class World:
     def __init__(self, filename = None, debug_level = logging.INFO):
@@ -19,6 +20,10 @@ class World:
                 self.logger.info("World loaded")
             except yaml.YAMLError as exc:
                 self.logger.critical("World filename does not exist")
+
+        # Publishers
+        self.world_pub = Publisher(topic = "world:details")
+        self.world_pub.publish(json.dumps(self.world))
 
         self.width = self.world['map']['width']
         self.height = self.world['map']['height']

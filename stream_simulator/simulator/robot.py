@@ -113,6 +113,7 @@ class Robot:
         while True:
             prev_x = self._x
             prev_y = self._y
+            prev_th = self._theta
 
             if self._angular == 0:
                 self._x += self._linear * self.dt * math.cos(self._theta)
@@ -128,6 +129,7 @@ class Robot:
             if self.check_ok(self._x, self._y, prev_x, prev_y):
                 self._x = prev_x
                 self._y = prev_y
+                self._theta = prev_th
 
             self.logger.debug("Robot pose: {}, {}, {}".format(\
                 "{:.2f}".format(self._x), \

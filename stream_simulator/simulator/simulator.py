@@ -32,6 +32,7 @@ class Simulator:
             pose['theta'] / 180.0 * math.pi)
         self.robot.set_map(self.world.map, self.world.resolution)
 
+
     def start(self):
         self.robot.start()
         self.logger.info("Simulation started")

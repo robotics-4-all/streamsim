@@ -1,10 +1,10 @@
 map:
-  width: 10
-  height: 11
+  width: 500
+  height: 500
   resolution: 0.02
   obstacles:
     lines:
-      - {x1: 0, y1: 4, x2: 9, y2: 4}
+      - {x1: 100, y1: 250, x2: 400, y2: 250}
       #- {x1: 5, y1: 4, x2: 8, y2: 4}
 
 robots:
