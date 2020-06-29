@@ -26,7 +26,7 @@ robots:
     starting_pose:
       x: 0 # in pixels
       y: 0 # in pixels
-      theta: 0 # in degrees
+      theta: 45 # in degrees
 
 actors:
   humans:

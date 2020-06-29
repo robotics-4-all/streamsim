@@ -66,15 +66,46 @@ class Robot:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
 
     def check_ok(self, x, y, prev_x, prev_y):
+        # Check out of bounds
         if x < 0 or y < 0:
             self.logger.error("{}: Out of bounds - negative x or y".format(self.name))
             return True
         if x / self.resolution > self.width or y / self.resolution > self.height:
             self.logger.error("{}: Out of bounds".format(self.name))
             return True
-        if self.map[int(x / self.resolution), int(y / self.resolution)] == 1:
-            self.logger.error("{}: Crash".format(self.name))
-            return True
+
+        # Check collision to obstacles
+        x_i = int(x / self.resolution)
+        x_i_p = int(prev_x / self.resolution)
+        if x_i > x_i_p:
+            x_i, x_i_p = x_i_p, x_i
+
+        y_i = int(y / self.resolution)
+        y_i_p = int(prev_y / self.resolution)
+        if y_i > y_i_p:
+            y_i, y_i_p = y_i_p, y_i
+
+        if x_i == x_i_p:
+            for i in range(y_i, y_i_p):
+                if self.map[x_i, i] == 1:
+                    self.logger.error("{}: Crash #1".format(self.name))
+                    return True
+        elif y_i == y_i_p:
+            for i in range(x_i, x_i_p):
+                if self.map[i, y_i] == 1:
+                    self.logger.error("{}: Crash #2".format(self.name))
+                    return True
+        else: # we have a straight line
+            th = math.atan2(y_i_p - y_i, x_i_p - x_i)
+            dist = math.hypot(x_i_p - x_i, y_i_p - y_i)
+            d = 0
+            while d < dist:
+                xx = x_i + d * math.cos(th)
+                yy = y_i + d * math.sin(th)
+                if self.map[int(xx), int(yy)] == 1:
+                    self.logger.error("{}: Crash #3".format(self.name))
+                    return True
+                d += 1.0
 
         return False
 
