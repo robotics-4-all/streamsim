@@ -1,10 +1,10 @@
 map:
   width: 10
-  height: 10
+  height: 11
   resolution: 0.02
   obstacles:
     lines:
-      - {x1: 4, y1: 0, x2: 4, y2: 9}
+      - {x1: 0, y1: 4, x2: 9, y2: 4}
       #- {x1: 5, y1: 4, x2: 8, y2: 4}
 
 robots:
@@ -26,7 +26,7 @@ robots:
     starting_pose:
       x: 0 # in pixels
       y: 0 # in pixels
-      theta: 45 # in degrees
+      theta: 0 # in degrees
 
 actors:
   humans:

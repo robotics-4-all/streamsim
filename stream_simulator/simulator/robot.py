@@ -45,6 +45,8 @@ class Robot:
 
     def set_map(self, map, resolution):
         self.map = map
+        self.width = self.map.shape[0]
+        self.height = self.map.shape[1]
         self.resolution = resolution
         self.logger.info("Robot {}: map set".format(self.name))
 
@@ -63,8 +65,24 @@ class Robot:
         except Exception as e:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
 
+    def check_ok(self, x, y, prev_x, prev_y):
+        if x < 0 or y < 0:
+            self.logger.error("{}: Out of bounds - negative x or y".format(self.name))
+            return True
+        if x / self.resolution > self.width or y / self.resolution > self.height:
+            self.logger.error("{}: Out of bounds".format(self.name))
+            return True
+        if self.map[int(x / self.resolution), int(y / self.resolution)] == 1:
+            self.logger.error("{}: Crash".format(self.name))
+            return True
+
+        return False
+
     def handle_motion(self):
         while True:
+            prev_x = self._x
+            prev_y = self._y
+
             if self._angular == 0:
                 self._x += self._linear * self.dt * math.cos(self._theta)
                 self._y += self._linear * self.dt * math.sin(self._theta)
@@ -76,20 +94,19 @@ class Robot:
                     arc * math.cos(self._theta + self.dt * self._angular)
             self._theta += self._angular * self.dt
 
+            if self.check_ok(self._x, self._y, prev_x, prev_y):
+                self._x = prev_x
+                self._y = prev_y
+
             self.logger.debug("Robot pose: {}, {}, {}".format(\
                 "{:.2f}".format(self._x), \
                 "{:.2f}".format(self._y), \
                 "{:.2f}".format(self._theta)))
 
             self.pose_pub.publish({
-                "x": self._x,
-                "y": self._y,
-                "theta": self._theta
+                "x": float("{:.2f}".format(self._x)),
+                "y": float("{:.2f}".format(self._y)),
+                "theta": float("{:.2f}".format(self._theta))
             })
-
-            # Check if on obstacle
-            print(self._x / self.resolution, self._y / self.resolution)
-            if self.map[int(self._x / self.resolution), int(self._y / self.resolution)] == 1:
-                print("CRASH")
 
             time.sleep(self.dt)

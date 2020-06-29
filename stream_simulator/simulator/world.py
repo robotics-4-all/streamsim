@@ -21,7 +21,7 @@ class World:
                 self.logger.critical("World filename does not exist")
 
         self.width = self.world['map']['width']
-        self.height = self.world['map']['width']
+        self.height = self.world['map']['height']
 
         self.map = numpy.zeros((self.width, self.height))
         self.resolution = self.world['map']['resolution']
