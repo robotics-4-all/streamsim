@@ -41,6 +41,12 @@ class Robot:
         self._x = x
         self._y = y
         self._theta = theta
+        self.logger.info("Robot {} pose set: {}, {}, {}".format(self.name, x, y, theta))
+
+    def set_map(self, map, resolution):
+        self.map = map
+        self.resolution = resolution
+        self.logger.info("Robot {}: map set".format(self.name))
 
     def start(self):
         self.vel_sub.start()
@@ -80,5 +86,10 @@ class Robot:
                 "y": self._y,
                 "theta": self._theta
             })
+
+            # Check if on obstacle
+            print(self._x / self.resolution, self._y / self.resolution)
+            if self.map[int(self._x / self.resolution), int(self._y / self.resolution)] == 1:
+                print("CRASH")
 
             time.sleep(self.dt)

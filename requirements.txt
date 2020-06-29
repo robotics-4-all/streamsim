@@ -2,3 +2,5 @@ redis
 time
 json
 logging
+pyyaml
+numpy
