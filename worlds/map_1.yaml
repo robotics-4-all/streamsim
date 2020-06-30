@@ -6,6 +6,10 @@ map:
     lines:
       - {x1: 100, y1: 250, x2: 400, y2: 250}
       #- {x1: 5, y1: 4, x2: 8, y2: 4}
+  env:
+    temperature: 31
+    humidity: 60
+    pressure: 1800
 
 robots:
   -
@@ -24,8 +28,8 @@ robots:
       pan_tilt: 1
       touch_screen: 1
     starting_pose:
-      x: 0 # in pixels
-      y: 0 # in pixels
+      x: 100 # in pixels
+      y: 100 # in pixels
       theta: 45 # in degrees
 
 actors:
