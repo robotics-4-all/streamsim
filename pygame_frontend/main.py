@@ -18,15 +18,19 @@ class Frontend:
 
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
         self.robot_img = pygame.image.load(self.dir_path + '/imgs/Robot.png')
+        self.robot_color = [0, 0, 0, 0]
 
         self.screen = pygame.display.set_mode((100, 100))
         self.screen.fill((255, 255, 255))
         self.clock = pygame.time.Clock()
 
         self.new_w_sub = Subscriber(topic = "world:details", func = self.new_world)
+        self.leds_set_sub = Subscriber(topic = "robot_1:leds", func = self.leds_set_callback)
         self.robot_pose_sub = Subscriber(topic = "robot_1:pose", func = self.robot_pose_update)
+
         self.new_w_sub.start()
         self.robot_pose_sub.start()
+        self.leds_set_sub.start()
 
         self.env_rpc_client = RpcClient(topic = "robot_1:env")
 
@@ -52,6 +56,15 @@ class Frontend:
     def robot_pose_update(self, message):
         self.robot_pose = json.loads(message['data'])
 
+    def leds_set_callback(self, message):
+        res = json.loads(message['data'])
+        self.robot_color = [
+            res["r"],
+            res["g"],
+            res["b"],
+            int(255 - res["intensity"] / 100.0 * 255)
+        ]
+
     def start(self):
         self.done = False
         while not self.done:
@@ -69,6 +82,11 @@ class Frontend:
                     (l["x1"], l["y1"]),
                     (l["x2"], l["y2"])
                 )
+
+            pygame.draw.circle(self.screen, tuple(self.robot_color),\
+                    (int(self.robot_pose["x"] / self.resolution - 30),\
+                    int(self.robot_pose["y"] / self.resolution - 30)),
+                    10)
 
             self.screen.blit(\
                 pygame.transform.rotozoom(self.robot_img,\

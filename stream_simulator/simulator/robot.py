@@ -29,8 +29,11 @@ class Robot:
         self._linear = 0
         self._angular = 0
 
+        self._color = [0, 0, 0, 0]
+
         # Subscribers
         self.vel_sub = Subscriber(topic = name + ":cmd_vel", func = self.cmd_vel)
+        self.leds_set_sub = Subscriber(topic = name + ":leds", func = self.leds_set_callback)
 
         # Publishers
         self.pose_pub = Publisher(topic = name + ":pose")
@@ -89,6 +92,19 @@ class Robot:
         self.logger.info("Robot {}: cmd_vel subscription started".format(self.name))
         self.motion_thread.start()
         self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
+
+    def leds_set_callback(self, message):
+        try:
+            response = json.loads(message['data'])
+            id = response["id"]
+            r = response["r"]
+            g = response["g"]
+            b = response["b"]
+            intensity = response["intensity"]
+            self._color = [r, g, b, intensity]
+            self.logger.info("{}: New set leds command: {}".format(self.name, message))
+        except Exception as e:
+            self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
 
     def cmd_vel(self, message):
         try:
