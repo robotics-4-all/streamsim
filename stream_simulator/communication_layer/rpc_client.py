@@ -10,11 +10,10 @@ class RpcClient:
         self.topic = topic
 
         self.r = redis.Redis(host='localhost', port=6379, db=0)
-
         self.p = self.r.pubsub(ignore_subscribe_messages=True)
-        self.p.subscribe(**{self.topic + ":res": self.internal_handler})
 
     def call(self, msg, timeout = 0.1):
+        self.p.subscribe(**{self.topic + ":res": self.internal_handler})
         self.thread = self.p.run_in_thread(sleep_time = timeout)
         self.result = None
         self.r.publish(self.topic + ":req", json.dumps(msg))

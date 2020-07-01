@@ -6,9 +6,12 @@ import json
 import math
 import logging
 import threading
+import random
 
 from stream_simulator import Publisher
 from stream_simulator import Subscriber
+
+from stream_simulator import RpcServer
 
 from stream_simulator import Logger
 
@@ -32,10 +35,41 @@ class Robot:
         # Publishers
         self.pose_pub = Publisher(topic = name + ":pose")
 
+        # RPC servers
+        self.env_rpc_server = RpcServer(topic = name + ":env", func = self.env_callback)
+        self.env_rpc_server.start()
+
         # Threads
         self.motion_thread = threading.Thread(target = self.handle_motion)
 
         self.logger.info("Robot {} set-up".format(self.name))
+
+    def env_callback(self, message):
+        self.logger.info("Robot {}: Env callback: {}".format(self.name, message))
+        try:
+            _to = message["from"] + 1
+            _from = message["to"]
+        except Exception as e:
+            self.logger.error("{}: Malformed message for env: {} - {}".format(self.name, str(e.__class__), str(e)))
+            return []
+        ret = []
+        for i in range(_from, _to): # 0 to -1
+            timestamp = time.time()
+            secs = int(timestamp)
+            nanosecs = int((timestamp-secs) * 10**(9))
+            ret.append({
+                "header":{
+                    "stamp":{
+                        "sec": secs,
+                        "nanosec": nanosecs
+                    }
+                },
+                "temperature": float(random.uniform(30, 10)),
+                "pressure": float(random.uniform(30, 10)),
+                "humidity": float(random.uniform(30, 10)),
+                "gas": float(random.uniform(30, 10))
+            })
+        return ret
 
     def set_pose(self, x, y, theta):
         self._x = x

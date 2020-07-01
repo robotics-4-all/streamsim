@@ -10,6 +10,7 @@ import math
 import threading
 
 from stream_simulator import Subscriber
+from stream_simulator import RpcClient
 
 class Frontend:
     def __init__(self):
@@ -27,9 +28,11 @@ class Frontend:
         self.new_w_sub.start()
         self.robot_pose_sub.start()
 
+        self.env_rpc_client = RpcClient(topic = "robot_1:env")
+
     def new_world(self, message):
         self.done = True
-        
+
         self.world = json.loads(json.loads(message['data'])) # Check this!
         self.resolution = self.world["map"]["resolution"]
 
@@ -42,6 +45,8 @@ class Frontend:
 
         self.clock = pygame.time.Clock()
 
+        self.temperature = None
+
         self.start()
 
     def robot_pose_update(self, message):
@@ -53,6 +58,8 @@ class Frontend:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.done = True
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_t:
+                    print(self.env_rpc_client.call({"from": 0, "to": 0}))
 
             self.screen.fill((255, 255, 255))
 
