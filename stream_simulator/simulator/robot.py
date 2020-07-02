@@ -32,6 +32,13 @@ class Robot:
         self._color = [0, 0, 0, 0]
         self._wipe_color = [0, 0, 0, 0]
 
+        self._memory = {
+            'leds': 10 * [0],
+            'leds_wipe': 10 * [0],
+            'motion': 10 * [0]
+        }
+        print(self._memory)
+
         # Subscribers
         self.vel_sub = Subscriber(topic = name + ":cmd_vel", func = self.cmd_vel)
         self.leds_set_sub = Subscriber(topic = name + ":leds", func = self.leds_set_callback)
@@ -62,6 +69,11 @@ class Robot:
 
         self.motion_thread.start()
         self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
+
+    def memory_write(self, key, data):
+        del self._memory[key][-1]
+        self._memory[key].insert(0, data)
+        self.logger.info("Robot {}: memory updated for {}".format(self.name, key))
 
     def env_callback(self, message):
         self.logger.info("Robot {}: Env callback: {}".format(self.name, message))
@@ -112,7 +124,7 @@ class Robot:
             b = response["b"]
             intensity = response["intensity"]
             self._color = [r, g, b, intensity]
-            self.logger.info("{}: New set leds command: {}".format(self.name, message))
+            self.memory_write('leds', self._color)
         except Exception as e:
             self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
 
@@ -125,6 +137,7 @@ class Robot:
             intensity = response["brightness"]
             ms = response["wait_ms"]
             self._color = [r, g, b, intensity]
+            self.memory_write('leds_wipe', self._color)
             self.logger.info("{}: New leds wipe command: {}".format(self.name, message))
 
             self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
@@ -138,6 +151,7 @@ class Robot:
             response = json.loads(message['data'])
             self._linear = response['linear']
             self._angular = response['angular']
+            self.memory_write('motion', [self._linear, self._angular])
             self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
         except Exception as e:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
