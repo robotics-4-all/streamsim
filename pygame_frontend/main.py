@@ -18,20 +18,27 @@ class Frontend:
 
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
         self.robot_img = pygame.image.load(self.dir_path + '/imgs/Robot.png')
-        self.robot_color = [0, 0, 0, 0]
+        self.robot_color = [0, 0, 0]
+        self.robot_color_wipe = [0, 0, 0]
+        self.wipe_timeout = 0
 
         self.screen = pygame.display.set_mode((100, 100))
         self.screen.fill((255, 255, 255))
         self.clock = pygame.time.Clock()
 
+        # Subscribers
         self.new_w_sub = Subscriber(topic = "world:details", func = self.new_world)
-        self.leds_set_sub = Subscriber(topic = "robot_1:leds", func = self.leds_set_callback)
         self.robot_pose_sub = Subscriber(topic = "robot_1:pose", func = self.robot_pose_update)
+        self.leds_set_sub = Subscriber(topic = "robot_1:leds", func = self.leds_set_callback)
+        self.leds_wipe_sub = Subscriber(topic = "robot_1:leds_wipe", func = self.leds_wipe_callback)
 
+        # Subscribers starting
         self.new_w_sub.start()
         self.robot_pose_sub.start()
         self.leds_set_sub.start()
+        self.leds_wipe_sub.start()
 
+        # RPC clients
         self.env_rpc_client = RpcClient(topic = "robot_1:env")
 
     def new_world(self, message):
@@ -61,9 +68,17 @@ class Frontend:
         self.robot_color = [
             res["r"],
             res["g"],
-            res["b"],
-            int(255 - res["intensity"] / 100.0 * 255)
+            res["b"]
         ]
+
+    def leds_wipe_callback(self, message):
+        res = json.loads(message['data'])
+        self.robot_color_wipe = [
+            res["r"],
+            res["g"],
+            res["b"]
+        ]
+        self.robot_color = [0,0,0]
 
     def start(self):
         self.done = False
@@ -81,12 +96,7 @@ class Frontend:
                 pygame.draw.line(self.screen, (0,0,0), \
                     (l["x1"], l["y1"]),
                     (l["x2"], l["y2"])
-                )
-
-            pygame.draw.circle(self.screen, tuple(self.robot_color),\
-                    (int(self.robot_pose["x"] / self.resolution - 30),\
-                    int(self.robot_pose["y"] / self.resolution - 30)),
-                    10)
+                , 5)
 
             self.screen.blit(\
                 pygame.transform.rotozoom(self.robot_img,\
@@ -94,6 +104,26 @@ class Frontend:
                 100.0 /  1024.0), \
                 (self.robot_pose["x"] / self.resolution - 30,\
                 self.robot_pose["y"] / self.resolution - 30))
+
+
+            if self.robot_color_wipe != [0,0,0]:
+                self.wipe_timeout = 100
+                self.robot_color = [0,0,0]
+                self.tmp_color = self.robot_color_wipe
+                self.robot_color_wipe = [0,0,0]
+            if self.wipe_timeout > 0:
+                pygame.draw.circle(self.screen, tuple(self.tmp_color),\
+                (int(self.robot_pose["x"] / self.resolution),\
+                int(self.robot_pose["y"] / self.resolution)),
+                10)
+                self.wipe_timeout -= 1
+            else:
+                self.robot_color_wipe = [0,0,0]
+                if self.robot_color != [0,0,0]:
+                    pygame.draw.circle(self.screen, tuple(self.robot_color),\
+                            (int(self.robot_pose["x"] / self.resolution),\
+                            int(self.robot_pose["y"] / self.resolution)),
+                            10)
 
             pygame.display.flip()
             pygame.display.update()

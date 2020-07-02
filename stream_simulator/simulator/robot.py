@@ -30,6 +30,7 @@ class Robot:
         self._angular = 0
 
         self._color = [0, 0, 0, 0]
+        self._wipe_color = [0, 0, 0, 0]
 
         # Subscribers
         self.vel_sub = Subscriber(topic = name + ":cmd_vel", func = self.cmd_vel)
@@ -37,15 +38,30 @@ class Robot:
 
         # Publishers
         self.pose_pub = Publisher(topic = name + ":pose")
+        self.leds_wipe_pub = Publisher(topic = name + ":leds_wipe")
 
         # RPC servers
         self.env_rpc_server = RpcServer(topic = name + ":env", func = self.env_callback)
-        self.env_rpc_server.start()
+        self.leds_wipe_server = RpcServer(topic = name + ":leds_wipe", func = self.leds_wipe_callback)
 
         # Threads
         self.motion_thread = threading.Thread(target = self.handle_motion)
 
         self.logger.info("Robot {} set-up".format(self.name))
+
+    def start(self):
+        self.vel_sub.start()
+        self.logger.info("Robot {}: vel_sub started".format(self.name))
+        self.leds_set_sub.start()
+        self.logger.info("Robot {}: leds_set_sub started".format(self.name))
+
+        self.env_rpc_server.start()
+        self.logger.info("Robot {}: env_rpc_server started".format(self.name))
+        self.leds_wipe_server.start()
+        self.logger.info("Robot {}: leds_wipe_server started".format(self.name))
+
+        self.motion_thread.start()
+        self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
 
     def env_callback(self, message):
         self.logger.info("Robot {}: Env callback: {}".format(self.name, message))
@@ -87,12 +103,6 @@ class Robot:
         self.resolution = resolution
         self.logger.info("Robot {}: map set".format(self.name))
 
-    def start(self):
-        self.vel_sub.start()
-        self.logger.info("Robot {}: cmd_vel subscription started".format(self.name))
-        self.motion_thread.start()
-        self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
-
     def leds_set_callback(self, message):
         try:
             response = json.loads(message['data'])
@@ -105,6 +115,23 @@ class Robot:
             self.logger.info("{}: New set leds command: {}".format(self.name, message))
         except Exception as e:
             self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
+
+    def leds_wipe_callback(self, message):
+        try:
+            response = message
+            r = response["r"]
+            g = response["g"]
+            b = response["b"]
+            intensity = response["brightness"]
+            ms = response["wait_ms"]
+            self._color = [r, g, b, intensity]
+            self.logger.info("{}: New leds wipe command: {}".format(self.name, message))
+
+            self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
+        except Exception as e:
+            self.logger.error("{}: leds_wipe is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
+
+        return {}
 
     def cmd_vel(self, message):
         try:
