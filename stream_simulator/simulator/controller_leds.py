@@ -8,7 +8,7 @@ import logging
 import threading
 import random
 
-from stream_simulator import Logger, Publisher
+from stream_simulator import Logger, Publisher, Subscriber, RpcServer
 
 class LedsController:
     def __init__(self, name = "robot", logger = None):
@@ -18,6 +18,20 @@ class LedsController:
         self.memory = 100 * [0]
 
         self.leds_wipe_pub = Publisher(topic = name + ":leds_wipe")
+
+        self.leds_set_sub = Subscriber(topic = name + ":leds", func = self.leds_set_callback)
+        self.leds_wipe_server = RpcServer(topic = name + ":leds_wipe", func = self.leds_wipe_callback)
+        self.leds_get_server = RpcServer(topic = name + ":leds:memory", func = self.leds_get_callback)
+
+    def start(self):
+        self.leds_set_sub.start()
+        self.logger.info("Robot {}: leds_set_sub started".format(self.name))
+
+        self.leds_wipe_server.start()
+        self.logger.info("Robot {}: leds_wipe_server started".format(self.name))
+
+        self.leds_get_server.start()
+        self.logger.info("Robot {}: leds_get_server started".format(self.name))
 
     def memory_write(self, data):
         del self.memory[-1]

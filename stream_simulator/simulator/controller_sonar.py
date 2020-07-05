@@ -8,28 +8,29 @@ import logging
 import threading
 import random
 
-from stream_simulator import Logger, RpcServer
+from stream_simulator import Logger
+from stream_simulator import RpcServer
 
-class EnvController:
+class SonarController:
     def __init__(self, name = "robot", logger = None):
         self.logger = logger
         self.name = name
 
         self.memory = 100 * [0]
 
-        self.env_rpc_server = RpcServer(topic = name + ":env", func = self.env_callback)
+        self.sonar_rpc_server = RpcServer(topic = name + ":sonar", func = self.sonar_callback)
 
     def start(self):
-        self.env_rpc_server.start()
-        self.logger.info("Robot {}: env_rpc_server started".format(self.name))
+        self.sonar_rpc_server.start()
+        self.logger.info("Robot {}: sonar_rpc_server started".format(self.name))
 
     def memory_write(self, data):
         del self.memory[-1]
         self.memory.insert(0, data)
-        self.logger.info("Robot {}: memory updated for {}".format(self.name, "leds"))
+        self.logger.info("Robot {}: memory updated for {}".format(self.name, "sonar"))
 
-    def env_callback(self, message):
-        self.logger.info("Robot {}: Env callback: {}".format(self.name, message))
+    def sonar_callback(self, message):
+        self.logger.info("Robot {}: sonar callback: {}".format(self.name, message))
         try:
             _to = message["from"] + 1
             _from = message["to"]
@@ -48,9 +49,6 @@ class EnvController:
                         "nanosec": nanosecs
                     }
                 },
-                "temperature": float(random.uniform(30, 10)),
-                "pressure": float(random.uniform(30, 10)),
-                "humidity": float(random.uniform(30, 10)),
-                "gas": float(random.uniform(30, 10))
+                "distance": float(random.uniform(30, 10))
             })
         return ret

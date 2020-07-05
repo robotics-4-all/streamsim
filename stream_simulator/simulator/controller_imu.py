@@ -8,7 +8,7 @@ import logging
 import threading
 import random
 
-from stream_simulator import Logger
+from stream_simulator import Logger, RpcServer
 
 class ImuController:
     def __init__(self, name = "robot", logger = None):
@@ -16,6 +16,12 @@ class ImuController:
         self.name = name
 
         self.memory = 100 * [0]
+
+        self.imu_rpc_server = RpcServer(topic = name + ":imu", func = self.imu_callback)
+
+    def start(self):
+        self.imu_rpc_server.start()
+        self.logger.info("Robot {}: imu_rpc_server started".format(self.name))
 
     def memory_write(self, data):
         del self.memory[-1]

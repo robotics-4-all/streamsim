@@ -8,7 +8,7 @@ import logging
 import threading
 import random
 
-from stream_simulator import Logger
+from stream_simulator import Logger, Subscriber, RpcServer
 
 class MotionController:
     def __init__(self, name = "robot", logger = None):
@@ -18,6 +18,16 @@ class MotionController:
         self._angular = 0
 
         self.memory = 100 * [0]
+
+        self.vel_sub = Subscriber(topic = name + ":cmd_vel", func = self.cmd_vel)
+        self.motion_get_server = RpcServer(topic = name + ":motion:memory", func = self.motion_get_callback)
+
+    def start(self):
+        self.vel_sub.start()
+        self.logger.info("Robot {}: vel_sub started".format(self.name))
+
+        self.motion_get_server.start()
+        self.logger.info("Robot {}: motion_get_server started".format(self.name))
 
     def memory_write(self, data):
         del self.memory[-1]

@@ -8,7 +8,7 @@ import logging
 import threading
 import random
 
-from stream_simulator import Logger
+from stream_simulator import Logger, Subscriber, RpcServer
 
 class PanTiltController:
     def __init__(self, name = "robot", logger = None):
@@ -16,6 +16,16 @@ class PanTiltController:
         self.name = name
 
         self.memory = 100 * [0]
+
+        self.pan_tilt_set_sub = Subscriber(topic = name + ":pan_tilt", func = self.pan_tilt_set_callback)
+        self.pan_tilt_get_server = RpcServer(topic = name + ":pan_tilt:memory", func = self.pan_tilt_get_callback)
+
+    def start(self):
+        self.pan_tilt_set_sub.start()
+        self.logger.info("Robot {}: pan_tilt_set_sub started".format(self.name))
+
+        self.pan_tilt_get_server.start()
+        self.logger.info("Robot {}: pan_tilt_get_server started".format(self.name))
 
     def memory_write(self, data):
         del self.memory[-1]

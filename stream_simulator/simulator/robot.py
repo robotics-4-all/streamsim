@@ -20,6 +20,9 @@ from .controller_leds import LedsController
 from .controller_env import EnvController
 from .controller_imu import ImuController
 from .controller_motion import MotionController
+from .controller_sonar import SonarController
+from .controller_ir import IrController
+from .controller_tof import TofController
 
 class Robot:
     def __init__(self, name = "robot", tick = 0.1, debug_level = logging.INFO):
@@ -32,29 +35,14 @@ class Robot:
         self._y = 0
         self._theta = 0
 
-        # PAN_TILT
         self.pan_tilt_controller = PanTiltController(name = self.name, logger = self.logger)
-        self.pan_tilt_set_sub = Subscriber(topic = name + ":pan_tilt", func = self.pan_tilt_controller.pan_tilt_set_callback)
-        self.pan_tilt_get_server = RpcServer(topic = name + ":pan_tilt:memory", func = self.pan_tilt_controller.pan_tilt_get_callback)
-
-        # LEDS
         self.leds_controller = LedsController(name = self.name, logger = self.logger)
-        self.leds_set_sub = Subscriber(topic = name + ":leds", func = self.leds_controller.leds_set_callback)
-        self.leds_wipe_server = RpcServer(topic = name + ":leds_wipe", func = self.leds_controller.leds_wipe_callback)
-        self.leds_get_server = RpcServer(topic = name + ":leds:memory", func = self.leds_controller.leds_get_callback)
-
-        # ENV
         self.env_controller = EnvController(name = self.name, logger = self.logger)
-        self.env_rpc_server = RpcServer(topic = name + ":env", func = self.env_controller.env_callback)
-
-        # ENV
         self.imu_controller = ImuController(name = self.name, logger = self.logger)
-        self.imu_rpc_server = RpcServer(topic = name + ":imu", func = self.imu_controller.imu_callback)
-
-        # MOTION
+        self.sonar_controller = SonarController(name = self.name, logger = self.logger)
+        self.ir_controller = IrController(name = self.name, logger = self.logger)
         self.motion_controller = MotionController(name = self.name, logger = self.logger)
-        self.vel_sub = Subscriber(topic = name + ":cmd_vel", func = self.motion_controller.cmd_vel)
-        self.motion_get_server = RpcServer(topic = name + ":motion:memory", func = self.motion_controller.motion_get_callback)
+        self.tof_controller = TofController(name = self.name, logger = self.logger)
 
         # SIMULATOR ------------------------------------------------------------
         self.pose_pub = Publisher(topic = name + ":pose")
@@ -65,24 +53,16 @@ class Robot:
         self.logger.info("Robot {} set-up".format(self.name))
 
     def start(self):
-        self.vel_sub.start()
-        self.logger.info("Robot {}: vel_sub started".format(self.name))
-        self.leds_set_sub.start()
-        self.logger.info("Robot {}: leds_set_sub started".format(self.name))
-        self.pan_tilt_set_sub.start()
-        self.logger.info("Robot {}: pan_tilt_set_sub started".format(self.name))
+        self.env_controller.start()
+        self.sonar_controller.start()
+        self.pan_tilt_controller.start()
+        self.leds_controller.start()
+        self.imu_controller.start()
+        self.motion_controller.start()
+        self.ir_controller.start()
+        self.tof_controller.start()
 
-        self.env_rpc_server.start()
-        self.logger.info("Robot {}: env_rpc_server started".format(self.name))
-        self.leds_wipe_server.start()
-        self.logger.info("Robot {}: leds_wipe_server started".format(self.name))
-        self.motion_get_server.start()
-        self.logger.info("Robot {}: motion_get_server started".format(self.name))
-        self.leds_get_server.start()
-        self.logger.info("Robot {}: leds_get_server started".format(self.name))
-        self.pan_tilt_get_server.start()
-        self.logger.info("Robot {}: pan_tilt_get_server started".format(self.name))
-
+        # Simulator stuff
         self.motion_thread.start()
         self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
 
