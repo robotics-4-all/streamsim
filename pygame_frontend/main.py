@@ -58,6 +58,8 @@ class Frontend:
 
         self.temperature = None
 
+        print("Press \"t\" to trigger env get")
+
         self.start()
 
     def robot_pose_update(self, message):
@@ -87,7 +89,7 @@ class Frontend:
                 if event.type == pygame.QUIT:
                     self.done = True
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_t:
-                    print(self.env_rpc_client.call({"from": 0, "to": 0}))
+                    print("Environmental sensor:", self.env_rpc_client.call({"from": 0, "to": 0}))
 
             self.screen.fill((255, 255, 255))
 
