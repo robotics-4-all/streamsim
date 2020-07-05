@@ -18,6 +18,7 @@ from stream_simulator import Logger
 from .controller_pan_tilt import PanTiltController
 from .controller_leds import LedsController
 from .controller_env import EnvController
+from .controller_imu import ImuController
 from .controller_motion import MotionController
 
 class Robot:
@@ -45,6 +46,10 @@ class Robot:
         # ENV
         self.env_controller = EnvController(name = self.name, logger = self.logger)
         self.env_rpc_server = RpcServer(topic = name + ":env", func = self.env_controller.env_callback)
+
+        # ENV
+        self.imu_controller = ImuController(name = self.name, logger = self.logger)
+        self.imu_rpc_server = RpcServer(topic = name + ":imu", func = self.imu_controller.imu_callback)
 
         # MOTION
         self.motion_controller = MotionController(name = self.name, logger = self.logger)
