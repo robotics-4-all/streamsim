@@ -52,6 +52,7 @@ class Robot:
         self.env_rpc_server = RpcServer(topic = name + ":env", func = self.env_callback)
         self.leds_wipe_server = RpcServer(topic = name + ":leds_wipe", func = self.leds_wipe_callback)
         self.motion_get_server = RpcServer(topic = name + ":motion:memory", func = self.motion_get_callback)
+        self.leds_get_server = RpcServer(topic = name + ":leds:memory", func = self.leds_get_callback)
 
         # Threads
         self.motion_thread = threading.Thread(target = self.handle_motion)
@@ -70,6 +71,8 @@ class Robot:
         self.logger.info("Robot {}: leds_wipe_server started".format(self.name))
         self.motion_get_server.start()
         self.logger.info("Robot {}: motion_get_server started".format(self.name))
+        self.leds_get_server.start()
+        self.logger.info("Robot {}: leds_get_server started".format(self.name))
 
         self.motion_thread.start()
         self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
@@ -129,6 +132,37 @@ class Robot:
                 "linear": self._memory["motion"][-i][0],
                 "angular": self._memory["motion"][-i][1],
                 "deviceId": 0
+            })
+        return ret
+
+    def leds_get_callback(self, message):
+        self.logger.info("Robot {}: Leds get callback: {}".format(self.name, message))
+        try:
+            _to = message["from"] + 1
+            _from = message["to"]
+        except Exception as e:
+            self.logger.error("{}: Malformed message for leds get: {} - {}".format(self.name, str(e.__class__), str(e)))
+            return []
+        ret = []
+        for i in range(_from, _to): # 0 to -1
+            timestamp = time.time()
+            secs = int(timestamp)
+            nanosecs = int((timestamp-secs) * 10**(9))
+            ret.append({
+                "header":{
+                    "stamp":{
+                        "sec": secs,
+                        "nanosec": nanosecs
+                    }
+                },
+                "leds": [
+                    {
+                        "r": self._memory["leds"][-i][0],
+                        "g": self._memory["leds"][-i][1],
+                        "b": self._memory["leds"][-i][2],
+                        "intensity": self._memory["leds"][-i][3]
+                    }
+                ]
             })
         return ret
 
