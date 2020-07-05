@@ -32,10 +32,11 @@ class Robot:
         self._color = [0, 0, 0, 0]
         self._wipe_color = [0, 0, 0, 0]
 
+        mem_size = 100
         self._memory = {
-            'leds': 10 * [0],
-            'leds_wipe': 10 * [0],
-            'motion': 10 * [0]
+            'leds': mem_size * [0],
+            'leds_wipe': mem_size * [0],
+            'motion': mem_size * [0]
         }
         print(self._memory)
 
@@ -50,6 +51,7 @@ class Robot:
         # RPC servers
         self.env_rpc_server = RpcServer(topic = name + ":env", func = self.env_callback)
         self.leds_wipe_server = RpcServer(topic = name + ":leds_wipe", func = self.leds_wipe_callback)
+        self.motion_get_server = RpcServer(topic = name + ":motion:memory", func = self.motion_get_callback)
 
         # Threads
         self.motion_thread = threading.Thread(target = self.handle_motion)
@@ -66,6 +68,8 @@ class Robot:
         self.logger.info("Robot {}: env_rpc_server started".format(self.name))
         self.leds_wipe_server.start()
         self.logger.info("Robot {}: leds_wipe_server started".format(self.name))
+        self.motion_get_server.start()
+        self.logger.info("Robot {}: motion_get_server started".format(self.name))
 
         self.motion_thread.start()
         self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
@@ -99,6 +103,32 @@ class Robot:
                 "pressure": float(random.uniform(30, 10)),
                 "humidity": float(random.uniform(30, 10)),
                 "gas": float(random.uniform(30, 10))
+            })
+        return ret
+
+    def motion_get_callback(self, message):
+        self.logger.info("Robot {}: Motion get callback: {}".format(self.name, message))
+        try:
+            _to = message["from"] + 1
+            _from = message["to"]
+        except Exception as e:
+            self.logger.error("{}: Malformed message for motion get: {} - {}".format(self.name, str(e.__class__), str(e)))
+            return []
+        ret = []
+        for i in range(_from, _to): # 0 to -1
+            timestamp = time.time()
+            secs = int(timestamp)
+            nanosecs = int((timestamp-secs) * 10**(9))
+            ret.append({
+                "header":{
+                    "stamp":{
+                        "sec": secs,
+                        "nanosec": nanosecs
+                    }
+                },
+                "linear": self._memory["motion"][-i][0],
+                "angular": self._memory["motion"][-i][1],
+                "deviceId": 0
             })
         return ret
 
