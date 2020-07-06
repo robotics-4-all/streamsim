@@ -10,8 +10,11 @@ import random
 
 from stream_simulator import Logger
 
-from stream_simulator import AmqpParams
-from commlib_py.transports.amqp import RPCServer
+from stream_simulator import ConnParams
+if ConnParams.type == "amqp":
+    from commlib_py.transports.amqp import RPCServer
+elif ConnParams.type == "redis":
+    from commlib_py.transports.redis import RPCServer
 
 class TofController:
     def __init__(self, name = "robot", logger = None):
@@ -20,7 +23,7 @@ class TofController:
 
         self.memory = 100 * [0]
 
-        self.tof_rpc_server = RPCServer(conn_params=AmqpParams.get(), on_request=self.tof_callback, rpc_name=name + ":tof")
+        self.tof_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.tof_callback, rpc_name=name + ":tof")
 
     def start(self):
         self.tof_rpc_server.run()

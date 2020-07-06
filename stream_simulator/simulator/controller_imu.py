@@ -10,8 +10,11 @@ import random
 
 from stream_simulator import Logger
 
-from stream_simulator import AmqpParams
-from commlib_py.transports.amqp import RPCServer
+from stream_simulator import ConnParams
+if ConnParams.type == "amqp":
+    from commlib_py.transports.amqp import RPCServer
+elif ConnParams.type == "redis":
+    from commlib_py.transports.redis import RPCServer
 
 class ImuController:
     def __init__(self, name = "robot", logger = None):
@@ -20,7 +23,7 @@ class ImuController:
 
         self.memory = 100 * [0]
 
-        self.imu_rpc_server = RPCServer(conn_params=AmqpParams.get(), on_request=self.imu_callback, rpc_name=name + ":imu")
+        self.imu_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.imu_callback, rpc_name=name + ":imu")
 
     def start(self):
         self.imu_rpc_server.run()

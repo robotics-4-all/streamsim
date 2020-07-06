@@ -10,8 +10,11 @@ import random
 
 from stream_simulator import Logger
 
-from stream_simulator import AmqpParams
-from commlib_py.transports.amqp import RPCServer, Subscriber, Publisher
+from stream_simulator import ConnParams
+if ConnParams.type == "amqp":
+    from commlib_py.transports.amqp import RPCServer, Subscriber, Publisher
+elif ConnParams.type == "redis":
+    from commlib_py.transports.redis import RPCServer, Subscriber, Publisher
 
 class LedsController:
     def __init__(self, name = "robot", logger = None):
@@ -20,13 +23,13 @@ class LedsController:
 
         self.memory = 100 * [0]
 
-        self.leds_wipe_pub = Publisher(conn_params=AmqpParams.get(), topic= name + ":leds_wipe")
+        self.leds_wipe_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":leds_wipe")
 
-        self.leds_set_sub = Subscriber(conn_params=AmqpParams.get(), topic = name + ":leds", on_message = self.leds_set_callback)
+        self.leds_set_sub = Subscriber(conn_params=ConnParams.get(), topic = name + ":leds", on_message = self.leds_set_callback)
 
-        self.leds_wipe_server = RPCServer(conn_params=AmqpParams.get(), on_request=self.leds_wipe_callback, rpc_name=name + ":leds_wipe")
+        self.leds_wipe_server = RPCServer(conn_params=ConnParams.get(), on_request=self.leds_wipe_callback, rpc_name=name + ":leds_wipe")
 
-        self.leds_get_server = RPCServer(conn_params=AmqpParams.get(), on_request=self.leds_get_callback, rpc_name=name + ":leds:memory")
+        self.leds_get_server = RPCServer(conn_params=ConnParams.get(), on_request=self.leds_get_callback, rpc_name=name + ":leds:memory")
 
     def start(self):
         self.leds_set_sub.run()

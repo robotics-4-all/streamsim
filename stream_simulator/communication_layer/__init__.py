@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from .amqp_conn_params import AmqpParams
+from .conn_params import ConnParams
 from .publisher import Publisher
 from .subscriber import Subscriber
 from .rpc_server import RpcServer

@@ -10,8 +10,12 @@ import math
 import threading
 
 from stream_simulator import Logger
-from stream_simulator import AmqpParams
-from commlib_py.transports.amqp import Subscriber, RPCClient
+from stream_simulator import ConnParams
+
+if ConnParams.type == "amqp":
+    from commlib_py.transports.amqp import Subscriber, RPCClient
+elif ConnParams.type == "redis":
+    from commlib_py.transports.redis import Subscriber, RPCClient
 
 class Frontend:
     def __init__(self):
@@ -30,13 +34,13 @@ class Frontend:
         self.clock = pygame.time.Clock()
 
         # Subscribers
-        self.new_w_sub = Subscriber(conn_params=AmqpParams.get(), topic = "world:details", on_message = self.new_world)
+        self.new_w_sub = Subscriber(conn_params=ConnParams.get(), topic = "world:details", on_message = self.new_world)
 
-        self.robot_pose_sub = Subscriber(conn_params=AmqpParams.get(), topic = "robot_1:pose", on_message = self.robot_pose_update)
+        self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = "robot_1:pose", on_message = self.robot_pose_update)
 
-        self.leds_set_sub = Subscriber(conn_params=AmqpParams.get(), topic = "robot_1:leds", on_message = self.leds_set_callback)
+        self.leds_set_sub = Subscriber(conn_params=ConnParams.get(), topic = "robot_1:leds", on_message = self.leds_set_callback)
 
-        self.leds_wipe_sub = Subscriber(conn_params=AmqpParams.get(), topic = "robot_1:leds_wipe", on_message = self.leds_wipe_callback)
+        self.leds_wipe_sub = Subscriber(conn_params=ConnParams.get(), topic = "robot_1:leds_wipe", on_message = self.leds_wipe_callback)
 
         # Subscribers starting
         self.new_w_sub.run()
@@ -45,7 +49,7 @@ class Frontend:
         self.leds_wipe_sub.run()
 
         # RPC clients
-        self.env_rpc_client = RPCClient(conn_params=AmqpParams.get(), rpc_name="robot_1:env")
+        self.env_rpc_client = RPCClient(conn_params=ConnParams.get(), rpc_name="robot_1:env")
 
 
     def new_world(self, message, meta):

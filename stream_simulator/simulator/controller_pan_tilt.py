@@ -10,8 +10,11 @@ import random
 
 from stream_simulator import Logger
 
-from stream_simulator import AmqpParams
-from commlib_py.transports.amqp import RPCServer, Subscriber
+from stream_simulator import ConnParams
+if ConnParams.type == "amqp":
+    from commlib_py.transports.amqp import RPCServer, Subscriber
+elif ConnParams.type == "redis":
+    from commlib_py.transports.redis import RPCServer, Subscriber
 
 class PanTiltController:
     def __init__(self, name = "robot", logger = None):
@@ -20,9 +23,9 @@ class PanTiltController:
 
         self.memory = 100 * [0]
 
-        self.pan_tilt_set_sub = Subscriber(conn_params=AmqpParams.get(), topic = name + ":pan_tilt", on_message = self.pan_tilt_set_callback)
+        self.pan_tilt_set_sub = Subscriber(conn_params=ConnParams.get(), topic = name + ":pan_tilt", on_message = self.pan_tilt_set_callback)
 
-        self.pan_tilt_get_server = RPCServer(conn_params=AmqpParams.get(), on_request=self.pan_tilt_get_callback, rpc_name=name + ":pan_tilt:memory")
+        self.pan_tilt_get_server = RPCServer(conn_params=ConnParams.get(), on_request=self.pan_tilt_get_callback, rpc_name=name + ":pan_tilt:memory")
 
     def start(self):
         self.pan_tilt_set_sub.run()

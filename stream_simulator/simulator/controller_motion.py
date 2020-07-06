@@ -10,8 +10,11 @@ import random
 
 from stream_simulator import Logger
 
-from stream_simulator import AmqpParams
-from commlib_py.transports.amqp import RPCServer, Subscriber
+from stream_simulator import ConnParams
+if ConnParams.type == "amqp":
+    from commlib_py.transports.amqp import RPCServer, Subscriber
+elif ConnParams.type == "redis":
+    from commlib_py.transports.redis import RPCServer, Subscriber
 
 class MotionController:
     def __init__(self, name = "robot", logger = None):
@@ -22,9 +25,9 @@ class MotionController:
 
         self.memory = 100 * [0]
 
-        self.vel_sub = Subscriber(conn_params=AmqpParams.get(), topic = name + ":cmd_vel", on_message = self.cmd_vel)
+        self.vel_sub = Subscriber(conn_params=ConnParams.get(), topic = name + ":cmd_vel", on_message = self.cmd_vel)
 
-        self.motion_get_server = RPCServer(conn_params=AmqpParams.get(), on_request=self.motion_get_callback, rpc_name=name + ":motion:memory")
+        self.motion_get_server = RPCServer(conn_params=ConnParams.get(), on_request=self.motion_get_callback, rpc_name=name + ":motion:memory")
 
     def start(self):
         self.vel_sub.run()

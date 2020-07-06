@@ -9,8 +9,11 @@ import logging
 
 from stream_simulator import Logger
 
-from stream_simulator import AmqpParams
-from commlib_py.transports.amqp import Publisher
+from stream_simulator import ConnParams
+if ConnParams.type == "amqp":
+    from commlib_py.transports.amqp import Publisher
+elif ConnParams.type == "redis":
+    from commlib_py.transports.redis import Publisher
 
 class World:
     def __init__(self, filename = None, debug_level = logging.INFO):
@@ -24,7 +27,7 @@ class World:
                 self.logger.critical("World filename does not exist")
 
         # Publishers
-        self.world_pub = Publisher(conn_params=AmqpParams.get(), topic= "world:details")
+        self.world_pub = Publisher(conn_params=ConnParams.get(), topic= "world:details")
         self.world_pub.publish(self.world)
 
         self.width = self.world['map']['width']
