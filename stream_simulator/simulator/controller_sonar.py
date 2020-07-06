@@ -9,7 +9,9 @@ import threading
 import random
 
 from stream_simulator import Logger
-from stream_simulator import RpcServer
+
+from stream_simulator import AmqpParams
+from commlib_py.transports.amqp import RPCServer
 
 class SonarController:
     def __init__(self, name = "robot", logger = None):
@@ -18,10 +20,10 @@ class SonarController:
 
         self.memory = 100 * [0]
 
-        self.sonar_rpc_server = RpcServer(topic = name + ":sonar", func = self.sonar_callback)
+        self.sonar_rpc_server = RPCServer(conn_params=AmqpParams.get(), on_request=self.sonar_callback, rpc_name=name + ":sonar")
 
     def start(self):
-        self.sonar_rpc_server.start()
+        self.sonar_rpc_server.run()
         self.logger.info("Robot {}: sonar_rpc_server started".format(self.name))
 
     def memory_write(self, data):
@@ -29,7 +31,7 @@ class SonarController:
         self.memory.insert(0, data)
         self.logger.info("Robot {}: memory updated for {}".format(self.name, "sonar"))
 
-    def sonar_callback(self, message):
+    def sonar_callback(self, message, meta):
         self.logger.info("Robot {}: sonar callback: {}".format(self.name, message))
         try:
             _to = message["from"] + 1
@@ -37,12 +39,12 @@ class SonarController:
         except Exception as e:
             self.logger.error("{}: Malformed message for env: {} - {}".format(self.name, str(e.__class__), str(e)))
             return []
-        ret = []
+        ret = {"data": []}
         for i in range(_from, _to): # 0 to -1
             timestamp = time.time()
             secs = int(timestamp)
             nanosecs = int((timestamp-secs) * 10**(9))
-            ret.append({
+            ret["data"].append({
                 "header":{
                     "stamp":{
                         "sec": secs,

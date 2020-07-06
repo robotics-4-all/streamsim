@@ -8,7 +8,10 @@ import logging
 import threading
 import random
 
-from stream_simulator import Logger, RpcServer
+from stream_simulator import Logger
+
+from stream_simulator import AmqpParams
+from commlib_py.transports.amqp import RPCServer
 
 class ImuController:
     def __init__(self, name = "robot", logger = None):
@@ -17,10 +20,10 @@ class ImuController:
 
         self.memory = 100 * [0]
 
-        self.imu_rpc_server = RpcServer(topic = name + ":imu", func = self.imu_callback)
+        self.imu_rpc_server = RPCServer(conn_params=AmqpParams.get(), on_request=self.imu_callback, rpc_name=name + ":imu")
 
     def start(self):
-        self.imu_rpc_server.start()
+        self.imu_rpc_server.run()
         self.logger.info("Robot {}: imu_rpc_server started".format(self.name))
 
     def memory_write(self, data):
@@ -28,7 +31,7 @@ class ImuController:
         self.memory.insert(0, data)
         self.logger.info("Robot {}: memory updated for {}".format(self.name, "imu"))
 
-    def imu_callback(self, message):
+    def imu_callback(self, message, meta):
         self.logger.info("Robot {}: Imu callback: {}".format(self.name, message))
         try:
             _to = message["from"] + 1
@@ -36,12 +39,12 @@ class ImuController:
         except Exception as e:
             self.logger.error("{}: Malformed message for Imu: {} - {}".format(self.name, str(e.__class__), str(e)))
             return []
-        ret = []
+        ret = {"data": []}
         for i in range(_from, _to): # 0 to -1
             timestamp = time.time()
             secs = int(timestamp)
             nanosecs = int((timestamp-secs) * 10**(9))
-            ret.append({
+            ret["data"].append({
                 "header":{
                     "stamp":{
                         "sec": secs,
