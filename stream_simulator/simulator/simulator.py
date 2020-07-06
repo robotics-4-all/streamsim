@@ -31,6 +31,7 @@ class Simulator:
             pose['y'] * resolution, \
             pose['theta'] / 180.0 * math.pi)
         self.robot.set_map(self.world.map, self.world.resolution)
+        self.robot.world = self.world
 
     def start(self):
         self.robot.start()

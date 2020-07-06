@@ -13,16 +13,27 @@ from stream_simulator import Logger
 from stream_simulator import ConnParams
 
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import Subscriber, RPCClient
+    from commlib_py.transports.amqp import Subscriber, RPCClient, Publisher
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import Subscriber, RPCClient
+    from commlib_py.transports.redis import Subscriber, RPCClient, Publisher
 
 class Frontend:
     def __init__(self):
         pygame.init()
 
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
+
         self.robot_img = pygame.image.load(self.dir_path + '/imgs/Robot.png')
+        self.human_img = pygame.image.load(self.dir_path + '/imgs/Human.png')
+        self.moving_human_img = pygame.image.load(self.dir_path + '/imgs/Moving_Human.png')
+        self.speaking_human_img = pygame.image.load(self.dir_path + '/imgs/Speaking_Human.png')
+        self.moving_speaking_human_img = pygame.image.load(self.dir_path + '/imgs/Moving_Speaking_Human.png')
+        self.barcode_img = pygame.image.load(self.dir_path + '/imgs/Barcode.png')
+        self.qr_img = pygame.image.load(self.dir_path + '/imgs/QR_code.png')
+        self.sign_img = pygame.image.load(self.dir_path + '/imgs/Sign.png')
+        self.sound_img = pygame.image.load(self.dir_path + '/imgs/Sound.png')
+        self.colour_img = pygame.image.load(self.dir_path + '/imgs/Colour.png')
+
         self.robot_color = [0, 0, 0]
         self.robot_color_wipe = [0, 0, 0]
         self.wipe_timeout = 0
@@ -50,7 +61,10 @@ class Frontend:
 
         # RPC clients
         self.env_rpc_client = RPCClient(conn_params=ConnParams.get(), rpc_name="robot_1:env")
+        self.vel_publisher = Publisher(conn_params=ConnParams.get(), topic= "robot_1:cmd_vel")
 
+        self.linear = 0
+        self.angular = 0
 
     def new_world(self, message, meta):
         self.done = True
@@ -101,6 +115,22 @@ class Frontend:
                     self.done = True
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_t:
                     print("Environmental sensor:", self.env_rpc_client.call({"from": 0, "to": 0}))
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+                    self.linear += 0.1
+                    self.vel_publisher.publish({"linear": self.linear, "angular": self.angular})
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
+                    self.linear -= 0.1
+                    self.vel_publisher.publish({"linear": self.linear, "angular": self.angular})
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
+                    self.angular += 0.1
+                    self.vel_publisher.publish({"linear": self.linear, "angular": self.angular})
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
+                    self.angular -= 0.1
+                    self.vel_publisher.publish({"linear": self.linear, "angular": self.angular})
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    self.angular = 0
+                    self.linear = 0
+                    self.vel_publisher.publish({"linear": self.linear, "angular": self.angular})
 
             self.screen.fill((255, 255, 255))
 
@@ -118,6 +148,29 @@ class Frontend:
                 (self.robot_pose["x"] / self.resolution - 30,\
                 self.robot_pose["y"] / self.resolution - 30))
 
+            for human in self.world["actors"]["humans"]:
+                img = None
+                if human["move"] == 0 and human["sound"] == 0:
+                    img = self.human_img
+                if human["move"] == 1 and human["sound"] == 0:
+                    img = self.moving_human_img
+                if human["move"] == 0 and human["sound"] == 1:
+                    img = self.speaking_human_img
+                if human["move"] == 1 and human["sound"] == 1:
+                    img = self.moving_speaking_human_img
+
+                self.screen.blit(pygame.transform.rotozoom(img, 0, 0.1), (human["x"], human["y"]))
+
+            for actor in self.world["actors"]["sound_sources"]:
+                self.screen.blit(pygame.transform.rotozoom(self.sound_img, 0, 0.1), (actor["x"] - 30, actor["y"] - 30))
+            for actor in self.world["actors"]["qrs"]:
+                self.screen.blit(pygame.transform.rotozoom(self.qr_img, 0, 0.1), (actor["x"] - 30, actor["y"] - 30))
+            for actor in self.world["actors"]["barcodes"]:
+                self.screen.blit(pygame.transform.rotozoom(self.barcode_img, 0, 0.1), (actor["x"] - 30, actor["y"] - 30))
+            for actor in self.world["actors"]["colors"]:
+                self.screen.blit(pygame.transform.rotozoom(self.colour_img, 0, 0.1), (actor["x"] - 30, actor["y"] - 30))
+            for actor in self.world["actors"]["texts"]:
+                self.screen.blit(pygame.transform.rotozoom(self.sign_img, 0, 0.1), (actor["x"] - 30, actor["y"] - 30))
 
             if self.robot_color_wipe != [0,0,0]:
                 self.wipe_timeout = 100

@@ -39,6 +39,9 @@ class Robot:
         self._y = 0
         self._theta = 0
 
+        self.world = None
+        self.detection_threshold = 1.0
+
         self.pan_tilt_controller = PanTiltController(name = self.name, logger = self.logger)
         self.leds_controller = LedsController(name = self.name, logger = self.logger)
         self.env_controller = EnvController(name = self.name, logger = self.logger)
@@ -159,6 +162,38 @@ class Robot:
                 "y": float("{:.2f}".format(self._y)),
                 "theta": float("{:.2f}".format(self._theta))
             })
+
+            # Check distance from stuff
+            for h in self.world.world["actors"]["humans"]:
+                x = h["x"] * self.world.resolution
+                y = h["y"] * self.world.resolution
+                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                    print("Human!")
+            for h in self.world.world["actors"]["sound_sources"]:
+                x = h["x"] * self.world.resolution
+                y = h["y"] * self.world.resolution
+                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                    print("Sound source!")
+            for h in self.world.world["actors"]["qrs"]:
+                x = h["x"] * self.world.resolution
+                y = h["y"] * self.world.resolution
+                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                    print("QR!")
+            for h in self.world.world["actors"]["barcodes"]:
+                x = h["x"] * self.world.resolution
+                y = h["y"] * self.world.resolution
+                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                    print("Barcode!")
+            for h in self.world.world["actors"]["colors"]:
+                x = h["x"] * self.world.resolution
+                y = h["y"] * self.world.resolution
+                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                    print("Color!")
+            for h in self.world.world["actors"]["texts"]:
+                x = h["x"] * self.world.resolution
+                y = h["y"] * self.world.resolution
+                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                    print("Text!")
 
             time.sleep(self.dt)
 

@@ -1,6 +1,6 @@
 map:
-  width: 500
-  height: 500
+  width: 1000
+  height: 800
   resolution: 0.02
   obstacles:
     lines:
@@ -34,15 +34,17 @@ robots:
 
 actors:
   humans:
-    - {x: 50, y: 30, move: 0, sound: 0, lang: EL}
-    - {x: 20, y: 30, move: 1, sound: 1, lang: EL} # move is for motion detection, no dyn obstacles yet
+    - {x: 450, y: 30, move: 0, sound: 0, lang: EL}
+    - {x: 50, y: 330, move: 1, sound: 0, lang: EL}
+    - {x: 250, y: 130, move: 0, sound: 1, lang: EL}
+    - {x: 320, y: 330, move: 1, sound: 1, lang: EL} # move is for motion detection, no dyn obstacles yet
   sound_sources:
-    - {x: 10, y: 30, lang: EL} # lang for language detection
+    - {x: 500, y: 320, lang: EL} # lang for language detection
   qrs:
-    - {x: 10, y: 30, message: test}
+    - {x: 100, y: 600, message: test}
   barcodes:
-    - {x: 10, y: 30, message: EL3341}
+    - {x: 900, y: 500, message: EL3341}
   colors:
-    - {x: 10, y: 30, r: 255, g: 0, b: 0} # for dominant color
+    - {x: 700, y: 8000, r: 255, g: 0, b: 0} # for dominant color
   texts:
-    - {x: 10, y: 30, text: this is a text} # for OCR
+    - {x: 800, y: 30, text: this is a text} # for OCR
