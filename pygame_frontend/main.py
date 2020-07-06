@@ -9,8 +9,9 @@ import os
 import math
 import threading
 
-from stream_simulator import Subscriber
-from stream_simulator import RpcClient
+from stream_simulator import Logger
+from stream_simulator import AmqpParams
+from commlib_py.transports.amqp import Subscriber, RPCClient
 
 class Frontend:
     def __init__(self):
@@ -22,29 +23,35 @@ class Frontend:
         self.robot_color_wipe = [0, 0, 0]
         self.wipe_timeout = 0
 
+        self.robot_pose = {"x": 0, "y": 0, "theta": 0}
+
         self.screen = pygame.display.set_mode((100, 100))
         self.screen.fill((255, 255, 255))
         self.clock = pygame.time.Clock()
 
         # Subscribers
-        self.new_w_sub = Subscriber(topic = "world:details", func = self.new_world)
-        self.robot_pose_sub = Subscriber(topic = "robot_1:pose", func = self.robot_pose_update)
-        self.leds_set_sub = Subscriber(topic = "robot_1:leds", func = self.leds_set_callback)
-        self.leds_wipe_sub = Subscriber(topic = "robot_1:leds_wipe", func = self.leds_wipe_callback)
+        self.new_w_sub = Subscriber(conn_params=AmqpParams.get(), topic = "world:details", on_message = self.new_world)
+
+        self.robot_pose_sub = Subscriber(conn_params=AmqpParams.get(), topic = "robot_1:pose", on_message = self.robot_pose_update)
+
+        self.leds_set_sub = Subscriber(conn_params=AmqpParams.get(), topic = "robot_1:leds", on_message = self.leds_set_callback)
+
+        self.leds_wipe_sub = Subscriber(conn_params=AmqpParams.get(), topic = "robot_1:leds_wipe", on_message = self.leds_wipe_callback)
 
         # Subscribers starting
-        self.new_w_sub.start()
-        self.robot_pose_sub.start()
-        self.leds_set_sub.start()
-        self.leds_wipe_sub.start()
+        self.new_w_sub.run()
+        self.robot_pose_sub.run()
+        self.leds_set_sub.run()
+        self.leds_wipe_sub.run()
 
         # RPC clients
-        self.env_rpc_client = RpcClient(topic = "robot_1:env")
+        self.env_rpc_client = RPCClient(conn_params=AmqpParams.get(), rpc_name="robot_1:env")
 
-    def new_world(self, message):
+
+    def new_world(self, message, meta):
         self.done = True
 
-        self.world = json.loads(json.loads(message['data'])) # Check this!
+        self.world = message
         self.resolution = self.world["map"]["resolution"]
 
         self.screen = pygame.display.set_mode((self.world["map"]["width"], self.world["map"]["height"]))
@@ -62,19 +69,19 @@ class Frontend:
 
         self.start()
 
-    def robot_pose_update(self, message):
-        self.robot_pose = json.loads(message['data'])
+    def robot_pose_update(self, message, meta):
+        self.robot_pose = message
 
-    def leds_set_callback(self, message):
-        res = json.loads(message['data'])
+    def leds_set_callback(self, message, meta):
+        res = message
         self.robot_color = [
             res["r"],
             res["g"],
             res["b"]
         ]
 
-    def leds_wipe_callback(self, message):
-        res = json.loads(message['data'])
+    def leds_wipe_callback(self, message, meta):
+        res = message
         self.robot_color_wipe = [
             res["r"],
             res["g"],

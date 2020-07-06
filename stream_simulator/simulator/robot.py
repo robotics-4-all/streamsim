@@ -8,10 +8,8 @@ import logging
 import threading
 import random
 
-from stream_simulator import Publisher
-from stream_simulator import Subscriber
-
-from stream_simulator import RpcServer
+from stream_simulator import AmqpParams
+from commlib_py.transports.amqp import Publisher
 
 from stream_simulator import Logger
 
@@ -49,7 +47,7 @@ class Robot:
         self.encoder_controller = EncoderController(name = self.name, logger = self.logger)
 
         # SIMULATOR ------------------------------------------------------------
-        self.pose_pub = Publisher(topic = name + ":pose")
+        self.pose_pub = Publisher(conn_params=AmqpParams.get(), topic= name + ":pose")
 
         # Threads
         self.motion_thread = threading.Thread(target = self.handle_motion)
