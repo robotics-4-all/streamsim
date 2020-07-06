@@ -26,6 +26,7 @@ from .controller_ir import IrController
 from .controller_tof import TofController
 from .controller_button import ButtonController
 from .controller_encoder import EncoderController
+from .controller_camera import CameraController
 
 class Robot:
     def __init__(self, name = "robot", tick = 0.1, debug_level = logging.INFO):
@@ -48,6 +49,7 @@ class Robot:
         self.tof_controller = TofController(name = self.name, logger = self.logger)
         self.button_controller = ButtonController(name = self.name, logger = self.logger)
         self.encoder_controller = EncoderController(name = self.name, logger = self.logger)
+        self.camera_controller = CameraController(name = self.name, logger = self.logger)
 
         # SIMULATOR ------------------------------------------------------------
         self.pose_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":pose")
@@ -68,6 +70,7 @@ class Robot:
         self.tof_controller.start()
         self.button_controller.start()
         self.encoder_controller.start()
+        self.camera_controller.start()
 
         # Simulator stuff
         self.motion_thread.start()
