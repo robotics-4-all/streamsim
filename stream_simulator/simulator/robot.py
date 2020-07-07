@@ -7,6 +7,7 @@ import math
 import logging
 import threading
 import random
+import string
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
@@ -29,7 +30,7 @@ from .controller_encoder import EncoderController
 from .controller_camera import CameraController
 
 class Robot:
-    def __init__(self, name = "robot", tick = 0.1, debug_level = logging.INFO):
+    def __init__(self, world = None, map = None, name = "robot", tick = 0.1, debug_level = logging.INFO):
         self.logger = Logger("name", debug_level)
 
         self.name = name
@@ -39,9 +40,76 @@ class Robot:
         self._y = 0
         self._theta = 0
 
-        self.world = None
         self.detection_threshold = 1.0
 
+        # Yaml configuration management
+        self.world = world
+        self.map = map
+        self.width = self.map.shape[0]
+        self.height = self.map.shape[1]
+        self.resolution = self.world["map"]["resolution"]
+        self.logger.info("Robot {}: map set".format(self.name))
+
+        pose = self.world['robots'][0]['starting_pose']
+        self._x = pose['x'] * self.resolution
+        self._y = pose['y'] * self.resolution
+        self._theta = pose['theta'] / 180.0 * math.pi
+        self.logger.info("Robot {} pose set: {}, {}, {}".format(
+            self.name, self._x, self._y, self._theta))
+
+        self.devices = []
+        id_length = 20
+        for s in self.world["robots"][0]["sensors"]:
+            if s == "microphone":
+                sensors = self.world["robots"][0]["sensors"][s]
+                cnt = -1
+                for m in sensors:
+                    cnt += 1
+                    id = 'id_' + ''.join(random.choices(
+                        string.ascii_lowercase + string.digits, k = id_length))
+                    msg = {
+                        "type": "MICROPHONE",
+                        "brand": "usb_mic",
+                        "base_topic": self.name + "/sensor/audio/microphone/" + str(cnt) + "/" + id,
+                        "name": "microphone_" + str(cnt),
+                        "place": m[1],
+                        "id": id,
+                        "enabled": True,
+                        "orientation": m[0]
+                    }
+                    self.devices.append(msg)
+            if s == "sonar":
+                sensors = self.world["robots"][0]["sensors"][s]
+                cnt = -1
+                for m in sensors:
+                    cnt += 1
+                    id = 'id_' + ''.join(random.choices(
+                        string.ascii_lowercase + string.digits, k = id_length))
+                    msg = {
+                        "type": "SONAR",
+                        "brand": "sonar",
+                        "base_topic": self.name + "/sensor/distance/sonar/" + str(cnt) + "/" + id,
+                        "name": "sonar_" + str(cnt),
+                        "place": m[1],
+                        "id": id,
+                        "enabled": True,
+                        "orientation": m[0]
+                    }
+                    self.devices.append(msg)
+            if s == "tof":
+                pass
+            if s == "camera":
+                pass
+            if s == "imu":
+                pass
+            if s == "button":
+                pass
+            if s == "env":
+                pass
+
+        print(self.devices)
+
+        # Devices management
         self.pan_tilt_controller = PanTiltController(name = self.name, logger = self.logger)
         self.leds_controller = LedsController(name = self.name, logger = self.logger)
         self.env_controller = EnvController(name = self.name, logger = self.logger)
@@ -79,12 +147,8 @@ class Robot:
         self.motion_thread.start()
         self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
 
-    def set_map(self, map, resolution):
-        self.map = map
-        self.width = self.map.shape[0]
-        self.height = self.map.shape[1]
-        self.resolution = resolution
-        self.logger.info("Robot {}: map set".format(self.name))
+    def initialize_resources(self):
+        pass
 
     def check_ok(self, x, y, prev_x, prev_y):
         # Check out of bounds
@@ -164,41 +228,35 @@ class Robot:
             })
 
             # Check distance from stuff
-            for h in self.world.world["actors"]["humans"]:
-                x = h["x"] * self.world.resolution
-                y = h["y"] * self.world.resolution
+            for h in self.world["actors"]["humans"]:
+                x = h["x"] * self.resolution
+                y = h["y"] * self.resolution
                 if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
                     print("Human!")
-            for h in self.world.world["actors"]["sound_sources"]:
-                x = h["x"] * self.world.resolution
-                y = h["y"] * self.world.resolution
+            for h in self.world["actors"]["sound_sources"]:
+                x = h["x"] * self.resolution
+                y = h["y"] * self.resolution
                 if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
                     print("Sound source!")
-            for h in self.world.world["actors"]["qrs"]:
-                x = h["x"] * self.world.resolution
-                y = h["y"] * self.world.resolution
+            for h in self.world["actors"]["qrs"]:
+                x = h["x"] * self.resolution
+                y = h["y"] * self.resolution
                 if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
                     print("QR!")
-            for h in self.world.world["actors"]["barcodes"]:
-                x = h["x"] * self.world.resolution
-                y = h["y"] * self.world.resolution
+            for h in self.world["actors"]["barcodes"]:
+                x = h["x"] * self.resolution
+                y = h["y"] * self.resolution
                 if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
                     print("Barcode!")
-            for h in self.world.world["actors"]["colors"]:
-                x = h["x"] * self.world.resolution
-                y = h["y"] * self.world.resolution
+            for h in self.world["actors"]["colors"]:
+                x = h["x"] * self.resolution
+                y = h["y"] * self.resolution
                 if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
                     print("Color!")
-            for h in self.world.world["actors"]["texts"]:
-                x = h["x"] * self.world.resolution
-                y = h["y"] * self.world.resolution
+            for h in self.world["actors"]["texts"]:
+                x = h["x"] * self.resolution
+                y = h["y"] * self.resolution
                 if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
                     print("Text!")
 
             time.sleep(self.dt)
-
-    def set_pose(self, x, y, theta):
-        self._x = x
-        self._y = y
-        self._theta = theta
-        self.logger.info("Robot {} pose set: {}, {}, {}".format(self.name, x, y, theta))

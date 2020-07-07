@@ -11,22 +11,23 @@ map:
     humidity: 60
     pressure: 1800
 
+# Numbers are orientations in degrees
 robots:
   -
     name: robot_1
     sensors:
-      microphone: 1 # 1 for existance, 0 for non-existance
-      sonars: {0, 90, 180, -90} # orientations in degrees
-      tofs: {0} # orientations in degrees
-      camera: {0} # orientations in degrees
-      imu: 1
-      buttons: 8
-      env: 1
+      microphone: [[0, FRONT]]
+      sonar: [[-45, FR] , [45, FL], [-90, R], [90, L], [-135, BR], [135, BL]]
+      tof: [[0, F]]
+      camera: [[0, FRONT]]
+      imu: [[1, CENTER]]
+      button: [[0, F], [-45, FR], [45, FL], [-90, R], [90, L], [180, B], [-135, BR], [135, BL], [0, G1], [0, G2], [0, G3], [0, G4]]
+      env: [[0, FRONT]]
     effectors:
-      speaker: 1
-      leds: 1
-      pan_tilt: 1
-      touch_screen: 1
+      speaker: [[0, FRONT]]
+      leds: [[0, FRONT]]
+      pan_tilt: [[0, UNDER]]
+      touch_screen: [[0, UNKNOWN]]
     starting_pose:
       x: 100 # in pixels
       y: 100 # in pixels

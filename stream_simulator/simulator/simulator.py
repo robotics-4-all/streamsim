@@ -19,19 +19,19 @@ class Simulator:
         self.logger = Logger("simulator", debug_level)
 
         curr_dir = pathlib.Path().absolute()
-        self.world = World(filename = str(curr_dir) + "/../worlds/map_1.yaml",\
-            debug_level = debug_level)
-        resolution = self.world.world['map']['resolution']
 
-        self.robot = Robot(name = "robot_1", tick = self.tick, debug_level = debug_level)
-        pose = self.world.world['robots'][0]['starting_pose']
+        self.world = World(
+            filename = str(curr_dir) + "/../worlds/map_1.yaml",
+            debug_level = debug_level
+        )
 
-        self.robot.set_pose(\
-            pose['x'] * resolution, \
-            pose['y'] * resolution, \
-            pose['theta'] / 180.0 * math.pi)
-        self.robot.set_map(self.world.map, self.world.resolution)
-        self.robot.world = self.world
+        self.robot = Robot(
+            world = self.world.world,
+            map = self.world.map,
+            name = "robot_1",
+            tick = self.tick,
+            debug_level = debug_level
+        )
 
     def start(self):
         self.robot.start()
