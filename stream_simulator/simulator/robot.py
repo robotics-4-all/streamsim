@@ -82,7 +82,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 0,
+                        "queue_size": 0
                     }
                     self.devices.append(msg)
             elif s == "sonar":
@@ -100,7 +102,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 1,
+                        "queue_size": 100
                     }
                     self.devices.append(msg)
             elif s == "ir":
@@ -118,7 +122,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 1,
+                        "queue_size": 100
                     }
                     self.devices.append(msg)
             elif s == "tof":
@@ -136,7 +142,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 1,
+                        "queue_size": 100
                     }
                     self.devices.append(msg)
             elif s == "camera":
@@ -154,7 +162,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 0,
+                        "queue_size": 0
                     }
                     self.devices.append(msg)
             elif s == "imu":
@@ -172,7 +182,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 1,
+                        "queue_size": 100
                     }
                     self.devices.append(msg)
             elif s == "button":
@@ -190,7 +202,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 1,
+                        "queue_size": 100
                     }
                     self.devices.append(msg)
             elif s == "env":
@@ -208,7 +222,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 1,
+                        "queue_size": 100
                     }
                     self.devices.append(msg)
             elif s == "speaker":
@@ -226,7 +242,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 0,
+                        "queue_size": 0
                     }
                     self.devices.append(msg)
             elif s == "leds":
@@ -244,7 +262,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 0,
+                        "queue_size": 0
                     }
                     self.devices.append(msg)
             elif s == "pan_tilt":
@@ -262,7 +282,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 0,
+                        "queue_size": 0
                     }
                     self.devices.append(msg)
             elif s == "touch_screen":
@@ -280,7 +302,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 0,
+                        "queue_size": 0
                     }
                     self.devices.append(msg)
             elif s == "skid_steer":
@@ -298,7 +322,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 0,
+                        "queue_size": 0
                     }
                     self.devices.append(msg)
             elif s == "encoder":
@@ -316,7 +342,9 @@ class Robot:
                         "place": m[1],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0]
+                        "orientation": m[0],
+                        "hz": 1,
+                        "queue_size": 100
                     }
                     self.devices.append(msg)
             else:

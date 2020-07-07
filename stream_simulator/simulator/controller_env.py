@@ -29,12 +29,31 @@ class EnvController:
         self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
+    def sensor_read(self):
+        self.logger.info("Env {} sensor read thread started".format(self.info["id"]))
+        while self.info["enabled"]:
+            time.sleep(1.0 / self.info["hz"])
+            self.memory_write({
+                "temperature": float(random.uniform(30, 10)),
+                "pressure": float(random.uniform(30, 10)),
+                "humidity": float(random.uniform(30, 10)),
+                "gas": float(random.uniform(30, 10))
+            })
+        self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
+        self.info["hz"] = message["hz"]
+        self.info["queue_size"] = message["queue_size"]
+
+        self.memory = self.info["queue_size"] * [0]
+        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
+        self.sensor_read_thread.start()
         return {"enabled": True}
 
     def disable_callback(self, message, meta):
         self.info["enabled"] = False
+        self.logger.info("Env {} stops reading".format(self.info["id"]))
         return {"enabled": False}
 
     def start(self):
@@ -42,12 +61,21 @@ class EnvController:
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
+        if self.info["enabled"]:
+            self.memory = self.info["queue_size"] * [0]
+            self.sensor_read_thread = threading.Thread(target = self.sensor_read)
+            self.sensor_read_thread.start()
+            self.logger.info("Env {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
+
     def memory_write(self, data):
         del self.memory[-1]
         self.memory.insert(0, data)
-        self.logger.info("Robot {}: memory updated for {}".format(self.name, "leds"))
+        # self.logger.info("Robot {}: memory updated for {}".format(self.name, "leds"))
 
     def env_callback(self, message, meta):
+        if self.info["enabled"] is False:
+            return {"data": []}
+
         self.logger.info("Robot {}: Env callback: {}".format(self.name, message))
         try:
             _to = message["from"] + 1
@@ -67,9 +95,9 @@ class EnvController:
                         "nanosec": nanosecs
                     }
                 },
-                "temperature": float(random.uniform(30, 10)),
-                "pressure": float(random.uniform(30, 10)),
-                "humidity": float(random.uniform(30, 10)),
-                "gas": float(random.uniform(30, 10))
+                "temperature": self.memory[-i]["temperature"],
+                "pressure": self.memory[-i]["pressure"],
+                "humidity": self.memory[-i]["humidity"],
+                "gas": self.memory[-i]["gas"]
             })
         return ret
