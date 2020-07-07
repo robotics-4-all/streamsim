@@ -17,22 +17,22 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import RPCServer, Subscriber
 
 class PanTiltController:
-    def __init__(self, name = "robot", logger = None):
+    def __init__(self, info = None, logger = None):
         self.logger = logger
-        self.name = name
+
+        self.info = info
+        self.name = info["name"]
 
         self.memory = 100 * [0]
 
-        self.pan_tilt_set_sub = Subscriber(conn_params=ConnParams.get(), topic = name + ":pan_tilt", on_message = self.pan_tilt_set_callback)
+        self.pan_tilt_set_sub = Subscriber(conn_params=ConnParams.get(), topic =info["base_topic"] + "/set", on_message = self.pan_tilt_set_callback)
 
-        self.pan_tilt_get_server = RPCServer(conn_params=ConnParams.get(), on_request=self.pan_tilt_get_callback, rpc_name=name + ":pan_tilt:memory")
+        self.pan_tilt_get_server = RPCServer(conn_params=ConnParams.get(), on_request=self.pan_tilt_get_callback, rpc_name=info["base_topic"] + "/get")
 
     def start(self):
         self.pan_tilt_set_sub.run()
-        self.logger.info("Robot {}: pan_tilt_set_sub started".format(self.name))
 
         self.pan_tilt_get_server.run()
-        self.logger.info("Robot {}: pan_tilt_get_server started".format(self.name))
 
     def memory_write(self, data):
         del self.memory[-1]

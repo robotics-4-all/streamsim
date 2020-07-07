@@ -17,29 +17,28 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import RPCServer, Subscriber, Publisher
 
 class LedsController:
-    def __init__(self, name = "robot", logger = None):
+    def __init__(self, info = None, logger = None):
         self.logger = logger
-        self.name = name
+
+        self.info = info
+        self.name = info["name"]
 
         self.memory = 100 * [0]
 
-        self.leds_wipe_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":leds_wipe")
+        self.leds_wipe_pub = Publisher(conn_params=ConnParams.get(), topic=info["base_topic"] + "/leds_wipe/pub")
 
-        self.leds_set_sub = Subscriber(conn_params=ConnParams.get(), topic = name + ":leds", on_message = self.leds_set_callback)
+        self.leds_set_sub = Subscriber(conn_params=ConnParams.get(), topic =info["base_topic"] + "/leds/set", on_message = self.leds_set_callback)
 
-        self.leds_wipe_server = RPCServer(conn_params=ConnParams.get(), on_request=self.leds_wipe_callback, rpc_name=name + ":leds_wipe")
+        self.leds_wipe_server = RPCServer(conn_params=ConnParams.get(), on_request=self.leds_wipe_callback, rpc_name=info["base_topic"] + "/leds_wipe/set")
 
-        self.leds_get_server = RPCServer(conn_params=ConnParams.get(), on_request=self.leds_get_callback, rpc_name=name + ":leds:memory")
+        self.leds_get_server = RPCServer(conn_params=ConnParams.get(), on_request=self.leds_get_callback, rpc_name=info["base_topic"] + "/get")
 
     def start(self):
         self.leds_set_sub.run()
-        self.logger.info("Robot {}: leds_set_sub started".format(self.name))
 
         self.leds_wipe_server.run()
-        self.logger.info("Robot {}: leds_wipe_server started".format(self.name))
 
         self.leds_get_server.run()
-        self.logger.info("Robot {}: leds_get_server started".format(self.name))
 
     def memory_write(self, data):
         del self.memory[-1]

@@ -17,17 +17,18 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import RPCServer
 
 class IrController:
-    def __init__(self, name = "robot", logger = None):
+    def __init__(self, info = None, logger = None):
         self.logger = logger
-        self.name = name
+
+        self.info = info
+        self.name = info["name"]
 
         self.memory = 100 * [0]
 
-        self.ir_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.ir_callback, rpc_name=name + ":ir")
+        self.ir_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.ir_callback, rpc_name=info["base_topic"] + "/get")
 
     def start(self):
         self.ir_rpc_server.run()
-        self.logger.info("Robot {}: ir_rpc_server started".format(self.name))
 
     def memory_write(self, data):
         del self.memory[-1]

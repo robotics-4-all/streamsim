@@ -17,24 +17,25 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import RPCServer, Subscriber
 
 class MotionController:
-    def __init__(self, name = "robot", logger = None):
+    def __init__(self, info = None, logger = None):
         self.logger = logger
-        self.name = name
+
+        self.info = info
+        self.name = info["name"]
+
         self._linear = 0
         self._angular = 0
 
         self.memory = 100 * [0]
 
-        self.vel_sub = Subscriber(conn_params=ConnParams.get(), topic = name + ":cmd_vel", on_message = self.cmd_vel)
+        self.vel_sub = Subscriber(conn_params=ConnParams.get(), topic = info["base_topic"] + "/set", on_message = self.cmd_vel)
 
-        self.motion_get_server = RPCServer(conn_params=ConnParams.get(), on_request=self.motion_get_callback, rpc_name=name + ":motion:memory")
+        self.motion_get_server = RPCServer(conn_params=ConnParams.get(), on_request=self.motion_get_callback, rpc_name=info["base_topic"] + "/get")
 
     def start(self):
         self.vel_sub.run()
-        self.logger.info("Robot {}: vel_sub started".format(self.name))
 
         self.motion_get_server.run()
-        self.logger.info("Robot {}: motion_get_server started".format(self.name))
 
     def memory_write(self, data):
         del self.memory[-1]
