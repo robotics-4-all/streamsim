@@ -322,9 +322,6 @@ class Robot:
             else:
                 self.logger.critical("Device declared in yaml does not exist: {}".format(s))
 
-        for d in self.devices:
-            print(d)
-
         self.controllers = {}
 
         # Devices management

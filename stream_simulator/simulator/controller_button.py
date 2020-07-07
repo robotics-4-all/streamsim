@@ -27,8 +27,21 @@ class ButtonController:
 
         self.button_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.button_callback, rpc_name=info["base_topic"] + "/get")
 
+        self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+
+    def enable_callback(self, message, meta):
+        self.info["enabled"] = True
+        return {"enabled": True}
+
+    def disable_callback(self, message, meta):
+        self.info["enabled"] = False
+        return {"enabled": False}
+
     def start(self):
         self.button_rpc_server.run()
+        self.enable_rpc_server.run()
+        self.disable_rpc_server.run()
 
     def memory_write(self, data):
         del self.memory[-1]
