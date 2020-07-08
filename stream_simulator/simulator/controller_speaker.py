@@ -30,17 +30,56 @@ class SpeakerController:
         self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
+    def on_goal_speak(self, goalh):
+        self.logger.info("{} speak started".format(self.name))
+        if self.info["enabled"] == False:
+            return {}
+
+        try:
+            texts = goalh.data["text"]
+            volume = goalh.data["volume"]
+            language = goalh.data["language"]
+        except Exception as e:
+            self.logger.error("{} wrong parameters: {}".format(self.name, ))
+
+        timestamp = time.time()
+        secs = int(timestamp)
+        nanosecs = int((timestamp-secs) * 10**(9))
+        ret = {
+            "header":{
+                "stamp":{
+                    "sec": secs,
+                    "nanosec": nanosecs
+                }
+            }
+        }
+        if self.info["mode"] == "mock":
+            now = time.time()
+            while time.time() - now < 5:
+                self.logger.info("Speaking...")
+                if goalh.cancel_event.is_set():
+                    self.logger.info("Cancel got")
+                    return ret
+                time.sleep(0.1)
+
+        elif self.info["mode"] == "simulation":
+            pass
+        else: # The real deal
+            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+        self.logger.info("{} Speak finished".format(self.name))
+        return ret
+
     def on_goal_play(self, goalh):
         self.logger.info("{} play started".format(self.name))
         if self.info["enabled"] == False:
             return {}
 
         try:
-            texts = goalh.data["texts"]
+            string = goalh.data["string"]
             volume = goalh.data["volume"]
-            language = goalh.data["language"]
         except Exception as e:
-            self.logger.error("{} wrong parameters: {}".format(self.name))
+            self.logger.error("{} wrong parameters: {}".format(self.name, ))
 
         timestamp = time.time()
         secs = int(timestamp)
@@ -51,71 +90,23 @@ class SpeakerController:
                     "sec": secs,
                     "nanosec": nanosecs
                 }
-            },
-            "record": "",
-            "volume": 0
+            }
         }
         if self.info["mode"] == "mock":
             now = time.time()
-            while time.time() - now < duration:
-                self.logger.info("Recording...")
+            while time.time() - now < 5:
+                self.logger.info("Playing...")
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
                     return ret
                 time.sleep(0.1)
-
-            ret["record"] = base64.b64encode(b'0x55').decode("ascii")
-            ret["volume"] = 100
 
         elif self.info["mode"] == "simulation":
             pass
         else: # The real deal
             self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
-        self.logger.info("{} recording finished".format(self.name))
-        return ret
-
-    def on_goal_speak(self, goalh):
-        self.logger.info("{} recording started".format(self.name))
-        if self.info["enabled"] == False:
-            return {}
-
-        try:
-            duration = goalh.data["duration"]
-        except Exception as e:
-            self.logger.error("{} goal had no duration as parameter".format(self.name))
-
-        timestamp = time.time()
-        secs = int(timestamp)
-        nanosecs = int((timestamp-secs) * 10**(9))
-        ret = {
-            "header":{
-                "stamp":{
-                    "sec": secs,
-                    "nanosec": nanosecs
-                }
-            },
-            "record": "",
-            "volume": 0
-        }
-        if self.info["mode"] == "mock":
-            now = time.time()
-            while time.time() - now < duration:
-                self.logger.info("Recording...")
-                if goalh.cancel_event.is_set():
-                    self.logger.info("Cancel got")
-                    return ret
-                time.sleep(0.1)
-
-            ret["record"] = base64.b64encode(b'0x55').decode("ascii")
-            ret["volume"] = 100
-
-        elif self.info["mode"] == "simulation":
-            pass
-        else: # The real deal
-            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-
-        self.logger.info("{} recording finished".format(self.name))
+        self.logger.info("{} Playing finished".format(self.name))
         return ret
 
     def enable_callback(self, message, meta):

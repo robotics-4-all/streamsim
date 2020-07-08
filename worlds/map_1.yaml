@@ -26,7 +26,7 @@ robots:
       imu: [[1, CENTER]]
       button: [[0, F], [-45, FR], [45, FL], [-90, R], [90, L], [180, B], [-135, BR], [135, BL], [0, G1], [0, G2], [0, G3], [0, G4]]
       env: [[0, FRONT]]
-      #speaker: [[0, FRONT]]
+      speaker: [[0, FRONT]]
       leds: [[0, FRONT]]
       pan_tilt: [[0, UNDER]]
       #touch_screen: [[0, UNKNOWN]]

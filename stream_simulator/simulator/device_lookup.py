@@ -30,6 +30,7 @@ from .controller_button import ButtonController
 from .controller_encoder import EncoderController
 from .controller_camera import CameraController
 from .controller_microphone import MicrophoneController
+from .controller_speaker import SpeakerController
 
 class DeviceLookup:
     def __init__(self, world = None, logger = None, name = None):
@@ -372,6 +373,8 @@ class DeviceLookup:
                 self.controllers[d["id"]] = CameraController(info = d, logger = self.logger)
             elif d["type"] == "MICROPHONE":
                 self.controllers[d["id"]] = MicrophoneController(info = d, logger = self.logger)
+            elif d["type"] == "SPEAKERS":
+                self.controllers[d["id"]] = SpeakerController(info = d, logger = self.logger)
             else:
                 self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
 
