@@ -53,6 +53,7 @@ class DeviceLookup:
                 devices = self.world["robots"][0]["devices"][s]
                 cnt = -1
                 for m in devices:
+                    print(m)
                     cnt += 1
                     id = 'id_' + ''.join(random.choices(
                         string.ascii_lowercase + string.digits, k = id_length))
@@ -61,13 +62,14 @@ class DeviceLookup:
                         "brand": "usb_mic",
                         "base_topic": self.name + "/sensor/audio/microphone/d" + str(cnt) + "/" + id,
                         "name": "microphone_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 0,
                         "queue_size": 0,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "sonar":
@@ -82,13 +84,14 @@ class DeviceLookup:
                         "brand": "sonar",
                         "base_topic": self.name + "/sensor/distance/sonar/d" + str(cnt) + "/" + id,
                         "name": "sonar_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 1,
                         "queue_size": 100,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "ir":
@@ -103,13 +106,14 @@ class DeviceLookup:
                         "brand": "ir",
                         "base_topic": self.name + "/sensor/distance/ir/d" + str(cnt) + "/" + id,
                         "name": "ir_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 1,
                         "queue_size": 100,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "tof":
@@ -124,13 +128,14 @@ class DeviceLookup:
                         "brand": "vl53l1x",
                         "base_topic": self.name + "/sensor/distance/tof/d" + str(cnt) + "/" + id,
                         "name": "tof_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 1,
                         "queue_size": 100,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "camera":
@@ -145,13 +150,14 @@ class DeviceLookup:
                         "brand": "picamera",
                         "base_topic": self.name + "/sensor/visual/camera/d" + str(cnt) + "/" + id,
                         "name": "camera_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 0,
                         "queue_size": 0,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "imu":
@@ -166,13 +172,14 @@ class DeviceLookup:
                         "brand": "icm_20948",
                         "base_topic": self.name + "/sensor/imu/accel_gyro_magne_temp/d" + str(cnt) + "/" + id,
                         "name": "imu_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 1,
                         "queue_size": 100,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "button":
@@ -187,13 +194,14 @@ class DeviceLookup:
                         "brand": "simple",
                         "base_topic": self.name + "/sensor/button/tactile_switch/d" + str(cnt) + "/" + id,
                         "name": "button_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 1,
                         "queue_size": 100,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "env":
@@ -208,13 +216,14 @@ class DeviceLookup:
                         "brand": "bme680",
                         "base_topic": self.name + "/sensor/env/temp_hum_pressure_gas/d" + str(cnt) + "/" + id,
                         "name": "env_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 1,
                         "queue_size": 100,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "speaker":
@@ -229,13 +238,14 @@ class DeviceLookup:
                         "brand": "usb_speaker",
                         "base_topic": self.name + "/actuator/audio/speaker/usb_speaker/d" + str(cnt) + "/" + id,
                         "name": "speaker_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 0,
                         "queue_size": 0,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "leds":
@@ -250,13 +260,14 @@ class DeviceLookup:
                         "brand": "neopx",
                         "base_topic": self.name + "/actuator/visual/leds/neopx/d" + str(cnt) + "/" + id,
                         "name": "led_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 0,
                         "queue_size": 0,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "pan_tilt":
@@ -271,13 +282,14 @@ class DeviceLookup:
                         "brand": "pca9685",
                         "base_topic": self.name + "/actuator/servo/pantilt/d" + str(cnt) + "/" + id,
                         "name": "pan_tilt_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 0,
                         "queue_size": 0,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "touch_screen":
@@ -292,13 +304,14 @@ class DeviceLookup:
                         "brand": "touch_screen",
                         "base_topic": self.name + "/actuator/visual/screen/touch_screen/d" + str(cnt) + "/" + id,
                         "name": "touch_screen_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 0,
                         "queue_size": 0,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "skid_steer":
@@ -313,13 +326,14 @@ class DeviceLookup:
                         "brand": "twist",
                         "base_topic": self.name + "/actuator/motion/base/twist/d" + str(cnt) + "/" + id,
                         "name": "skid_steer_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 0,
                         "queue_size": 0,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             elif s == "encoder":
@@ -334,13 +348,14 @@ class DeviceLookup:
                         "brand": "simple",
                         "base_topic": self.name + "/sensor/encoder/d" + str(cnt) + "/" + id,
                         "name": "encoder_" + str(cnt),
-                        "place": m[1],
+                        "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "orientation": m[0],
+                        "orientation": m["orientation"],
                         "hz": 1,
                         "queue_size": 100,
-                        "mode": self.mode
+                        "mode": self.mode,
+                        "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
             else:

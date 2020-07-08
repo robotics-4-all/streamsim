@@ -18,20 +18,337 @@ robots:
     name: robot_1
     mode: mock # [simulation, mock, real]
     devices:
-      microphone: [[0, FRONT]]
-      sonar: [[-45, FR] , [45, FL], [-90, R], [90, L], [-135, BR], [135, BL]]
-      ir: [[-45, FR] , [45, FL], [-90, R], [90, L], [-135, BR], [135, BL]]
-      tof: [[0, F]]
-      camera: [[0, FRONT]]
-      imu: [[1, CENTER]]
-      button: [[0, F], [-45, FR], [45, FL], [-90, R], [90, L], [180, B], [-135, BR], [135, BL], [0, G1], [0, G2], [0, G3], [0, G4]]
-      env: [[0, FRONT]]
-      speaker: [[0, FRONT]]
-      leds: [[0, FRONT]]
-      pan_tilt: [[0, UNDER]]
-      touch_screen: [[0, UNKNOWN]]
-      skid_steer: [[0, UNDER]]
-      encoder: [[90, L], [-90, R]]
+      microphone:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            alsa_device: "1"
+            hosts: ["127.0.0.1", "127.0.0.1"]
+            ports: ["12333", "12334"]
+            host_port: "12334"
+      sonar:
+        -
+          orientation: -45
+          place: FR
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "B_1"
+            trigger_pin: "B_0"
+            max_data_length": 10
+        -
+          orientation: 45
+          place: FL
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "B_3"
+            trigger_pin: "B_2"
+            max_data_length": 10
+        -
+          orientation: 90
+          place: L
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "B_5"
+            trigger_pin: "B_4"
+            max_data_length": 10
+        -
+          orientation: -90
+          place: R
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "B_7"
+            trigger_pin: "B_6"
+            max_data_length": 10
+        -
+          orientation: 135
+          place: BL
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "A_1"
+            trigger_pin: "A_0"
+            max_data_length": 10
+        -
+          orientation: -135
+          place: BR
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "A_3"
+            trigger_pin: "A_2"
+            max_data_length": 10
+      ir:
+        -
+          orientation: -45
+          place: FR
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: 45
+          place: FL
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: -90
+          place: R
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: 90
+          place: L
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: -135
+          place: BR
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: 135
+          place: BL
+          sensor_configuration:
+            max_data_length": 10
+      tof:
+        -
+          orientation: 0
+          place: F
+          sensor_configuration:
+            bus: 3
+            address: 0x29
+            mode: 3
+            max_data_length: 10
+      camera:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            framerate: 30
+            width: 640
+            height: 480
+            max_data_length: 2
+      imu:
+        -
+          orientation: 1
+          place: CENTER
+          sensor_configuration:
+            bus: 0
+            max_data_length: 10
+      button:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_0"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: -45
+          place: FR
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_1"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 45
+          place: FL
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_2"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: -90
+          place: R
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_3"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 90
+          place: L
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_4"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 180
+          place: B
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_6"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: -135
+          place: BR
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_7"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 135
+          place: BL
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_5"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 0
+          place: G1
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "A_0"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 0
+          place: G2
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "A_1"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 0
+          place: G3
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "A_2"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 0
+          place: G4
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "A_3"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+      env:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            bus: 5
+            slave: 0
+            t_over : 8
+            h_over : 2
+            p_over : 4
+            iir_coef : 3
+            g_status : 1
+            max_data_length: 10
+      speaker:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            dev_name: "plughw:CARD=Speaker,DEV=0"
+            max_data_length: 10
+      leds:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            led_count: 20
+            led_pin: 13
+            led_freq_hz: 7000
+            led_brightness: 255
+            led_invert: 0
+            led_channel: 0
+            max_data_length: 10
+      pan_tilt:
+        -
+          orientation: 0
+          place: UNDER
+          sensor_configuration:
+            bus: 5
+            frequency: 50
+            max_data_length: 10
+      touch_screen:
+        -
+          orientation: 0
+          place: UNKNOWN
+          sensor_configuration:
+            param_1: 1
+            max_data_length: 10
+      skid_steer:
+        -
+          orientation: 0
+          place: UNDER
+          sensor_configuration:
+            bus: 5
+            E1: 6
+            M1: 7
+            E2: 12
+            M2: 13
+            max_data_length: 10
+            wheel_separation: 0.147
+            wheel_radius: 0.022
+      encoder:
+        -
+          orientation: 90
+          place: BL
+          sensor_configuration:
+            bus: 3
+            address: 0x22
+            pin: "B_7"
+            name: "right_encoder"
+            max_data_length: 10
+        -
+          orientation: -90
+          place: BR
+          sensor_configuration:
+            bus: 3
+            address: 0x22
+            pin: "B_6"
+            max_data_length: 10
     starting_pose:
       x: 100 # in pixels
       y: 100 # in pixels
