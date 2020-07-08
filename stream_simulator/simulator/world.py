@@ -16,7 +16,7 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import Publisher
 
 class World:
-    def __init__(self, filename = None, debug_level = logging.INFO):
+    def __init__(self, filename = None):
         self.logger = Logger("world")
 
         with open(filename, 'r') as stream:

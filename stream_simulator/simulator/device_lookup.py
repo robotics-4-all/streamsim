@@ -10,7 +10,7 @@ import random
 import string
 import os
 
-from stream_simulator import Logger
+from commlib_py.logger import Logger
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
@@ -31,11 +31,12 @@ from .controller_encoder import EncoderController
 from .controller_camera import CameraController
 from .controller_microphone import MicrophoneController
 from .controller_speaker import SpeakerController
+from .controller_touch_screen import TouchScreenController
 
 class DeviceLookup:
     def __init__(self, world = None, logger = None, name = None):
         self.world = world
-        self.logger = logger
+        self.logger = Logger(name + "/device_discovery")
         self.name = name
         self.devices = []
         self.controllers = {}
@@ -348,33 +349,35 @@ class DeviceLookup:
         # Devices management
         for d in self.devices:
             if d["type"] == "PAN_TILT":
-                self.controllers[d["id"]] = PanTiltController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = PanTiltController(info = d)
             elif d["type"] == "LED":
-                self.controllers[d["id"]] = LedsController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = LedsController(info = d)
             elif d["type"] == "ENV":
-                self.controllers[d["id"]] = EnvController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = EnvController(info = d)
             elif d["type"] == "IMU":
-                self.controllers[d["id"]] = ImuController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = ImuController(info = d)
             elif d["type"] == "SONAR":
-                self.controllers[d["id"]] = SonarController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = SonarController(info = d)
             elif d["type"] == "IR":
-                self.controllers[d["id"]] = IrController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = IrController(info = d)
             elif d["type"] == "SKID_STEER":
-                self.controllers[d["id"]] = MotionController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = MotionController(info = d)
                 # Just keep the motion controller in another var for the simulator:
                 self.motion_controller = self.controllers[d["id"]]
             elif d["type"] == "TOF":
-                self.controllers[d["id"]] = TofController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = TofController(info = d)
             elif d["type"] == "BUTTON":
-                self.controllers[d["id"]] = ButtonController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = ButtonController(info = d)
             elif d["type"] == "ENCODER":
-                self.controllers[d["id"]] = EncoderController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = EncoderController(info = d)
             elif d["type"] == "CAMERA":
-                self.controllers[d["id"]] = CameraController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = CameraController(info = d)
             elif d["type"] == "MICROPHONE":
-                self.controllers[d["id"]] = MicrophoneController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = MicrophoneController(info = d)
             elif d["type"] == "SPEAKERS":
-                self.controllers[d["id"]] = SpeakerController(info = d, logger = self.logger)
+                self.controllers[d["id"]] = SpeakerController(info = d)
+            elif d["type"] == "TOUCH_SCREEN":
+                self.controllers[d["id"]] = TouchScreenController(info = d)
             else:
                 self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
 

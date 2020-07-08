@@ -11,7 +11,7 @@ import cv2
 import os
 import base64
 
-from stream_simulator import Logger
+from commlib_py.logger import Logger
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
@@ -20,8 +20,8 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import RPCServer
 
 class CameraController:
-    def __init__(self, info = None, logger = None):
-        self.logger = logger
+    def __init__(self, info = None):
+        self.logger = Logger(info["name"] + "-" + info["id"])
 
         self.info = info
         self.name = info["name"]

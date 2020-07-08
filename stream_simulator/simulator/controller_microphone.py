@@ -9,6 +9,8 @@ import threading
 import random
 import base64
 
+from commlib_py.logger import Logger
+
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
     from commlib_py.transports.amqp import ActionServer, RPCServer
@@ -16,8 +18,8 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import ActionServer, RPCServer
 
 class MicrophoneController:
-    def __init__(self, info = None, logger = None):
-        self.logger = logger
+    def __init__(self, info = None):
+        self.logger = Logger(info["name"] + "-" + info["id"])
 
         self.info = info
         self.name = info["name"]

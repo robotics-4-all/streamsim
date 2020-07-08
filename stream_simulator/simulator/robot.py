@@ -20,7 +20,7 @@ from commlib_py.logger import Logger
 from .device_lookup import DeviceLookup
 
 class Robot:
-    def __init__(self, world = None, map = None, name = "robot", tick = 0.1, debug_level = logging.INFO):
+    def __init__(self, world = None, map = None, name = "robot", tick = 0.1):
         self.logger = Logger(name)
 
         try:
@@ -54,7 +54,7 @@ class Robot:
             self.name, self._x, self._y, self._theta))
 
         # Devices set
-        self.device_management = DeviceLookup(world = self.world, logger = self.logger, name = self.name)
+        self.device_management = DeviceLookup(world = self.world, name = self.name)
         tmp = self.device_management.get()
         self.devices = tmp['devices']
         self.controllers = tmp['controllers']

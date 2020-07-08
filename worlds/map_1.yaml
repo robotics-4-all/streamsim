@@ -29,7 +29,7 @@ robots:
       speaker: [[0, FRONT]]
       leds: [[0, FRONT]]
       pan_tilt: [[0, UNDER]]
-      #touch_screen: [[0, UNKNOWN]]
+      touch_screen: [[0, UNKNOWN]]
       skid_steer: [[0, UNDER]]
       encoder: [[90, L], [-90, R]]
     starting_pose:
