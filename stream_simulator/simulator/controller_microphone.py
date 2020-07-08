@@ -30,7 +30,7 @@ class MicrophoneController:
             self.sensor = Microphone(dev_name=self.conf["dev_name"],
                                      channels=self.conf["channels"],
                                      name=self.name,
-                                     max_data_length=self.["max_d"])
+                                     max_data_length=self["max_d"])
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/microphone_hw_interface/microphone_hw_interface/microphone_hw_interface.py
 
         self.memory = 100 * [0]
