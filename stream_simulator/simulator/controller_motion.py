@@ -61,6 +61,14 @@ class MotionController:
             self._linear = response['linear']
             self._angular = response['angular']
             self.memory_write([self._linear, self._angular])
+
+            if self.info["mode"] == "mock":
+                pass
+            elif self.info["mode"] == "simulation":
+                pass
+            else: # The real deal
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
             self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
         except Exception as e:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))

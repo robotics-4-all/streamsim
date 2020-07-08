@@ -10,13 +10,15 @@ map:
     temperature: 31
     humidity: 60
     pressure: 1800
+    air_quality: 50
 
 # Numbers are orientations in degrees
 robots:
   -
     name: robot_1
+    mode: mock # [simulation, mock, real]
     devices:
-      #microphone: [[0, FRONT]]
+      microphone: [[0, FRONT]]
       sonar: [[-45, FR] , [45, FL], [-90, R], [90, L], [-135, BR], [135, BL]]
       ir: [[-45, FR] , [45, FL], [-90, R], [90, L], [-135, BR], [135, BL]]
       tof: [[0, F]]

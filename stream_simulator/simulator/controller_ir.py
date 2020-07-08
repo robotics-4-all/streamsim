@@ -34,7 +34,14 @@ class IrController:
         self.logger.info("Ir {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
-            self.memory_write(float(random.uniform(30, 10)))
+
+            if self.info["mode"] == "mock":
+                self.memory_write(float(random.uniform(30, 10)))
+            elif self.info["mode"] == "simulation":
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+            else: # The real deal
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
         self.logger.info("Ir {} sensor read thread stopped".format(self.info["id"]))
 
     def enable_callback(self, message, meta):

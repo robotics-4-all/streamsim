@@ -7,7 +7,7 @@ import yaml
 import numpy
 import logging
 
-from stream_simulator import Logger
+from commlib_py.logger import Logger
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
@@ -17,7 +17,7 @@ elif ConnParams.type == "redis":
 
 class World:
     def __init__(self, filename = None, debug_level = logging.INFO):
-        self.logger = Logger("world", debug_level)
+        self.logger = Logger("world")
 
         with open(filename, 'r') as stream:
             try:

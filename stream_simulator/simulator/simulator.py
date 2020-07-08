@@ -11,12 +11,12 @@ import math
 from .robot import Robot
 from .world import World
 
-from stream_simulator import Logger
+from commlib_py.logger import Logger
 
 class Simulator:
     def __init__(self, tick = 0.1, debug_level = logging.INFO):
         self.tick = tick
-        self.logger = Logger("simulator", debug_level)
+        self.logger = Logger("simulator")
 
         curr_dir = pathlib.Path().absolute()
 

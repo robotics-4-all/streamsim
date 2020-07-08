@@ -8,8 +8,6 @@ import logging
 import threading
 import random
 
-from stream_simulator import Logger
-
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
     from commlib_py.transports.amqp import RPCServer
@@ -34,7 +32,14 @@ class ButtonController:
         self.logger.info("Button {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
-            self.memory_write(float(random.randint(0,1)))
+
+            if self.info["mode"] == "mock":
+                self.memory_write(float(random.randint(0,1)))
+            elif self.info["mode"] == "simulation":
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+            else: # The real deal
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
         self.logger.info("Button {} sensor read thread stopped".format(self.info["id"]))
 
     def enable_callback(self, message, meta):

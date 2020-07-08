@@ -85,6 +85,15 @@ class PanTiltController:
             self._yaw = response['yaw']
             self._pitch = response['pitch']
             self.memory_write([self._yaw, self._pitch])
+
+            if self.info["mode"] == "mock":
+                pass
+            elif self.info["mode"] == "simulation":
+                pass
+            else: # The real deal
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+
             self.logger.info("{}: New pan tilt command: {}, {}".format(self.name, self._yaw, self._pitch))
         except Exception as e:
             self.logger.error("{}: pan_tilt is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))

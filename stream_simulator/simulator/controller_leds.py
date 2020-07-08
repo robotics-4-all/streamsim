@@ -97,7 +97,14 @@ class LedsController:
             b = response["b"]
             intensity = response["intensity"]
             self._color = [r, g, b, intensity]
-            self.memory_write(self._color)
+
+            if self.info["mode"] == "mock":
+                self.memory_write(self._color)
+            elif self.info["mode"] == "simulation":
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+            else: # The real deal
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
         except Exception as e:
             self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
 
@@ -110,10 +117,17 @@ class LedsController:
             intensity = response["brightness"]
             ms = response["wait_ms"]
             self._color = [r, g, b, intensity]
-            self.memory_write(self._color)
+
+            if self.info["mode"] == "mock":
+                self.memory_write(self._color)
+            elif self.info["mode"] == "simulation":
+                self.memory_write(self._color)
+                self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
+            else: # The real deal
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
             self.logger.info("{}: New leds wipe command: {}".format(self.name, message))
 
-            self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
         except Exception as e:
             self.logger.error("{}: leds_wipe is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
 

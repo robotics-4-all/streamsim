@@ -33,12 +33,19 @@ class EnvController:
         self.logger.info("Env {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
-            self.memory_write({
-                "temperature": float(random.uniform(30, 10)),
-                "pressure": float(random.uniform(30, 10)),
-                "humidity": float(random.uniform(30, 10)),
-                "gas": float(random.uniform(30, 10))
-            })
+
+            if self.info["mode"] == "mock":
+                self.memory_write({
+                    "temperature": float(random.uniform(30, 10)),
+                    "pressure": float(random.uniform(30, 10)),
+                    "humidity": float(random.uniform(30, 10)),
+                    "gas": float(random.uniform(30, 10))
+                })
+            elif self.info["mode"] == "simulation":
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+            else: # The real deal
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 
     def enable_callback(self, message, meta):

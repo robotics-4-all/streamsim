@@ -60,12 +60,20 @@ class CameraController:
             self.logger.error("{}: Malformed message for image get: {} - {}".format(self.name, str(e.__class__), str(e)))
             return {}
 
-        dirname = os.path.dirname(__file__)
-        im = cv2.imread(dirname + '/resources/face.jpg')
-        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-        image = cv2.resize(im, dsize=(width, height))
-        data = [int(d) for row in image for c in row for d in c]
-        data = base64.b64encode(bytes(data)).decode("ascii")
+        if self.info["mode"] == "mock":
+            dirname = os.path.dirname(__file__)
+            im = cv2.imread(dirname + '/resources/face.jpg')
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+            image = cv2.resize(im, dsize=(width, height))
+            data = [int(d) for row in image for c in row for d in c]
+            data = base64.b64encode(bytes(data)).decode("ascii")
+        elif self.info["mode"] == "simulation":
+            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+            data = ""
+        else: # The real deal
+            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+            data = ""
+
 
         timestamp = time.time()
         secs = int(timestamp)

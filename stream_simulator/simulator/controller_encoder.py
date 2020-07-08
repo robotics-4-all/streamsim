@@ -33,7 +33,14 @@ class EncoderController:
         self.logger.info("Encoder {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
-            self.memory_write(float(random.uniform(1000,2000)))
+
+            if self.info["mode"] == "mock":
+                self.memory_write(float(random.uniform(1000,2000)))
+            elif self.info["mode"] == "simulation":
+                self.memory_write(float(random.uniform(1000,2000)))
+            else: # The real deal
+                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
         self.logger.info("Encoder {} sensor read thread stopped".format(self.info["id"]))
 
     def enable_callback(self, message, meta):
