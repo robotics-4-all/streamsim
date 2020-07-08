@@ -8,6 +8,8 @@ import logging
 import threading
 import random
 
+from commlib_py.logger import Logger
+
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
     from commlib_py.transports.amqp import RPCServer
@@ -15,8 +17,8 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import RPCServer
 
 class TouchScreenController:
-    def __init__(self, info = None, logger = None):
-        self.logger = logger
+    def __init__(self, info = None):
+        self.logger = Logger(info["name"] + "-" + info["id"])
 
         self.info = info
         self.name = info["name"]
@@ -46,6 +48,7 @@ class TouchScreenController:
         self.memory.insert(0, data)
 
     def show_image_callback(self, message, meta):
+        self.logger.info("Robot {}: Show image callback".format(self.name))
         ret = {
             "reaction_time": -1,
             "selected": -1
@@ -53,7 +56,6 @@ class TouchScreenController:
         if self.info["enabled"] is False:
             return ret
 
-        self.logger.info("Robot {}: Show image callback".format(self.name))
         try:
             image_width = message["image_width"]
             image_height = message["image_height"]
