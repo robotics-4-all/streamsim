@@ -22,6 +22,16 @@ class EncoderController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
+
+        if self.info["mode"] == "real":
+            from pidevices import DfRobotWheelEncoderMcp23017
+            self.sensor = DfRobotWheelEncoderMcp23017(pin=self.conf["pin"],
+                                                      bus=self.conf["bus"],
+                                                      address=self.conf["address"],
+                                                      name=self.name,
+                                                      max_data_length=self.conf["max_data_length"])
+            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/encoder_hw_interface/encoder_hw_interface/encoder_hw_interface.py
 
         self.memory = 100 * [0]
 

@@ -22,6 +22,19 @@ class MotionController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
+
+        if self.info["mode"] == "real":
+            from pidevices import DfrobotMotorControllerPCA
+            self.controller = DfrobotMotorControllerPCA(
+                self.conf["bus"],
+                self.conf["E1"], self.conf["M1"],
+                self.conf["E2"], self.conf["M2"],
+                name=self.name,
+                max_data_length=self.conf["max_data_length"])
+            self.wheel_separation = self.conf["wheel_separation"]
+            self.wheel_radius = self.conf["wheel_radius"]
+            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/motor_controller_hw_interface/motor_controller_hw_interface/motor_controller_hw_interface.py
 
         self._linear = 0
         self._angular = 0

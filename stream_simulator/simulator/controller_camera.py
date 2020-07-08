@@ -25,6 +25,16 @@ class CameraController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
+
+        if self.info["mode"] == "real":
+            from pidevices import Camera, Dims
+            self.sensor = Camera(framerate=self.conf["framerate"],
+                                 resolution=Dims(self.conf["width"], self.conf["height"]),
+                                 name=self.name,
+                                 max_data_length=self.conf["max_data_length"])
+            self.sensor.stop()
+            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/camera_hw_interface/camera_hw_interface/camera_hw_interface.py
 
         self.memory = 100 * [0]
 

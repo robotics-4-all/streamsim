@@ -22,6 +22,7 @@ class IrController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
 
         self.memory = 100 * [0]
 

@@ -22,6 +22,22 @@ class EnvController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
+
+        if self.info["mode"] == "real":
+            from pidevices import BME680
+            self.sensor = BME680(self.conf["bus"], self.conf["slave"],
+                                 t_oversample=self.conf["t_over"],
+                                 h_oversample=self.conf["h_over"],
+                                 p_oversample=self.conf["p_over"],
+                                 iir_coef=self.conf["iir_coef"],
+                                 gas_status=self.conf["g_status"],
+                                 name=self.name,
+                                 max_data_length=self.conf["max_data_length"])
+            self.sensor.set_heating_temp([0], [320])
+            self.sensor.set_heating_time([0], [100])
+            self.sensor.set_nb_conv(0)
+            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/bme680_hw_interface/bme680_hw_interface/bme680_hw_interface.py
 
         self.memory = 100 * [0]
 

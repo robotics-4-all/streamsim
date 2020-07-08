@@ -23,6 +23,15 @@ class MicrophoneController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
+
+        if self.info["mode"] == "real":
+            from pidevices import Microphone
+            self.sensor = Microphone(dev_name=self.conf["dev_name"],
+                                     channels=self.conf["channels"],
+                                     name=self.name,
+                                     max_data_length=self.["max_d"])
+            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/microphone_hw_interface/microphone_hw_interface/microphone_hw_interface.py
 
         self.memory = 100 * [0]
 

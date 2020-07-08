@@ -22,6 +22,12 @@ class ImuController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
+
+        if self.info["mode"] == "real":
+            from pidevices import ICM_20948
+            self.sensor = ICM_20948(3) ## CHECK BUS??
+            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/imu_hw_interface/imu_hw_interface/imu_hw_interface.py
 
         self.memory = 100 * [0]
 

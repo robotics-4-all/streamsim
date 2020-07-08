@@ -22,6 +22,11 @@ class LedsController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
+
+        if self.info["mode"] == "real":
+            pass
+            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/led_strip_hw_interface/led_strip_hw_interface/led_strip_hw_interface.py
 
         self.memory = 100 * [0]
 

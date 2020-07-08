@@ -22,6 +22,21 @@ class ButtonController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
+
+        if self.info["mode"] == "real":
+            from pidevices import ButtonMcp23017
+            self.sensor = ButtonMcp23017(bus=self.conf["bus"],
+                                         address=self.conf["address"],
+                                         pin_num=self.conf["pin_num"],
+                                         direction=self.conf["direction"],
+                                         edge=self.conf["edge"],
+                                         bounce=self.conf["bounce"],
+                                         name=self.name,
+                                         max_data_length=self.conf["max_data_length"])
+                                         
+            self.sensor.when_pressed(self.real_button_pressed)
+            #### Continue implementation: https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/button_hw_interface/button_hw_interface/button_hw_interface.py
 
         self.memory = 100 * [0]
 
