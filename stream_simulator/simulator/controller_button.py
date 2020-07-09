@@ -15,6 +15,7 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import RPCServer
 
 from commlib_py.logger import Logger
+from derp_me.client import DerpMeClient
 
 class ButtonController:
     def __init__(self, info = None):
@@ -23,6 +24,8 @@ class ButtonController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        self.derp_client = DerpMeClient()
 
         if self.info["mode"] == "real":
             from pidevices import ButtonMcp23017
@@ -34,7 +37,7 @@ class ButtonController:
                                          bounce=self.conf["bounce"],
                                          name=self.name,
                                          max_data_length=self.conf["max_data_length"])
-                                         
+
             self.sensor.when_pressed(self.real_button_pressed)
             #### Continue implementation: https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/button_hw_interface/button_hw_interface/button_hw_interface.py
 
@@ -51,11 +54,25 @@ class ButtonController:
             time.sleep(1.0 / self.info["hz"])
 
             if self.info["mode"] == "mock":
-                self.memory_write(float(random.randint(0,1)))
+                val = float(random.randint(0,1))
+                self.memory_write(val)
             elif self.info["mode"] == "simulation":
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
+                [{
+                    "data": val,
+                    "timestamp": time.time()
+                }])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
+                [{
+                    "data": "Tactile." + self.info["place"],
+                    "timestamp": time.time()
+                }])
 
         self.logger.info("Button {} sensor read thread stopped".format(self.info["id"]))
 

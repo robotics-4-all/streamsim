@@ -16,6 +16,8 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib_py.transports.redis import RPCServer
 
+from derp_me.client import DerpMeClient
+
 class IrController:
     def __init__(self, info = None):
         self.logger = Logger(info["name"] + "-" + info["id"])
@@ -23,6 +25,8 @@ class IrController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        self.derp_client = DerpMeClient()
 
         self.memory = 100 * [0]
 
@@ -37,11 +41,19 @@ class IrController:
             time.sleep(1.0 / self.info["hz"])
 
             if self.info["mode"] == "mock":
-                self.memory_write(float(random.uniform(30, 10)))
+                val = float(random.uniform(30, 10))
+                self.memory_write(val)
             elif self.info["mode"] == "simulation":
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.distance." + self.info["place"],
+                [{
+                    "data": val,
+                    "timestamp": time.time()
+                }])
 
         self.logger.info("Ir {} sensor read thread stopped".format(self.info["id"]))
 

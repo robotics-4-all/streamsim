@@ -9,6 +9,7 @@ import threading
 import random
 
 from commlib_py.logger import Logger
+from derp_me.client import DerpMeClient
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
@@ -23,6 +24,8 @@ class ImuController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        self.derp_client = DerpMeClient()
 
         if self.info["mode"] == "real":
             from pidevices import ICM_20948
@@ -41,7 +44,7 @@ class ImuController:
             time.sleep(1.0 / self.info["hz"])
 
             if self.info["mode"] == "mock":
-                self.memory_write({
+                val = {
                     "accel": {
                         "x": 1,
                         "y": 1,
@@ -57,7 +60,20 @@ class ImuController:
                         "pitch": random.uniform(0.3, -0.3),
                         "roll": random.uniform(0.3, -0.3)
                     }
-                })
+                }
+                self.memory_write(val)
+
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.imu.roll",
+                    [{"data": val["magne"]["roll"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.imu.pitch",
+                    [{"data": val["magne"]["pitch"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.imu.yaw",
+                    [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
+
+
             elif self.info["mode"] == "simulation":
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
             else: # The real deal

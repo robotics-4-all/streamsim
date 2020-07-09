@@ -34,10 +34,11 @@ from .controller_speaker import SpeakerController
 from .controller_touch_screen import TouchScreenController
 
 class DeviceLookup:
-    def __init__(self, world = None, logger = None, name = None):
+    def __init__(self, world = None, logger = None, name = None, namespace = None):
         self.world = world
         self.logger = Logger(name + "/device_discovery")
         self.name = name
+        self.namespace = namespace
         self.devices = []
         self.controllers = {}
 
@@ -69,6 +70,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -91,6 +93,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -113,6 +116,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -135,6 +139,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -157,6 +162,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -179,6 +185,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -201,6 +208,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -223,6 +231,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -245,6 +254,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -267,6 +277,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -289,6 +300,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -311,6 +323,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -333,6 +346,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)
@@ -355,6 +369,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
                     self.devices.append(msg)

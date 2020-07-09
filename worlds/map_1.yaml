@@ -145,7 +145,7 @@ robots:
       button:
         -
           orientation: 0
-          place: FRONT
+          place: F
           sensor_configuration:
             bus: 5
             address: 0x20

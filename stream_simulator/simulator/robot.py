@@ -54,7 +54,8 @@ class Robot:
             self.name, self._x, self._y, self._theta))
 
         # Devices set
-        self.device_management = DeviceLookup(world = self.world, name = self.name)
+        self.device_management = DeviceLookup(world = self.world, name = self.name,\
+            namespace = self.namespace)
         tmp = self.device_management.get()
         self.devices = tmp['devices']
         self.controllers = tmp['controllers']
