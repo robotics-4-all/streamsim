@@ -25,7 +25,7 @@ class TofController:
         self.info = info
         self.name = info["name"]
 
-        self.derp_client = DerpMeClient()
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
 
         self.memory = 100 * [0]
 

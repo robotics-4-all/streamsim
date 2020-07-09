@@ -25,7 +25,7 @@ class ButtonController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
-        self.derp_client = DerpMeClient()
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
 
         if self.info["mode"] == "real":
             from pidevices import ButtonMcp23017
