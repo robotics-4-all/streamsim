@@ -30,7 +30,7 @@ class MicrophoneController:
             self.sensor = Microphone(dev_name=self.conf["dev_name"],
                                      channels=self.conf["channels"],
                                      name=self.name,
-                                     max_data_length=self["max_d"])
+                                     max_data_length=self.conf["max_data_length"])
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/microphone_hw_interface/microphone_hw_interface/microphone_hw_interface.py
 
         self.memory = 100 * [0]
@@ -78,7 +78,11 @@ class MicrophoneController:
         elif self.info["mode"] == "simulation":
             pass
         else: # The real deal
-            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+            self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
+            now = time.time()
+            while time.time() - now < duration + 0.2:
+                time.sleep(0.1)
+            ret["record"] = base64.b64encode(self.sensor.record).decode("ascii")
 
         self.logger.info("{} recording finished".format(self.name))
         return ret
