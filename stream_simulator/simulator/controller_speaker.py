@@ -28,8 +28,10 @@ class SpeakerController:
         self.memory = 100 * [0]
 
         if self.info["mode"] == "real":
+            from espeakng import ESpeakNG
             from pidevices import Speaker
             self.speaker = Speaker(dev_name = self.conf["dev_name"], name = self.name, max_data_length = self.conf["max_data_length"])
+            self.esng = ESpeakNG()
 
         self.play_action_server = ActionServer(conn_params=ConnParams.get(), on_goal=self.on_goal_play, action_name=info["base_topic"] + "/play")
         self.speak_action_server = ActionServer(conn_params=ConnParams.get(), on_goal=self.on_goal_speak, action_name=info["base_topic"] + "/speak")
@@ -72,7 +74,13 @@ class SpeakerController:
         elif self.info["mode"] == "simulation":
             pass
         else: # The real deal
-            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+             path = "/home/pi/manos_espeak.wav"
+             self.esng.voice = language
+             self.esng._espeak_exe([texts, "-w", path], sync = True)
+             self.speaker.volume = volume
+             self.speaker.async_write(path, file_flag=True)
+             while self.speaker.playing:
+                 time.sleep(0.1)
 
         self.logger.info("{} Speak finished".format(self.name))
         return ret
