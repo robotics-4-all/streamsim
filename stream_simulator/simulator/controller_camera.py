@@ -81,9 +81,10 @@ class CameraController:
             self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
             data = ""
         else: # The real deal
-            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-            data = ""
-
+            self.sensor.start()
+            img = self.sensor.read(image_dims=(width, height))[-1].frame
+            self.sensor.stop()
+            data = base64.b64encode(img).decode("ascii")
 
         timestamp = time.time()
         secs = int(timestamp)
