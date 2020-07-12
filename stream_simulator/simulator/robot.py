@@ -59,15 +59,18 @@ class Robot:
         tmp = self.device_management.get()
         self.devices = tmp['devices']
         self.controllers = tmp['controllers']
-        self.motion_controller = self.device_management.motion_controller
+        try:
+            self.motion_controller = self.device_management.motion_controller
+        except:
+            self.logger.warning("Robot has no motion controller.. Smells like device!".format(self.name))
+            self.motion_controller = None
 
         self.devices_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.namespace + '/nodes_detector/get_connected_devices')
 
         # SIMULATOR ------------------------------------------------------------
-        self.pose_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":pose")
-
-        # Threads
-        self.motion_thread = threading.Thread(target = self.handle_motion)
+        if self.motion_controller is not None:
+            self.pose_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":pose")
+            self.motion_thread = threading.Thread(target = self.handle_motion)
 
         self.logger.info("Robot {} set-up".format(self.name))
 
@@ -78,8 +81,9 @@ class Robot:
         self.devices_rpc_server.run()
 
         # Simulator stuff
-        self.motion_thread.start()
-        self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
+        if self.motion_controller is not None:
+            self.motion_thread.start()
+            self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
 
     def devices_callback(self, message, meta):
         timestamp = time.time()
