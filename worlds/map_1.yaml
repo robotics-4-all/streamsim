@@ -16,7 +16,7 @@ map:
 robots:
   -
     name: robot_1
-    mode: mock # [simulation, mock, real]
+    mode: simulation # [simulation, mock, real]
     devices:
       microphone:
         -

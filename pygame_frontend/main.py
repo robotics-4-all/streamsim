@@ -21,6 +21,12 @@ class Frontend:
     def __init__(self):
         pygame.init()
 
+        try:
+            self.namespace = os.environ['TEKTRAIN_NAMESPACE']
+        except:
+            self.logger.error("No TEKTRAIN_NAMESPACE environmental variable found. Please set it!")
+            exit(0)
+
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
 
         self.robot_img = pygame.image.load(self.dir_path + '/imgs/Robot.png')
@@ -53,15 +59,20 @@ class Frontend:
 
         self.leds_wipe_sub = Subscriber(conn_params=ConnParams.get(), topic = "robot_1:leds_wipe", on_message = self.leds_wipe_callback)
 
+        self.detections_sub = Subscriber(conn_params=ConnParams.get(), topic = "robot_1:detection", on_message = self.detections_callback)
+
         # Subscribers starting
         self.new_w_sub.run()
         self.robot_pose_sub.run()
         self.leds_set_sub.run()
         self.leds_wipe_sub.run()
+        self.detections_sub.run()
 
         # RPC clients
         self.env_rpc_client = RPCClient(conn_params=ConnParams.get(), rpc_name="robot_1:env")
-        self.vel_publisher = Publisher(conn_params=ConnParams.get(), topic= "robot_1:cmd_vel")
+        self.devices_rpc_client = RPCClient(conn_params=ConnParams.get(), rpc_name=self.namespace + '/nodes_detector/get_connected_devices')
+
+        self.font = pygame.font.Font('freesansbold.ttf', 9)
 
         self.linear = 0
         self.angular = 0
@@ -83,12 +94,19 @@ class Frontend:
 
         self.temperature = None
 
-        print("Press \"t\" to trigger env get")
+        # Get devices
+        self.devices = self.devices_rpc_client.call(data = None)
+        for d in self.devices['devices']:
+            if d['type'] == 'SKID_STEER':
+                self.vel_publisher = Publisher(conn_params=ConnParams.get(), topic=  d['base_topic'] + "/set")
 
         self.start()
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
+
+    def detections_callback(self, message, meta):
+        self.detection_info = message
 
     def leds_set_callback(self, message, meta):
         res = message
@@ -117,6 +135,7 @@ class Frontend:
                     print("Environmental sensor:", self.env_rpc_client.call({"from": 0, "to": 0}))
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
                     self.linear += 0.1
+                    print("GOING UP!")
                     self.vel_publisher.publish({"linear": self.linear, "angular": self.angular})
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
                     self.linear -= 0.1
@@ -133,6 +152,18 @@ class Frontend:
                     self.vel_publisher.publish({"linear": self.linear, "angular": self.angular})
 
             self.screen.fill((255, 255, 255))
+
+            place = 20
+            try:
+                for d in self.detection_info:
+                    if self.detection_info[d] is True:
+                        text = self.font.render(d, True, (100,100,255), (255, 255, 255))
+                        textRect = text.get_rect()
+                        textRect.center = (self.world["map"]["width"] - 100, place)
+                        place += 20
+                        self.screen.blit(text, textRect)
+            except:
+                pass
 
             # Print stuff
             for l in self.world["map"]["obstacles"]["lines"]:

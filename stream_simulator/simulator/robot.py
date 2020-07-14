@@ -65,6 +65,7 @@ class Robot:
 
         # SIMULATOR ------------------------------------------------------------
         self.pose_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":pose")
+        self.detection_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":detection")
 
         # Threads
         self.motion_thread = threading.Thread(target = self.handle_motion)
@@ -173,36 +174,66 @@ class Robot:
                 "theta": float("{:.2f}".format(self._theta))
             })
 
-            # Check distance from stuff
-            for h in self.world["actors"]["humans"]:
-                x = h["x"] * self.resolution
-                y = h["y"] * self.resolution
-                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                    print("Human!")
-            for h in self.world["actors"]["sound_sources"]:
-                x = h["x"] * self.resolution
-                y = h["y"] * self.resolution
-                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                    print("Sound source!")
-            for h in self.world["actors"]["qrs"]:
-                x = h["x"] * self.resolution
-                y = h["y"] * self.resolution
-                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                    print("QR!")
-            for h in self.world["actors"]["barcodes"]:
-                x = h["x"] * self.resolution
-                y = h["y"] * self.resolution
-                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                    print("Barcode!")
-            for h in self.world["actors"]["colors"]:
-                x = h["x"] * self.resolution
-                y = h["y"] * self.resolution
-                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                    print("Color!")
-            for h in self.world["actors"]["texts"]:
-                x = h["x"] * self.resolution
-                y = h["y"] * self.resolution
-                if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                    print("Text!")
+            self.check_detections()
 
             time.sleep(self.dt)
+
+    def check_detections(self):
+        detections = {
+            'text': False,
+            'human': False,
+            'sound': False,
+            'qr': False,
+            'barcode': False,
+            'language': False,
+            'motion': False,
+            'color': False
+        }
+        detected = False
+        # Check distance from stuff
+        for h in self.world["actors"]["humans"]:
+            x = h["x"] * self.resolution
+            y = h["y"] * self.resolution
+            if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                detected = True
+                detections['human'] = True
+                if h['move'] == 1:
+                    detections['motion'] = True
+                if h['sound'] == 1:
+                    detections['sound'] = True
+                if h['lang'] != 0:
+                    detections['language'] = True
+                    detections['language_spec'] = h['lang']
+        for h in self.world["actors"]["sound_sources"]:
+            x = h["x"] * self.resolution
+            y = h["y"] * self.resolution
+            if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                detected = True
+                detections['sound'] = True
+        for h in self.world["actors"]["qrs"]:
+            x = h["x"] * self.resolution
+            y = h["y"] * self.resolution
+            if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                detected = True
+                detections['qr'] = True
+        for h in self.world["actors"]["barcodes"]:
+            x = h["x"] * self.resolution
+            y = h["y"] * self.resolution
+            if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                detected = True
+                detections['barcode'] = True
+        for h in self.world["actors"]["colors"]:
+            x = h["x"] * self.resolution
+            y = h["y"] * self.resolution
+            if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                detected = True
+                detections['color'] = True
+        for h in self.world["actors"]["texts"]:
+            x = h["x"] * self.resolution
+            y = h["y"] * self.resolution
+            if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
+                detected = True
+                detections['text'] = True
+
+        # if detected:
+        self.detection_pub.publish(detections)
