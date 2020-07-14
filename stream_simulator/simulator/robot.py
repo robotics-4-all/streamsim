@@ -59,7 +59,11 @@ class Robot:
         tmp = self.device_management.get()
         self.devices = tmp['devices']
         self.controllers = tmp['controllers']
-        self.motion_controller = self.device_management.motion_controller
+        try:
+            self.motion_controller = self.device_management.motion_controller
+        except:
+            self.logger.warning("Robot has no motion controller.. Smells like device!".format(self.name))
+            self.motion_controller = None
 
         self.devices_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.namespace + '/nodes_detector/get_connected_devices')
 
@@ -68,7 +72,7 @@ class Robot:
         self.detection_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":detection")
 
         # Threads
-        self.motion_thread = threading.Thread(target = self.handle_motion)
+        self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
         self.logger.info("Robot {} set-up".format(self.name))
 
@@ -77,10 +81,7 @@ class Robot:
             self.controllers[c].start()
 
         self.devices_rpc_server.run()
-
-        # Simulator stuff
-        self.motion_thread.start()
-        self.logger.info("Robot {}: cmd_vel threading ok".format(self.name))
+        self.simulator_thread.start()
 
     def devices_callback(self, message, meta):
         timestamp = time.time()
@@ -141,38 +142,39 @@ class Robot:
 
         return False
 
-    def handle_motion(self):
+    def simulation_thread(self):
         while True:
-            prev_x = self._x
-            prev_y = self._y
-            prev_th = self._theta
+            if self.motion_controller is not None:
+                prev_x = self._x
+                prev_y = self._y
+                prev_th = self._theta
 
-            if self.motion_controller._angular == 0:
-                self._x += self.motion_controller._linear * self.dt * math.cos(self._theta)
-                self._y += self.motion_controller._linear * self.dt * math.sin(self._theta)
-            else:
-                arc = self.motion_controller._linear / self.motion_controller._angular
-                self._x += - arc * math.sin(self._theta) + \
-                    arc * math.sin(self._theta + self.dt * self.motion_controller._angular)
-                self._y -= - arc * math.cos(self._theta) + \
-                    arc * math.cos(self._theta + self.dt * self.motion_controller._angular)
-            self._theta += self.motion_controller._angular * self.dt
+                if self.motion_controller._angular == 0:
+                    self._x += self.motion_controller._linear * self.dt * math.cos(self._theta)
+                    self._y += self.motion_controller._linear * self.dt * math.sin(self._theta)
+                else:
+                    arc = self.motion_controller._linear / self.motion_controller._angular
+                    self._x += - arc * math.sin(self._theta) + \
+                        arc * math.sin(self._theta + self.dt * self.motion_controller._angular)
+                    self._y -= - arc * math.cos(self._theta) + \
+                        arc * math.cos(self._theta + self.dt * self.motion_controller._angular)
+                self._theta += self.motion_controller._angular * self.dt
 
-            if self.check_ok(self._x, self._y, prev_x, prev_y):
-                self._x = prev_x
-                self._y = prev_y
-                self._theta = prev_th
+                if self.check_ok(self._x, self._y, prev_x, prev_y):
+                    self._x = prev_x
+                    self._y = prev_y
+                    self._theta = prev_th
 
-            self.logger.debug("Robot pose: {}, {}, {}".format(\
-                "{:.2f}".format(self._x), \
-                "{:.2f}".format(self._y), \
-                "{:.2f}".format(self._theta)))
+                self.logger.debug("Robot pose: {}, {}, {}".format(\
+                    "{:.2f}".format(self._x), \
+                    "{:.2f}".format(self._y), \
+                    "{:.2f}".format(self._theta)))
 
-            self.pose_pub.publish({
-                "x": float("{:.2f}".format(self._x)),
-                "y": float("{:.2f}".format(self._y)),
-                "theta": float("{:.2f}".format(self._theta))
-            })
+                self.pose_pub.publish({
+                    "x": float("{:.2f}".format(self._x)),
+                    "y": float("{:.2f}".format(self._y)),
+                    "theta": float("{:.2f}".format(self._theta))
+                })
 
             self.check_detections()
 
