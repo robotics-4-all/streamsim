@@ -31,7 +31,7 @@ robots:
             channels: 6 # ??
             framerate: 44100 # ??
             max_data_length": 10
-      # sonar:
+      sonar:
       #   -
       #     orientation: -45
       #     place: FR
@@ -41,15 +41,15 @@ robots:
       #       echo_pin: "B_1"
       #       trigger_pin: "B_0"
       #       max_data_length": 10
-      #   -
-      #     orientation: 45
-      #     place: FL
-      #     sensor_configuration:
-      #       bus: 4
-      #       address: 0x21
-      #       echo_pin: "B_3"
-      #       trigger_pin: "B_2"
-      #       max_data_length": 10
+        -
+          orientation: 45
+          place: FL
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "B_3"
+            trigger_pin: "B_2"
+            max_data_length": 10
       #   -
       #     orientation: 90
       #     place: L
@@ -86,12 +86,12 @@ robots:
       #       echo_pin: "A_3"
       #       trigger_pin: "A_2"
       #       max_data_length": 10
-      # ir:
-      #   -
-      #     orientation: -45
-      #     place: FR
-      #     sensor_configuration:
-      #       max_data_length": 10
+      ir:
+        -
+          orientation: -45
+          place: FR
+          sensor_configuration:
+            max_data_length": 10
       #   -
       #     orientation: 45
       #     place: FL
@@ -117,15 +117,15 @@ robots:
       #     place: BL
       #     sensor_configuration:
       #       max_data_length": 10
-      # tof:
-      #   -
-      #     orientation: 0
-      #     place: F
-      #     sensor_configuration:
-      #       bus: 3
-      #       address: 0x29
-      #       mode: 3
-      #       max_data_length: 10
+      tof:
+        -
+          orientation: 0
+          place: F
+          sensor_configuration:
+            bus: 3
+            address: 0x29
+            mode: 3
+            max_data_length: 10
       # camera:
       #   -
       #     orientation: 0

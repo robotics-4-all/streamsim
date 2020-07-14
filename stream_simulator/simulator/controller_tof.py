@@ -39,6 +39,7 @@ class TofController:
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
+            val = 0
             if self.info["mode"] == "mock":
                 val = float(random.uniform(30, 10))
                 self.memory_write(val)
