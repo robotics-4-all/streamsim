@@ -34,13 +34,14 @@ from .controller_speaker import SpeakerController
 from .controller_touch_screen import TouchScreenController
 
 class DeviceLookup:
-    def __init__(self, world = None, logger = None, name = None, namespace = None):
+    def __init__(self, world = None, map = None, logger = None, name = None, namespace = None):
         self.world = world
         self.logger = Logger(name + "/device_discovery")
         self.name = name
         self.namespace = namespace
         self.devices = []
         self.controllers = {}
+        self.map = map
 
         # Mode: one of {real, mock, simulation}
         self.mode = self.world["robots"][0]["mode"]
@@ -94,7 +95,9 @@ class DeviceLookup:
                         "queue_size": 100,
                         "mode": self.mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "map": self.map,
+                        "max_range": m["max_range"]
                     }
                     self.devices.append(msg)
             elif s == "ir":
@@ -117,7 +120,9 @@ class DeviceLookup:
                         "queue_size": 100,
                         "mode": self.mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "map": self.map,
+                        "max_range": m["max_range"]
                     }
                     self.devices.append(msg)
             elif s == "tof":
@@ -140,7 +145,9 @@ class DeviceLookup:
                         "queue_size": 100,
                         "mode": self.mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "map": self.map,
+                        "max_range": m["max_range"]
                     }
                     self.devices.append(msg)
             elif s == "camera":

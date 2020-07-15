@@ -54,7 +54,7 @@ class Robot:
             self.name, self._x, self._y, self._theta))
 
         # Devices set
-        self.device_management = DeviceLookup(world = self.world, name = self.name,\
+        self.device_management = DeviceLookup(world = self.world, map = self.map, name = self.name,\
             namespace = self.namespace)
         tmp = self.device_management.get()
         self.devices = tmp['devices']
@@ -173,7 +173,8 @@ class Robot:
                 self.pose_pub.publish({
                     "x": float("{:.2f}".format(self._x)),
                     "y": float("{:.2f}".format(self._y)),
-                    "theta": float("{:.2f}".format(self._theta))
+                    "theta": float("{:.2f}".format(self._theta)),
+                    "resolution": self.resolution
                 })
 
             self.check_detections()
