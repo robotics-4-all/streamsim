@@ -32,6 +32,7 @@ from .controller_camera import CameraController
 from .controller_microphone import MicrophoneController
 from .controller_speaker import SpeakerController
 from .controller_touch_screen import TouchScreenController
+from .controller_gstreamer_server import GstreamerServerController
 
 class DeviceLookup:
     def __init__(self, world = None, map = None, logger = None, name = None, namespace = None):
@@ -51,7 +52,31 @@ class DeviceLookup:
 
         id_length = 4
         for s in self.world["robots"][0]["devices"]:
-            if s == "microphone":
+            if s == "gstreamer_server":
+                devices = self.world["robots"][0]["devices"][s]
+                cnt = -1
+                for m in devices:
+                    print(m)
+                    cnt += 1
+                    id = 'id_' + ''.join(random.choices(
+                        string.ascii_lowercase + string.digits, k = id_length))
+                    msg = {
+                        "type": "GSTREAMER_SERVER",
+                        "brand": "gstream",
+                        "base_topic": self.name + "/sensor/audio/gstreamer/d" + str(cnt) + "/" + id,
+                        "name": "gstreamer_" + str(cnt),
+                        "place": m["place"],
+                        "id": id,
+                        "enabled": True,
+                        "orientation": m["orientation"],
+                        "hz": 0,
+                        "queue_size": 0,
+                        "mode": self.mode,
+                        "namespace": self.namespace,
+                        "sensor_configuration": m["sensor_configuration"]
+                    }
+                    self.devices.append(msg)
+            elif s == "microphone":
                 devices = self.world["robots"][0]["devices"][s]
                 cnt = -1
                 for m in devices:
@@ -415,6 +440,8 @@ class DeviceLookup:
                 self.controllers[d["id"]] = SpeakerController(info = d)
             elif d["type"] == "TOUCH_SCREEN":
                 self.controllers[d["id"]] = TouchScreenController(info = d)
+            elif d["type"] == "GSTREAMER_SERVER":
+                self.controllers[d["id"]] = GstreamerServerController(info = d)
             else:
                 self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
 

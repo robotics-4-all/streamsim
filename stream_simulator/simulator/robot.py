@@ -83,6 +83,15 @@ class Robot:
         self.devices_rpc_server.run()
         self.simulator_thread.start()
 
+        from derp_me.client import DerpMeClient
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+        r = self.derp_client.lset(
+            "stream_sim/state",
+            [{
+                "state": "ACTIVE",
+                "timestamp": time.time()
+            }])
+
     def devices_callback(self, message, meta):
         timestamp = time.time()
         secs = int(timestamp)
