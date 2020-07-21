@@ -56,6 +56,7 @@ class SpeakerController:
             return {}
 
         try:
+            print(goalh.data)
             texts = goalh.data["text"]
             volume = goalh.data["volume"]
             language = goalh.data["language"]
@@ -105,6 +106,7 @@ class SpeakerController:
                 self.speaker.volume = volume
                 self.speaker.async_write(response.audio_content, file_flag=False)
                 while self.speaker.playing:
+                    print("Speaking...")
                     time.sleep(0.1)
 
         self.logger.info("{} Speak finished".format(self.name))
@@ -147,6 +149,7 @@ class SpeakerController:
             source = base64.b64decode(string.encode("ascii"))
             self.speaker.async_write(source, file_flag = False)
             while self.speaker.playing:
+                print("Playing...")
                 time.sleep(0.1)
 
         self.logger.info("{} Playing finished".format(self.name))
