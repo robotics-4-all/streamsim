@@ -53,7 +53,7 @@ class Simulator:
             TekException.logger = log
 
             o = self.gapi.text2speech(InputMessage({
-                'text': 'Η ΕΛΣΑ είναι έτοιμη προς χρήση!',
+                'text': 'Η συσκευή σας είναι έτοιμη προς χρήση!',
                 'language': GoogleLanguages.EL,
                 'voice': None,
                 'filepath': None
