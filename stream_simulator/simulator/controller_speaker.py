@@ -28,10 +28,21 @@ class SpeakerController:
         self.memory = 100 * [0]
 
         if self.info["mode"] == "real":
-            from espeakng import ESpeakNG
             from pidevices import Speaker
             self.speaker = Speaker(dev_name = self.conf["dev_name"], name = self.name, max_data_length = self.conf["max_data_length"])
-            self.esng = ESpeakNG()
+
+            if self.info["speak_mode"] == "espeak":
+                from espeakng import ESpeakNG
+                self.esng = ESpeakNG()
+            elif self.info["speak_mode"] == "google":
+                import os
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
+
+                from google.cloud import texttospeech
+                self.client = texttospeech.TextToSpeechClient()
+                self.audio_config = texttospeech.AudioConfig(
+                    audio_encoding = texttospeech.AudioEncoding.LINEAR16,
+                    sample_rate_hertz = 44100)
 
         self.play_action_server = ActionServer(conn_params=ConnParams.get(), on_goal=self.on_goal_play, action_name=info["base_topic"] + "/play")
         self.speak_action_server = ActionServer(conn_params=ConnParams.get(), on_goal=self.on_goal_speak, action_name=info["base_topic"] + "/speak")
@@ -74,13 +85,27 @@ class SpeakerController:
         elif self.info["mode"] == "simulation":
             pass
         else: # The real deal
-             path = "/home/pi/manos_espeak.wav"
-             self.esng.voice = language
-             self.esng._espeak_exe([texts, "-w", path], sync = True)
-             self.speaker.volume = volume
-             self.speaker.async_write(path, file_flag=True)
-             while self.speaker.playing:
-                 time.sleep(0.1)
+            if self.info["speak_mode"] == "espeak":
+                path = "/home/pi/manos_espeak.wav"
+                self.esng.voice = language
+                self.esng._espeak_exe([texts, "-w", path], sync = True)
+                self.speaker.volume = volume
+                self.speaker.async_write(path, file_flag=True)
+                while self.speaker.playing:
+                    time.sleep(0.1)
+            else: # google
+                from google.cloud import texttospeech
+                self.voice = texttospeech.VoiceSelectionParams(\
+                    language_code = language,\
+                    ssml_gender = texttospeech.SsmlVoiceGender.FEMALE)
+
+                synthesis_input = texttospeech.SynthesisInput(text = texts)
+                response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
+
+                self.speaker.volume = volume
+                self.speaker.async_write(response.audio_content, file_flag=False)
+                while self.speaker.playing:
+                    time.sleep(0.1)
 
         self.logger.info("{} Speak finished".format(self.name))
         return ret

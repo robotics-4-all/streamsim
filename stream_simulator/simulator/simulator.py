@@ -40,7 +40,7 @@ class Simulator:
             import logging
             import os
             from r4a_apis.utilities import Logger as r4alog
-            from r4a_apis.utilities import InputMessage, OutputMessage, TekException
+            from r4a_apis.utilities import InputMessage, OutputMessage, TekException, Languages
 
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
 
@@ -52,16 +52,10 @@ class Simulator:
             OutputMessage.logger = log
             TekException.logger = log
 
-            o = self.gapi.text2speech(InputMessage({
-                'text': 'Η συσκευή σας είναι έτοιμη προς χρήση!',
-                'language': GoogleLanguages.EL,
-                'voice': None,
-                'filepath': None
-            }))
-
-            self.rapi.replaySound(InputMessage({
-                'is_file': False,
-                'string': o.data['content'],
+            self.rapi.speak(InputMessage({
+                'device_id': "id_0",
+                'texts': ['Η συσκευή σας είναι έτοιμη προς χρήση!'],
+                'language': Languages.EL,
                 'volume': 100
             }))
 

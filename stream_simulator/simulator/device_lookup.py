@@ -46,6 +46,7 @@ class DeviceLookup:
 
         # Mode: one of {real, mock, simulation}
         self.mode = self.world["robots"][0]["mode"]
+        self.speak_mode = self.world["robots"][0]["speak_mode"]
         if self.mode not in ["real", "mock", "simulation"]:
             self.logger.error("Selected mode is invalid: {}".format(self.mode))
             exit(1)
@@ -73,6 +74,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -98,6 +100,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -122,6 +125,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "map": self.map,
@@ -148,6 +152,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "map": self.map,
@@ -174,6 +179,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "map": self.map,
@@ -200,6 +206,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -224,6 +231,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -248,6 +256,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -272,6 +281,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -296,6 +306,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -320,6 +331,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -344,6 +356,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -368,6 +381,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -392,6 +406,7 @@ class DeviceLookup:
                         "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
@@ -416,6 +431,7 @@ class DeviceLookup:
                         "hz": 1,
                         "queue_size": 100,
                         "mode": self.mode,
+                        "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"]
                     }
