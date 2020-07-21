@@ -314,7 +314,7 @@ robots:
           orientation: 0
           place: FRONT
           sensor_configuration:
-            dev_name: "plughw:CARD=Speaker,DEV=0"
+            dev_name: "Speaker"
             max_data_length: 10
       # leds:
       #   -

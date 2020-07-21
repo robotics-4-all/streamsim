@@ -58,8 +58,9 @@ class DeviceLookup:
                 for m in devices:
                     print(m)
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "GSTREAMER_SERVER",
                         "brand": "gstream",
@@ -82,8 +83,9 @@ class DeviceLookup:
                 for m in devices:
                     print(m)
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "MICROPHONE",
                         "brand": "usb_mic",
@@ -105,8 +107,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "SONAR",
                         "brand": "sonar",
@@ -130,8 +133,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "IR",
                         "brand": "ir",
@@ -155,8 +159,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "TOF",
                         "brand": "vl53l1x",
@@ -180,8 +185,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "CAMERA",
                         "brand": "picamera",
@@ -203,8 +209,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "IMU",
                         "brand": "icm_20948",
@@ -226,8 +233,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "BUTTON",
                         "brand": "simple",
@@ -249,8 +257,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "ENV",
                         "brand": "bme680",
@@ -272,8 +281,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "SPEAKERS",
                         "brand": "usb_speaker",
@@ -295,8 +305,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "LED",
                         "brand": "neopx",
@@ -318,8 +329,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "PAN_TILT",
                         "brand": "pca9685",
@@ -341,8 +353,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "TOUCH_SCREEN",
                         "brand": "touch_screen",
@@ -364,8 +377,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "SKID_STEER",
                         "brand": "twist",
@@ -387,8 +401,9 @@ class DeviceLookup:
                 cnt = -1
                 for m in devices:
                     cnt += 1
-                    id = 'id_' + ''.join(random.choices(
-                        string.ascii_lowercase + string.digits, k = id_length))
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "ENCODER",
                         "brand": "simple",

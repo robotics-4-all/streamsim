@@ -34,6 +34,36 @@ class Simulator:
     def start(self):
         self.robot.start()
         self.logger.info("Simulation started")
+        if self.robot.world['robots'][0]['mode'] == 'real':
+            from r4a_apis.robot_api import RobotAPI
+            from r4a_apis.google_api import GoogleAPI, GoogleLanguages
+            import logging
+            import os
+            from r4a_apis.utilities import Logger as r4alog
+            from r4a_apis.utilities import InputMessage, OutputMessage, TekException
+
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
+
+            log = r4alog(allow_cutelog = False)
+            log.debug('main', "TestGoogleApi_text2Speech")
+            self.rapi = RobotAPI(logger = log)
+            self.gapi = GoogleAPI(memory = self.rapi.memory, logger = log)
+            InputMessage.logger = log
+            OutputMessage.logger = log
+            TekException.logger = log
+
+            o = self.gapi.text2speech(InputMessage({
+                'text': 'Η ΕΛΣΑ είναι έτοιμη προς χρήση!',
+                'language': GoogleLanguages.EL,
+                'voice': None,
+                'filepath': None
+            }))
+
+            self.rapi.replaySound(InputMessage({
+                'is_file': False,
+                'string': o.data['content'],
+                'volume': 100
+            }))
 
     def experiment_sub(self):
         pass
