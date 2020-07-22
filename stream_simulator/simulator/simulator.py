@@ -52,6 +52,25 @@ class Simulator:
             OutputMessage.logger = log
             TekException.logger = log
 
+            # Wait for rhasspy
+            from derp_me.client import DerpMeClient
+            from commlib_py.transports.redis import ConnectionParameters
+            conn_params = ConnectionParameters()
+            conn_params.host = "localhost"
+            conn_params.port = 6379
+            self.derp_client = DerpMeClient(conn_params=conn_params)
+
+            wait_for = self.robot.world['robots'][0]['wait_for']
+
+            if "rhasspy" in wait_for:
+                rhasspy_ok = False
+                while not rhasspy_ok:
+                    time.sleep(0.3)
+                    r = self.derp_client.lget("rhasspy/state", 0, 0)
+                    if r['status'] == 1:
+                        print("Rhasspy is up!")
+                        rhasspy_ok = True
+
             self.rapi.speak(InputMessage({
                 'device_id': "id_0",
                 'texts': ['Η συσκευή σας είναι έτοιμη προς χρήση!'],

@@ -18,6 +18,7 @@ robots:
     name: robot_1
     mode: real # [simulation, mock, real]
     speak_mode: google # [google, espeak]
+    wait_for: [rhasspy]
     devices:
       microphone:
         -
