@@ -439,42 +439,48 @@ class DeviceLookup:
             else:
                 self.logger.error("Device declared in yaml does not exist: {}".format(s))
 
+        for d in self.devices:
+            print(d)
+
         # Devices management
         for d in self.devices:
             if d["type"] == "PAN_TILT":
-                self.controllers[d["id"]] = PanTiltController(info = d)
+                self.controllers[d["name"]] = PanTiltController(info = d)
             elif d["type"] == "LED":
-                self.controllers[d["id"]] = LedsController(info = d)
+                self.controllers[d["name"]] = LedsController(info = d)
             elif d["type"] == "ENV":
-                self.controllers[d["id"]] = EnvController(info = d)
+                self.controllers[d["name"]] = EnvController(info = d)
             elif d["type"] == "IMU":
-                self.controllers[d["id"]] = ImuController(info = d)
+                self.controllers[d["name"]] = ImuController(info = d)
             elif d["type"] == "SONAR":
-                self.controllers[d["id"]] = SonarController(info = d)
+                self.controllers[d["name"]] = SonarController(info = d)
             elif d["type"] == "IR":
-                self.controllers[d["id"]] = IrController(info = d)
+                self.controllers[d["name"]] = IrController(info = d)
             elif d["type"] == "SKID_STEER":
-                self.controllers[d["id"]] = MotionController(info = d)
+                self.controllers[d["name"]] = MotionController(info = d)
                 # Just keep the motion controller in another var for the simulator:
-                self.motion_controller = self.controllers[d["id"]]
+                self.motion_controller = self.controllers[d["name"]]
             elif d["type"] == "TOF":
-                self.controllers[d["id"]] = TofController(info = d)
+                self.controllers[d["name"]] = TofController(info = d)
             elif d["type"] == "BUTTON":
-                self.controllers[d["id"]] = ButtonController(info = d)
+                self.controllers[d["name"]] = ButtonController(info = d)
             elif d["type"] == "ENCODER":
-                self.controllers[d["id"]] = EncoderController(info = d)
+                self.controllers[d["name"]] = EncoderController(info = d)
             elif d["type"] == "CAMERA":
-                self.controllers[d["id"]] = CameraController(info = d)
+                self.controllers[d["name"]] = CameraController(info = d)
             elif d["type"] == "MICROPHONE":
-                self.controllers[d["id"]] = MicrophoneController(info = d)
+                self.controllers[d["name"]] = MicrophoneController(info = d)
             elif d["type"] == "SPEAKERS":
-                self.controllers[d["id"]] = SpeakerController(info = d)
+                self.controllers[d["name"]] = SpeakerController(info = d)
             elif d["type"] == "TOUCH_SCREEN":
-                self.controllers[d["id"]] = TouchScreenController(info = d)
+                self.controllers[d["name"]] = TouchScreenController(info = d)
             elif d["type"] == "GSTREAMER_SERVER":
-                self.controllers[d["id"]] = GstreamerServerController(info = d)
+                self.controllers[d["name"]] = GstreamerServerController(info = d)
             else:
                 self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
+
+        for d in self.controllers:
+            print(d)
 
     def get(self):
         return {

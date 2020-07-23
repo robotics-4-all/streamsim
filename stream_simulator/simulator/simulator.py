@@ -75,7 +75,7 @@ class Simulator:
                 'device_id': "id_0",
                 'texts': ['Η συσκευή σας είναι έτοιμη προς χρήση!'],
                 'language': Languages.EL,
-                'volume': 100
+                'volume': 50
             }))
 
     def experiment_sub(self):
