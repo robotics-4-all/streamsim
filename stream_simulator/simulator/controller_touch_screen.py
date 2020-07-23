@@ -84,7 +84,11 @@ class TouchScreenController:
                 ret["selected"] = ""
 
         elif self.info["mode"] == "simulation":
-            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+            ret["reaction_time"] = random.uniform(0,200) / 200.0
+            if len(options) > 0:
+                ret["selected"] = options[0]
+            else:
+                ret["selected"] = ""
         else: # The real deal
             self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 

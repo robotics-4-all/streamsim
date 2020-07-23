@@ -106,7 +106,8 @@ class LedsController:
             if self.info["mode"] == "mock":
                 self.memory_write(self._color)
             elif self.info["mode"] == "simulation":
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                self.memory_write(self._color)
+                self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 

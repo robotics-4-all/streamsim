@@ -22,6 +22,7 @@ from .device_lookup import DeviceLookup
 class Robot:
     def __init__(self, world = None, map = None, name = "robot", tick = 0.1):
         self.logger = Logger(name)
+        self.logger.std_logger.setLevel(logging.INFO)
 
         try:
             self.namespace = os.environ['TEKTRAIN_NAMESPACE']
@@ -38,7 +39,7 @@ class Robot:
         self._y = 0
         self._theta = 0
 
-        self.detection_threshold = 1.0
+        self.detection_threshold = 1
 
         # Yaml configuration management
         self.world = world
@@ -76,7 +77,7 @@ class Robot:
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
-        self.logger.info("Robot {} set-up".format(self.name))
+        self.logger.info("Device {} set-up".format(self.name))
 
     def start(self):
         for c in self.controllers:
@@ -193,61 +194,101 @@ class Robot:
             time.sleep(self.dt)
 
     def check_detections(self):
+        # [text, human, sound, qr, barcode, language, motion, color]
         detections = {
-            'text': False,
-            'human': False,
-            'sound': False,
-            'qr': False,
-            'barcode': False,
-            'language': False,
-            'motion': False,
-            'color': False
+            'type': None,
+            'id': None,
+            'value': None
         }
-        detected = False
         # Check distance from stuff
         for h in self.world["actors"]["humans"]:
             x = h["x"] * self.resolution
             y = h["y"] * self.resolution
             if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                detected = True
-                detections['human'] = True
+                self.detection_pub.publish({
+                    'type': 'human',
+                    'id': h['id'],
+                    'value': -1
+                })
+                self.logger.info("Detected {} {}".format('human', h['id']))
+
                 if h['move'] == 1:
-                    detections['motion'] = True
+                    self.detection_pub.publish({
+                        'type': 'motion',
+                        'id': h['id'],
+                        'value': -1
+                    })
+                    self.logger.info("Detected {} {}".format('motion', h['id']))
                 if h['sound'] == 1:
-                    detections['sound'] = True
+                    self.detection_pub.publish({
+                        'type': 'sound',
+                        'id': h['id'],
+                        'value': -1
+                    })
+                    self.logger.info("Detected {} {}".format('sound', h['id']))
                 if h['lang'] != 0:
-                    detections['language'] = True
-                    detections['language_spec'] = h['lang']
+                    self.detection_pub.publish({
+                        'type': 'language',
+                        'id': h['id'],
+                        'value': h['lang']
+                    })
+                    self.logger.info("Detected {} {}".format('language', h['id']))
+
         for h in self.world["actors"]["sound_sources"]:
             x = h["x"] * self.resolution
             y = h["y"] * self.resolution
             if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                detected = True
-                detections['sound'] = True
+                self.detection_pub.publish({
+                    'type': 'sound',
+                    'id': h['id'],
+                    'value': -1
+                })
+                self.logger.info("Detected {} {}".format('sound', h['id']))
+
         for h in self.world["actors"]["qrs"]:
             x = h["x"] * self.resolution
             y = h["y"] * self.resolution
             if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                detected = True
-                detections['qr'] = True
+                self.detection_pub.publish({
+                    'type': 'qr',
+                    'id': h['id'],
+                    'value': h['message']
+                })
+                self.logger.info("Detected {} {}".format('qr', h['id']))
+
         for h in self.world["actors"]["barcodes"]:
             x = h["x"] * self.resolution
             y = h["y"] * self.resolution
             if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                detected = True
-                detections['barcode'] = True
+                self.detection_pub.publish({
+                    'type': 'barcode',
+                    'id': h['id'],
+                    'value': h['message']
+                })
+                self.logger.info("Detected {} {}".format('barcode', h['id']))
+
         for h in self.world["actors"]["colors"]:
             x = h["x"] * self.resolution
             y = h["y"] * self.resolution
             if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                detected = True
-                detections['color'] = True
+                self.detection_pub.publish({
+                    'type': 'color',
+                    'id': h['id'],
+                    'value': {
+                        'r': h['r'],
+                        'g': h['g'],
+                        'b': h['b']
+                    }
+                })
+                self.logger.info("Detected {} {}".format('color', h['id']))
+
         for h in self.world["actors"]["texts"]:
             x = h["x"] * self.resolution
             y = h["y"] * self.resolution
             if math.hypot(x - self._x, y - self._y) < self.detection_threshold:
-                detected = True
-                detections['text'] = True
-
-        # if detected:
-        self.detection_pub.publish(detections)
+                self.detection_pub.publish({
+                    'type': 'text',
+                    'id': h['id'],
+                    'value': h['text']
+                })
+                self.logger.info("Detected {} {}".format('text', h['id']))

@@ -45,7 +45,8 @@ class SonarController:
                 val = float(random.uniform(30, 10))
                 self.memory_write(val)
             elif self.info["mode"] == "simulation":
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                val = float(random.uniform(30, 10))
+                self.memory_write(val)
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 

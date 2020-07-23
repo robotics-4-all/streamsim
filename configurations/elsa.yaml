@@ -1,0 +1,70 @@
+map:
+  width: 1000
+  height: 800
+  resolution: 0.02
+  obstacles:
+    lines: []
+  env:
+    temperature: 31
+    humidity: 60
+    pressure: 1800
+    air_quality: 50
+
+# Numbers are orientations in degrees
+robots:
+  -
+    name: elsa
+    mode: simulation # [simulation, mock, real]
+    speak_mode: google # [google, espeak] - in case of real mode
+    wait_for: [rhasspy] # in case of real mode
+    devices:
+      microphone:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            alsa_device: "1"
+            hosts: ["127.0.0.1", "127.0.0.1"]
+            ports: ["12333", "12334"]
+            host_port: "12334"
+            dev_name: "dsnoop:CARD=Mic,DEV=0"
+            channels: 6
+            framerate: 44100
+            max_data_length: 10
+      gstreamer_server:
+        -
+          orientation: 0
+          place: CENTER
+          sensor_configuration:
+            alsa_device: "Mic"
+            hosts: ["127.0.0.1"]
+            ports: ["12333"]
+      camera:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            framerate: 30
+            width: 640
+            height: 480
+            max_data_length: 2
+      speaker:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            dev_name: "Speaker"
+            max_data_length: 10
+
+    starting_pose:
+      x: 100 # in pixels
+      y: 100 # in pixels
+      theta: 45 # in degrees
+
+actors:
+  humans: []
+  sound_sources: []
+  qrs: []
+  barcodes: []
+  colors: []
+  texts: []

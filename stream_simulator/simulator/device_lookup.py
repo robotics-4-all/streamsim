@@ -57,7 +57,6 @@ class DeviceLookup:
                 devices = self.world["robots"][0]["devices"][s]
                 cnt = -1
                 for m in devices:
-                    print(m)
                     cnt += 1
                     id = "id_" + str(cnt)
                     # id = 'id_' + ''.join(random.choices(
@@ -83,7 +82,6 @@ class DeviceLookup:
                 devices = self.world["robots"][0]["devices"][s]
                 cnt = -1
                 for m in devices:
-                    print(m)
                     cnt += 1
                     id = "id_" + str(cnt)
                     # id = 'id_' + ''.join(random.choices(
@@ -439,9 +437,6 @@ class DeviceLookup:
             else:
                 self.logger.error("Device declared in yaml does not exist: {}".format(s))
 
-        for d in self.devices:
-            print(d)
-
         # Devices management
         for d in self.devices:
             if d["type"] == "PAN_TILT":
@@ -478,9 +473,7 @@ class DeviceLookup:
                 self.controllers[d["name"]] = GstreamerServerController(info = d)
             else:
                 self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
-
-        for d in self.controllers:
-            print(d)
+            self.logger.warning(d["name"] + " controller created")
 
     def get(self):
         return {

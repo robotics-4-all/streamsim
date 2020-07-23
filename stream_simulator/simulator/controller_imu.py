@@ -75,7 +75,34 @@ class ImuController:
 
 
             elif self.info["mode"] == "simulation":
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                val = {
+                    "accel": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    },
+                    "gyro": {
+                        "yaw": random.uniform(0.3, -0.3),
+                        "pitch": random.uniform(0.3, -0.3),
+                        "roll": random.uniform(0.3, -0.3)
+                    },
+                    "magne": {
+                        "yaw": random.uniform(0.3, -0.3),
+                        "pitch": random.uniform(0.3, -0.3),
+                        "roll": random.uniform(0.3, -0.3)
+                    }
+                }
+                self.memory_write(val)
+
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.imu.roll",
+                    [{"data": val["magne"]["roll"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.imu.pitch",
+                    [{"data": val["magne"]["pitch"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.imu.yaw",
+                    [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 

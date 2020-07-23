@@ -60,7 +60,6 @@ class IrController:
                 tmpx = originx
                 tmpy = originy
                 limit = self.info["max_range"] / self.robot_pose["resolution"]
-                print(limit, self.info["map"][int(tmpx), int(tmpy)])
                 while self.info["map"][int(tmpx), int(tmpy)] == 0 and d < limit:
                     d += 1
                     tmpx = originx + d * math.cos(ths)

@@ -14,14 +14,14 @@ from .world import World
 from commlib_py.logger import Logger
 
 class Simulator:
-    def __init__(self, tick = 0.1):
+    def __init__(self, tick = 0.1, configuration = ""):
         self.tick = tick
         self.logger = Logger("simulator")
 
         curr_dir = pathlib.Path().absolute()
 
         self.world = World(
-            filename = str(curr_dir) + "/../worlds/map_1.yaml"
+            filename = str(curr_dir) + "/../configurations/" + configuration + ".yaml"
         )
 
         self.robot = Robot(

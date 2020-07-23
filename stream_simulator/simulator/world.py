@@ -57,5 +57,3 @@ class World:
                     x1 = tmp
                 for i in range(x1, x2 + 1):
                     self.map[i, y1] = 1
-
-        print(self.map)

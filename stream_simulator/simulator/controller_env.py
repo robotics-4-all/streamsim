@@ -58,7 +58,12 @@ class EnvController:
                     "gas": float(random.uniform(30, 10))
                 })
             elif self.info["mode"] == "simulation":
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                self.memory_write({
+                    "temperature": float(random.uniform(30, 10)),
+                    "pressure": float(random.uniform(30, 10)),
+                    "humidity": float(random.uniform(30, 10)),
+                    "gas": float(random.uniform(30, 10))
+                })
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 

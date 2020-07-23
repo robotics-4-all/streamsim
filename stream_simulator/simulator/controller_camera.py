@@ -78,8 +78,12 @@ class CameraController:
             data = [int(d) for row in image for c in row for d in c]
             data = base64.b64encode(bytes(data)).decode("ascii")
         elif self.info["mode"] == "simulation":
-            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-            data = ""
+            dirname = os.path.dirname(__file__)
+            im = cv2.imread(dirname + '/resources/face.jpg')
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+            image = cv2.resize(im, dsize=(width, height))
+            data = [int(d) for row in image for c in row for d in c]
+            data = base64.b64encode(bytes(data)).decode("ascii")
         else: # The real deal
             self.sensor.start()
             img = self.sensor.read(image_dims=(width, height))[-1].frame

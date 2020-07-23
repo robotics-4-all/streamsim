@@ -1,0 +1,390 @@
+map:
+  width: 1000
+  height: 800
+  resolution: 0.02
+  obstacles:
+    lines:
+      - {x1: 100, y1: 250, x2: 400, y2: 250}
+      #- {x1: 5, y1: 4, x2: 8, y2: 4}
+  env:
+    temperature: 31
+    humidity: 60
+    pressure: 1800
+    air_quality: 50
+
+# Numbers are orientations in degrees
+robots:
+  -
+    name: robot_1
+    mode: simulation # [simulation, mock, real]
+    speak_mode: google # [google, espeak] - in case of real mode
+    wait_for: [rhasspy] # in case of real mode
+    devices:
+      microphone:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            alsa_device: "1"
+            hosts: ["127.0.0.1", "127.0.0.1"]
+            ports: ["12333", "12334"]
+            host_port: "12334"
+            dev_name: "dsnoop:CARD=Mic,DEV=0"
+            channels: 6
+            framerate: 44100
+            max_data_length: 10
+      sonar:
+        -
+          orientation: -45
+          place: FR
+          max_range: 2
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "B_1"
+            trigger_pin: "B_0"
+            max_data_length": 10
+        -
+          orientation: 45
+          place: FL
+          max_range: 2
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "B_3"
+            trigger_pin: "B_2"
+            max_data_length": 10
+        -
+          orientation: 90
+          place: L
+          max_range: 2
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "B_5"
+            trigger_pin: "B_4"
+            max_data_length": 10
+        -
+          orientation: -90
+          place: R
+          max_range: 2
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "B_7"
+            trigger_pin: "B_6"
+            max_data_length": 10
+        -
+          orientation: 135
+          place: BL
+          max_range: 2
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "A_1"
+            trigger_pin: "A_0"
+            max_data_length": 10
+        -
+          orientation: -135
+          place: BR
+          max_range: 2
+          sensor_configuration:
+            bus: 4
+            address: 0x21
+            echo_pin: "A_3"
+            trigger_pin: "A_2"
+            max_data_length": 10
+      ir:
+        -
+          orientation: -45
+          place: FR
+          max_range: 2
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: 45
+          place: FL
+          max_range: 2
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: -90
+          place: R
+          max_range: 2
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: 90
+          place: L
+          max_range: 2
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: -135
+          place: BR
+          max_range: 2
+          sensor_configuration:
+            max_data_length": 10
+        -
+          orientation: 135
+          place: BL
+          max_range: 2
+          sensor_configuration:
+            max_data_length": 10
+      tof:
+        -
+          orientation: 0
+          place: F
+          max_range: 2
+          sensor_configuration:
+            bus: 3
+            address: 0x29
+            mode: 3
+            max_data_length: 10
+      camera:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            framerate: 30
+            width: 640
+            height: 480
+            max_data_length: 2
+      imu:
+        -
+          orientation: 1
+          place: CENTER
+          sensor_configuration:
+            bus: 0
+            max_data_length: 10
+      button:
+        -
+          orientation: 0
+          place: F
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_0"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: -45
+          place: FR
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_1"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 45
+          place: FL
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_2"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: -90
+          place: R
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_3"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 90
+          place: L
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_4"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 180
+          place: B
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_6"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: -135
+          place: BR
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_7"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 135
+          place: BL
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "B_5"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 0
+          place: G1
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "A_0"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 0
+          place: G2
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "A_1"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 0
+          place: G3
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "A_2"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+        -
+          orientation: 0
+          place: G4
+          sensor_configuration:
+            bus: 5
+            address: 0x20
+            pin_num: "A_3"
+            direction: "down"
+            edge: "both"
+            bounce: 70
+            max_data_length: 10
+      env:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            bus: 5
+            slave: 0
+            t_over : 8
+            h_over : 2
+            p_over : 4
+            iir_coef : 3
+            g_status : 1
+            max_data_length: 10
+      speaker:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            dev_name: "Speaker"
+            max_data_length: 10
+      leds:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            led_count: 20
+            led_pin: 13
+            led_freq_hz: 7000
+            led_brightness: 255
+            led_invert: 0
+            led_channel: 0
+            max_data_length: 10
+      pan_tilt:
+        -
+          orientation: 0
+          place: UNDER
+          sensor_configuration:
+            bus: 5
+            frequency: 50
+            max_data_length: 10
+      touch_screen:
+        -
+          orientation: 0
+          place: UNKNOWN
+          sensor_configuration:
+            param_1: 1
+            max_data_length: 10
+      skid_steer:
+       -
+         orientation: 0
+         place: UNDER
+         sensor_configuration:
+           bus: 5
+           E1: 6
+           M1: 7
+           E2: 12
+           M2: 13
+           max_data_length: 10
+           wheel_separation: 0.147
+           wheel_radius: 0.022
+      encoder:
+        -
+          orientation: 90
+          place: BL
+          sensor_configuration:
+            bus: 3
+            address: 0x22
+            pin: "B_7"
+            max_data_length: 10
+        -
+          orientation: -90
+          place: BR
+          sensor_configuration:
+            bus: 3
+            address: 0x22
+            pin: "B_6"
+            max_data_length: 10
+    starting_pose:
+      x: 100 # in pixels
+      y: 100 # in pixels
+      theta: 45 # in degrees
+
+actors:
+  humans:
+    - {id: 0, x: 450, y: 30, move: 0, sound: 0, lang: EL}
+    - {id: 1, x: 50, y: 330, move: 1, sound: 0, lang: EL}
+    - {id: 2, x: 250, y: 130, move: 0, sound: 1, lang: EL}
+    - {id: 3, x: 320, y: 330, move: 1, sound: 1, lang: EL} # move is for motion detection, no dyn obstacles yet
+  sound_sources:
+    - {id: 4, x: 500, y: 320, lang: EL} # lang for language detection
+  qrs:
+    - {id: 5, x: 100, y: 600, message: test}
+  barcodes:
+    - {id: 6, x: 900, y: 500, message: EL3341}
+  colors:
+    - {id: 7, x: 700, y: 8000, r: 255, g: 0, b: 0} # for dominant color
+  texts:
+    - {id: 8, x: 800, y: 30, text: this is a text} # for OCR
