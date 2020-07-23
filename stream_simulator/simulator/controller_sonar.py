@@ -36,7 +36,7 @@ class SonarController:
         self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def sensor_read(self):
-        self.logger.info("Sonar {} sensor read thread started".format(self.info["id"]))
+        self.logger.debug("Sonar {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
@@ -57,7 +57,7 @@ class SonarController:
                     "timestamp": time.time()
                 }])
 
-        self.logger.info("Sonar {} sensor read thread stopped".format(self.info["id"]))
+        self.logger.debug("Sonar {} sensor read thread stopped".format(self.info["id"]))
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -85,6 +85,12 @@ class SonarController:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("Sonar {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
+
+    def stop(self):
+        self.info["enabled"] = False
+        self.sonar_rpc_server.stop()
+        self.enable_rpc_server.stop()
+        self.disable_rpc_server.stop()
 
     def memory_write(self, data):
         del self.memory[-1]

@@ -16,15 +16,24 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import Publisher
 
 class World:
-    def __init__(self, filename = None):
+    def __init__(self):
         self.logger = Logger("world")
 
+    def load_file(self, filename = None):
         with open(filename, 'r') as stream:
             try:
                 self.world = yaml.safe_load(stream)
                 self.logger.info("World loaded")
+                self.setup()
             except yaml.YAMLError as exc:
                 self.logger.critical("World filename does not exist")
+
+    def from_configuration(self, configuration = None):
+        self.world = configuration
+        self.logger.info("World loaded")
+        self.setup()
+
+    def setup(self):
 
         # Publishers
         self.world_pub = Publisher(conn_params=ConnParams.get(), topic= "world:details")

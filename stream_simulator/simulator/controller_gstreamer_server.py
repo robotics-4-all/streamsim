@@ -40,6 +40,9 @@ class GstreamerServerController:
         self.stream.set_state(Gst.State.PAUSED)
         return {"enabled": False}
 
+    def stop(self):
+        pass
+
     def start(self):
         if self.info["mode"] == "real":
             import gi

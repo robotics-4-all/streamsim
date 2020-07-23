@@ -86,7 +86,7 @@ class MicrophoneController:
 
             ret["record"] = base64.b64encode(b'0x55').decode("ascii")
             ret["volume"] = 100
-            
+
         else: # The real deal
             self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
             now = time.time()
@@ -109,6 +109,13 @@ class MicrophoneController:
         self.record_action_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+
+    def stop(self):
+        self.record_action_server._goal_rpc.stop()
+        self.record_action_server._cancel_rpc.stop()
+        self.record_action_server._result_rpc.stop()
+        self.enable_rpc_server.stop()
+        self.disable_rpc_server.stop()
 
     def memory_write(self, data):
         del self.memory[-1]

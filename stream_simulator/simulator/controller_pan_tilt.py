@@ -47,6 +47,13 @@ class PanTiltController:
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
+    def stop(self):
+        self.pan_tilt_set_sub.stop()
+        self.pan_tilt_get_server.stop()
+
+        self.enable_rpc_server.stop()
+        self.disable_rpc_server.stop()
+
     def memory_write(self, data):
         del self.memory[-1]
         self.memory.insert(0, data)

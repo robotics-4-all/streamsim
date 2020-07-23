@@ -75,7 +75,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "microphone":
@@ -100,7 +101,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "sonar":
@@ -127,7 +129,8 @@ class DeviceLookup:
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "map": self.map,
-                        "max_range": m["max_range"]
+                        "max_range": m["max_range"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "ir":
@@ -154,7 +157,8 @@ class DeviceLookup:
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "map": self.map,
-                        "max_range": m["max_range"]
+                        "max_range": m["max_range"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "tof":
@@ -181,7 +185,8 @@ class DeviceLookup:
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "map": self.map,
-                        "max_range": m["max_range"]
+                        "max_range": m["max_range"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "camera":
@@ -206,7 +211,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "imu":
@@ -231,7 +237,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "button":
@@ -256,7 +263,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "env":
@@ -281,7 +289,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "speaker":
@@ -306,7 +315,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "leds":
@@ -331,7 +341,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "pan_tilt":
@@ -356,7 +367,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "touch_screen":
@@ -381,7 +393,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "skid_steer":
@@ -406,7 +419,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             elif s == "encoder":
@@ -431,7 +445,8 @@ class DeviceLookup:
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"]
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.name
                     }
                     self.devices.append(msg)
             else:

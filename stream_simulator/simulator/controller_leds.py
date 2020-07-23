@@ -57,6 +57,14 @@ class LedsController:
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
+    def stop(self):
+        self.leds_set_sub.stop()
+        self.leds_wipe_server.stop()
+        self.leds_get_server.stop()
+
+        self.enable_rpc_server.stop()
+        self.disable_rpc_server.stop()
+
     def memory_write(self, data):
         del self.memory[-1]
         self.memory.insert(0, data)

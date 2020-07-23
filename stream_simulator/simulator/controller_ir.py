@@ -36,7 +36,7 @@ class IrController:
         self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = "robot_1:pose", on_message = self.robot_pose_update)
+            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
             self.robot_pose_sub.run()
 
     def robot_pose_update(self, message, meta):
@@ -103,6 +103,12 @@ class IrController:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("Ir {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
+
+    def stop(self):
+        self.info["enabled"] = False
+        self.ir_rpc_server.stop()
+        self.enable_rpc_server.stop()
+        self.disable_rpc_server.stop()
 
     def memory_write(self, data):
         del self.memory[-1]

@@ -71,8 +71,8 @@ class Robot:
         self.devices_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.namespace + '/nodes_detector/get_connected_devices')
 
         # SIMULATOR ------------------------------------------------------------
-        self.pose_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":pose")
-        self.detection_pub = Publisher(conn_params=ConnParams.get(), topic= name + ":detection")
+        self.pose_pub = Publisher(conn_params=ConnParams.get(), topic= self.name + "/pose")
+        self.detection_pub = Publisher(conn_params=ConnParams.get(), topic= self.name + "/detection")
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
@@ -84,6 +84,7 @@ class Robot:
             self.controllers[c].start()
 
         self.devices_rpc_server.run()
+        self.stopped = False
         self.simulator_thread.start()
 
         from derp_me.client import DerpMeClient
@@ -94,6 +95,16 @@ class Robot:
                 "state": "ACTIVE",
                 "timestamp": time.time()
             }])
+
+    def stop(self):
+        for c in self.controllers:
+            self.logger.warning("Trying to stop controller {}".format(c))
+            self.controllers[c].stop()
+
+        self.logger.warning("Trying to stop devices_rpc_server")
+        self.devices_rpc_server.stop()
+        self.logger.warning("Trying to stop simulation_thread")
+        self.stopped = True
 
     def devices_callback(self, message, meta):
         timestamp = time.time()
@@ -155,7 +166,7 @@ class Robot:
         return False
 
     def simulation_thread(self):
-        while True:
+        while self.stopped is False:
             if self.motion_controller is not None:
                 prev_x = self._x
                 prev_y = self._y

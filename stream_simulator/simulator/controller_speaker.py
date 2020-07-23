@@ -91,7 +91,7 @@ class SpeakerController:
                     self.logger.info("Cancel got")
                     return ret
                 time.sleep(0.1)
-                
+
         else: # The real deal
             if self.info["speak_mode"] == "espeak":
                 path = "/home/pi/manos_espeak.wav"
@@ -182,6 +182,16 @@ class SpeakerController:
         self.speak_action_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+
+    def stop(self):
+        self.play_action_server._goal_rpc.stop()
+        self.play_action_server._cancel_rpc.stop()
+        self.play_action_server._result_rpc.stop()
+        self.speak_action_server._goal_rpc.stop()
+        self.speak_action_server._cancel_rpc.stop()
+        self.speak_action_server._result_rpc.stop()
+        self.enable_rpc_server.stop()
+        self.disable_rpc_server.stop()
 
     def memory_write(self, data):
         del self.memory[-1]

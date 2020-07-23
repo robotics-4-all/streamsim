@@ -13,5 +13,5 @@ if len(sys.argv) != 2:
 
 c = sys.argv[1]
 
-s = Simulator(configuration = c)
+s = Simulator(conf_file = c, device = 'robot_1')
 s.start()

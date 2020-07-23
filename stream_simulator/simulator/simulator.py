@@ -14,26 +14,32 @@ from .world import World
 from commlib_py.logger import Logger
 
 class Simulator:
-    def __init__(self, tick = 0.1, configuration = ""):
+    def __init__(self, tick = 0.1, conf_file = None, configuration = None, device = None):
         self.tick = tick
         self.logger = Logger("simulator")
 
         curr_dir = pathlib.Path().absolute()
 
-        self.world = World(
-            filename = str(curr_dir) + "/../configurations/" + configuration + ".yaml"
-        )
+        self.world = World()
+        if conf_file is not None:
+            self.world.load_file(filename = str(curr_dir) + "/../configurations/" + conf_file + ".yaml")
+        elif configuration is not None:
+            self.world.from_configuration(configuration = configuration)
 
         self.robot = Robot(
             world = self.world.world,
             map = self.world.map,
-            name = "robot_1",
+            name = device,
             tick = self.tick
         )
 
+    def stop(self):
+        self.robot.stop()
+        self.logger.warning("Simulation stopped")
+
     def start(self):
         self.robot.start()
-        self.logger.info("Simulation started")
+        self.logger.warning("Simulation started")
         if self.robot.world['robots'][0]['mode'] == 'real':
             from r4a_apis.robot_api import RobotAPI
             from r4a_apis.google_api import GoogleAPI, GoogleLanguages

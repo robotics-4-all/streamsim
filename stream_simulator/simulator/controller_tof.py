@@ -85,6 +85,12 @@ class TofController:
             self.sensor_read_thread.start()
             self.logger.info("TOF {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
+    def stop(self):
+        self.info["enabled"] = False
+        self.tof_rpc_server.stop()
+        self.enable_rpc_server.stop()
+        self.disable_rpc_server.stop()
+
     def memory_write(self, data):
         del self.memory[-1]
         self.memory.insert(0, data)
