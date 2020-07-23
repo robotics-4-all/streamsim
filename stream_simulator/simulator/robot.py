@@ -26,8 +26,10 @@ class Robot:
         try:
             self.namespace = os.environ['TEKTRAIN_NAMESPACE']
         except:
-            self.logger.error("No TEKTRAIN_NAMESPACE environmental variable found. Please set it!")
-            exit(0)
+            self.logger.warning("No TEKTRAIN_NAMESPACE environmental variable found. Automatically setting it to /robot")
+            os.environ["TEKTRAIN_NAMESPACE"] = "/robot"
+            self.namespace = "/robot"
+
 
         self.name = self.namespace + "/" + name
         self.dt = tick

@@ -76,7 +76,17 @@ class MicrophoneController:
             ret["volume"] = 100
 
         elif self.info["mode"] == "simulation":
-            pass
+            now = time.time()
+            while time.time() - now < duration:
+                self.logger.info("Recording...")
+                if goalh.cancel_event.is_set():
+                    self.logger.info("Cancel got")
+                    return ret
+                time.sleep(0.1)
+
+            ret["record"] = base64.b64encode(b'0x55').decode("ascii")
+            ret["volume"] = 100
+            
         else: # The real deal
             self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
             now = time.time()

@@ -84,7 +84,14 @@ class SpeakerController:
                 time.sleep(0.1)
 
         elif self.info["mode"] == "simulation":
-            pass
+            now = time.time()
+            while time.time() - now < 5:
+                self.logger.info("Speaking...")
+                if goalh.cancel_event.is_set():
+                    self.logger.info("Cancel got")
+                    return ret
+                time.sleep(0.1)
+                
         else: # The real deal
             if self.info["speak_mode"] == "espeak":
                 path = "/home/pi/manos_espeak.wav"
@@ -144,7 +151,14 @@ class SpeakerController:
                 time.sleep(0.1)
 
         elif self.info["mode"] == "simulation":
-            pass
+            now = time.time()
+            while time.time() - now < 5:
+                self.logger.info("Playing...")
+                if goalh.cancel_event.is_set():
+                    self.logger.info("Cancel got")
+                    return ret
+                time.sleep(0.1)
+
         else: # The real deal
             source = base64.b64decode(string.encode("ascii"))
             self.speaker.async_write(source, file_flag = False)
