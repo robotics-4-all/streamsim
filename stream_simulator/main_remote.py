@@ -9,20 +9,20 @@ from stream_simulator import Simulator
 
 from commlib_py.logger import Logger
 
-# from commlib_py.transports.amqp import RPCServer
-# from commlib_py.transports.amqp import ConnectionParameters
-# conn_params = ConnectionParameters()
-# conn_params.credentials.username = 'etsardou'
-# conn_params.credentials.password = 'etsardou'
-# conn_params.host = 'r4a-platform.ddns.net'
-# conn_params.port = 8076
-# conn_params.vhost = "etsardou"
-
-from commlib_py.transports.redis import RPCServer
-from commlib_py.transports.redis import ConnectionParameters
+from commlib_py.transports.amqp import RPCServer
+from commlib_py.transports.amqp import ConnectionParameters
 conn_params = ConnectionParameters()
-conn_params.host = "localhost"
-conn_params.port = 6379
+conn_params.credentials.username = 'bot'
+conn_params.credentials.password = 'b0t'
+conn_params.host = 'tektrain-cloud.ddns.net'
+conn_params.port = 5672
+conn_params.vhost = "sim"
+
+# from commlib_py.transports.redis import RPCServer
+# from commlib_py.transports.redis import ConnectionParameters
+# conn_params = ConnectionParameters()
+# conn_params.host = "localhost"
+# conn_params.port = 6379
 
 class SimulatorHandler:
     def __init__(self):
@@ -31,12 +31,12 @@ class SimulatorHandler:
         self.start = RPCServer(
             conn_params=conn_params,
             on_request=self.start_callback,
-            rpc_name='/simulator/start'
+            rpc_name='simulator.start'
         )
         self.stop = RPCServer(
             conn_params=conn_params,
             on_request=self.stop_callback,
-            rpc_name='/simulator/stop'
+            rpc_name='simulator.stop'
         )
 
         self.start.run()
@@ -51,6 +51,7 @@ class SimulatorHandler:
             print(s, self.simulations[s])
 
     def start_callback(self, message, meta):
+        print(message)
         name = "device_" + str(len(self.simulations))
         s = Simulator(configuration = message, device = name)
         self.simulations[name] = s

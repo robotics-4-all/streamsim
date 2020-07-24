@@ -12,9 +12,14 @@ from .robot import Robot
 from .world import World
 
 from commlib_py.logger import Logger
+from stream_simulator import ConnParams
+if ConnParams.type == "amqp":
+    from commlib_py.transports.amqp import Subscriber
+elif ConnParams.type == "redis":
+    from commlib_py.transports.redis import Subscriber
 
 class Simulator:
-    def __init__(self, tick = 0.1, conf_file = None, configuration = None, device = None):
+    def __init__(self, tick = 0.5, conf_file = None, configuration = None, device = None):
         self.tick = tick
         self.logger = Logger("simulator")
 
@@ -83,6 +88,3 @@ class Simulator:
                 'language': Languages.EL,
                 'volume': 50
             }))
-
-    def experiment_sub(self):
-        pass

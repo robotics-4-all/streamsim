@@ -71,8 +71,18 @@ class Robot:
         self.devices_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.namespace + '/nodes_detector/get_connected_devices')
 
         # SIMULATOR ------------------------------------------------------------
-        self.pose_pub = Publisher(conn_params=ConnParams.get(), topic= self.name + "/pose")
-        self.detection_pub = Publisher(conn_params=ConnParams.get(), topic= self.name + "/detection")
+        import commlib_py
+        conn_params = commlib_py.transports.amqp.ConnectionParameters()
+        conn_params.credentials.username = 'bot'
+        conn_params.credentials.password = 'b0t'
+        conn_params.host = 'tektrain-cloud.ddns.net'
+        conn_params.port = 5672
+        conn_params.vhost = "sim"
+
+        final_top = self.name.replace("/", ".")[1:]
+        final_top = final_top[final_top.find(".") + 1:] + ".pose"
+        self.pose_pub = commlib_py.transports.amqp.Publisher(conn_params=conn_params, topic= final_top)
+        # self.detection_pub = pubam(conn_params=conn_params, topic= self.name + "/detection")
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
@@ -107,6 +117,7 @@ class Robot:
         self.stopped = True
 
     def devices_callback(self, message, meta):
+        self.logger.warning("Getting devices")
         timestamp = time.time()
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
@@ -188,10 +199,10 @@ class Robot:
                     self._y = prev_y
                     self._theta = prev_th
 
-                self.logger.debug("Robot pose: {}, {}, {}".format(\
-                    "{:.2f}".format(self._x), \
-                    "{:.2f}".format(self._y), \
-                    "{:.2f}".format(self._theta)))
+                # self.logger.debug("Robot pose: {}, {}, {}".format(\
+                #     "{:.2f}".format(self._x), \
+                #     "{:.2f}".format(self._y), \
+                #     "{:.2f}".format(self._theta)))
 
                 self.pose_pub.publish({
                     "x": float("{:.2f}".format(self._x)),
