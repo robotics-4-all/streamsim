@@ -19,11 +19,12 @@ elif ConnParams.type == "redis":
 from derp_me.client import DerpMeClient
 
 class TofController:
-    def __init__(self, info = None):
+    def __init__(self, info = None, map = None):
         self.logger = Logger(info["name"] + "-" + info["id"])
 
         self.info = info
         self.name = info["name"]
+        self.map = map
 
         self.derp_client = DerpMeClient(conn_params=ConnParams.get())
 

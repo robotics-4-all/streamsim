@@ -128,7 +128,6 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "map": self.map,
                         "max_range": m["max_range"],
                         "device_name": self.name
                     }
@@ -156,7 +155,6 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "map": self.map,
                         "max_range": m["max_range"],
                         "device_name": self.name
                     }
@@ -184,7 +182,6 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "map": self.map,
                         "max_range": m["max_range"],
                         "device_name": self.name
                     }
@@ -463,15 +460,15 @@ class DeviceLookup:
             elif d["type"] == "IMU":
                 self.controllers[d["name"]] = ImuController(info = d)
             elif d["type"] == "SONAR":
-                self.controllers[d["name"]] = SonarController(info = d)
+                self.controllers[d["name"]] = SonarController(info = d, map = self.map)
             elif d["type"] == "IR":
-                self.controllers[d["name"]] = IrController(info = d)
+                self.controllers[d["name"]] = IrController(info = d, map = self.map)
             elif d["type"] == "SKID_STEER":
                 self.controllers[d["name"]] = MotionController(info = d)
                 # Just keep the motion controller in another var for the simulator:
                 self.motion_controller = self.controllers[d["name"]]
             elif d["type"] == "TOF":
-                self.controllers[d["name"]] = TofController(info = d)
+                self.controllers[d["name"]] = TofController(info = d, map = self.map)
             elif d["type"] == "BUTTON":
                 self.controllers[d["name"]] = ButtonController(info = d)
             elif d["type"] == "ENCODER":
