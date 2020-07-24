@@ -57,8 +57,9 @@ class Robot:
             self.name, self._x, self._y, self._theta))
 
         # Devices set
-        self.device_management = DeviceLookup(world = self.world, map = self.map, name = self.name,\
-            namespace = self.namespace)
+        self.device_management = DeviceLookup(
+            world = self.world, map = self.map, name = self.name,\
+            namespace = self.namespace, device_name = name)
         tmp = self.device_management.get()
         self.devices = tmp['devices']
         self.controllers = tmp['controllers']
@@ -70,18 +71,21 @@ class Robot:
 
         self.devices_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.namespace + '/nodes_detector/get_connected_devices')
 
-        # SIMULATOR ------------------------------------------------------------
-        import commlib_py
-        conn_params = commlib_py.transports.amqp.ConnectionParameters()
-        conn_params.credentials.username = 'bot'
-        conn_params.credentials.password = 'b0t'
-        conn_params.host = 'tektrain-cloud.ddns.net'
-        conn_params.port = 5672
-        conn_params.vhost = "sim"
+        self.internal_pose_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/pose")
 
-        final_top = self.name.replace("/", ".")[1:]
-        final_top = final_top[final_top.find(".") + 1:] + ".pose"
-        self.pose_pub = commlib_py.transports.amqp.Publisher(conn_params=conn_params, topic= final_top)
+        # SIMULATOR ------------------------------------------------------------
+        if self.world['robots'][0]['amqp_inform'] is True:
+            import commlib_py
+            conn_params = commlib_py.transports.amqp.ConnectionParameters()
+            conn_params.credentials.username = 'bot'
+            conn_params.credentials.password = 'b0t'
+            conn_params.host = 'tektrain-cloud.ddns.net'
+            conn_params.port = 5672
+            conn_params.vhost = "sim"
+
+            final_top = self.name.replace("/", ".")[1:]
+            final_top = final_top[final_top.find(".") + 1:] + ".pose"
+            self.pose_pub = commlib_py.transports.amqp.Publisher(conn_params=conn_params, topic= final_top)
         # self.detection_pub = pubam(conn_params=conn_params, topic= self.name + "/detection")
 
         # Threads
@@ -199,12 +203,15 @@ class Robot:
                     self._y = prev_y
                     self._theta = prev_th
 
-                # self.logger.debug("Robot pose: {}, {}, {}".format(\
-                #     "{:.2f}".format(self._x), \
-                #     "{:.2f}".format(self._y), \
-                #     "{:.2f}".format(self._theta)))
+                if self.world['robots'][0]['amqp_inform'] is True:
+                    self.pose_pub.publish({
+                        "x": float("{:.2f}".format(self._x)),
+                        "y": float("{:.2f}".format(self._y)),
+                        "theta": float("{:.2f}".format(self._theta)),
+                        "resolution": self.resolution
+                    })
 
-                self.pose_pub.publish({
+                self.internal_pose_pub.publish({
                     "x": float("{:.2f}".format(self._x)),
                     "y": float("{:.2f}".format(self._y)),
                     "theta": float("{:.2f}".format(self._theta)),

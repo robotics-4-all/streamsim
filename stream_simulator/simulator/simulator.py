@@ -19,7 +19,7 @@ elif ConnParams.type == "redis":
     from commlib_py.transports.redis import Subscriber
 
 class Simulator:
-    def __init__(self, tick = 0.5, conf_file = None, configuration = None, device = None):
+    def __init__(self, tick = 0.2, conf_file = None, configuration = None, device = None):
         self.tick = tick
         self.logger = Logger("simulator")
 
