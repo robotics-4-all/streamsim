@@ -84,7 +84,7 @@ class CameraController:
             data = base64.b64encode(bytes(data)).decode("ascii")
         elif self.info["mode"] == "simulation":
             dirname = os.path.dirname(__file__)
-            im = cv2.imread(dirname + '/resources/face.jpg')
+            im = cv2.imread(dirname + '/resources/faces.jpg')
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             image = cv2.resize(im, dsize=(width, height))
             data = [int(d) for row in image for c in row for d in c]

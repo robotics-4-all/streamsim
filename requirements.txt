@@ -4,3 +4,4 @@ json
 logging
 pyyaml
 numpy
+wave

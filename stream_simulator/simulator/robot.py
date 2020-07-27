@@ -85,11 +85,16 @@ class Robot:
 
             final_top = self.name.replace("/", ".")[1:]
             final_top = final_top[final_top.find(".") + 1:] + ".pose"
+            final_dete_top = final_top[final_top.find(".") + 1:] + ".detect"
             self.pose_pub = commlib_py.transports.amqp.Publisher(conn_params=conn_params, topic= final_top)
-        # self.detection_pub = pubam(conn_params=conn_params, topic= self.name + "/detection")
+
+            self.detects_pub = commlib_py.transports.amqp.Publisher(conn_params=conn_params, topic= final_dete_top)
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
+
+        from derp_me.client import DerpMeClient
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
 
         self.logger.info("Device {} set-up".format(self.name))
 
@@ -101,8 +106,6 @@ class Robot:
         self.stopped = False
         self.simulator_thread.start()
 
-        from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
         r = self.derp_client.lset(
             "stream_sim/state",
             [{
@@ -229,6 +232,17 @@ class Robot:
             'id': None,
             'value': None
         }
+
+        if self.world['robots'][0]['amqp_inform'] is True:
+            try:
+                v = self.derp_client.lget("robot.detect", 0, 0)['val'][0]
+                if time.time() - v['timestamp'] < self.dt:
+                    self.logger.warning("Sending to amqp notifier: " + str(v))
+                    self.detects_pub.publish(v)
+            except:
+                print("AMQP notification failed")
+                pass
+
         # Check distance from stuff
         for h in self.world["actors"]["humans"]:
             x = h["x"] * self.resolution

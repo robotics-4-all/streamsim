@@ -76,6 +76,26 @@ class MicrophoneController:
             ret["volume"] = 100
 
         elif self.info["mode"] == "simulation":
+            # Read from file
+            import wave
+            import os
+            dirname = os.path.dirname(__file__)
+            fil = dirname + '/resources/greek_sentence.wav'
+            self.logger.warning("Reading sound from " + fil)
+            f = wave.open(fil, 'rb')
+            channels = f.getnchannels()
+            framerate = f.getframerate()
+            sample_width = f.getsampwidth()
+            data = bytearray()
+            sample = f.readframes(256)
+            while sample:
+                for s in sample:
+                    data.append(s)
+                sample = f.readframes(256)
+            f.close()
+            source = base64.b64encode(data).decode("ascii")
+            # file read
+
             now = time.time()
             while time.time() - now < duration:
                 self.logger.info("Recording...")
@@ -84,7 +104,7 @@ class MicrophoneController:
                     return ret
                 time.sleep(0.1)
 
-            ret["record"] = base64.b64encode(b'0x55').decode("ascii")
+            ret["record"] = source
             ret["volume"] = 100
 
         else: # The real deal
