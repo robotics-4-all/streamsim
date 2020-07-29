@@ -83,9 +83,10 @@ class Robot:
             conn_params.port = 5672
             conn_params.vhost = "sim"
 
-            final_top = self.name.replace("/", ".")[1:]
-            final_top = final_top[final_top.find(".") + 1:] + ".pose"
-            final_dete_top = final_top[final_top.find(".") + 1:] + ".detect"
+            final_t = self.name.replace("/", ".")[1:]
+            final_top = final_t[final_t.find(".") + 1:] + ".pose"
+            final_dete_top = final_t[final_t.find(".") + 1:] + ".detect"
+            self.logger.warning(final_dete_top)
             self.pose_pub = commlib_py.transports.amqp.Publisher(conn_params=conn_params, topic= final_top)
 
             self.detects_pub = commlib_py.transports.amqp.Publisher(conn_params=conn_params, topic= final_dete_top)
@@ -236,7 +237,7 @@ class Robot:
         if self.world['robots'][0]['amqp_inform'] is True:
             try:
                 v = self.derp_client.lget("robot.detect", 0, 0)['val'][0]
-                if time.time() - v['timestamp'] < self.dt:
+                if time.time() - v['timestamp'] < 1.5 * self.dt:
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.detects_pub.publish(v)
             except:
