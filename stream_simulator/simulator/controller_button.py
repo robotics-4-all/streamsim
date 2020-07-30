@@ -42,11 +42,15 @@ class ButtonController:
             #### Continue implementation: https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/button_hw_interface/button_hw_interface/button_hw_interface.py
 
         self.memory = 100 * [0]
+        self.val = 0
 
         self.button_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.button_callback, rpc_name=info["base_topic"] + "/get")
 
         self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+
+    def real_button_pressed(self):
+        self.val = 1
 
     def sensor_read(self):
         self.logger.info("Button {} sensor read thread started".format(self.info["id"]))
@@ -54,26 +58,35 @@ class ButtonController:
             time.sleep(1.0 / self.info["hz"])
 
             if self.info["mode"] == "mock":
-                val = float(random.randint(0,1))
+                self.val = float(random.randint(0,1))
                 self.memory_write(val)
             elif self.info["mode"] == "simulation":
-                val = float(random.randint(0,1))
+                self.val = float(random.randint(0,1))
                 self.memory_write(val)
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                pass
 
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
                 [{
-                    "data": val,
+                    "data": self.val,
                     "timestamp": time.time()
                 }])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
-                [{
-                    "data": "Tactile." + self.info["place"],
-                    "timestamp": time.time()
-                }])
+            if self.val is not 0:
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.buttons.touch_detected",
+                    [{
+                        "data": self.val,
+                        "timestamp": time.time()
+                    }])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.buttons.pressed_part",
+                    [{
+                        "data": "Tactile." + self.info["place"],
+                        "timestamp": time.time()
+                    }])
+
+                self.val = 0
 
         self.logger.info("Button {} sensor read thread stopped".format(self.info["id"]))
 
