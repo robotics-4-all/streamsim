@@ -22,7 +22,7 @@ from .device_lookup import DeviceLookup
 class Robot:
     def __init__(self, world = None, map = None, name = "robot", tick = 0.1):
         self.logger = Logger(name)
-        self.logger.std_logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.INFO)
 
         try:
             self.namespace = os.environ['TEKTRAIN_NAMESPACE']
