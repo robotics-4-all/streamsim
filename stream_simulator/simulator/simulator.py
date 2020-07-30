@@ -45,7 +45,7 @@ class Simulator:
     def start(self):
         self.robot.start()
         self.logger.warning("Simulation started")
-        if self.robot.world['robots'][0]['mode'] == 'real':
+        if self.robot.world['robots'][0]['mode'] == 'real' and self.robot.world['robots'][0]['speak_mode'] == "google":
             from r4a_apis.robot_api import RobotAPI
             from r4a_apis.google_api import GoogleAPI, GoogleLanguages
             import logging
