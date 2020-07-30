@@ -57,13 +57,49 @@ class ButtonController:
         self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def real_button_pressed(self):
-        self.val = 1
-        self.logger.warning("Button controller: Pressed from real! " + str(data))
+        r = self.derp_client.lset(
+            self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
+            [{
+                "data": 1,
+                "timestamp": time.time()
+            }])
+        r = self.derp_client.lset(
+            self.info["namespace"][1:] + ".variables.robot.buttons.touch_detected",
+            [{
+                "data": 1,
+                "timestamp": time.time()
+            }])
+        r = self.derp_client.lset(
+            self.info["namespace"][1:] + ".variables.robot.buttons.pressed_part",
+            [{
+                "data": "Tactile." + self.info["place"],
+                "timestamp": time.time()
+            }])
+
+        self.logger.warning("Button controller: Pressed from real! ")
 
     def sim_button_pressed(self, data, meta):
         if data["button"] == self.info["place"]:
-            self.val = 1
-            self.logger.warning("Button controller: Pressed from sim! " + str(data))
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
+                [{
+                    "data": 1,
+               	    "timestamp": time.time()
+                }])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.buttons.touch_detected",
+                [{
+                    "data": 1,
+                    "timestamp": time.time()
+                }])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.buttons.pressed_part",
+                [{
+                    "data": "Tactile." + self.info["place"],
+                    "timestamp": time.time()
+                }])
+        
+        self.logger.warning("Button controller: Pressed from sim! " + str(data))
 
     def sensor_read(self):
         self.logger.info("Button {} sensor read thread started".format(self.info["id"]))
@@ -72,12 +108,7 @@ class ButtonController:
 
             if self.info["mode"] == "mock":
                 self.val = float(random.randint(0,1))
-            elif self.info["mode"] == "simulation":
-                pass
-            else: # The real deal
-                pass
 
-            if self.val != self.prev:
                 r = self.derp_client.lset(
                     self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
                     [{
@@ -97,9 +128,6 @@ class ButtonController:
                             "data": "Tactile." + self.info["place"],
                             "timestamp": time.time()
                         }])
-
-                self.prev = self.val
-                self.val = 0
 
         self.logger.info("Button {} sensor read thread stopped".format(self.info["id"]))
 
