@@ -10,9 +10,9 @@ import random
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import RPCServer
+    from commlib_py.transports.amqp import RPCServer, Subscriber
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import RPCServer
+    from commlib_py.transports.redis import RPCServer, Subscriber
 
 from commlib_py.logger import Logger
 from derp_me.client import DerpMeClient
@@ -40,9 +40,16 @@ class ButtonController:
 
             self.sensor.when_pressed(self.real_button_pressed)
             #### Continue implementation: https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/button_hw_interface/button_hw_interface/button_hw_interface.py
+        elif self.info["mode"] == "simulation":
+            self.sim_button_pressed_sub = Subscriber(
+                conn_params=ConnParams.get(),
+                topic = self.info['device_name'] + "/buttons_sim",
+                on_message = self.sim_button_pressed)
+            self.sim_button_pressed_sub.run()
 
         self.memory = 100 * [0]
         self.val = 0
+        self.prev = 0
 
         self.button_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.button_callback, rpc_name=info["base_topic"] + "/get")
 
@@ -51,6 +58,12 @@ class ButtonController:
 
     def real_button_pressed(self):
         self.val = 1
+        self.logger.warning("Button controller: Pressed from real! " + str(data))
+
+    def sim_button_pressed(self, data, meta):
+        if data["button"] == self.info["place"]:
+            self.val = 1
+            self.logger.warning("Button controller: Pressed from sim! " + str(data))
 
     def sensor_read(self):
         self.logger.info("Button {} sensor read thread started".format(self.info["id"]))
@@ -59,33 +72,33 @@ class ButtonController:
 
             if self.info["mode"] == "mock":
                 self.val = float(random.randint(0,1))
-                self.memory_write(val)
             elif self.info["mode"] == "simulation":
-                self.val = float(random.randint(0,1))
-                self.memory_write(val)
+                pass
             else: # The real deal
                 pass
 
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
-                [{
-                    "data": self.val,
-                    "timestamp": time.time()
-                }])
-            if self.val is not 0:
+            if self.val != self.prev:
                 r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.buttons.touch_detected",
+                    self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
                     [{
                         "data": self.val,
                         "timestamp": time.time()
                     }])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.buttons.pressed_part",
-                    [{
-                        "data": "Tactile." + self.info["place"],
-                        "timestamp": time.time()
-                    }])
+                if self.val is not 0:
+                    r = self.derp_client.lset(
+                        self.info["namespace"][1:] + ".variables.robot.buttons.touch_detected",
+                        [{
+                            "data": self.val,
+                            "timestamp": time.time()
+                        }])
+                    r = self.derp_client.lset(
+                        self.info["namespace"][1:] + ".variables.robot.buttons.pressed_part",
+                        [{
+                            "data": "Tactile." + self.info["place"],
+                            "timestamp": time.time()
+                        }])
 
+                self.prev = self.val
                 self.val = 0
 
         self.logger.info("Button {} sensor read thread stopped".format(self.info["id"]))
@@ -139,17 +152,25 @@ class ButtonController:
             self.logger.error("{}: Malformed message for button: {} - {}".format(self.name, str(e.__class__), str(e)))
             return []
         ret = {"data": []}
-        for i in range(_from, _to): # 0 to -1
-            timestamp = time.time()
-            secs = int(timestamp)
-            nanosecs = int((timestamp-secs) * 10**(9))
-            ret["data"].append({
-                "header":{
-                    "stamp":{
-                        "sec": secs,
-                        "nanosec": nanosecs
-                    }
-                },
-                "change": self.memory[-i]
-            })
+
+        try:
+            r = self.derp_client.lget(
+                self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"], _from, _to)
+            for rr in r['val']:
+                timestamp = time.time()
+                secs = int(timestamp)
+                nanosecs = int((timestamp-secs) * 10**(9))
+                ret["data"].append({
+                    "header":{
+                        "stamp":{
+                            "sec": secs,
+                            "nanosec": nanosecs
+                        }
+                    },
+                    "change": rr['data']
+                })
+
+        except:
+            pass
+
         return ret

@@ -84,12 +84,23 @@ class Robot:
             conn_params.vhost = "sim"
 
             final_t = self.name.replace("/", ".")[1:]
-            final_top = final_t[final_t.find(".") + 1:] + ".pose"
-            final_dete_top = final_t[final_t.find(".") + 1:] + ".detect"
-            self.logger.warning(final_dete_top)
-            self.pose_pub = commlib_py.transports.amqp.Publisher(conn_params=conn_params, topic= final_top)
+            final_t = final_t[final_t.find(".") + 1:]
+            final_top = final_t + ".pose"
+            final_dete_top = final_t + ".detect"
 
-            self.detects_pub = commlib_py.transports.amqp.Publisher(conn_params=conn_params, topic= final_dete_top)
+            self.pose_pub = commlib_py.transports.amqp.Publisher(
+                conn_params=conn_params, topic= final_top)
+
+            self.detects_pub = commlib_py.transports.amqp.Publisher(
+                conn_params=conn_params, topic= final_dete_top)
+
+            self.buttons_sub = commlib_py.transports.amqp.Subscriber(
+                conn_params=conn_params,
+                topic=final_t + ".buttons",
+                on_message=self.button_amqp)
+            self.buttons_sub.run()
+
+            self.buttons_sim_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/buttons_sim")
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
@@ -98,6 +109,13 @@ class Robot:
         self.derp_client = DerpMeClient(conn_params=ConnParams.get())
 
         self.logger.info("Device {} set-up".format(self.name))
+
+    def button_amqp(self, message, meta):
+        self.logger.warning("Got button press from amqp " + str(message))
+        self.buttons_sim_pub.publish({
+            # "button": message["button"]
+            "button": "F"
+        })
 
     def start(self):
         for c in self.controllers:
@@ -237,7 +255,7 @@ class Robot:
         if self.world['robots'][0]['amqp_inform'] is True:
             try:
                 v = self.derp_client.lget("robot.detect", 0, 0)['val'][0]
-                if time.time() - v['timestamp'] < 1.5 * self.dt:
+                if time.time() - v['timestamp'] < 2.5 * self.dt:
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.detects_pub.publish(v)
             except:
