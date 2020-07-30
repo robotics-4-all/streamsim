@@ -98,8 +98,8 @@ class ButtonController:
                     "data": "Tactile." + self.info["place"],
                     "timestamp": time.time()
                 }])
-        
-        self.logger.warning("Button controller: Pressed from sim! " + str(data))
+
+            self.logger.warning("Button controller: Pressed from sim! " + str(data))
 
     def sensor_read(self):
         self.logger.info("Button {} sensor read thread started".format(self.info["id"]))

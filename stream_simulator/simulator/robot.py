@@ -113,8 +113,8 @@ class Robot:
     def button_amqp(self, message, meta):
         self.logger.warning("Got button press from amqp " + str(message))
         self.buttons_sim_pub.publish({
-            # "button": message["button"]
-            "button": "F"
+            "button": message["button"]
+            # "button": "F"
         })
 
     def start(self):
@@ -259,7 +259,7 @@ class Robot:
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.detects_pub.publish(v)
             except:
-                print("AMQP notification failed")
+                self.logger.debug("AMQP notification failed")
                 pass
 
         # Check distance from stuff
