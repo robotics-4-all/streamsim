@@ -10,13 +10,13 @@ import random
 import string
 import os
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import RPCServer
+    from commlib.transports.amqp import RPCService
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import RPCServer
+    from commlib.transports.redis import RPCService
 
 from .controller_pan_tilt import PanTiltController
 from .controller_leds import LedsController

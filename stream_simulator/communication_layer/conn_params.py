@@ -7,7 +7,7 @@ class ConnParams:
     @staticmethod
     def get():
         if ConnParams.type == "amqp":
-            from commlib_py.transports.amqp import ConnectionParameters
+            from commlib.transports.amqp import ConnectionParameters
             conn_params = ConnectionParameters()
             conn_params.credentials.username = 'etsardou'
             conn_params.credentials.password = 'etsardou'
@@ -16,7 +16,7 @@ class ConnParams:
             conn_params.vhost = "etsardou"
             return conn_params
         elif ConnParams.type == "redis":
-            from commlib_py.transports.redis import ConnectionParameters
+            from commlib.transports.redis import ConnectionParameters
             conn_params = ConnectionParameters()
             conn_params.host = "localhost"
             conn_params.port = 6379

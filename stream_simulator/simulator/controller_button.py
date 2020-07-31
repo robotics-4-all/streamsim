@@ -10,11 +10,11 @@ import random
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import RPCServer, Subscriber
+    from commlib.transports.amqp import RPCService, Subscriber
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import RPCServer, Subscriber
+    from commlib.transports.redis import RPCService, Subscriber
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 from derp_me.client import DerpMeClient
 
 class ButtonController:
@@ -51,10 +51,10 @@ class ButtonController:
         self.val = 0
         self.prev = 0
 
-        self.button_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.button_callback, rpc_name=info["base_topic"] + "/get")
+        self.button_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.button_callback, rpc_name=info["base_topic"] + "/get")
 
-        self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def real_button_pressed(self):
         r = self.derp_client.lset(

@@ -11,12 +11,12 @@ import math
 from .robot import Robot
 from .world import World
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import Subscriber
+    from commlib.transports.amqp import Subscriber
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import Subscriber
+    from commlib.transports.redis import Subscriber
 
 class Simulator:
     def __init__(self, tick = 0.2, conf_file = None, configuration = None, device = None):
@@ -65,7 +65,7 @@ class Simulator:
 
             # Wait for rhasspy
             from derp_me.client import DerpMeClient
-            from commlib_py.transports.redis import ConnectionParameters
+            from commlib.transports.redis import ConnectionParameters
             conn_params = ConnectionParameters()
             conn_params.host = "localhost"
             conn_params.port = 6379

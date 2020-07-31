@@ -7,13 +7,13 @@ import yaml
 import numpy
 import logging
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import Publisher
+    from commlib.transports.amqp import Publisher
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import Publisher
+    from commlib.transports.redis import Publisher
 
 class World:
     def __init__(self):

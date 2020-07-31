@@ -8,13 +8,13 @@ import logging
 import threading
 import random
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import RPCServer
+    from commlib.transports.amqp import RPCService
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import RPCServer
+    from commlib.transports.redis import RPCService
 
 class TouchScreenController:
     def __init__(self, info = None):
@@ -25,10 +25,10 @@ class TouchScreenController:
 
         self.memory = 100 * [0]
 
-        self.show_image_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.show_image_callback, rpc_name=info["base_topic"] + "/show_image")
+        self.show_image_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.show_image_callback, rpc_name=info["base_topic"] + "/show_image")
 
-        self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

@@ -12,11 +12,11 @@ import os
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import Publisher, RPCServer
+    from commlib.transports.amqp import Publisher, RPCService
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import Publisher, RPCServer
+    from commlib.transports.redis import Publisher, RPCService
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 from .device_lookup import DeviceLookup
 
 class Robot:
@@ -69,7 +69,7 @@ class Robot:
             self.logger.warning("Robot has no motion controller.. Smells like device!".format(self.name))
             self.motion_controller = None
 
-        self.devices_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.namespace + '/nodes_detector/get_connected_devices')
+        self.devices_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.namespace + '/nodes_detector/get_connected_devices')
 
         self.internal_pose_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/pose")
 
@@ -88,13 +88,13 @@ class Robot:
             final_top = final_t + ".pose"
             final_dete_top = final_t + ".detect"
 
-            self.pose_pub = commlib_py.transports.amqp.Publisher(
+            self.pose_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_top)
 
-            self.detects_pub = commlib_py.transports.amqp.Publisher(
+            self.detects_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_dete_top)
 
-            self.buttons_sub = commlib_py.transports.amqp.Subscriber(
+            self.buttons_sub = commlib.transports.amqp.Subscriber(
                 conn_params=conn_params,
                 topic=final_t + ".buttons",
                 on_message=self.button_amqp)

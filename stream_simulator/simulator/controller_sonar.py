@@ -8,13 +8,13 @@ import logging
 import threading
 import random
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import RPCServer
+    from commlib.transports.amqp import RPCService
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import RPCServer
+    from commlib.transports.redis import RPCService
 
 from derp_me.client import DerpMeClient
 
@@ -31,10 +31,10 @@ class SonarController:
 
         self.memory = 100 * [0]
 
-        self.sonar_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.sonar_callback, rpc_name=info["base_topic"] + "/get")
+        self.sonar_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.sonar_callback, rpc_name=info["base_topic"] + "/get")
 
-        self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def sensor_read(self):
         self.logger.debug("Sonar {} sensor read thread started".format(self.info["id"]))

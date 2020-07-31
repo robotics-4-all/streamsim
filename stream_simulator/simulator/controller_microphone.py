@@ -9,13 +9,13 @@ import threading
 import random
 import base64
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import ActionServer, RPCServer
+    from commlib.transports.amqp import ActionServer, RPCService
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import ActionServer, RPCServer
+    from commlib.transports.redis import ActionServer, RPCService
 
 class MicrophoneController:
     def __init__(self, info = None):
@@ -37,8 +37,8 @@ class MicrophoneController:
 
         self.record_action_server = ActionServer(conn_params=ConnParams.get(), on_goal=self.on_goal, action_name=info["base_topic"] + "/record")
 
-        self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def on_goal(self, goalh):
         self.logger.info("{} recording started".format(self.name))

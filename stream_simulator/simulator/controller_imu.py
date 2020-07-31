@@ -8,14 +8,14 @@ import logging
 import threading
 import random
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 from derp_me.client import DerpMeClient
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import RPCServer
+    from commlib.transports.amqp import RPCService
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import RPCServer
+    from commlib.transports.redis import RPCService
 
 class ImuController:
     def __init__(self, info = None):
@@ -34,9 +34,9 @@ class ImuController:
 
         self.memory = 100 * [0]
 
-        self.imu_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.imu_callback, rpc_name=info["base_topic"] + "/get")
-        self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.imu_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.imu_callback, rpc_name=info["base_topic"] + "/get")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def sensor_read(self):
         self.logger.info("IMU {} sensor read thread started".format(self.info["id"]))

@@ -8,13 +8,13 @@ import logging
 import threading
 import random
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 
 from stream_simulator import ConnParams
 if ConnParams.type == "amqp":
-    from commlib_py.transports.amqp import RPCServer, Subscriber
+    from commlib.transports.amqp import RPCService, Subscriber
 elif ConnParams.type == "redis":
-    from commlib_py.transports.redis import RPCServer, Subscriber
+    from commlib.transports.redis import RPCService, Subscriber
 
 from derp_me.client import DerpMeClient
 
@@ -31,10 +31,10 @@ class IrController:
 
         self.memory = 100 * [0]
 
-        self.ir_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.ir_callback, rpc_name=info["base_topic"] + "/get")
+        self.ir_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.ir_callback, rpc_name=info["base_topic"] + "/get")
 
-        self.enable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)

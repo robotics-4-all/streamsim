@@ -7,10 +7,10 @@ import threading
 
 from stream_simulator import Simulator
 
-from commlib_py.logger import Logger
+from commlib.logger import Logger
 
-from commlib_py.transports.amqp import RPCServer
-from commlib_py.transports.amqp import ConnectionParameters
+from commlib.transports.amqp import RPCService
+from commlib.transports.amqp import ConnectionParameters
 conn_params = ConnectionParameters()
 conn_params.credentials.username = 'bot'
 conn_params.credentials.password = 'b0t'
@@ -18,8 +18,8 @@ conn_params.host = 'tektrain-cloud.ddns.net'
 conn_params.port = 5672
 conn_params.vhost = "sim"
 
-# from commlib_py.transports.redis import RPCServer
-# from commlib_py.transports.redis import ConnectionParameters
+# from commlib.transports.redis import RPCService
+# from commlib.transports.redis import ConnectionParameters
 # conn_params = ConnectionParameters()
 # conn_params.host = "localhost"
 # conn_params.port = 6379
@@ -28,12 +28,12 @@ class SimulatorHandler:
     def __init__(self):
         self.logger = Logger("main_remote")
 
-        self.start = RPCServer(
+        self.start = RPCService(
             conn_params=conn_params,
             on_request=self.start_callback,
             rpc_name='simulator.start'
         )
-        self.stop = RPCServer(
+        self.stop = RPCService(
             conn_params=conn_params,
             on_request=self.stop_callback,
             rpc_name='simulator.stop'
