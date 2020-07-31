@@ -142,15 +142,15 @@ robots:
       #       address: 0x29
       #       mode: 3
       #       max_data_length: 10
-      # camera:
-      #   -
-      #     orientation: 0
-      #     place: FRONT
-      #     sensor_configuration:
-      #       framerate: 30
-      #       width: 640
-      #       height: 480
-      #       max_data_length: 2
+      camera:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            framerate: 30
+            width: 640
+            height: 480
+            max_data_length: 2
       imu:
         -
           orientation: 1
