@@ -132,16 +132,16 @@ robots:
       #     max_range: 2
       #     sensor_configuration:
       #       max_data_length": 10
-      # tof:
-      #   -
-      #     orientation: 0
-      #     place: F
-      #     max_range: 2
-      #     sensor_configuration:
-      #       bus: 3
-      #       address: 0x29
-      #       mode: 3
-      #       max_data_length: 10
+      tof:
+        -
+          orientation: 0
+          place: F
+          max_range: 2
+          sensor_configuration:
+            bus: 1
+            address: 0x29
+            mode: 3
+            max_data_length: 10
       camera:
         -
           orientation: 0

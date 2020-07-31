@@ -28,6 +28,10 @@ class TofController:
 
         self.derp_client = DerpMeClient(conn_params=ConnParams.get())
 
+        if self.info["mode"] == "real":
+            from pidevices.sensors.vl53l1x import VL53L1X
+            self.sensor = VL53L1X(bus=1) 
+
         self.memory = 100 * [0]
 
         self.tof_rpc_server = RPCServer(conn_params=ConnParams.get(), on_request=self.tof_callback, rpc_name=info["base_topic"] + "/get")
@@ -48,7 +52,9 @@ class TofController:
                 val = float(random.uniform(30, 10))
                 self.memory_write(val)
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                val = self.sensor.read()
+
+                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + ".variables.robot.distance." + self.info["place"],
