@@ -21,19 +21,19 @@ robots:
     wait_for: [] #[rhasspy] # in case of real mode
     amqp_inform: false
     devices:
-      # microphone:
-      #   -
-      #     orientation: 0
-      #     place: FRONT
-      #     sensor_configuration:
-      #       alsa_device: "1"
-      #       hosts: ["127.0.0.1", "127.0.0.1"]
-      #       ports: ["12333", "12334"]
-      #       host_port: "12334"
-      #       dev_name: "dsnoop:CARD=Mic,DEV=0"
-      #       channels: 6
-      #       framerate: 44100
-      #       max_data_length: 10
+      microphone:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            alsa_device: "0"
+            hosts: ["127.0.0.1", "127.0.0.1"]
+            ports: ["12333", "12334"]
+            host_port: "12334"
+            dev_name: "dsnoop:CARD=Mic,DEV=0"
+            channels: 6
+            framerate: 44100
+            max_data_length: 10
       # sonar:
       #   -
       #     orientation: -45
@@ -151,13 +151,13 @@ robots:
       #       width: 640
       #       height: 480
       #       max_data_length: 2
-      # imu:
-      #   -
-      #     orientation: 1
-      #     place: CENTER
-      #     sensor_configuration:
-      #       bus: 0
-      #       max_data_length: 10
+      imu:
+        -
+          orientation: 1
+          place: CENTER
+          sensor_configuration:
+            bus: 1
+            max_data_length: 10
       button:
         -
           orientation: 0
@@ -168,7 +168,7 @@ robots:
             pin_num: "B_0"
             direction: "down"
             edge: "both"
-            bounce: 70
+            bounce: 200
             max_data_length: 10
         -
           orientation: -45
@@ -179,7 +179,7 @@ robots:
             pin_num: "B_1"
             direction: "down"
             edge: "both"
-            bounce: 70
+            bounce: 200
             max_data_length: 10
         # -
         #   orientation: 45
@@ -190,7 +190,7 @@ robots:
         #     pin_num: "B_2"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: -90
@@ -201,7 +201,7 @@ robots:
         #     pin_num: "B_3"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 90
@@ -212,7 +212,7 @@ robots:
         #     pin_num: "B_4"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 180
@@ -223,7 +223,7 @@ robots:
         #     pin_num: "B_5"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: -135
@@ -234,7 +234,7 @@ robots:
         #     pin_num: "A_1"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 135
@@ -245,7 +245,7 @@ robots:
         #     pin_num: "A_6"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 0
@@ -256,7 +256,7 @@ robots:
         #     pin_num: "A_5"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 0
@@ -271,7 +271,7 @@ robots:
         #     pin_num: "A_4"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         -
           orientation: 0
@@ -282,19 +282,19 @@ robots:
             pin_num: "A_3"
             direction: "down"
             edge: "both"
-            bounce: 70
+            bounce: 200
             max_data_length: 10
-        -
-          orientation: 0
-          place: G4
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_4"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+       # -
+       #   orientation: 0
+       #   place: G4
+       #   sensor_configuration:
+       #     bus: 1
+       #     address: 0x20
+       #     pin_num: "A_4"
+       #     direction: "down"
+       #     edge: "both"
+       #     bounce: 200
+       #     max_data_length: 10
       # env:
       #   -
       #     orientation: 0
@@ -308,13 +308,13 @@ robots:
       #       iir_coef : 3
       #       g_status : 1
       #       max_data_length: 10
-      # speaker:
-      #   -
-      #     orientation: 0
-      #     place: FRONT
-      #     sensor_configuration:
-      #       dev_name: "Speaker"
-      #       max_data_length: 10
+      speaker:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            dev_name: "Speaker"
+            max_data_length: 10
       # leds:
       #   -
       #     orientation: 0

@@ -29,7 +29,7 @@ class ImuController:
 
         if self.info["mode"] == "real":
             from pidevices import ICM_20948
-            self.sensor = ICM_20948(3) ## CHECK BUS??
+            self.sensor = ICM_20948(1) # connect to bus (1)
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/imu_hw_interface/imu_hw_interface/imu_hw_interface.py
 
         self.memory = 100 * [0]
@@ -104,7 +104,38 @@ class ImuController:
                     self.info["namespace"][1:] + ".variables.robot.imu.yaw",
                     [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                data = self.sensor.read()
+
+                val = {
+                    "accel": {
+                        "x": data.accel.x,
+                        "y": data.accel.y,
+                        "z": data.accel.z
+                    },
+                    "gyro": {
+                        "yaw": data.gyro.z,
+                        "pitch": data.gyro.y,
+                        "roll": data.gyro.x
+                    },
+                    "magne": {
+                        "yaw": data.magne.z,
+                        "pitch": data.magne.y,
+                        "roll": data.magne.x
+                    }
+                }
+                self.memory_write(val)
+
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.imu.roll",
+                    [{"data": val["magne"]["roll"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.imu.pitch",
+                    [{"data": val["magne"]["pitch"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + ".variables.robot.imu.yaw",
+                    [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
+
+                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
 
