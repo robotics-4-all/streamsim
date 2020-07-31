@@ -12,7 +12,7 @@ from .robot import Robot
 from .world import World
 
 from commlib.logger import Logger
-from stream_simulator import ConnParams
+from .conn_params import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import Subscriber
 elif ConnParams.type == "redis":

@@ -11,7 +11,7 @@ import random
 from commlib.logger import Logger
 from derp_me.client import DerpMeClient
 
-from stream_simulator import ConnParams
+from .conn_params import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import RPCService
 elif ConnParams.type == "redis":

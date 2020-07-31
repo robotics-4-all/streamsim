@@ -3,6 +3,4 @@
 
 from __future__ import absolute_import
 
-from .utilities import Logger
-from .communication_layer import Publisher, Subscriber, RpcServer, RpcClient, ConnParams
-from .simulator import Robot, World, Simulator
+from .simulator import ConnParams, Robot, World, Simulator

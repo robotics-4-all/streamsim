@@ -11,7 +11,7 @@ import base64
 
 from commlib.logger import Logger
 
-from stream_simulator import ConnParams
+from .conn_params import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import ActionServer, RPCService
 elif ConnParams.type == "redis":

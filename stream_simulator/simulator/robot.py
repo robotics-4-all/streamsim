@@ -10,7 +10,7 @@ import random
 import string
 import os
 
-from stream_simulator import ConnParams
+from .conn_params import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import Publisher, RPCService
 elif ConnParams.type == "redis":
