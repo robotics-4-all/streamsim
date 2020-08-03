@@ -51,7 +51,6 @@ class IrController:
             val = 0
             if self.info["mode"] == "mock":
                 val = float(random.uniform(30, 10))
-                self.memory_write(val)
             elif self.info["mode"] == "simulation":
                 ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
                 # Calculate distance
@@ -66,9 +65,10 @@ class IrController:
                     tmpx = originx + d * math.cos(ths)
                     tmpy = originx + d * math.cos(ths)
                 val = d * self.robot_pose["resolution"]
-
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+            self.memory_write(val)
 
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + ".variables.robot.distance." + self.info["place"],

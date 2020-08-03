@@ -12,9 +12,9 @@ from commlib.logger import Logger
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService
+    from commlib.transports.amqp import RPCService, Subscriber
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService
+    from commlib.transports.redis import RPCService, Subscriber
 
 from derp_me.client import DerpMeClient
 
@@ -36,6 +36,13 @@ class SonarController:
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
+            self.robot_pose_sub.run()
+
+    def robot_pose_update(self, message, meta):
+        self.robot_pose = message
+
     def sensor_read(self):
         self.logger.debug("Sonar {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
@@ -44,12 +51,24 @@ class SonarController:
             val = 0
             if self.info["mode"] == "mock":
                 val = float(random.uniform(30, 10))
-                self.memory_write(val)
             elif self.info["mode"] == "simulation":
-                val = float(random.uniform(30, 10))
-                self.memory_write(val)
+                ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
+                # Calculate distance
+                d = 1
+                originx = self.robot_pose["x"] / self.robot_pose["resolution"]
+                originy = self.robot_pose["y"] / self.robot_pose["resolution"]
+                tmpx = originx
+                tmpy = originy
+                limit = self.info["max_range"] / self.robot_pose["resolution"]
+                while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
+                    d += 1
+                    tmpx = originx + d * math.cos(ths)
+                    tmpy = originx + d * math.cos(ths)
+                val = d * self.robot_pose["resolution"]
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+            self.memory_write(val)
 
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + ".variables.robot.distance." + self.info["place"],
