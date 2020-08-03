@@ -288,7 +288,11 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "temperature": m["sim_temperature"],
+                        "humidity": m["sim_humidity"],
+                        "gas": m["sim_air_quality"],
+                        "pressure": m["sim_pressure"]
                     }
                     self.devices.append(msg)
             elif s == "speaker":

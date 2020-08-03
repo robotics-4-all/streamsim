@@ -6,11 +6,6 @@ map:
     lines:
       - {x1: 100, y1: 250, x2: 400, y2: 250}
       #- {x1: 5, y1: 4, x2: 8, y2: 4}
-  env:
-    temperature: 31
-    humidity: 60
-    pressure: 1800
-    air_quality: 50
 
 # Numbers are orientations in degrees
 robots:
@@ -299,6 +294,10 @@ robots:
         -
           orientation: 0
           place: FRONT
+          sim_temperature: 31
+          sim_humidity: 60
+          sim_pressure: 1800
+          sim_air_quality: 50
           sensor_configuration:
             bus: 5
             slave: 0

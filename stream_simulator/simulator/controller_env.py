@@ -50,22 +50,29 @@ class EnvController:
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
+            val = {
+                "temperature": 0,
+                "pressure": 0,
+                "humidity": 0,
+                "gas": 0
+            }
             if self.info["mode"] == "mock":
-                self.memory_write({
-                    "temperature": float(random.uniform(30, 10)),
-                    "pressure": float(random.uniform(30, 10)),
-                    "humidity": float(random.uniform(30, 10)),
-                    "gas": float(random.uniform(30, 10))
-                })
+                val["temperature"] = float(random.uniform(30, 10))
+                val["pressure"] = float(random.uniform(30, 10))
+                val["humidity"] = float(random.uniform(30, 10))
+                val["gas"] = float(random.uniform(30, 10))
+
             elif self.info["mode"] == "simulation":
-                self.memory_write({
-                    "temperature": float(random.uniform(30, 10)),
-                    "pressure": float(random.uniform(30, 10)),
-                    "humidity": float(random.uniform(30, 10)),
-                    "gas": float(random.uniform(30, 10))
-                })
+                val["temperature"] = self.info["temperature"] + \
+                    random.uniform(-3, 3)
+                val["pressure"] = self.info["pressure"] + random.uniform(-3, 3)
+                val["humidity"] = self.info["humidity"] + random.uniform(-3, 3)
+                val["gas"] = self.info["gas"] + random.uniform(-3, 3)
+
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+            self.memory_write(val)
 
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 
