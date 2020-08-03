@@ -26,7 +26,14 @@ class CameraController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
-        self.actors = info["actors"]
+
+        # merge actors
+        self.actors = []
+        for i in info["actors"]:
+            for h in info["actors"][i]:
+                k = h
+                h["type"] = i
+                self.actors.append(k)
 
         if self.info["mode"] == "real":
             from pidevices import Camera, Dims
@@ -50,11 +57,11 @@ class CameraController:
 
         # The images
         self.images = {
-            "barcode": "barcode.jpg",
-            "face": "faces.jpg",
-            "qr": "qr_code.png",
-            "ocr_gr": "testocr.png",
-            "ocr_en": "text.png"
+            "barcodes": "barcode.jpg",
+            "humans": "faces.jpg",
+            "qrs": "qr_code.png",
+            "texts": "testocr.png",
+            "colors": "dog.jpg"
         }
 
     def robot_pose_update(self, message, meta):
@@ -100,8 +107,83 @@ class CameraController:
             data = [int(d) for row in image for c in row for d in c]
             data = base64.b64encode(bytes(data)).decode("ascii")
         elif self.info["mode"] == "simulation":
+            # Find actors in camera's view
+            x = self.robot_pose["x"]
+            y = self.robot_pose["y"]
+            th = self.robot_pose["theta"]
+            reso = self.robot_pose["resolution"]
+
+            findings = {
+                "humans": [],
+                "qrs": [],
+                "barcodes": [],
+                "colors": [],
+                "texts": []
+            }
+            closest = "empty"
+            closest_dist = 1000000000000
+            closest_full = None
+
+            for h in self.actors:
+                xx = h["x"] * reso
+                yy = h["y"] * reso
+                d = math.hypot(xx - x, yy - y)
+                self.logger.info("dist to {}: {}".format(h["id"], d))
+                if d <= 2.0:
+                    # In range - check if in the same semi-plane
+                    xt = x + math.cos(th) * d
+                    yt = y + math.sin(th) * d
+                    thres = d * 1.4142
+                    self.logger.info("\tThres to {}: {} / {}".format(h["id"], math.hypot(xt - xx, yt - yy), thres))
+                    if math.hypot(xt - xx, yt - yy) < thres:
+                        # We got a winner!
+                        findings[h["type"]].append(h)
+                        if d < closest_dist:
+                            closest = h["type"]
+                            closest_full = h
+
+            for i in findings:
+                for j in findings[i]:
+                    self.logger.info("Camera detected: " + str(j))
+            self.logger.info("Closest detection: {}".format(closest))
+
+            img = self.images[closest]
+
             dirname = os.path.dirname(__file__)
-            im = cv2.imread(dirname + '/resources/all.png')
+
+            # Special handle for color
+            if closest == "colors":
+                import numpy as np
+                img = 'temp.png'
+                tmp = np.zeros((height, width, 3), np.uint8)
+                tmp[:] = (
+                    closest_full["b"],
+                    closest_full["g"],
+                    closest_full["r"]
+                )
+                cv2.imwrite(dirname + "/resources/" + img, tmp)
+
+            # Special handle for qrs
+
+            # Special handle for texts
+            if closest == "texts":
+                import numpy as np
+                img = 'temp.png'
+                try:
+                    from PIL import Image, ImageDraw, ImageFont, ImageFilter
+                    im  =  Image.new ( "RGB", (width,height), (255, 255, 255) )
+                    draw  =  ImageDraw.Draw ( im )
+                    draw.text (
+                        (10, 50),
+                        closest_full["text"],
+                        font=ImageFont.truetype("DejaVuSans.ttf", 36),
+                        fill=(0,0,0)
+                    )
+                    im.save(dirname + "/resources/" + img)
+                except Exception as e:
+                    print(e)
+
+            im = cv2.imread(dirname + '/resources/' + img)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             image = cv2.resize(im, dsize=(width, height))
             data = [int(d) for row in image for c in row for d in c]
