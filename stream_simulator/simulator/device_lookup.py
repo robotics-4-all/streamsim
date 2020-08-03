@@ -103,7 +103,8 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "actors": self.world["actors"]
                     }
                     self.devices.append(msg)
             elif s == "sonar":
@@ -210,7 +211,8 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "actors": self.world["actors"]
                     }
                     self.devices.append(msg)
             elif s == "imu":

@@ -15,9 +15,9 @@ from commlib.logger import Logger
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService
+    from commlib.transports.amqp import RPCService, Subscriber
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService
+    from commlib.transports.redis import RPCService, Subscriber
 
 class CameraController:
     def __init__(self, info = None):
@@ -26,6 +26,7 @@ class CameraController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.actors = info["actors"]
 
         if self.info["mode"] == "real":
             from pidevices import Camera, Dims
@@ -42,6 +43,22 @@ class CameraController:
 
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
+            self.robot_pose_sub.run()
+
+        # The images
+        self.images = {
+            "barcode": "barcode.jpg",
+            "face": "faces.jpg",
+            "qr": "qr_code.png",
+            "ocr_gr": "testocr.png",
+            "ocr_en": "text.png"
+        }
+
+    def robot_pose_update(self, message, meta):
+        self.robot_pose = message
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -77,14 +94,14 @@ class CameraController:
 
         if self.info["mode"] == "mock":
             dirname = os.path.dirname(__file__)
-            im = cv2.imread(dirname + '/resources/face.jpg')
+            im = cv2.imread(dirname + '/resources/all.png')
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             image = cv2.resize(im, dsize=(width, height))
             data = [int(d) for row in image for c in row for d in c]
             data = base64.b64encode(bytes(data)).decode("ascii")
         elif self.info["mode"] == "simulation":
             dirname = os.path.dirname(__file__)
-            im = cv2.imread(dirname + '/resources/faces.jpg')
+            im = cv2.imread(dirname + '/resources/all.png')
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             image = cv2.resize(im, dsize=(width, height))
             data = [int(d) for row in image for c in row for d in c]

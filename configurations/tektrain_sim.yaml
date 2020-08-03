@@ -383,7 +383,7 @@ actors:
     - {id: 2, x: 250, y: 130, move: 0, sound: 1, lang: EL}
     - {id: 3, x: 320, y: 330, move: 1, sound: 1, lang: EL} # move is for motion detection, no dyn obstacles yet
   sound_sources:
-    - {id: 4, x: 500, y: 320, lang: EL} # lang for language detection
+    - {id: 4, x: 500, y: 320, lang: EL} # lang for language detection | EL or EN
   qrs:
     - {id: 5, x: 100, y: 600, message: test}
   barcodes:
