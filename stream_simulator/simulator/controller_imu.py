@@ -13,9 +13,9 @@ from derp_me.client import DerpMeClient
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService
+    from commlib.transports.amqp import RPCService, Subscriber
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService
+    from commlib.transports.redis import RPCService, Subscriber
 
 class ImuController:
     def __init__(self, info = None):
@@ -38,11 +38,41 @@ class ImuController:
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
+            self.robot_pose_sub.run()
+
+            self.robot_pose = {
+                "x": 0,
+                "y": 0,
+                "theta": 0
+            }
+
+    def robot_pose_update(self, message, meta):
+        self.robot_pose = message
+
     def sensor_read(self):
         self.logger.info("IMU {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
+            val = {
+                "accel": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "gyro": {
+                    "yaw": 0,
+                    "pitch": 0,
+                    "roll": 0
+                },
+                "magne": {
+                    "yaw": 0,
+                    "pitch": 0,
+                    "roll": 0
+                }
+            }
             if self.info["mode"] == "mock":
                 val = {
                     "accel": {
@@ -61,25 +91,13 @@ class ImuController:
                         "roll": random.uniform(0.3, -0.3)
                     }
                 }
-                self.memory_write(val)
-
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.imu.roll",
-                    [{"data": val["magne"]["roll"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.imu.pitch",
-                    [{"data": val["magne"]["pitch"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.imu.yaw",
-                    [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
-
 
             elif self.info["mode"] == "simulation":
                 val = {
                     "accel": {
-                        "x": 1,
-                        "y": 1,
-                        "z": 1
+                        "x": random.uniform(0.3, -0.3),
+                        "y": random.uniform(0.3, -0.3),
+                        "z": random.uniform(0.3, -0.3)
                     },
                     "gyro": {
                         "yaw": random.uniform(0.3, -0.3),
@@ -87,24 +105,25 @@ class ImuController:
                         "roll": random.uniform(0.3, -0.3)
                     },
                     "magne": {
-                        "yaw": random.uniform(0.3, -0.3),
+                        "yaw": self.robot_pose["theta"] + random.uniform(0.3, -0.3),
                         "pitch": random.uniform(0.3, -0.3),
                         "roll": random.uniform(0.3, -0.3)
                     }
                 }
-                self.memory_write(val)
-
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.imu.roll",
-                    [{"data": val["magne"]["roll"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.imu.pitch",
-                    [{"data": val["magne"]["pitch"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.imu.yaw",
-                    [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+            self.memory_write(val)
+
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.imu.roll",
+                [{"data": val["magne"]["roll"], "timestamp": time.time()}])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.imu.pitch",
+                [{"data": val["magne"]["pitch"], "timestamp": time.time()}])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.imu.yaw",
+                [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
 
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
 
