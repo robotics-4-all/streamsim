@@ -13,9 +13,9 @@ from commlib.logger import Logger
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import ActionServer, RPCService
+    from commlib.transports.amqp import ActionServer, RPCService, Subscriber
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import ActionServer, RPCService
+    from commlib.transports.redis import ActionServer, RPCService, Subscriber
 
 class MicrophoneController:
     def __init__(self, info = None):
@@ -24,6 +24,14 @@ class MicrophoneController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        # merge actors
+        self.actors = []
+        for i in info["actors"]:
+            for h in info["actors"][i]:
+                k = h
+                h["type"] = i
+                self.actors.append(k)
 
         if self.info["mode"] == "real":
             from pidevices import Microphone
@@ -39,6 +47,13 @@ class MicrophoneController:
 
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
+            self.robot_pose_sub.run()
+
+    def robot_pose_update(self, message, meta):
+        self.robot_pose = message
 
     def on_goal(self, goalh):
         self.logger.info("{} recording started".format(self.name))
@@ -80,7 +95,63 @@ class MicrophoneController:
             import wave
             import os
             dirname = os.path.dirname(__file__)
-            fil = dirname + '/resources/greek_sentence.wav'
+
+            x = self.robot_pose["x"]
+            y = self.robot_pose["y"]
+            th = self.robot_pose["theta"]
+            reso = self.robot_pose["resolution"]
+
+            findings = {
+                "humans": [],
+                "sound_sources": []
+            }
+            closest = "empty"
+            closest_dist = 1000000000000
+            closest_full = None
+
+            # Find actors
+            for h in self.actors:
+                if h["type"] not in ["humans", "sound_sources"]:
+                    continue
+
+                xx = h["x"] * reso
+                yy = h["y"] * reso
+                d = math.hypot(xx - x, yy - y)
+                self.logger.info("dist to {}: {}".format(h["id"], d))
+                if d <= 2.0:
+                    # In range - check if in the same semi-plane
+                    xt = x + math.cos(th) * d
+                    yt = y + math.sin(th) * d
+                    thres = d * 1.4142
+                    self.logger.info("\tThres to {}: {} / {}".format(h["id"], math.hypot(xt - xx, yt - yy), thres))
+                    if math.hypot(xt - xx, yt - yy) < thres:
+                        # We got a winner!
+                        findings[h["type"]].append(h)
+                        if d < closest_dist:
+                            closest = h["type"]
+                            closest_full = h
+
+            for i in findings:
+                for j in findings[i]:
+                    self.logger.info("Microphone detected: " + str(j))
+            self.logger.info("Closest detection: {}".format(closest))
+
+            # Check if human is the closest:
+            wav = "Silent.wav"
+            if closest == "humans":
+                if closest_full["sound"] == 1:
+                    if closest_full["lang"] == "EL":
+                        wav = "greek_sentence.wav"
+                    else:
+                        wav = "english_sentence.wav"
+
+            if closest == "sound_sources":
+                if closest_full["lang"] == "EL":
+                    wav = "greek_sentence.wav"
+                else:
+                    wav = "english_sentence.wav"
+
+            fil = dirname + '/resources/' + wav
             self.logger.warning("Reading sound from " + fil)
             f = wave.open(fil, 'rb')
             channels = f.getnchannels()
@@ -97,12 +168,13 @@ class MicrophoneController:
             # file read
 
             now = time.time()
+            self.logger.info("Recording...")
             while time.time() - now < duration:
-                self.logger.info("Recording...")
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
                     return ret
                 time.sleep(0.1)
+            self.logger.info("Recording done")
 
             ret["record"] = source
             ret["volume"] = 100

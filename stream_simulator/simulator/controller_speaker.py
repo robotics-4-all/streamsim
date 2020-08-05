@@ -76,21 +76,23 @@ class SpeakerController:
         }
         if self.info["mode"] == "mock":
             now = time.time()
+            self.logger.info("Speaking...")
             while time.time() - now < 5:
-                self.logger.info("Speaking...")
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
                     return ret
                 time.sleep(0.1)
+            self.logger.info("Speaking done")
 
         elif self.info["mode"] == "simulation":
             now = time.time()
+            self.logger.info("Speaking...")
             while time.time() - now < 5:
-                self.logger.info("Speaking...")
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
                     return ret
                 time.sleep(0.1)
+            self.logger.info("Speaking done")
 
         else: # The real deal
             if self.info["speak_mode"] == "espeak":
@@ -143,21 +145,23 @@ class SpeakerController:
         }
         if self.info["mode"] == "mock":
             now = time.time()
+            self.logger.info("Playing...")
             while time.time() - now < 5:
-                self.logger.info("Playing...")
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
                     return ret
                 time.sleep(0.1)
+            self.logger.info("Playing done")
 
         elif self.info["mode"] == "simulation":
             now = time.time()
+            self.logger.info("Playing...")
             while time.time() - now < 5:
-                self.logger.info("Playing...")
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
                     return ret
                 time.sleep(0.1)
+            self.logger.info("Playing done")
 
         else: # The real deal
             source = base64.b64decode(string.encode("ascii"))

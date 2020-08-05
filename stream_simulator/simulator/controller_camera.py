@@ -125,6 +125,9 @@ class CameraController:
             closest_full = None
 
             for h in self.actors:
+                if h["type"] not in ["humans", "qrs", "barcodes", "colors", "texts"]:
+                    continue
+                    
                 xx = h["x"] * reso
                 yy = h["y"] * reso
                 d = math.hypot(xx - x, yy - y)
