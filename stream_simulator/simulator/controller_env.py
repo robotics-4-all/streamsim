@@ -16,6 +16,8 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib.transports.redis import RPCService
 
+from derp_me.client import DerpMeClient
+
 class EnvController:
     def __init__(self, info = None):
         self.logger = Logger(info["name"] + "-" + info["id"])
@@ -23,6 +25,8 @@ class EnvController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
 
         if self.info["mode"] == "real":
             from pidevices import BME680
@@ -68,9 +72,21 @@ class EnvController:
                 val["pressure"] = self.info["pressure"] + random.uniform(-3, 3)
                 val["humidity"] = self.info["humidity"] + random.uniform(-3, 3)
                 val["gas"] = self.info["gas"] + random.uniform(-3, 3)
-
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.env.temperature",
+                [{"data": val["temperature"], "timestamp": time.time()}])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.env.pressure",
+                [{"data": val["pressure"], "timestamp": time.time()}])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.env.humidity",
+                [{"data": val["humidity"], "timestamp": time.time()}])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + ".variables.robot.env.gas",
+                [{"data": val["gas"], "timestamp": time.time()}])
 
             self.memory_write(val)
 
