@@ -164,6 +164,11 @@ class CameraController:
                 cv2.imwrite(dirname + "/resources/" + img, tmp)
 
             # Special handle for qrs
+            if closest == "qrs":
+                import qrcode
+                im = qrcode.make(closest_full["message"])
+                im.save(dirname + "/resources/temp.png")
+                img = "temp.png"
 
             # Special handle for texts
             if closest == "texts":
@@ -188,6 +193,7 @@ class CameraController:
                         start_coord += 40
                     im.save(dirname + "/resources/" + img)
                 except Exception as e:
+                    self.logger.error("CameraController: Error with text image generation")
                     print(e)
 
             im = cv2.imread(dirname + '/resources/' + img)
