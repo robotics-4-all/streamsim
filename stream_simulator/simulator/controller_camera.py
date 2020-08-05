@@ -157,7 +157,10 @@ class CameraController:
 
             # Special handle for humans
             if closest == "humans":
-                img = "face.jpg"
+                if closest_full["move"] == 0:
+                    img = "face.jpg"
+                else:
+                    img = random.choice(["face.jpg", "face_inverted.jpg"])
 
             # Special handle for barcodes
             if closest == "barcodes":

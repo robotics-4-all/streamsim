@@ -378,12 +378,12 @@ robots:
 
 actors:
   humans:
-    - {id: 0, x: 420, y: 150, move: 0, sound: 1, lang: EN}
+    - {id: 0, x: 120, y: 150, move: 0, sound: 1, lang: EN}
     # - {id: 1, x: 50, y: 330, move: 1, sound: 0, lang: EL}
     # - {id: 2, x: 250, y: 130, move: 0, sound: 1, lang: EL}
     # - {id: 3, x: 320, y: 330, move: 1, sound: 1, lang: EL} # move is for motion detection, no dyn obstacles yet
   sound_sources:
-    - {id: 4, x: 500, y: 100, lang: EL} # lang for language detection | EL or EN
+    - {id: 4, x: 120, y: 100, lang: EN} # lang for language detection | EL or EN
   qrs:
     - {id: 5, x: 320, y: 100, message: test}
   barcodes:
