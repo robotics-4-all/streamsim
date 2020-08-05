@@ -173,12 +173,19 @@ class CameraController:
                     from PIL import Image, ImageDraw, ImageFont, ImageFilter
                     im  =  Image.new ( "RGB", (width,height), (255, 255, 255) )
                     draw  =  ImageDraw.Draw ( im )
-                    draw.text (
-                        (10, 50),
-                        closest_full["text"],
-                        font=ImageFont.truetype("DejaVuSans.ttf", 36),
-                        fill=(0,0,0)
-                    )
+
+                    final_text = closest_full["text"]
+                    final_text = [final_text[i:i+30] for i in range(0, len(final_text), 30)]
+
+                    start_coord = 30
+                    for i in final_text:
+                        draw.text (
+                            (10, start_coord),
+                            i,
+                            font=ImageFont.truetype("DejaVuSans.ttf", 36),
+                            fill=(0,0,0)
+                        )
+                        start_coord += 40
                     im.save(dirname + "/resources/" + img)
                 except Exception as e:
                     print(e)
