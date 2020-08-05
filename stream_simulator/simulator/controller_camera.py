@@ -61,7 +61,8 @@ class CameraController:
             "humans": "faces.jpg",
             "qrs": "qr_code.png",
             "texts": "testocr.png",
-            "colors": "dog.jpg"
+            "colors": "dog.jpg",
+            "empty": "empty.png"
         }
 
     def robot_pose_update(self, message, meta):
@@ -157,6 +158,10 @@ class CameraController:
             # Special handle for humans
             if closest == "humans":
                 img = "face.jpg"
+
+            # Special handle for barcodes
+            if closest == "barcodes":
+                img = "barcode.jpg"
 
             # Special handle for color
             if closest == "colors":
