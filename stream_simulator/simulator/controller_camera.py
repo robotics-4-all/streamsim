@@ -127,7 +127,7 @@ class CameraController:
             for h in self.actors:
                 if h["type"] not in ["humans", "qrs", "barcodes", "colors", "texts"]:
                     continue
-                    
+
                 xx = h["x"] * reso
                 yy = h["y"] * reso
                 d = math.hypot(xx - x, yy - y)
@@ -153,6 +153,10 @@ class CameraController:
             img = self.images[closest]
 
             dirname = os.path.dirname(__file__)
+
+            # Special handle for humans
+            if closest == "humans":
+                img = "face.jpg"
 
             # Special handle for color
             if closest == "colors":
