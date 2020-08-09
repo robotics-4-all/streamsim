@@ -102,6 +102,9 @@ class SpeakerController:
                 self.speaker.volume = volume
                 self.speaker.async_write(path, file_flag=True)
                 while self.speaker.playing:
+                    if goalh.cancel_event.is_set():
+                        self.logger.info("Cancel got")
+                        return ret
                     time.sleep(0.1)
             else: # google
                 from google.cloud import texttospeech

@@ -193,6 +193,9 @@ class MicrophoneController:
             self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
             now = time.time()
             while time.time() - now < duration + 0.2:
+                if goalh.cancel_event.is_set():
+                    self.logger.info("Cancel got")
+                    return ret
                 time.sleep(0.1)
             ret["record"] = base64.b64encode(self.sensor.record).decode("ascii")
 
