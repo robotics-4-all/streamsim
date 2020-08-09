@@ -65,6 +65,9 @@ class CameraController:
             "empty": "empty.png"
         }
 
+        from derp_me.client import DerpMeClient
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
 
@@ -154,6 +157,13 @@ class CameraController:
             img = self.images[closest]
 
             dirname = os.path.dirname(__file__)
+
+            if closest != "empty":
+                self.derp_client.lset(
+                    self.info["namespace"][1:] + ".detect.source",
+                    [closest_full]
+                )
+                print("Derp me updated")
 
             # Special handle for humans
             if closest == "humans":

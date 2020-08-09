@@ -52,6 +52,9 @@ class MicrophoneController:
             self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
             self.robot_pose_sub.run()
 
+        from derp_me.client import DerpMeClient
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
 
@@ -135,6 +138,13 @@ class MicrophoneController:
                 for j in findings[i]:
                     self.logger.info("Microphone detected: " + str(j))
             self.logger.info("Closest detection: {}".format(closest))
+
+            if closest != "empty":
+                self.derp_client.lset(
+                    self.info["namespace"][1:] + ".detect.source",
+                    [closest_full]
+                )
+                print("Derp me updated")
 
             # Check if human is the closest:
             wav = "Silent.wav"

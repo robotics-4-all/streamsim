@@ -22,7 +22,7 @@ from .device_lookup import DeviceLookup
 class Robot:
     def __init__(self, world = None, map = None, name = "robot", tick = 0.1):
         self.logger = Logger(name)
-        # self.logger.setLevel(logging.INFO)
+        logging.getLogger("pika").setLevel(logging.INFO)
 
         try:
             self.namespace = os.environ['TEKTRAIN_NAMESPACE']
@@ -75,8 +75,8 @@ class Robot:
 
         # SIMULATOR ------------------------------------------------------------
         if self.world['robots'][0]['amqp_inform'] is True:
-            import commlib_py
-            conn_params = commlib_py.transports.amqp.ConnectionParameters()
+            import commlib
+            conn_params = commlib.transports.amqp.ConnectionParameters()
             conn_params.credentials.username = 'bot'
             conn_params.credentials.password = 'b0t'
             conn_params.host = 'tektrain-cloud.ddns.net'
@@ -256,6 +256,10 @@ class Robot:
             try:
                 v = self.derp_client.lget("robot.detect", 0, 0)['val'][0]
                 if time.time() - v['timestamp'] < 2.5 * self.dt:
+                    # Get the closest source
+
+                    v2 = self.derp_client.lget("robot.detect.source", 0, 0)['val'][0]
+                    v["actor_id"] = v2["id"]
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.detects_pub.publish(v)
             except:
