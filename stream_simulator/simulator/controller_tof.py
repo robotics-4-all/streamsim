@@ -54,6 +54,7 @@ class TofController:
             else: # The real deal
                 val = self.sensor.read()
 
+                
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             r = self.derp_client.lset(
@@ -62,6 +63,8 @@ class TofController:
                     "data": val,
                     "timestamp": time.time()
                 }])
+
+        
 
         self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
 

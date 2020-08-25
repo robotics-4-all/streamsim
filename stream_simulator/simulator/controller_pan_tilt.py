@@ -22,6 +22,17 @@ class PanTiltController:
 
         self.info = info
         self.name = info["name"]
+        self.conf = info["sensor_configuration"]
+
+        # create object
+        if self.info["mode"] == "real":    
+            from pidevices import PCA9685
+            self.pan_tilt = PCA9685(bus=self.conf["bus"], 
+                                    frequency=self.conf["frequency"],  
+                                    max_data_length=self.conf["max_data_length"])
+            self.yaw_channel = 0
+            self.pitch_channel = 1
+
 
         self.memory = 100 * [0]
 
@@ -46,6 +57,8 @@ class PanTiltController:
 
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+        # stop servos
+        self.pan_tilt.start() 
 
     def stop(self):
         self.pan_tilt_set_sub.stop()
@@ -53,6 +66,8 @@ class PanTiltController:
 
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+        # stop servos
+        self.pan_tilt.stop() 
 
     def memory_write(self, data):
         del self.memory[-1]
@@ -98,7 +113,9 @@ class PanTiltController:
             elif self.info["mode"] == "simulation":
                 pass
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                self.pan_tilt.write(self.yaw_channel, self._yaw, degrees=True)
+                self.pan_tilt.write(self.pitch_channel, self._pitch, degrees=True)
 
 
             self.logger.info("{}: New pan tilt command: {}, {}".format(self.name, self._yaw, self._pitch))
