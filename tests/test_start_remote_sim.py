@@ -7,8 +7,8 @@
 # conn_params.host = "localhost"
 # conn_params.port = 6379
 
-from commlib_py.transports.amqp import RPCClient
-from commlib_py.transports.amqp import ConnectionParameters
+from commlib.transports.amqp import RPCClient
+from commlib.transports.amqp import ConnectionParameters
 conn_params = ConnectionParameters()
 conn_params.credentials.username = 'bot'
 conn_params.credentials.password = 'b0t'
@@ -22,7 +22,7 @@ import pathlib
 cl = RPCClient(conn_params=conn_params, rpc_name="simulator.start")
 
 curr_dir = pathlib.Path().absolute()
-filename = str(curr_dir) + "/../configurations/tektrain.yaml"
+filename = str(curr_dir) + "/../configurations/tektrain_sim.yaml"
 with open(filename, 'r') as stream:
     try:
         world = yaml.safe_load(stream)

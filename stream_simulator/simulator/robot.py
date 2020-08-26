@@ -228,25 +228,28 @@ class Robot:
                         arc * math.cos(self._theta + self.dt * self.motion_controller._angular)
                 self._theta += self.motion_controller._angular * self.dt
 
-                if self.check_ok(self._x, self._y, prev_x, prev_y):
-                    self._x = prev_x
-                    self._y = prev_y
-                    self._theta = prev_th
-
-                if self.world['robots'][0]['amqp_inform'] is True:
-                    self.pose_pub.publish({
+                if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
+                    if self.world['robots'][0]['amqp_inform'] is True:
+                        self.logger.info("AMQP pose updated")
+                        self.pose_pub.publish({
                         "x": float("{:.2f}".format(self._x)),
                         "y": float("{:.2f}".format(self._y)),
                         "theta": float("{:.2f}".format(self._theta)),
                         "resolution": self.resolution
-                    })
+                        })
 
+                # Send internal pose for distance sensors
                 self.internal_pose_pub.publish({
-                    "x": float("{:.2f}".format(self._x)),
-                    "y": float("{:.2f}".format(self._y)),
-                    "theta": float("{:.2f}".format(self._theta)),
-                    "resolution": self.resolution
+                "x": float("{:.2f}".format(self._x)),
+                "y": float("{:.2f}".format(self._y)),
+                "theta": float("{:.2f}".format(self._theta)),
+                "resolution": self.resolution
                 })
+
+                if self.check_ok(self._x, self._y, prev_x, prev_y):
+                    self._x = prev_x
+                    self._y = prev_y
+                    self._theta = prev_th
 
             self.check_detections()
 

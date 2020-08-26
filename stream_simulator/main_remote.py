@@ -52,24 +52,30 @@ class SimulatorHandler:
 
     def start_callback(self, message, meta):
         print(message)
-        name = "device_" + str(len(self.simulations))
-        s = Simulator(configuration = message, device = name)
-        self.simulations[name] = s
-        th = threading.Thread(target = s.start())
-        th.start()
-        self.threads[name] = th
-        self.print()
+        try:
+            name = "device_" + str(len(self.simulations))
+            s = Simulator(configuration = message, device = name)
+            self.simulations[name] = s
+            th = threading.Thread(target = s.start())
+            th.start()
+            self.threads[name] = th
+            self.print()
+        except:
+            return {"status": False}
         return {"status": True, "name": name}
 
     def stop_callback(self, message, meta):
-        name = message["device"]
-        self.logger.warning("Trying to stop device {}".format(name))
-        self.simulations[name].stop()
-        self.simulations.pop(name)
-        # Must do a better job here!
-        self.threads.pop(name)
+        try:
+            name = message["device"]
+            self.logger.warning("Trying to stop device {}".format(name))
+            self.simulations[name].stop()
+            self.simulations.pop(name)
+            # Must do a better job here!
+            self.threads.pop(name)
+        except:
+            return {'status': False}
         self.print()
-        return {"status": 0}
+        return {"status": True}
 
 if __name__ == "__main__":
     s = SimulatorHandler()
