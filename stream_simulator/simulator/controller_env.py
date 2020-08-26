@@ -65,7 +65,9 @@ class EnvController:
                     "gas": float(random.uniform(30, 10))
                 })
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                
+
 
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 

@@ -25,13 +25,29 @@ class MotionController:
         self.conf = info["sensor_configuration"]
 
         if self.info["mode"] == "real":
-            from pidevices import DfrobotMotorControllerPCA
-            self.controller = DfrobotMotorControllerPCA(
-                self.conf["bus"],
-                self.conf["E1"], self.conf["M1"],
-                self.conf["E2"], self.conf["M2"],
-                name=self.name,
-                max_data_length=self.conf["max_data_length"])
+            from pidevices import Mcp23017GPIO
+            self.motor_controller = Mcp23017GPIO(bus=self.conf["bus"], address=self.conf["address"], 
+                                                 E1=self.conf["E1"], M1=self.conf["M1"], 
+                                                 E2=self.conf["E2"], M2=self.conf["M2"])
+            
+            #self.motor_controller = Mcp23017GPIO(bus=1, address=0x22, M2="B_0", E2="B_1",M1="B_3", E1="B_2")
+
+            self.motor_controller.initialize()
+            
+            self.motor_controller.set_pin_function('M2', 'output')
+            self.motor_controller.set_pin_function('M1', 'output')
+
+            self.motor_controller.set_pin_function('E2', 'output')
+            self.motor_controller.set_pin_function('E1', 'output')
+            
+            
+            self.motor_controller.set_pin_pwm('E1', True)
+            self.motor_controller.set_pin_pwm('E2', True)
+
+            self.motor_controller.set_pin_frequency('E1', 200)
+            self.motor_controller.set_pin_frequency('E2', 200)
+
+            
             self.wheel_separation = self.conf["wheel_separation"]
             self.wheel_radius = self.conf["wheel_radius"]
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/motor_controller_hw_interface/motor_controller_hw_interface/motor_controller_hw_interface.py
@@ -70,6 +86,14 @@ class MotionController:
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
+
+        self.motor_controller.write("E1", 0)
+        self.motor_controller.write("E1", 0)
+        self.motor_controller.set_pin_pwm('E2', False)
+        self.motor_controller.set_pin_pwm('E1', False)
+        self.motor_controller.close()
+
+
     def memory_write(self, data):
         del self.memory[-1]
         self.memory.insert(0, data)
@@ -87,7 +111,31 @@ class MotionController:
             elif self.info["mode"] == "simulation":
                 pass
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                print("RUNING...............")
+
+                if self._linear > 0:
+                    self.motor_controller.write("M1", 1)
+                    self.motor_controller.write("M2", 0)
+                    self.motor_controller.write('E1', self._linear)
+                    self.motor_controller.write('E2', self._linear)
+                elif self._linear < 0:
+                    self.motor_controller.write("M1", 0)
+                    self.motor_controller.write("M2", 1)
+                    self.motor_controller.write('E1', abs(self._linear))
+                    self.motor_controller.write('E2', abs(self._linear))
+                elif self._angular > 0:
+                    self.motor_controller.write("M1", 0)
+                    self.motor_controller.write("M2", 0)
+                    self.motor_controller.write('E1', self._angular)
+                    self.motor_controller.write('E2', self._angular)
+                elif self._angular < 0:
+                    self.motor_controller.write("M1", 1)
+                    self.motor_controller.write("M2", 1)
+                    self.motor_controller.write('E1', abs(self._angular))
+                    self.motor_controller.write('E2', abs(self._angular))
+
+
 
             self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
         except Exception as e:
