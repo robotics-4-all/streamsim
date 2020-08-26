@@ -31,12 +31,24 @@ class LedsController:
         self.memory = 100 * [0]
 
         self.leds_wipe_pub = Publisher(conn_params=ConnParams.get(), topic=info["base_topic"] + "/leds_wipe/pub")
+        self.logger.info("Created redis Publisher {}".format(
+            info["base_topic"] + "/leds_wipe/pub"
+        ))
 
         self.leds_set_sub = Subscriber(conn_params=ConnParams.get(), topic =info["base_topic"] + "/leds/set", on_message = self.leds_set_callback)
+        self.logger.info("Created redis Subscriber {}".format(
+            info["base_topic"] + "/leds/set"
+        ))
 
         self.leds_wipe_server = RPCService(conn_params=ConnParams.get(), on_request=self.leds_wipe_callback, rpc_name=info["base_topic"] + "/leds_wipe/set")
+        self.logger.info("Created redis RPCService {}".format(
+            info["base_topic"] + "/leds_wipe/set"
+        ))
 
         self.leds_get_server = RPCService(conn_params=ConnParams.get(), on_request=self.leds_get_callback, rpc_name=info["base_topic"] + "/get")
+        self.logger.info("Created redis RPCService {}".format(
+            info["base_topic"] + "/get"
+        ))
 
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
@@ -123,7 +135,7 @@ class LedsController:
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             self.derp_client.lset(
-                self.info["namespace"][1:] + ".leds",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".leds",
                 [{"r": r, "g": g, "b": b, "timestamp": time.time()}]
             )
 
@@ -149,7 +161,7 @@ class LedsController:
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             self.derp_client.lset(
-                self.info["namespace"][1:] + ".leds.wipe",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".leds.wipe",
                 [{"r": r, "g": g, "b": b, "timestamp": time.time()}]
             )
             self.logger.error("Wrote {} at {}".format({"r": r, "g": g, "b": b}, self.info["namespace"][1:] + ".leds.wipe"))

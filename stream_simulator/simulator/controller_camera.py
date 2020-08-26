@@ -47,12 +47,18 @@ class CameraController:
         self.memory = 100 * [0]
 
         self.get_image_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.get_image_callback, rpc_name=info["base_topic"] + "/get")
+        self.logger.info("Created redis RPCService {}".format(
+            info["base_topic"] + "/get"
+        ))
 
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
+            self.logger.info("Created redis Subscriber {}".format(
+                self.info['device_name'] + "/pose"
+            ))
             self.robot_pose_sub.run()
 
         # The images
@@ -160,7 +166,7 @@ class CameraController:
 
             if closest != "empty":
                 self.derp_client.lset(
-                    self.info["namespace"][1:] + ".detect.source",
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
                     [closest_full]
                 )
                 print("Derp me updated")

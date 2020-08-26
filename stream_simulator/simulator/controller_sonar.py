@@ -32,13 +32,19 @@ class SonarController:
         self.memory = 100 * [0]
 
         self.sonar_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.sonar_callback, rpc_name=info["base_topic"] + "/get")
+        self.logger.info("Created redis RPCService {}".format(
+            info["base_topic"] + "/get"
+        ))
 
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
-            
+            self.logger.info("Created redis Subscriber {}".format(
+                self.info['device_name'] + "/pose"
+            ))
+
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
@@ -74,7 +80,7 @@ class SonarController:
             self.memory_write(val)
 
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.distance." + self.info["place"],
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.distance." + self.info["place"],
                 [{
                     "data": val,
                     "timestamp": time.time()

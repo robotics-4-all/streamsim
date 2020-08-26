@@ -4,6 +4,7 @@
 import time
 import sys
 import threading
+import logging
 
 from stream_simulator import Simulator
 
@@ -27,17 +28,25 @@ conn_params.vhost = "sim"
 class SimulatorHandler:
     def __init__(self):
         self.logger = Logger("main_remote")
+        logging.getLogger("pika").setLevel(logging.WARNING)
 
         self.start = RPCService(
             conn_params=conn_params,
             on_request=self.start_callback,
             rpc_name='simulator.start'
         )
+        self.logger.info("Created amqp RPCService {}".format(
+            "simulator.start"
+        ))
+
         self.stop = RPCService(
             conn_params=conn_params,
             on_request=self.stop_callback,
             rpc_name='simulator.stop'
         )
+        self.logger.info("Created amqp RPCService {}".format(
+            "simulator.stop"
+        ))
 
         self.start.run()
         self.stop.run()

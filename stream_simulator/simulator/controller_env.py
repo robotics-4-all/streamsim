@@ -46,6 +46,10 @@ class EnvController:
         self.memory = 100 * [0]
 
         self.env_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.env_callback, rpc_name=info["base_topic"] + "/get")
+        self.logger.info("Created redis RPCService {}".format(
+            info["base_topic"] + "/get"
+        ))
+
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
@@ -76,16 +80,16 @@ class EnvController:
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.env.temperature",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.temperature",
                 [{"data": val["temperature"], "timestamp": time.time()}])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.env.pressure",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.pressure",
                 [{"data": val["pressure"], "timestamp": time.time()}])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.env.humidity",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.humidity",
                 [{"data": val["humidity"], "timestamp": time.time()}])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.env.gas",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.gas",
                 [{"data": val["gas"], "timestamp": time.time()}])
 
             self.memory_write(val)

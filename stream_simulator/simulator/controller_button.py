@@ -45,6 +45,11 @@ class ButtonController:
                 conn_params=ConnParams.get(),
                 topic = self.info['device_name'] + "/buttons_sim",
                 on_message = self.sim_button_pressed)
+
+            self.logger.info("Created redis Subscriber {}".format(
+                self.info['device_name'] + "/buttons_sim"
+            ))
+
             self.sim_button_pressed_sub.run()
 
         self.memory = 100 * [0]
@@ -52,25 +57,29 @@ class ButtonController:
         self.prev = 0
 
         self.button_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.button_callback, rpc_name=info["base_topic"] + "/get")
+        self.logger.info("Created redis RPCService {}".format(
+            info["base_topic"] + "/get"
+        ))
 
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def real_button_pressed(self):
         r = self.derp_client.lset(
-            self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
+            self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"],
             [{
                 "data": 1,
                 "timestamp": time.time()
             }])
         r = self.derp_client.lset(
-            self.info["namespace"][1:] + ".variables.robot.buttons.touch_detected",
+            self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
             [{
                 "data": 1,
                 "timestamp": time.time()
             }])
         r = self.derp_client.lset(
-            self.info["namespace"][1:] + ".variables.robot.buttons.pressed_part",
+            self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
             [{
                 "data": "Tactile." + self.info["place"],
                 "timestamp": time.time()
@@ -81,19 +90,19 @@ class ButtonController:
     def sim_button_pressed(self, data, meta):
         if data["button"] == self.info["place"]:
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"],
                 [{
                     "data": 1,
                	    "timestamp": time.time()
                 }])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.buttons.touch_detected",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
                 [{
                     "data": 1,
                     "timestamp": time.time()
                 }])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.buttons.pressed_part",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
                 [{
                     "data": "Tactile." + self.info["place"],
                     "timestamp": time.time()
@@ -110,20 +119,20 @@ class ButtonController:
                 self.val = float(random.randint(0,1))
 
                 r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"],
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"],
                     [{
                         "data": self.val,
                         "timestamp": time.time()
                     }])
                 if self.val is not 0:
                     r = self.derp_client.lset(
-                        self.info["namespace"][1:] + ".variables.robot.buttons.touch_detected",
+                        self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
                         [{
                             "data": self.val,
                             "timestamp": time.time()
                         }])
                     r = self.derp_client.lset(
-                        self.info["namespace"][1:] + ".variables.robot.buttons.pressed_part",
+                        self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
                         [{
                             "data": "Tactile." + self.info["place"],
                             "timestamp": time.time()
@@ -143,7 +152,7 @@ class ButtonController:
 
     def disable_callback(self, message, meta):
         self.info["enabled"] = False
-        self.logger.info("TOF {} stops reading".format(self.info["id"]))
+        self.logger.info("Button {} stops reading".format(self.info["id"]))
         return {"enabled": False}
 
     def start(self):
@@ -183,7 +192,7 @@ class ButtonController:
 
         try:
             r = self.derp_client.lget(
-                self.info["namespace"][1:] + ".variables.robot.buttons." + self.info["place"], _from, _to)
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"], _from, _to)
             for rr in r['val']:
                 timestamp = time.time()
                 secs = int(timestamp)

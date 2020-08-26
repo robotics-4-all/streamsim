@@ -44,12 +44,18 @@ class MicrophoneController:
         self.memory = 100 * [0]
 
         self.record_action_server = ActionServer(conn_params=ConnParams.get(), on_goal=self.on_goal, action_name=info["base_topic"] + "/record")
+        self.logger.info("Created redis ActionServer {}".format(
+            info["base_topic"] + "/record"
+        ))
 
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
+            self.logger.info("Created redis Subscriber {}".format(
+                self.info['device_name'] + "/pose"
+            ))
             self.robot_pose_sub.run()
 
         from derp_me.client import DerpMeClient
@@ -141,7 +147,7 @@ class MicrophoneController:
 
             if closest != "empty":
                 self.derp_client.lset(
-                    self.info["namespace"][1:] + ".detect.source",
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
                     [closest_full]
                 )
                 print("Derp me updated")

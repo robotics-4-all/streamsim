@@ -26,6 +26,9 @@ class TouchScreenController:
         self.memory = 100 * [0]
 
         self.show_image_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.show_image_callback, rpc_name=info["base_topic"] + "/show_image")
+        self.logger.info("Created redis RPCService {}".format(
+            info["base_topic"] + "/show_image"
+        ))
 
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")

@@ -35,13 +35,18 @@ class ImuController:
         self.memory = 100 * [0]
 
         self.imu_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.imu_callback, rpc_name=info["base_topic"] + "/get")
+        self.logger.info("Created redis RPCService {}".format(
+            info["base_topic"] + "/get"
+        ))
+
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
-            self.robot_pose_sub.run()
-
+            self.logger.info("Created redis Subscriber {}".format(
+                self.info['device_name'] + "/pose"
+            ))
             self.robot_pose = {
                 "x": 0,
                 "y": 0,
@@ -93,36 +98,39 @@ class ImuController:
                 }
 
             elif self.info["mode"] == "simulation":
-                val = {
-                    "accel": {
-                        "x": random.uniform(0.3, -0.3),
-                        "y": random.uniform(0.3, -0.3),
-                        "z": random.uniform(0.3, -0.3)
-                    },
-                    "gyro": {
-                        "yaw": random.uniform(0.3, -0.3),
-                        "pitch": random.uniform(0.3, -0.3),
-                        "roll": random.uniform(0.3, -0.3)
-                    },
-                    "magne": {
-                        "yaw": self.robot_pose["theta"] + random.uniform(0.3, -0.3),
-                        "pitch": random.uniform(0.3, -0.3),
-                        "roll": random.uniform(0.3, -0.3)
+                try:
+                    val = {
+                        "accel": {
+                            "x": random.uniform(0.3, -0.3),
+                            "y": random.uniform(0.3, -0.3),
+                            "z": random.uniform(0.3, -0.3)
+                        },
+                        "gyro": {
+                            "yaw": random.uniform(0.3, -0.3),
+                            "pitch": random.uniform(0.3, -0.3),
+                            "roll": random.uniform(0.3, -0.3)
+                        },
+                        "magne": {
+                            "yaw": self.robot_pose["theta"] + random.uniform(0.3, -0.3),
+                            "pitch": random.uniform(0.3, -0.3),
+                            "roll": random.uniform(0.3, -0.3)
+                        }
                     }
-                }
+                except:
+                    self.logger.warning("Pose not got yet..")
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             self.memory_write(val)
 
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.imu.roll",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.roll",
                 [{"data": val["magne"]["roll"], "timestamp": time.time()}])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.imu.pitch",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.pitch",
                 [{"data": val["magne"]["pitch"], "timestamp": time.time()}])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.imu.yaw",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.yaw",
                 [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
 
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
@@ -147,6 +155,9 @@ class ImuController:
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub.run()
+
         if self.info["enabled"]:
             self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
@@ -158,6 +169,8 @@ class ImuController:
         self.imu_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub.stop()
 
     def memory_write(self, data):
         del self.memory[-1]

@@ -31,7 +31,6 @@ class Robot:
             os.environ["TEKTRAIN_NAMESPACE"] = "/robot"
             self.namespace = "/robot"
 
-
         self.name = self.namespace + "/" + name
         self.dt = tick
 
@@ -69,9 +68,11 @@ class Robot:
             self.logger.warning("Robot has no motion controller.. Smells like device!".format(self.name))
             self.motion_controller = None
 
-        self.devices_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.namespace + '/nodes_detector/get_connected_devices')
+        self.devices_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.name + '/nodes_detector/get_connected_devices')
+        self.logger.info("Created redis RPCService {}".format(self.name + '/nodes_detector/get_connected_devices'))
 
         self.internal_pose_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/pose")
+        self.logger.info("Created redis Publisher {}".format(name + "/pose"))
 
         # SIMULATOR ------------------------------------------------------------
         if self.world['robots'][0]['amqp_inform'] is True:
@@ -92,23 +93,29 @@ class Robot:
 
             self.pose_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_top)
+            self.logger.info("Created amqp Publisher {}".format(final_top))
 
             self.detects_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_dete_top)
+            self.logger.info("Created amqp Publisher {}".format(final_dete_top))
 
             self.leds_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_leds_top)
+            self.logger.info("Created amqp Publisher {}".format(final_leds_top))
 
             self.leds_wipe_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_leds_wipe_top)
+            self.logger.info("Created amqp Publisher {}".format(final_leds_wipe_top))
 
             self.buttons_sub = commlib.transports.amqp.Subscriber(
                 conn_params=conn_params,
                 topic=final_t + ".buttons",
                 on_message=self.button_amqp)
+            self.logger.info("Created amqp Subscriber {}".format(final_t + ".buttons"))
             self.buttons_sub.run()
 
             self.buttons_sim_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/buttons_sim")
+            self.logger.info("Created redis Publisher {}".format(name + "/buttons_sim"))
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
@@ -137,6 +144,7 @@ class Robot:
             "stream_sim/state",
             [{
                 "state": "ACTIVE",
+                "device": self.name,
                 "timestamp": time.time()
             }])
 
@@ -266,10 +274,10 @@ class Robot:
         if self.world['robots'][0]['amqp_inform'] is True:
 
             try:
-                v = self.derp_client.lget("robot.detect", 0, 0)['val'][0]
+                v = self.derp_client.lget(self.name.replace("/", ".") + ".detect", 0, 0)['val'][0]
                 if time.time() - v['timestamp'] < 2.5 * self.dt:
                     # Get the closest source
-                    v2 = self.derp_client.lget("robot.detect.source", 0, 0)['val'][0]
+                    v2 = self.derp_client.lget(self.name.replace("/", ".") + ".detect.source", 0, 0)['val'][0]
                     v["actor_id"] = v2["id"]
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.detects_pub.publish(v)
@@ -279,7 +287,7 @@ class Robot:
 
             # Check for leds
             try:
-                v = self.derp_client.lget("robot.leds", 0, 0)['val'][0]
+                v = self.derp_client.lget(self.name.replace("/", ".") + ".leds", 0, 0)['val'][0]
                 if time.time() - v['timestamp'] < 2.5 * self.dt:
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.leds_pub.publish(v)
@@ -289,7 +297,7 @@ class Robot:
 
             # Check for leds
             try:
-                v = self.derp_client.lget("robot.leds.wipe", 0, 0)['val'][0]
+                v = self.derp_client.lget(self.name.replace("/", ".") + ".leds.wipe", 0, 0)['val'][0]
                 if time.time() - v['timestamp'] < 2.5 * self.dt:
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.leds_wipe_pub.publish(v)
