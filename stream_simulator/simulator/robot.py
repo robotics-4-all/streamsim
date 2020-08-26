@@ -87,12 +87,20 @@ class Robot:
             final_t = final_t[final_t.find(".") + 1:]
             final_top = final_t + ".pose"
             final_dete_top = final_t + ".detect"
+            final_leds_top = final_t + ".leds"
+            final_leds_wipe_top = final_t + ".leds.wipe"
 
             self.pose_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_top)
 
             self.detects_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_dete_top)
+
+            self.leds_pub = commlib.transports.amqp.Publisher(
+                conn_params=conn_params, topic= final_leds_top)
+
+            self.leds_wipe_pub = commlib.transports.amqp.Publisher(
+                conn_params=conn_params, topic= final_leds_wipe_top)
 
             self.buttons_sub = commlib.transports.amqp.Subscriber(
                 conn_params=conn_params,
@@ -253,17 +261,37 @@ class Robot:
         }
 
         if self.world['robots'][0]['amqp_inform'] is True:
+
             try:
                 v = self.derp_client.lget("robot.detect", 0, 0)['val'][0]
                 if time.time() - v['timestamp'] < 2.5 * self.dt:
                     # Get the closest source
-
                     v2 = self.derp_client.lget("robot.detect.source", 0, 0)['val'][0]
                     v["actor_id"] = v2["id"]
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.detects_pub.publish(v)
             except:
-                self.logger.debug("AMQP notification failed")
+                self.logger.debug("AMQP notification failed - detects")
+                pass
+
+            # Check for leds
+            try:
+                v = self.derp_client.lget("robot.leds", 0, 0)['val'][0]
+                if time.time() - v['timestamp'] < 2.5 * self.dt:
+                    self.logger.warning("Sending to amqp notifier: " + str(v))
+                    self.leds_pub.publish(v)
+            except:
+                self.logger.debug("AMQP notification failed - leds")
+                pass
+
+            # Check for leds
+            try:
+                v = self.derp_client.lget("robot.leds.wipe", 0, 0)['val'][0]
+                if time.time() - v['timestamp'] < 2.5 * self.dt:
+                    self.logger.warning("Sending to amqp notifier: " + str(v))
+                    self.leds_wipe_pub.publish(v)
+            except:
+                self.logger.debug("AMQP notification failed - leds wipe")
                 pass
 
         return

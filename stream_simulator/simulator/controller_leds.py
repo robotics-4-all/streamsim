@@ -41,6 +41,9 @@ class LedsController:
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
         self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
+        from derp_me.client import DerpMeClient
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
         return {"enabled": True}
@@ -119,6 +122,11 @@ class LedsController:
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
+            self.derp_client.lset(
+                self.info["namespace"][1:] + ".leds",
+                [{"r": r, "g": g, "b": b, "timestamp": time.time()}]
+            )
+
         except Exception as e:
             self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
 
@@ -139,6 +147,12 @@ class LedsController:
                 self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+
+            self.derp_client.lset(
+                self.info["namespace"][1:] + ".leds.wipe",
+                [{"r": r, "g": g, "b": b, "timestamp": time.time()}]
+            )
+            self.logger.error("Wrote {} at {}".format({"r": r, "g": g, "b": b}, self.info["namespace"][1:] + ".leds.wipe"))
 
             self.logger.info("{}: New leds wipe command: {}".format(self.name, message))
 
