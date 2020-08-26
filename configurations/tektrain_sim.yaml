@@ -257,10 +257,6 @@ robots:
           orientation: 0
           place: G2
           sensor_configuration:
-            bus: 1-
-          orientation: 0
-          place: G4
-          sensor_configuration:
             bus: 1
             address: 0x20
             pin_num: "A_4"
