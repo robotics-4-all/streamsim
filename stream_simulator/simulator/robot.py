@@ -232,18 +232,18 @@ class Robot:
                     if self.world['robots'][0]['amqp_inform'] is True:
                         self.logger.info("AMQP pose updated")
                         self.pose_pub.publish({
-                        "x": float("{:.2f}".format(self._x)),
-                        "y": float("{:.2f}".format(self._y)),
-                        "theta": float("{:.2f}".format(self._theta)),
-                        "resolution": self.resolution
+                            "x": float("{:.2f}".format(self._x)),
+                            "y": float("{:.2f}".format(self._y)),
+                            "theta": float("{:.2f}".format(self._theta)),
+                            "resolution": self.resolution
                         })
 
                 # Send internal pose for distance sensors
                 self.internal_pose_pub.publish({
-                "x": float("{:.2f}".format(self._x)),
-                "y": float("{:.2f}".format(self._y)),
-                "theta": float("{:.2f}".format(self._theta)),
-                "resolution": self.resolution
+                    "x": float("{:.2f}".format(self._x)),
+                    "y": float("{:.2f}".format(self._y)),
+                    "theta": float("{:.2f}".format(self._theta)),
+                    "resolution": self.resolution
                 })
 
                 if self.check_ok(self._x, self._y, prev_x, prev_y):

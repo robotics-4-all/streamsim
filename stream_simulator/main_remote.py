@@ -60,7 +60,8 @@ class SimulatorHandler:
             th.start()
             self.threads[name] = th
             self.print()
-        except:
+        except Exception as e:
+            self.logger.error(e)
             return {"status": False}
         return {"status": True, "name": name}
 
@@ -72,7 +73,8 @@ class SimulatorHandler:
             self.simulations.pop(name)
             # Must do a better job here!
             self.threads.pop(name)
-        except:
+        except Exception as e:
+            self.logger.error(e)
             return {'status': False}
         self.print()
         return {"status": True}

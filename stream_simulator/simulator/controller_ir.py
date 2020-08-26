@@ -38,7 +38,6 @@ class IrController:
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
-            self.robot_pose_sub.run()
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
@@ -52,19 +51,22 @@ class IrController:
             if self.info["mode"] == "mock":
                 val = float(random.uniform(30, 10))
             elif self.info["mode"] == "simulation":
-                ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
-                # Calculate distance
-                d = 1
-                originx = self.robot_pose["x"] / self.robot_pose["resolution"]
-                originy = self.robot_pose["y"] / self.robot_pose["resolution"]
-                tmpx = originx
-                tmpy = originy
-                limit = self.info["max_range"] / self.robot_pose["resolution"]
-                while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
-                    d += 1
-                    tmpx = originx + d * math.cos(ths)
-                    tmpy = originx + d * math.cos(ths)
-                val = d * self.robot_pose["resolution"]
+                try:
+                    ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
+                    # Calculate distance
+                    d = 1
+                    originx = self.robot_pose["x"] / self.robot_pose["resolution"]
+                    originy = self.robot_pose["y"] / self.robot_pose["resolution"]
+                    tmpx = originx
+                    tmpy = originy
+                    limit = self.info["max_range"] / self.robot_pose["resolution"]
+                    while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
+                        d += 1
+                        tmpx = originx + d * math.cos(ths)
+                        tmpy = originx + d * math.cos(ths)
+                    val = d * self.robot_pose["resolution"]
+                except:
+                    self.logger.warning("Pose not got yet..")
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
@@ -99,6 +101,9 @@ class IrController:
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub.run()
+
         if self.info["enabled"]:
             self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
@@ -110,6 +115,9 @@ class IrController:
         self.ir_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub.stop()
 
     def memory_write(self, data):
         del self.memory[-1]
