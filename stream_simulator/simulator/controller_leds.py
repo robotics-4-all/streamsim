@@ -25,8 +25,18 @@ class LedsController:
         self.conf = info["sensor_configuration"]
 
         if self.info["mode"] == "real":
-            pass
+            from pidevices import LedController
+            self.led_strip = LedController(led_count=self.conf["led_count"], 
+                                            led_pin=self.conf["led_pin"], 
+                                            led_freq_hz=self.conf["led_freq_hz"], 
+                                            led_brightness=self.conf["led_brightness"], 
+                                            led_channel=self.conf["led_channel"])
+                                            
+            #self.led_strip = LedController(19,18,70000,255,led_channel=0)
+            #self.led_strip.write([[250, 250, 0, 150]], wipe=True)
+
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/led_strip_hw_interface/led_strip_hw_interface/led_strip_hw_interface.py
+
 
         self.memory = 100 * [0]
 
@@ -120,7 +130,9 @@ class LedsController:
                 self.memory_write(self._color)
                 self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                self.led_strip.write([self._color], wipe = True)
+
 
             self.derp_client.lset(
                 self.info["namespace"][1:] + ".leds",
@@ -146,7 +158,9 @@ class LedsController:
                 self.memory_write(self._color)
                 self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                self.led_strip.write([self._color], wipe = True)
+                
 
             self.derp_client.lset(
                 self.info["namespace"][1:] + ".leds.wipe",

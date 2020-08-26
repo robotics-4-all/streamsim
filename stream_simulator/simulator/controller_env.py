@@ -73,7 +73,9 @@ class EnvController:
                 val["humidity"] = self.info["humidity"] + random.uniform(-3, 3)
                 val["gas"] = self.info["gas"] + random.uniform(-3, 3)
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                
+
 
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + ".variables.robot.env.temperature",

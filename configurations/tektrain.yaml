@@ -26,7 +26,7 @@ robots:
       #     orientation: 0
       #     place: FRONT
       #     sensor_configuration:
-      #       alsa_device: "1"
+      #       alsa_device: "0"
       #       hosts: ["127.0.0.1", "127.0.0.1"]
       #       ports: ["12333", "12334"]
       #       host_port: "12334"
@@ -138,7 +138,7 @@ robots:
       #     place: F
       #     max_range: 2
       #     sensor_configuration:
-      #       bus: 3
+      #       bus: 1
       #       address: 0x29
       #       mode: 3
       #       max_data_length: 10
@@ -156,31 +156,31 @@ robots:
       #     orientation: 1
       #     place: CENTER
       #     sensor_configuration:
-      #       bus: 0
+      #       bus: 1
       #       max_data_length: 10
-      button:
-        -
-          orientation: 0
-          place: F
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_0"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
-        -
-          orientation: -45
-          place: FR
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_1"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+      # button:
+      #   -
+      #     orientation: 0
+      #     place: F
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x20
+      #       pin_num: "B_0"
+      #       direction: "down"
+      #       edge: "both"
+      #       bounce: 200
+      #       max_data_length: 10
+      #   -
+      #     orientation: -45
+      #     place: FR
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x20
+      #       pin_num: "B_1"
+      #       direction: "down"
+      #       edge: "both"
+      #       bounce: 200
+      #       max_data_length: 10
         # -
         #   orientation: 45
         #   place: FL
@@ -190,7 +190,7 @@ robots:
         #     pin_num: "B_2"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: -90
@@ -201,7 +201,7 @@ robots:
         #     pin_num: "B_3"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 90
@@ -212,7 +212,7 @@ robots:
         #     pin_num: "B_4"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 180
@@ -223,7 +223,7 @@ robots:
         #     pin_num: "B_5"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: -135
@@ -234,7 +234,7 @@ robots:
         #     pin_num: "A_1"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 135
@@ -245,7 +245,7 @@ robots:
         #     pin_num: "A_6"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 0
@@ -256,7 +256,7 @@ robots:
         #     pin_num: "A_5"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
         # -
         #   orientation: 0
@@ -271,43 +271,43 @@ robots:
         #     pin_num: "A_4"
         #     direction: "down"
         #     edge: "both"
-        #     bounce: 70
+        #     bounce: 200
         #     max_data_length: 10
+        # -
+        #   orientation: 0
+        #   place: G3
+        #   sensor_configuration:
+        #     bus: 1
+        #     address: 0x20
+        #     pin_num: "A_3"
+        #     direction: "down"
+        #     edge: "both"
+        #     bounce: 200
+        #     max_data_length: 10
+       # -
+       #   orientation: 0
+       #   place: G4
+       #   sensor_configuration:
+       #     bus: 1
+       #     address: 0x20
+       #     pin_num: "A_4"
+       #     direction: "down"
+       #     edge: "both"
+       #     bounce: 200
+       #     max_data_length: 10
+      env:
         -
           orientation: 0
-          place: G3
+          place: FRONT
           sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_3"
-            direction: "down"
-            edge: "both"
-            bounce: 70
+            bus: 5
+            slave: 0
+            t_over : 8
+            h_over : 2
+            p_over : 4
+            iir_coef : 3
+            g_status : 1
             max_data_length: 10
-        -
-          orientation: 0
-          place: G4
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_4"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
-      # env:
-      #   -
-      #     orientation: 0
-      #     place: FRONT
-      #     sensor_configuration:
-      #       bus: 5
-      #       slave: 0
-      #       t_over : 8
-      #       h_over : 2
-      #       p_over : 4
-      #       iir_coef : 3
-      #       g_status : 1
-      #       max_data_length: 10
       # speaker:
       #   -
       #     orientation: 0
@@ -315,26 +315,26 @@ robots:
       #     sensor_configuration:
       #       dev_name: "Speaker"
       #       max_data_length: 10
-      # leds:
-      #   -
-      #     orientation: 0
-      #     place: FRONT
-      #     sensor_configuration:
-      #       led_count: 20
-      #       led_pin: 13
-      #       led_freq_hz: 7000
-      #       led_brightness: 255
-      #       led_invert: 0
-      #       led_channel: 0
-      #       max_data_length: 10
-      # pan_tilt:
-      #   -
-      #     orientation: 0
-      #     place: UNDER
-      #     sensor_configuration:
-      #       bus: 5
-      #       frequency: 50
-      #       max_data_length: 10
+      leds:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            led_count: 19
+            led_pin: 18
+            led_freq_hz: 700000
+            led_brightness: 255
+            led_invert: 0
+            led_channel: 0
+            max_data_length: 10
+      pan_tilt:
+        -
+          orientation: 0
+          place: UNDER
+          sensor_configuration:
+            bus: 1
+            frequency: 50
+            max_data_length: 1
       # touch_screen:
       #   -
       #     orientation: 0
@@ -342,19 +342,20 @@ robots:
       #     sensor_configuration:
       #       param_1: 1
       #       max_data_length: 10
-      # skid_steer:
-      #  -
-      #    orientation: 0
-      #    place: UNDER
-      #    sensor_configuration:
-      #      bus: 5
-      #      E1: 6
-      #      M1: 7
-      #      E2: 12
-      #      M2: 13
-      #      max_data_length: 10
-      #      wheel_separation: 0.147
-      #      wheel_radius: 0.022
+      skid_steer:
+        -
+          orientation: 0
+          place: UNDER
+          sensor_configuration:
+            address: 0x22
+            bus: 1
+            E1: B_2
+            M1: B_3
+            E2: B_1
+            M2: B_0
+            max_data_length: 10
+            wheel_separation: 0.147
+            wheel_radius: 0.022
       # encoder:
       #   -
       #     orientation: 90
