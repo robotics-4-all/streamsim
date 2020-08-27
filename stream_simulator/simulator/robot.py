@@ -37,6 +37,7 @@ class Robot:
         self._x = 0
         self._y = 0
         self._theta = 0
+        self._curr_node = -1
 
         self.detection_threshold = 1
 
@@ -90,6 +91,7 @@ class Robot:
             final_dete_top = final_t + ".detect"
             final_leds_top = final_t + ".leds"
             final_leds_wipe_top = final_t + ".leds.wipe"
+            final_exec = final_t + ".execution"
 
             self.pose_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_top)
@@ -106,6 +108,10 @@ class Robot:
             self.leds_wipe_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_leds_wipe_top)
             self.logger.info("Created amqp Publisher {}".format(final_leds_wipe_top))
+
+            self.execution_pub = commlib.transports.amqp.Publisher(
+                conn_params=conn_params, topic= final_exec)
+            self.logger.info("Created amqp Publisher {}".format(final_exec))
 
             self.buttons_sub = commlib.transports.amqp.Subscriber(
                 conn_params=conn_params,
@@ -272,12 +278,11 @@ class Robot:
         }
 
         if self.world['robots'][0]['amqp_inform'] is True:
-
             try:
-                v = self.derp_client.lget(self.name.replace("/", ".") + ".detect", 0, 0)['val'][0]
+                v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".detect", 0, 0)['val'][0]
                 if time.time() - v['timestamp'] < 2.5 * self.dt:
                     # Get the closest source
-                    v2 = self.derp_client.lget(self.name.replace("/", ".") + ".detect.source", 0, 0)['val'][0]
+                    v2 = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".detect.source", 0, 0)['val'][0]
                     v["actor_id"] = v2["id"]
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.detects_pub.publish(v)
@@ -287,7 +292,7 @@ class Robot:
 
             # Check for leds
             try:
-                v = self.derp_client.lget(self.name.replace("/", ".") + ".leds", 0, 0)['val'][0]
+                v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".leds", 0, 0)['val'][0]
                 if time.time() - v['timestamp'] < 2.5 * self.dt:
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.leds_pub.publish(v)
@@ -295,9 +300,19 @@ class Robot:
                 self.logger.debug("AMQP notification failed - leds")
                 pass
 
+            # Check for nodes change
+            try:
+                v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".execution.nodes", 0, 0)['val'][0]
+                if time.time() - v['timestamp'] < 2.5 * self.dt:
+                    self.logger.warning("Sending to amqp notifier: " + str(v))
+                    self.execution_pub.publish(v)
+            except:
+                self.logger.debug("AMQP notification failed - execution")
+                pass
+
             # Check for leds
             try:
-                v = self.derp_client.lget(self.name.replace("/", ".") + ".leds.wipe", 0, 0)['val'][0]
+                v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".leds.wipe", 0, 0)['val'][0]
                 if time.time() - v['timestamp'] < 2.5 * self.dt:
                     self.logger.warning("Sending to amqp notifier: " + str(v))
                     self.leds_wipe_pub.publish(v)

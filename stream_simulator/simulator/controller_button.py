@@ -124,7 +124,7 @@ class ButtonController:
                         "data": self.val,
                         "timestamp": time.time()
                     }])
-                if self.val is not 0:
+                if self.val != 0:
                     r = self.derp_client.lset(
                         self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
                         [{
