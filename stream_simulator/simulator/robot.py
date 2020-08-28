@@ -10,6 +10,8 @@ import random
 import string
 import os
 
+from colorama import Fore, Style
+
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import Publisher, RPCService
@@ -56,6 +58,9 @@ class Robot:
         self.logger.info("Robot {} pose set: {}, {}, {}".format(
             self.name, self._x, self._y, self._theta))
 
+        self.step_by_step_execution = self.world['robots'][0]['step_by_step_execution']
+        self.logger.warning("Step by step execution is {}".format(self.step_by_step_execution))
+
         # Devices set
         self.device_management = DeviceLookup(
             world = self.world, map = self.map, name = self.name,\
@@ -70,10 +75,10 @@ class Robot:
             self.motion_controller = None
 
         self.devices_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.devices_callback, rpc_name=self.name + '/nodes_detector/get_connected_devices')
-        self.logger.info("Created redis RPCService {}".format(self.name + '/nodes_detector/get_connected_devices'))
+        self.logger.info("{} Created redis RPCService {} {}".format(Fore.GREEN, self.name + '/nodes_detector/get_connected_devices', Style.RESET_ALL))
 
         self.internal_pose_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/pose")
-        self.logger.info("Created redis Publisher {}".format(name + "/pose"))
+        self.logger.info("{} Created redis Publisher {}{}".format(Fore.GREEN, name + "/pose", Style.RESET_ALL))
 
         # SIMULATOR ------------------------------------------------------------
         if self.world['robots'][0]['amqp_inform'] is True:
@@ -95,11 +100,11 @@ class Robot:
 
             self.pose_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_top)
-            self.logger.info("Created amqp Publisher {}".format(final_top))
+            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_top, Style.RESET_ALL))
 
             self.detects_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_dete_top)
-            self.logger.info("Created amqp Publisher {}".format(final_dete_top))
+            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_dete_top, Style.RESET_ALL))
 
             self.leds_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_leds_top)
@@ -123,6 +128,17 @@ class Robot:
             self.buttons_sim_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/buttons_sim")
             self.logger.info("Created redis Publisher {}".format(name + "/buttons_sim"))
 
+            if self.step_by_step_execution:
+                self.step_by_step_sub = commlib.transports.amqp.Subscriber(
+                    conn_params=conn_params,
+                    topic=final_t + ".step_by_step",
+                    on_message=self.step_by_step_amqp)
+                self.logger.info("Created amqp Subscriber {}".format(final_t + ".step_by_step"))
+                self.step_by_step_sub.run()
+
+            self.step_by_step_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/step_by_step")
+            self.logger.info("Created redis Publisher {}".format(name + "/step_by_step"))
+
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
@@ -135,7 +151,12 @@ class Robot:
         self.logger.warning("Got button press from amqp " + str(message))
         self.buttons_sim_pub.publish({
             "button": message["button"]
-            # "button": "F"
+        })
+
+    def step_by_step_amqp(self, message, meta):
+        self.logger.warning("Got next step from amqp " + str(message))
+        self.step_by_step_pub.publish({
+            "go": ""
         })
 
     def start(self):
