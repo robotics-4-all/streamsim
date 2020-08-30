@@ -26,7 +26,7 @@ class ButtonController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
         if self.info["mode"] == "real":
             from pidevices import ButtonMcp23017
@@ -44,7 +44,7 @@ class ButtonController:
         elif self.info["mode"] == "simulation":
             _topic = self.info['device_name'] + "/buttons_sim"
             self.sim_button_pressed_sub = Subscriber(
-                conn_params=ConnParams.get(),
+                conn_params=ConnParams.get("redis"),
                 topic = _topic,
                 on_message = self.sim_button_pressed)
 
@@ -57,12 +57,12 @@ class ButtonController:
         self.prev = 0
 
         _topic = info["base_topic"] + "/get"
-        self.button_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.button_callback, rpc_name=_topic)
+        self.button_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.button_callback, rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
 
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def real_button_pressed(self):
         r = self.derp_client.lset(

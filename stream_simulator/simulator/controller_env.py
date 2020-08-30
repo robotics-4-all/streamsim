@@ -28,7 +28,7 @@ class EnvController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
         if self.info["mode"] == "real":
             from pidevices import BME680
@@ -47,13 +47,13 @@ class EnvController:
 
         self.memory = 100 * [0]
 
-        self.env_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.env_callback, rpc_name=info["base_topic"] + "/get")
+        self.env_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.env_callback, rpc_name=info["base_topic"] + "/get")
         self.logger.info("Created redis RPCService {}".format(
             info["base_topic"] + "/get"
         ))
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
     def sensor_read(self):
         self.logger.info("Env {} sensor read thread started".format(self.info["id"]))

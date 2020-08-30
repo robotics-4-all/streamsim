@@ -45,23 +45,23 @@ class MicrophoneController:
 
         self.memory = 100 * [0]
 
-        self.record_action_server = ActionServer(conn_params=ConnParams.get(), on_goal=self.on_goal, action_name=info["base_topic"] + "/record")
+        self.record_action_server = ActionServer(conn_params=ConnParams.get("redis"), on_goal=self.on_goal, action_name=info["base_topic"] + "/record")
         self.logger.info("Created redis ActionServer {}".format(
             info["base_topic"] + "/record"
         ))
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
+            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get("redis"), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
             self.logger.info("Created redis Subscriber {}".format(
                 self.info['device_name'] + "/pose"
             ))
             self.robot_pose_sub.run()
 
         from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message

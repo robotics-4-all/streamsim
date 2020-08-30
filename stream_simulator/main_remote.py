@@ -21,13 +21,6 @@ elif ConnParams.type == "redis":
     from commlib.transports.redis import Publisher, RPCService
 
 from commlib.transports.amqp import RPCService
-from commlib.transports.amqp import ConnectionParameters
-conn_params = ConnectionParameters()
-conn_params.credentials.username = 'bot'
-conn_params.credentials.password = 'b0t'
-conn_params.host = 'tektrain-cloud.ddns.net'
-conn_params.port = 5672
-conn_params.vhost = "sim"
 
 class SimulatorHandler:
     def __init__(self):
@@ -35,19 +28,19 @@ class SimulatorHandler:
         logging.getLogger("pika").setLevel(logging.WARNING)
 
         from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
         self.simulators_cnt = -1
 
         self.start = RPCService(
-            conn_params=conn_params,
+            conn_params=ConnParams.get("amqp"),
             on_request=self.start_callback,
             rpc_name='simulator.start'
         )
         self.logger.info(f"{Fore.RED}Created amqp RPCService simulator.start{Style.RESET_ALL} ")
 
         self.stop = RPCService(
-            conn_params=conn_params,
+            conn_params=ConnParams.get("amqp"),
             on_request=self.stop_callback,
             rpc_name='simulator.stop'
         )
@@ -64,9 +57,9 @@ class SimulatorHandler:
         self.simulations = {}
 
     def print(self):
-        print("Available simulators:")
+        self.logger.info("Available simulators:")
         for s in self.simulations:
-            print(f"{Fore.MAGENTA}{s} : {self.simulations[s]}{Style.RESET_ALL}")
+            self.logger.info(f"{Fore.MAGENTA}{s} : {self.simulations[s]}{Style.RESET_ALL}")
 
     def start_callback(self, message, meta):
         print(message)
@@ -115,7 +108,7 @@ class SimulatorHandler:
     def stop_callback(self, message, meta):
         try:
             name = message["device"]
-            self.logger.warning("Trying to stop device {}".format(name))
+            self.logger.warning(f"Trying to stop device {name}")
             self.simulations[name].kill()
             self.simulations.pop(name)
             self.print()

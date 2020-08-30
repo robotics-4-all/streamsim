@@ -27,7 +27,7 @@ class ImuController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
         if self.info["mode"] == "real":
             from pidevices import ICM_20948
@@ -36,16 +36,16 @@ class ImuController:
 
         self.memory = 100 * [0]
 
-        self.imu_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.imu_callback, rpc_name=info["base_topic"] + "/get")
+        self.imu_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.imu_callback, rpc_name=info["base_topic"] + "/get")
         self.logger.info("Created redis RPCService {}".format(
             info["base_topic"] + "/get"
         ))
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
+            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get("redis"), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
             self.logger.info("Created redis Subscriber {}".format(
                 self.info['device_name'] + "/pose"
             ))
