@@ -8,6 +8,8 @@ import logging
 import threading
 import random
 
+from colorama import Fore, Style
+
 from commlib.logger import Logger
 
 from .conn_params import ConnParams

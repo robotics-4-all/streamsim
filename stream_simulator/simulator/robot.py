@@ -22,7 +22,7 @@ from commlib.logger import Logger
 from .device_lookup import DeviceLookup
 
 class Robot:
-    def __init__(self, world = None, map = None, name = "robot", tick = 0.1):
+    def __init__(self, world = None, map = None, name = "robot", tick = 0.25):
         self.logger = Logger(name)
         logging.getLogger("pika").setLevel(logging.INFO)
 
@@ -108,36 +108,34 @@ class Robot:
 
             self.leds_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_leds_top)
-            self.logger.info("Created amqp Publisher {}".format(final_leds_top))
+            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_leds_top, Style.RESET_ALL))
 
             self.leds_wipe_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_leds_wipe_top)
-            self.logger.info("Created amqp Publisher {}".format(final_leds_wipe_top))
+            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_leds_wipe_top, Style.RESET_ALL))
 
             self.execution_pub = commlib.transports.amqp.Publisher(
                 conn_params=conn_params, topic= final_exec)
-            self.logger.info("Created amqp Publisher {}".format(final_exec))
+            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_exec, Style.RESET_ALL))
 
             self.buttons_sub = commlib.transports.amqp.Subscriber(
                 conn_params=conn_params,
                 topic=final_t + ".buttons",
                 on_message=self.button_amqp)
-            self.logger.info("Created amqp Subscriber {}".format(final_t + ".buttons"))
-            self.buttons_sub.run()
+            self.logger.info("{}Created amqp Subscriber {}{}".format(Fore.RED, final_t + ".buttons", Style.RESET_ALL))
 
             self.buttons_sim_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/buttons_sim")
-            self.logger.info("Created redis Publisher {}".format(name + "/buttons_sim"))
+            self.logger.info("{}Created redis Publisher {}{}".format(Fore.RED, name + "/buttons_sim", Style.RESET_ALL))
 
             if self.step_by_step_execution:
                 self.step_by_step_sub = commlib.transports.amqp.Subscriber(
                     conn_params=conn_params,
                     topic=final_t + ".step_by_step",
                     on_message=self.step_by_step_amqp)
-                self.logger.info("Created amqp Subscriber {}".format(final_t + ".step_by_step"))
-                self.step_by_step_sub.run()
+                self.logger.info("{}Created amqp Subscriber {}{}".format(Fore.RED, final_t + ".step_by_step", Style.RESET_ALL))
 
             self.step_by_step_pub = Publisher(conn_params=ConnParams.get(), topic= name + "/step_by_step")
-            self.logger.info("Created redis Publisher {}".format(name + "/step_by_step"))
+            self.logger.info("{}Created redis Publisher {}{}".format(Fore.RED, name + "/step_by_step", Style.RESET_ALL))
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
@@ -163,6 +161,11 @@ class Robot:
         for c in self.controllers:
             self.controllers[c].start()
 
+        if self.world['robots'][0]['amqp_inform'] is True:
+            self.buttons_sub.run()
+            if self.step_by_step_execution:
+                self.step_by_step_sub.run()
+
         self.devices_rpc_server.run()
         self.stopped = False
         self.simulator_thread.start()
@@ -179,6 +182,11 @@ class Robot:
         for c in self.controllers:
             self.logger.warning("Trying to stop controller {}".format(c))
             self.controllers[c].stop()
+
+        if self.world['robots'][0]['amqp_inform'] is True:
+            self.buttons_sub.stop()
+            if self.step_by_step_execution:
+                self.step_by_step_sub.stop()
 
         self.logger.warning("Trying to stop devices_rpc_server")
         self.devices_rpc_server.stop()

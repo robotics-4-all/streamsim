@@ -9,6 +9,8 @@ import threading
 import random
 import base64
 
+from colorama import Fore, Style
+
 from commlib.logger import Logger
 
 from .conn_params import ConnParams

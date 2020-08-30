@@ -8,6 +8,8 @@ import logging
 import threading
 import random
 
+from colorama import Fore, Style
+
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import RPCService

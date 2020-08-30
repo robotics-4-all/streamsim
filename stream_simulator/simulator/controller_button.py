@@ -7,6 +7,7 @@ import math
 import logging
 import threading
 import random
+from colorama import Fore, Style
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
@@ -41,14 +42,13 @@ class ButtonController:
             self.sensor.when_pressed(self.real_button_pressed)
             #### Continue implementation: https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/button_hw_interface/button_hw_interface/button_hw_interface.py
         elif self.info["mode"] == "simulation":
+            _topic = self.info['device_name'] + "/buttons_sim"
             self.sim_button_pressed_sub = Subscriber(
                 conn_params=ConnParams.get(),
-                topic = self.info['device_name'] + "/buttons_sim",
+                topic = _topic,
                 on_message = self.sim_button_pressed)
 
-            self.logger.info("Created redis Subscriber {}".format(
-                self.info['device_name'] + "/buttons_sim"
-            ))
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
             self.sim_button_pressed_sub.run()
 
@@ -56,10 +56,9 @@ class ButtonController:
         self.val = 0
         self.prev = 0
 
-        self.button_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.button_callback, rpc_name=info["base_topic"] + "/get")
-        self.logger.info("Created redis RPCService {}".format(
-            info["base_topic"] + "/get"
-        ))
+        _topic = info["base_topic"] + "/get"
+        self.button_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.button_callback, rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
         self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
 
@@ -108,10 +107,10 @@ class ButtonController:
                     "timestamp": time.time()
                 }])
 
-            self.logger.warning("Button controller: Pressed from sim! " + str(data))
+            self.logger.warning(f"Button controller: Pressed from sim! {data}")
 
     def sensor_read(self):
-        self.logger.info("Button {} sensor read thread started".format(self.info["id"]))
+        self.logger.info(f"Button {self.info['id']} sensor read thread started")
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
@@ -138,7 +137,7 @@ class ButtonController:
                             "timestamp": time.time()
                         }])
 
-        self.logger.info("Button {} sensor read thread stopped".format(self.info["id"]))
+        self.logger.info(f"Button {self.info['id']} sensor read thread stopped")
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -152,7 +151,7 @@ class ButtonController:
 
     def disable_callback(self, message, meta):
         self.info["enabled"] = False
-        self.logger.info("Button {} stops reading".format(self.info["id"]))
+        self.logger.info(f"Button {self.info['id']} stops reading")
         return {"enabled": False}
 
     def start(self):
@@ -164,7 +163,7 @@ class ButtonController:
             self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
-            self.logger.info("Button {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
+            self.logger.info(f"Button {self.info['id']} reads with {self.info['hz']} Hz")
 
     def stop(self):
         self.info["enabled"] = False
@@ -181,12 +180,12 @@ class ButtonController:
         if self.info["enabled"] is False:
             return {"data": []}
 
-        self.logger.info("Robot {}: Button callback: {}".format(self.name, message))
+        self.logger.info(f"Robot {self.name}: Button callback: {message}")
         try:
             _to = message["from"] + 1
             _from = message["to"]
         except Exception as e:
-            self.logger.error("{}: Malformed message for button: {} - {}".format(self.name, str(e.__class__), str(e)))
+            self.logger.error(f"{self.name}: Malformed message for button: {e.__class__} - {e}")
             return []
         ret = {"data": []}
 
