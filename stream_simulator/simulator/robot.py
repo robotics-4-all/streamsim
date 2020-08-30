@@ -74,11 +74,18 @@ class Robot:
             self.logger.warning("Robot has no motion controller.. Smells like device!".format(self.name))
             self.motion_controller = None
 
-        self.devices_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.devices_callback, rpc_name=self.name + '/nodes_detector/get_connected_devices')
-        self.logger.info("{} Created redis RPCService {} {}".format(Fore.GREEN, self.name + '/nodes_detector/get_connected_devices', Style.RESET_ALL))
+        _topic = self.name + '/nodes_detector/get_connected_devices'
+        self.devices_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.devices_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN} Created redis RPCService {_topic} {Style.RESET_ALL}")
 
-        self.internal_pose_pub = Publisher(conn_params=ConnParams.get("redis"), topic= name + "/pose")
-        self.logger.info("{} Created redis Publisher {}{}".format(Fore.GREEN, name + "/pose", Style.RESET_ALL))
+        _topic =name + "/pose"
+        self.internal_pose_pub = Publisher(
+            conn_params=ConnParams.get("redis"),
+            topic= _topic)
+        self.logger.info(f"{Fore.GREEN} Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         # SIMULATOR ------------------------------------------------------------
         if self.world['robots'][0]['amqp_inform'] is True:
@@ -93,43 +100,56 @@ class Robot:
             final_exec = final_t + ".execution"
 
             self.pose_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"), topic= final_top)
-            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_top, Style.RESET_ALL))
+                conn_params=ConnParams.get("amqp"),
+                topic= final_top)
+            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_top}{Style.RESET_ALL}")
 
             self.detects_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"), topic= final_dete_top)
-            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_dete_top, Style.RESET_ALL))
+                conn_params=ConnParams.get("amqp"),
+                topic= final_dete_top)
+            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_dete_top}{Style.RESET_ALL}")
 
             self.leds_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"), topic= final_leds_top)
-            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_leds_top, Style.RESET_ALL))
+                conn_params=ConnParams.get("amqp"),
+                topic= final_leds_top)
+            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_leds_top}{Style.RESET_ALL}")
 
             self.leds_wipe_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"), topic= final_leds_wipe_top)
-            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_leds_wipe_top, Style.RESET_ALL))
+                conn_params=ConnParams.get("amqp"),
+                topic= final_leds_wipe_top)
+            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_leds_wipe_top}{Style.RESET_ALL}")
 
             self.execution_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"), topic= final_exec)
-            self.logger.info("{}Created amqp Publisher {}{}".format(Fore.RED, final_exec, Style.RESET_ALL))
+                conn_params=ConnParams.get("amqp"),
+                topic= final_exec)
+            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_exec}{Style.RESET_ALL}")
 
+            _topic = final_t + ".buttons"
             self.buttons_sub = commlib.transports.amqp.Subscriber(
                 conn_params=ConnParams.get("amqp"),
-                topic=final_t + ".buttons",
+                topic=_topic,
                 on_message=self.button_amqp)
-            self.logger.info("{}Created amqp Subscriber {}{}".format(Fore.RED, final_t + ".buttons", Style.RESET_ALL))
+            self.logger.info(f"{Fore.RED}Created amqp Subscriber {_topic}{Style.RESET_ALL}")
 
-            self.buttons_sim_pub = Publisher(conn_params=ConnParams.get("redis"), topic= name + "/buttons_sim")
-            self.logger.info("{}Created redis Publisher {}{}".format(Fore.RED, name + "/buttons_sim", Style.RESET_ALL))
+            _topic = name + "/buttons_sim"
+            self.buttons_sim_pub = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic= _topic)
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
             if self.step_by_step_execution:
+                _topic = final_t + ".step_by_step"
                 self.step_by_step_sub = commlib.transports.amqp.Subscriber(
                     conn_params=ConnParams.get("amqp"),
-                    topic=final_t + ".step_by_step",
+                    topic=_topic,
                     on_message=self.step_by_step_amqp)
-                self.logger.info("{}Created amqp Subscriber {}{}".format(Fore.RED, final_t + ".step_by_step", Style.RESET_ALL))
+                self.logger.info(f"{Fore.RED}Created amqp Subscriber {_topic}{Style.RESET_ALL}")
 
-            self.step_by_step_pub = Publisher(conn_params=ConnParams.get("redis"), topic= name + "/step_by_step")
-            self.logger.info("{}Created redis Publisher {}{}".format(Fore.RED, name + "/step_by_step", Style.RESET_ALL))
+            _topic = name + "/step_by_step"
+            self.step_by_step_pub = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic)
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)

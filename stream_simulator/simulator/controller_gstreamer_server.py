@@ -29,8 +29,14 @@ class GstreamerServerController:
 
         self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=info["base_topic"] + "/disable")
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

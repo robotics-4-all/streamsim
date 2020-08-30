@@ -45,19 +45,29 @@ class MicrophoneController:
 
         self.memory = 100 * [0]
 
-        self.record_action_server = ActionServer(conn_params=ConnParams.get("redis"), on_goal=self.on_goal, action_name=info["base_topic"] + "/record")
-        self.logger.info("Created redis ActionServer {}".format(
-            info["base_topic"] + "/record"
-        ))
+        _topic = info["base_topic"] + "/record"
+        self.record_action_server = ActionServer(
+            conn_params=ConnParams.get("redis"),
+            on_goal=self.on_goal,
+            action_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis ActionServer {_topic}{Style.RESET_ALL}")
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get("redis"), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
-            self.logger.info("Created redis Subscriber {}".format(
-                self.info['device_name'] + "/pose"
-            ))
+            _topic = self.info['device_name'] + "/pose"
+            self.robot_pose_sub = Subscriber(conn_params=
+                ConnParams.get("redis"),
+                topic = _topic,
+                on_message = self.robot_pose_update)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
             self.robot_pose_sub.run()
 
         from derp_me.client import DerpMeClient

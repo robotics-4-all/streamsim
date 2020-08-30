@@ -27,18 +27,28 @@ class PanTiltController:
 
         self.memory = 100 * [0]
 
-        self.pan_tilt_set_sub = Subscriber(conn_params=ConnParams.get("redis"), topic =info["base_topic"] + "/set", on_message = self.pan_tilt_set_callback)
-        self.logger.info("Created redis Subscriber {}".format(
-            info["base_topic"] + "/set"
-        ))
+        _topic = info["base_topic"] + "/set"
+        self.pan_tilt_set_sub = Subscriber(
+            conn_params=ConnParams.get("redis"),
+            topic = _topic,
+            on_message = self.pan_tilt_set_callback)
+        self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
-        self.pan_tilt_get_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.pan_tilt_get_callback, rpc_name=info["base_topic"] + "/get")
-        self.logger.info("Created redis RPCService {}".format(
-            info["base_topic"] + "/get"
-        ))
+        _topic = info["base_topic"] + "/get"
+        self.pan_tilt_get_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.pan_tilt_get_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=info["base_topic"] + "/disable")
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

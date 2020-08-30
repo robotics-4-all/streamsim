@@ -32,28 +32,41 @@ class LedsController:
 
         self.memory = 100 * [0]
 
-        self.leds_wipe_pub = Publisher(conn_params=ConnParams.get("redis"), topic=info["base_topic"] + "/leds_wipe/pub")
-        self.logger.info("Created redis Publisher {}".format(
-            info["base_topic"] + "/leds_wipe/pub"
-        ))
+        _topic = info["base_topic"] + "/leds_wipe/pub"
+        self.leds_wipe_pub = Publisher(
+            conn_params=ConnParams.get("redis"),
+            topic=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
-        self.leds_set_sub = Subscriber(conn_params=ConnParams.get("redis"), topic =info["base_topic"] + "/leds/set", on_message = self.leds_set_callback)
-        self.logger.info("Created redis Subscriber {}".format(
-            info["base_topic"] + "/leds/set"
-        ))
+        _topic = info["base_topic"] + "/leds/set"
+        self.leds_set_sub = Subscriber(
+            conn_params=ConnParams.get("redis"),
+            topic=_topic,
+            on_message = self.leds_set_callback)
+        self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
-        self.leds_wipe_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.leds_wipe_callback, rpc_name=info["base_topic"] + "/leds_wipe/set")
-        self.logger.info("Created redis RPCService {}".format(
-            info["base_topic"] + "/leds_wipe/set"
-        ))
+        _topic = info["base_topic"] + "/leds_wipe/set"
+        self.leds_wipe_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.leds_wipe_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
-        self.leds_get_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.leds_get_callback, rpc_name=info["base_topic"] + "/get")
-        self.logger.info("Created redis RPCService {}".format(
-            info["base_topic"] + "/get"
-        ))
+        _topic = info["base_topic"] + "/get"
+        self.leds_get_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.leds_get_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get("redis"), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=info["base_topic"] + "/disable")
 
         from derp_me.client import DerpMeClient
         self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
