@@ -27,10 +27,10 @@ class PanTiltController:
         self.conf = info["sensor_configuration"]
 
         # create object
-        if self.info["mode"] == "real":    
+        if self.info["mode"] == "real":
             from pidevices import PCA9685
-            self.pan_tilt = PCA9685(bus=self.conf["bus"], 
-                                    frequency=self.conf["frequency"],  
+            self.pan_tilt = PCA9685(bus=self.conf["bus"],
+                                    frequency=self.conf["frequency"],
                                     max_data_length=self.conf["max_data_length"])
             self.yaw_channel = 0
             self.pitch_channel = 1
@@ -75,8 +75,9 @@ class PanTiltController:
 
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
-        # stop servos
-        self.pan_tilt.start() 
+
+        if self.info["mode"] == "real":
+            self.pan_tilt.start()
 
     def stop(self):
         self.pan_tilt_set_sub.stop()
@@ -84,8 +85,10 @@ class PanTiltController:
 
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+
         # stop servos
-        self.pan_tilt.stop() 
+        if self.info["mode"] == "real":
+            self.pan_tilt.stop()
 
     def memory_write(self, data):
         del self.memory[-1]
