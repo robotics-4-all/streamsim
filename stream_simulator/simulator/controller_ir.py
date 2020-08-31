@@ -39,7 +39,14 @@ class IrController:
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
             self.robot_pose_sub.run()
-
+        elif self.info["mode"] == "real":
+            from pidevices import ADS1X15
+            from pidevices import GP2Y0A41SK0F
+            
+            self.adc = ADS1X15(v_ref=self.conf["v_ref"], averages=self.conf["averages"])
+            self.sensor = GP2Y0A41SK0F(adc=self.adc)
+            self.sensor.set_channel(self.conf["channel"])
+            
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
 
@@ -66,7 +73,10 @@ class IrController:
                     tmpy = originx + d * math.cos(ths)
                 val = d * self.robot_pose["resolution"]
             else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                """Already read() acculturate moving average"""
+                val = self.sensor.read()
+                
 
             self.memory_write(val)
 
@@ -110,6 +120,9 @@ class IrController:
         self.ir_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+
+        # terminate adc
+        self.adc.stop()
 
     def memory_write(self, data):
         del self.memory[-1]

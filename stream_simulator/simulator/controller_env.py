@@ -41,6 +41,10 @@ class EnvController:
             self.sensor.set_heating_temp([0], [320])
             self.sensor.set_heating_time([0], [100])
             self.sensor.set_nb_conv(0)
+
+
+
+
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/bme680_hw_interface/bme680_hw_interface/bme680_hw_interface.py
 
         self.memory = 100 * [0]
@@ -74,8 +78,15 @@ class EnvController:
                 val["gas"] = self.info["gas"] + random.uniform(-3, 3)
             else: # The real deal
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-                
+                # read the sensor values and populate the <val> dictionary
+                data = self.sensor.read()
 
+                val["temperature"] = data.temp
+                val["pressure"] = data.pres
+                val["humidity"] = data.hum
+                val["gas"] = data.gas
+
+            self.memory_write(val)
 
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + ".variables.robot.env.temperature",
@@ -89,8 +100,6 @@ class EnvController:
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + ".variables.robot.env.gas",
                 [{"data": val["gas"], "timestamp": time.time()}])
-
-            self.memory_write(val)
 
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 

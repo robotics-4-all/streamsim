@@ -50,6 +50,8 @@ class EncoderController:
                 self.memory_write(float(random.uniform(1000,2000)))
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                self.data = self.sensor.read_rpm()
+                self.memory_write(data)
 
         self.logger.info("Encoder {} sensor read thread stopped".format(self.info["id"]))
 

@@ -29,7 +29,7 @@ class ImuController:
 
         if self.info["mode"] == "real":
             from pidevices import ICM_20948
-            self.sensor = ICM_20948(1) # connect to bus (1)
+            self.sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/imu_hw_interface/imu_hw_interface/imu_hw_interface.py
 
         self.memory = 100 * [0]
@@ -113,35 +113,18 @@ class ImuController:
             else: # The real deal
                 data = self.sensor.read()
 
-                val = {
-                    "accel": {
-                        "x": data.accel.x,
-                        "y": data.accel.y,
-                        "z": data.accel.z
-                    },
-                    "gyro": {
-                        "yaw": data.gyro.z,
-                        "pitch": data.gyro.y,
-                        "roll": data.gyro.x
-                    },
-                    "magne": {
-                        "yaw": data.magne.z,
-                        "pitch": data.magne.y,
-                        "roll": data.magne.x
-                    }
-                }
-                self.memory_write(val)
+                val["accel"]["x"] = data.accel.x
+                val["accel"]["y"] = data.accel.y
+                val["accel"]["z"] = data.accel.z
 
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.imu.roll",
-                    [{"data": val["magne"]["roll"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.imu.pitch",
-                    [{"data": val["magne"]["pitch"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + ".variables.robot.imu.yaw",
-                    [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
+                val["gyro"]["x"] = data.gyro.z
+                val["gyro"]["y"] = data.gyro.y
+                val["gyro"]["z"] = data.gyro.x
 
+                val["magne"]["x"] = data.magne.z
+                val["magne"]["y"] = data.magne.y
+                val["magne"]["z"] = data.magne.x
+                
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             self.memory_write(val)
