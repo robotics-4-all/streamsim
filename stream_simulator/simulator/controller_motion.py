@@ -8,7 +8,7 @@ import logging
 import threading
 import random
 
-import wiringpi
+from colorama import Fore, Style
 
 from commlib.logger import Logger
 
@@ -17,8 +17,6 @@ if ConnParams.type == "amqp":
     from commlib.transports.amqp import RPCService, Subscriber
 elif ConnParams.type == "redis":
     from commlib.transports.redis import RPCService, Subscriber
-
-
 
 class MotionController:
     def __init__(self, info = None):
@@ -29,6 +27,8 @@ class MotionController:
         self.conf = info["sensor_configuration"]
 
         if self.info["mode"] == "real":
+            import wiringpi
+
             OUTPUT = 1
 
             self.E1 = self.conf["E1"]
@@ -42,9 +42,9 @@ class MotionController:
             wiringpi.pinMode(self.M1, OUTPUT)
             wiringpi.pinMode(self.M2, OUTPUT)
 
-            wiringpi.softPwmCreate(self.E1, 0, 100) 
+            wiringpi.softPwmCreate(self.E1, 0, 100)
             wiringpi.softPwmCreate(self.E2, 0, 100)
-            
+
 
             self.wheel_separation = self.conf["wheel_separation"]
             self.wheel_radius = self.conf["wheel_radius"]
@@ -56,12 +56,28 @@ class MotionController:
 
         self.memory = 100 * [0]
 
-        self.vel_sub = Subscriber(conn_params=ConnParams.get(), topic = info["base_topic"] + "/set", on_message = self.cmd_vel)
+        _topic = info["base_topic"] + "/set"
+        self.vel_sub = Subscriber(
+            conn_params=ConnParams.get("redis"),
+            topic = _topic,
+            on_message = self.cmd_vel)
+        self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
-        self.motion_get_server = RPCService(conn_params=ConnParams.get(), on_request=self.motion_get_callback, rpc_name=info["base_topic"] + "/get")
+        _topic = info["base_topic"] + "/get"
+        self.motion_get_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.motion_get_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=info["base_topic"] + "/disable")
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -85,12 +101,12 @@ class MotionController:
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
-        wiringpi.pinMode(self.M1, 0)
-        wiringpi.pinMode(self.M2, 0)
-        wiringpi.softPwmStop(self.E1)
-        wiringpi.softPwmStop(self.E2)
-
-
+        if self.info["mode"] == "real":
+            import wiringpi
+            wiringpi.pinMode(self.M1, 0)
+            wiringpi.pinMode(self.M2, 0)
+            wiringpi.softPwmStop(self.E1)
+            wiringpi.softPwmStop(self.E2)
 
     def memory_write(self, data):
         del self.memory[-1]
@@ -111,6 +127,7 @@ class MotionController:
             else: # The real deal
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
                 print("RUNING...............")
+                import wiringpi
 
                 if self._linear > 0:
                     print("writting pwm 1111", int(100 * self._linear))

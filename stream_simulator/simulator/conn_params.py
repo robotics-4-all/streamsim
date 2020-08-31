@@ -5,17 +5,17 @@ class ConnParams:
     type = "redis"
 
     @staticmethod
-    def get():
-        if ConnParams.type == "amqp":
+    def get(type):
+        if type == "amqp":
             from commlib.transports.amqp import ConnectionParameters
             conn_params = ConnectionParameters()
-            conn_params.credentials.username = 'etsardou'
-            conn_params.credentials.password = 'etsardou'
+            conn_params.credentials.username = 'bot'
+            conn_params.credentials.password = 'b0t'
             conn_params.host = 'r4a-platform.ddns.net'
-            conn_params.port = 8076
-            conn_params.vhost = "etsardou"
+            conn_params.port = 5672
+            conn_params.vhost = "sim"
             return conn_params
-        elif ConnParams.type == "redis":
+        elif type == "redis":
             from commlib.transports.redis import ConnectionParameters
             conn_params = ConnectionParameters()
             conn_params.host = "localhost"

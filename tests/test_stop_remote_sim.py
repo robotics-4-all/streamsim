@@ -3,8 +3,8 @@
 
 import sys
 
-from commlib_py.transports.amqp import RPCClient
-from commlib_py.transports.amqp import ConnectionParameters
+from commlib.transports.amqp import RPCClient
+from commlib.transports.amqp import ConnectionParameters
 conn_params = ConnectionParameters()
 conn_params.credentials.username = 'bot'
 conn_params.credentials.password = 'b0t'

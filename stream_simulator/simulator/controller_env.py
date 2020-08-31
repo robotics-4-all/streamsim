@@ -8,6 +8,8 @@ import logging
 import threading
 import random
 
+from colorama import Fore, Style
+
 from commlib.logger import Logger
 
 from .conn_params import ConnParams
@@ -26,7 +28,7 @@ class EnvController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
         if self.info["mode"] == "real":
             from pidevices import BME680
@@ -49,9 +51,21 @@ class EnvController:
 
         self.memory = 100 * [0]
 
-        self.env_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.env_callback, rpc_name=info["base_topic"] + "/get")
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        _topic = info["base_topic"] + "/get"
+        self.env_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.env_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=info["base_topic"] + "/disable")
 
     def sensor_read(self):
         self.logger.info("Env {} sensor read thread started".format(self.info["id"]))
@@ -89,16 +103,16 @@ class EnvController:
             self.memory_write(val)
 
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.env.temperature",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.temperature",
                 [{"data": val["temperature"], "timestamp": time.time()}])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.env.pressure",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.pressure",
                 [{"data": val["pressure"], "timestamp": time.time()}])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.env.humidity",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.humidity",
                 [{"data": val["humidity"], "timestamp": time.time()}])
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.env.gas",
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.gas",
                 [{"data": val["gas"], "timestamp": time.time()}])
 
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))

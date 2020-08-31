@@ -35,10 +35,6 @@ class World:
 
     def setup(self):
 
-        # Publishers
-        self.world_pub = Publisher(conn_params=ConnParams.get(), topic= "world:details")
-        self.world_pub.publish(self.world)
-
         self.width = self.world['map']['width']
         self.height = self.world['map']['height']
 

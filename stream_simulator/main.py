@@ -6,12 +6,16 @@ import sys
 
 from stream_simulator import Simulator
 
-if len(sys.argv) != 2:
-    print("You must provide a valid yaml name as argument. For example:")
-    print(">> python3 main.py elsa")
+if len(sys.argv) < 2:
+    print("You must provide a valid yaml name as argument and if you want the device name. For example:")
+    print(">> python3 main.py elsa [device_0]")
     exit(0)
 
 c = sys.argv[1]
 
-s = Simulator(conf_file = c, device = 'robot_1')
+_device_name = 'robot_1'
+if len(sys.argv) == 3:
+    _device_name = sys.argv[2]
+
+s = Simulator(conf_file = c, device = _device_name)
 s.start()

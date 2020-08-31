@@ -8,6 +8,8 @@ import logging
 import threading
 import random
 
+from colorama import Fore, Style
+
 from commlib.logger import Logger
 
 from .conn_params import ConnParams
@@ -27,18 +29,34 @@ class SonarController:
         self.conf = info["sensor_configuration"]
         self.map = map
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
         self.memory = 100 * [0]
 
-        self.sonar_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.sonar_callback, rpc_name=info["base_topic"] + "/get")
+        _topic = info["base_topic"] + "/get"
+        self.sonar_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.sonar_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
-            self.robot_pose_sub.run()
+            _topic =self.info['device_name'] + "/pose"
+            self.robot_pose_sub = Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic = _topic,
+                on_message = self.robot_pose_update)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
@@ -52,26 +70,29 @@ class SonarController:
             if self.info["mode"] == "mock":
                 val = float(random.uniform(30, 10))
             elif self.info["mode"] == "simulation":
-                ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
-                # Calculate distance
-                d = 1
-                originx = self.robot_pose["x"] / self.robot_pose["resolution"]
-                originy = self.robot_pose["y"] / self.robot_pose["resolution"]
-                tmpx = originx
-                tmpy = originy
-                limit = self.info["max_range"] / self.robot_pose["resolution"]
-                while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
-                    d += 1
-                    tmpx = originx + d * math.cos(ths)
-                    tmpy = originx + d * math.cos(ths)
-                val = d * self.robot_pose["resolution"]
+                try:
+                    ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
+                    # Calculate distance
+                    d = 1
+                    originx = self.robot_pose["x"] / self.robot_pose["resolution"]
+                    originy = self.robot_pose["y"] / self.robot_pose["resolution"]
+                    tmpx = originx
+                    tmpy = originy
+                    limit = self.info["max_range"] / self.robot_pose["resolution"]
+                    while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
+                        d += 1
+                        tmpx = originx + d * math.cos(ths)
+                        tmpy = originx + d * math.cos(ths)
+                    val = d * self.robot_pose["resolution"]
+                except:
+                    self.logger.warning("Pose not got yet..")
             else: # The real deal
                 self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             self.memory_write(val)
 
             r = self.derp_client.lset(
-                self.info["namespace"][1:] + ".variables.robot.distance." + self.info["place"],
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.distance." + self.info["place"],
                 [{
                     "data": val,
                     "timestamp": time.time()
@@ -96,9 +117,11 @@ class SonarController:
 
     def start(self):
         self.sonar_rpc_server.run()
-
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub.run()
 
         if self.info["enabled"]:
             self.memory = self.info["queue_size"] * [0]
@@ -111,6 +134,9 @@ class SonarController:
         self.sonar_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+
+        if self.info["mode"] == "simulation":
+            self.robot_pose_sub.stop()
 
     def memory_write(self, data):
         del self.memory[-1]

@@ -10,6 +10,8 @@ import random
 import string
 import os
 
+from colorama import Fore, Style
+
 from commlib.logger import Logger
 
 from .conn_params import ConnParams

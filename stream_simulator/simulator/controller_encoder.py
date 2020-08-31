@@ -8,6 +8,8 @@ import logging
 import threading
 import random
 
+from colorama import Fore, Style
+
 from commlib.logger import Logger
 
 from .conn_params import ConnParams
@@ -35,9 +37,21 @@ class EncoderController:
 
         self.memory = 100 * [0]
 
-        self.encoder_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.encoder_callback, rpc_name=info["base_topic"] + "/get")
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        _topic = info["base_topic"] + "/get"
+        self.encoder_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.encoder_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=info["base_topic"] + "/disable")
 
     def sensor_read(self):
         self.logger.info("Encoder {} sensor read thread started".format(self.info["id"]))

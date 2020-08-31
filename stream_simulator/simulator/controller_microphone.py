@@ -9,6 +9,8 @@ import threading
 import random
 import base64
 
+from colorama import Fore, Style
+
 from commlib.logger import Logger
 
 from .conn_params import ConnParams
@@ -43,17 +45,33 @@ class MicrophoneController:
 
         self.memory = 100 * [0]
 
-        self.record_action_server = ActionServer(conn_params=ConnParams.get(), on_goal=self.on_goal, action_name=info["base_topic"] + "/record")
+        _topic = info["base_topic"] + "/record"
+        self.record_action_server = ActionServer(
+            conn_params=ConnParams.get("redis"),
+            on_goal=self.on_goal,
+            action_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis ActionServer {_topic}{Style.RESET_ALL}")
 
-        self.enable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.enable_callback, rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(conn_params=ConnParams.get(), on_request=self.disable_callback, rpc_name=info["base_topic"] + "/disable")
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=info["base_topic"] + "/enable")
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=info["base_topic"] + "/disable")
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = Subscriber(conn_params=ConnParams.get(), topic = self.info['device_name'] + "/pose", on_message = self.robot_pose_update)
+            _topic = self.info['device_name'] + "/pose"
+            self.robot_pose_sub = Subscriber(conn_params=
+                ConnParams.get("redis"),
+                topic = _topic,
+                on_message = self.robot_pose_update)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
             self.robot_pose_sub.run()
 
         from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get())
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
@@ -141,7 +159,7 @@ class MicrophoneController:
 
             if closest != "empty":
                 self.derp_client.lset(
-                    self.info["namespace"][1:] + ".detect.source",
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
                     [closest_full]
                 )
                 print("Derp me updated")
