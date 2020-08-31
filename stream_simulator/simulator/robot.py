@@ -166,10 +166,13 @@ class Robot:
         })
 
     def step_by_step_amqp(self, message, meta):
-        self.logger.warning("Got next step from amqp " + str(message))
-        self.step_by_step_pub.publish({
-            "go": ""
-        })
+        self.logger.warning(f"Got next step from amqp")
+        r = self.derp_client.lset(
+            f"{self.name}/next_step",
+            [{
+                "go": True,
+                "timestamp": time.time()
+            }])
 
     def start(self):
         for c in self.controllers:
@@ -189,6 +192,12 @@ class Robot:
             [{
                 "state": "ACTIVE",
                 "device": self.name,
+                "timestamp": time.time()
+            }])
+        r = self.derp_client.lset(
+            f"{self.name}/step_by_step_status",
+            [{
+                "value": self.step_by_step_execution,
                 "timestamp": time.time()
             }])
 
