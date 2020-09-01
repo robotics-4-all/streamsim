@@ -144,6 +144,12 @@ class Robot:
                 topic= _topic)
             self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
+            _topic = name + ".next_step"
+            self.next_step_pub = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic= _topic)
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+
             if self.step_by_step_execution:
                 _topic = final_t + ".step_by_step"
                 self.step_by_step_sub = commlib.transports.amqp.Subscriber(
@@ -161,7 +167,7 @@ class Robot:
         self.logger.info("Device {} set-up".format(self.name))
 
     def execution_nodes_redis(self, message, meta):
-        self.logger.warning("Got execution node from redis " + str(message))
+        self.logger.debug("Got execution node from redis " + str(message))
         self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.execution_pub.publish(message)
 
@@ -172,13 +178,8 @@ class Robot:
         })
 
     def step_by_step_amqp(self, message, meta):
-        self.logger.warning(f"Got next step from amqp")
-        r = self.derp_client.lset(
-            f"{self.name}/next_step",
-            [{
-                "go": True,
-                "timestamp": time.time()
-            }])
+        self.logger.info(f"Got next step from amqp")
+        self.next_step_pub.publish({})
 
     def start(self):
         for c in self.controllers:
@@ -357,16 +358,6 @@ class Robot:
             except:
                 self.logger.debug("AMQP notification failed - leds")
                 pass
-
-            # Check for nodes change
-            # try:
-            #     v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".execution.nodes", 0, 0)['val'][0]
-            #     if time.time() - v['timestamp'] < 2.5 * self.dt:
-            #         self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {v}{Style.RESET_ALL}")
-            #         self.execution_pub.publish(v)
-            # except:
-            #     self.logger.debug("AMQP notification failed - execution")
-            #     pass
 
             # Check for leds
             try:
