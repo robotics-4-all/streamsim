@@ -173,6 +173,20 @@ class Robot:
                 on_message=self.detects_redis)
             self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
+            _topic = final_t + ".leds"
+            self.leds_redis_sub = commlib.transports.redis.Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic,
+                on_message=self.leds_redis)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+
+            _topic = final_t + ".leds.wipe"
+            self.leds_wipe_redis_sub = commlib.transports.redis.Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic,
+                on_message=self.leds_wipe_redis)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
@@ -182,8 +196,18 @@ class Robot:
 
         self.logger.info("Device {} set-up".format(self.name))
 
+    def leds_redis(self, message, meta):
+        self.logger.debug("Got leds from redis " + str(message))
+        self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        self.leds_pub.publish(message)
+
+    def leds_wipe_redis(self, message, meta):
+        self.logger.debug("Got leds wipe from redis " + str(message))
+        self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        self.leds_wipe_pub.publish(message)
+
     def execution_nodes_redis(self, message, meta):
-        self.logger.info("Got execution node from redis " + str(message))
+        self.logger.debug("Got execution node from redis " + str(message))
         self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.execution_pub.publish(message)
 
@@ -212,6 +236,8 @@ class Robot:
             self.buttons_amqp_sub.run()
             self.execution_nodes_redis_sub.run()
             self.detects_redis_sub.run()
+            self.leds_redis_sub.run()
+            self.leds_wipe_redis_sub.run()
             if self.step_by_step_execution:
                 self.step_by_step_amqp_sub.run()
 
@@ -349,32 +375,4 @@ class Robot:
                     self._y = prev_y
                     self._theta = prev_th
 
-            self.check_detections()
-
             time.sleep(self.dt)
-
-    def check_detections(self):
-
-        if self.world['robots'][0]['amqp_inform'] is True:
-
-            # Check for leds
-            try:
-                v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".leds", 0, 0)['val'][0]
-                if time.time() - v['timestamp'] < 2.5 * self.dt:
-                    self.logger.warning("Sending to amqp notifier: " + str(v))
-                    self.leds_pub.publish(v)
-            except:
-                self.logger.debug("AMQP notification failed - leds")
-                pass
-
-            # Check for leds
-            try:
-                v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".leds.wipe", 0, 0)['val'][0]
-                if time.time() - v['timestamp'] < 2.5 * self.dt:
-                    self.logger.warning("Sending to amqp notifier: " + str(v))
-                    self.leds_wipe_pub.publish(v)
-            except:
-                self.logger.debug("AMQP notification failed - leds wipe")
-                pass
-
-        return
