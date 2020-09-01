@@ -356,7 +356,7 @@ class Robot:
             try:
                 v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".execution.nodes", 0, 0)['val'][0]
                 if time.time() - v['timestamp'] < 2.5 * self.dt:
-                    self.logger.warning("Sending to amqp notifier: " + str(v))
+                    self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {v}{Style.RESET_ALL}")
                     self.execution_pub.publish(v)
             except:
                 self.logger.debug("AMQP notification failed - execution")
