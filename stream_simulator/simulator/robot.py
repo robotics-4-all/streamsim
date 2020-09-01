@@ -99,6 +99,8 @@ class Robot:
             final_leds_wipe_top = final_t + ".leds.wipe"
             final_exec = final_t + ".execution"
 
+            # AMQP Publishers  -----------------------------------------------
+
             self.pose_pub = commlib.transports.amqp.Publisher(
                 conn_params=ConnParams.get("amqp"),
                 topic= final_top)
@@ -124,19 +126,24 @@ class Robot:
                 topic= final_exec)
             self.logger.info(f"{Fore.RED}Created amqp Publisher {final_exec}{Style.RESET_ALL}")
 
+            # AMQP Subscribers  -----------------------------------------------
+
             _topic = final_t + ".buttons"
-            self.buttons_sub = commlib.transports.amqp.Subscriber(
+            self.buttons_amqp_sub = commlib.transports.amqp.Subscriber(
                 conn_params=ConnParams.get("amqp"),
                 topic=_topic,
                 on_message=self.button_amqp)
             self.logger.info(f"{Fore.RED}Created amqp Subscriber {_topic}{Style.RESET_ALL}")
 
-            _topic = final_t + ".execution.nodes"
-            self.buttons_sub = commlib.transports.redis.Subscriber(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic,
-                on_message=self.execution_nodes_redis)
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+            if self.step_by_step_execution:
+                _topic = final_t + ".step_by_step"
+                self.step_by_step_amqp_sub = commlib.transports.amqp.Subscriber(
+                    conn_params=ConnParams.get("amqp"),
+                    topic=_topic,
+                    on_message=self.step_by_step_amqp)
+                self.logger.info(f"{Fore.RED}Created amqp Subscriber {_topic}{Style.RESET_ALL}")
+
+            # REDIS Publishers  -----------------------------------------------
 
             _topic = name + "/buttons_sim"
             self.buttons_sim_pub = Publisher(
@@ -150,13 +157,22 @@ class Robot:
                 topic= _topic)
             self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
-            if self.step_by_step_execution:
-                _topic = final_t + ".step_by_step"
-                self.step_by_step_sub = commlib.transports.amqp.Subscriber(
-                    conn_params=ConnParams.get("amqp"),
-                    topic=_topic,
-                    on_message=self.step_by_step_amqp)
-                self.logger.info(f"{Fore.RED}Created amqp Subscriber {_topic}{Style.RESET_ALL}")
+            # REDIS Subscribers -----------------------------------------------
+
+            _topic = final_t + ".execution.nodes"
+            self.execution_nodes_redis_sub = commlib.transports.redis.Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic,
+                on_message=self.execution_nodes_redis)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+
+            _topic = final_t + ".detects"
+            self.detects_redis_sub = commlib.transports.redis.Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic,
+                on_message=self.detects_redis)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
@@ -167,8 +183,15 @@ class Robot:
         self.logger.info("Device {} set-up".format(self.name))
 
     def execution_nodes_redis(self, message, meta):
-        self.logger.debug("Got execution node from redis " + str(message))
+        self.logger.info("Got execution node from redis " + str(message))
         self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        self.execution_pub.publish(message)
+
+    def detects_redis(self, message, meta):
+        self.logger.warning("Got detect from redis " + str(message))
+        v2 = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".detect.source", 0, 0)['val'][0]
+        message["actor_id"] = v2["id"]
+        self.logger.warning(f"{Fore.CYAN}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.execution_pub.publish(message)
 
     def button_amqp(self, message, meta):
@@ -186,9 +209,11 @@ class Robot:
             self.controllers[c].start()
 
         if self.world['robots'][0]['amqp_inform'] is True:
-            self.buttons_sub.run()
+            self.buttons_amqp_sub.run()
+            self.execution_nodes_redis_sub.run()
+            self.detects_redis_sub.run()
             if self.step_by_step_execution:
-                self.step_by_step_sub.run()
+                self.step_by_step_amqp_sub.run()
 
         self.devices_rpc_server.run()
         self.stopped = False
@@ -329,25 +354,8 @@ class Robot:
             time.sleep(self.dt)
 
     def check_detections(self):
-        # [text, human, sound, qr, barcode, language, motion, color]
-        detections = {
-            'type': None,
-            'id': None,
-            'value': None
-        }
 
         if self.world['robots'][0]['amqp_inform'] is True:
-            try:
-                v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".detect", 0, 0)['val'][0]
-                if time.time() - v['timestamp'] < 2.5 * self.dt:
-                    # Get the closest source
-                    v2 = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".detect.source", 0, 0)['val'][0]
-                    v["actor_id"] = v2["id"]
-                    self.logger.warning("Sending to amqp notifier: " + str(v))
-                    self.detects_pub.publish(v)
-            except:
-                self.logger.debug("AMQP notification failed - detects")
-                pass
 
             # Check for leds
             try:
