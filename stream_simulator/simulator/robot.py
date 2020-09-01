@@ -131,6 +131,13 @@ class Robot:
                 on_message=self.button_amqp)
             self.logger.info(f"{Fore.RED}Created amqp Subscriber {_topic}{Style.RESET_ALL}")
 
+            _topic = final_t + ".execution.nodes"
+            self.buttons_sub = commlib.transports.redis.Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic,
+                on_message=self.execution_nodes_redis)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+
             _topic = name + "/buttons_sim"
             self.buttons_sim_pub = Publisher(
                 conn_params=ConnParams.get("redis"),
@@ -145,12 +152,6 @@ class Robot:
                     on_message=self.step_by_step_amqp)
                 self.logger.info(f"{Fore.RED}Created amqp Subscriber {_topic}{Style.RESET_ALL}")
 
-            _topic = name + "/step_by_step"
-            self.step_by_step_pub = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic)
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
-
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
@@ -158,6 +159,11 @@ class Robot:
         self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
         self.logger.info("Device {} set-up".format(self.name))
+
+    def execution_nodes_redis(self, message, meta):
+        self.logger.warning("Got execution node from redis " + str(message))
+        self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        self.execution_pub.publish(message)
 
     def button_amqp(self, message, meta):
         self.logger.warning("Got button press from amqp " + str(message))
@@ -353,14 +359,14 @@ class Robot:
                 pass
 
             # Check for nodes change
-            try:
-                v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".execution.nodes", 0, 0)['val'][0]
-                if time.time() - v['timestamp'] < 2.5 * self.dt:
-                    self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {v}{Style.RESET_ALL}")
-                    self.execution_pub.publish(v)
-            except:
-                self.logger.debug("AMQP notification failed - execution")
-                pass
+            # try:
+            #     v = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".execution.nodes", 0, 0)['val'][0]
+            #     if time.time() - v['timestamp'] < 2.5 * self.dt:
+            #         self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {v}{Style.RESET_ALL}")
+            #         self.execution_pub.publish(v)
+            # except:
+            #     self.logger.debug("AMQP notification failed - execution")
+            #     pass
 
             # Check for leds
             try:
