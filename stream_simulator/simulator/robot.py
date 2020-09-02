@@ -341,18 +341,16 @@ class Robot:
                 prev_y = self._y
                 prev_th = self._theta
 
-                tmp_ang = -self.motion_controller._angular
-
-                if tmp_ang == 0:
+                if self.motion_controller._angular == 0:
                     self._x += self.motion_controller._linear * self.dt * math.cos(self._theta)
                     self._y += self.motion_controller._linear * self.dt * math.sin(self._theta)
                 else:
-                    arc = self.motion_controller._linear / tmp_ang
+                    arc = self.motion_controller._linear / self.motion_controller._angular
                     self._x += - arc * math.sin(self._theta) + \
-                        arc * math.sin(self._theta + self.dt * tmp_ang)
+                        arc * math.sin(self._theta + self.dt * self.motion_controller._angular)
                     self._y -= - arc * math.cos(self._theta) + \
-                        arc * math.cos(self._theta + self.dt * tmp_ang)
-                self._theta += tmp_ang * self.dt
+                        arc * math.cos(self._theta + self.dt * self.motion_controller._angular)
+                self._theta += self.motion_controller._angular * self.dt
 
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
                     if self.world['robots'][0]['amqp_inform'] is True:
