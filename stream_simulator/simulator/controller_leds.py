@@ -28,20 +28,26 @@ class LedsController:
 
         if self.info["mode"] == "real":
             from pidevices import LedController
-            self.led_strip = LedController(led_count=self.conf["led_count"], 
-                                            led_pin=self.conf["led_pin"], 
-                                            led_freq_hz=self.conf["led_freq_hz"], 
-                                            led_brightness=self.conf["led_brightness"], 
+            self.led_strip = LedController(led_count=self.conf["led_count"],
+                                            led_pin=self.conf["led_pin"],
+                                            led_freq_hz=self.conf["led_freq_hz"],
+                                            led_brightness=self.conf["led_brightness"],
                                             led_channel=self.conf["led_channel"])
-                                            
-           
+
+
 
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/led_strip_hw_interface/led_strip_hw_interface/led_strip_hw_interface.py
 
 
         self.memory = 100 * [0]
 
-        _topic = info["base_topic"] + "/leds_wipe/pub"
+        _topic = self.info['device_name'] + ".leds"
+        self.leds_pub = Publisher(
+            conn_params=ConnParams.get("redis"),
+            topic=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+
+        _topic = self.info['device_name'] + ".leds.wipe"
         self.leds_wipe_pub = Publisher(
             conn_params=ConnParams.get("redis"),
             topic=_topic)
@@ -151,19 +157,14 @@ class LedsController:
             self._color = [r, g, b, intensity]
 
             if self.info["mode"] == "mock":
-                self.memory_write(self._color)
+                pass
             elif self.info["mode"] == "simulation":
-                self.memory_write(self._color)
-                self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
+                pass
             else: # The real deal
-                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-                self.led_strip.write([self._color], wipe = True)
+                self.led_strip.write([self._color], wipe = False)
 
-
-            self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".leds",
-                [{"r": r, "g": g, "b": b, "timestamp": time.time()}]
-            )
+            self.memory_write(self._color)
+            self.leds_pub.publish({"r": r, "g": g, "b": b})
 
         except Exception as e:
             self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
@@ -179,20 +180,15 @@ class LedsController:
             self._color = [r, g, b, intensity]
 
             if self.info["mode"] == "mock":
-                self.memory_write(self._color)
+                pass
             elif self.info["mode"] == "simulation":
-                self.memory_write(self._color)
-                self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
+                pass
             else: # The real deal
-                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
                 self.led_strip.write([self._color], wipe=True)
-                self.memory_write(self._color)
 
-            self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".leds.wipe",
-                [{"r": r, "g": g, "b": b, "timestamp": time.time()}]
-            )
-            self.logger.error("Wrote {} at {}".format({"r": r, "g": g, "b": b}, self.info["namespace"][1:] + ".leds.wipe"))
+            self.memory_write(self._color)
+
+            self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
 
             self.logger.info("{}: New leds wipe command: {}".format(self.name, message))
 
