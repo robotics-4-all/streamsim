@@ -141,16 +141,16 @@ class MicrophoneController:
                 self.logger.info("dist to {}: {}".format(h["id"], d))
                 if d <= 2.0:
                     # In range - check if in the same semi-plane
-                    xt = x + math.cos(th) * d
-                    yt = y + math.sin(th) * d
-                    thres = d * 1.4142
-                    self.logger.info("\tThres to {}: {} / {}".format(h["id"], math.hypot(xt - xx, yt - yy), thres))
-                    if math.hypot(xt - xx, yt - yy) < thres:
-                        # We got a winner!
-                        findings[h["type"]].append(h)
-                        if d < closest_dist:
-                            closest = h["type"]
-                            closest_full = h
+                    # xt = x + math.cos(th) * d
+                    # yt = y + math.sin(th) * d
+                    # thres = d * 1.4142
+                    # self.logger.info("\tThres to {}: {} / {}".format(h["id"], math.hypot(xt - xx, yt - yy), thres))
+                    # if math.hypot(xt - xx, yt - yy) < thres:
+                    # We got a winner!
+                    findings[h["type"]].append(h)
+                    if d < closest_dist:
+                        closest = h["type"]
+                        closest_full = h
 
             for i in findings:
                 for j in findings[i]:
