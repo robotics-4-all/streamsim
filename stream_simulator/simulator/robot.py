@@ -213,7 +213,17 @@ class Robot:
 
     def detects_redis(self, message, meta):
         self.logger.warning("Got detect from redis " + str(message))
-        v2 = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".detect.source", 0, 0)['val'][0]
+        # Wait for source
+        done = False
+        while not done:
+            try:
+                v2 = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".detect.source", 0, 0)['val'][0]
+                self.logger.info("Got the source!")
+                done = True
+            except:
+                time.sleep(0.1)
+                self.logger.info("Source not written yet...")
+
         message["actor_id"] = v2["id"]
         self.logger.warning(f"{Fore.CYAN}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.detects_pub.publish(message)
