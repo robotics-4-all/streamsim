@@ -60,6 +60,13 @@ class SpeakerController:
             action_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis ActionServer {_topic}{Style.RESET_ALL}")
 
+        _topic = "device.global.volume"
+        self.global_volume_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.set_global_volume_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.enable_callback,
@@ -195,6 +202,15 @@ class SpeakerController:
         self.logger.info("{} Playing finished".format(self.name))
         return ret
 
+    def set_global_volume_callback(self, message, meta):
+        _vol = message["volume"]
+        try:
+            import alsaaudio
+            m = alsaaudio.Mixer()
+            m.setVolume(int(_vol))
+        except Exception as e:
+            self.logger.error(f"Something went wrong with global volume set: {e}. Is the alsaaudio python library installed?")
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
         return {"enabled": True}
@@ -208,6 +224,7 @@ class SpeakerController:
         self.speak_action_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+        self.global_volume_rpc_server.run()
 
     def stop(self):
         self.play_action_server._goal_rpc.stop()
@@ -218,6 +235,7 @@ class SpeakerController:
         self.speak_action_server._result_rpc.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+        self.global_volume_rpc_server.stop()
 
     def memory_write(self, data):
         del self.memory[-1]
