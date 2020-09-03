@@ -27,6 +27,8 @@ class SpeakerController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
+        self.global_volume = None
+
         self.memory = 100 * [0]
 
         if self.info["mode"] == "real":
@@ -85,6 +87,9 @@ class SpeakerController:
             print(goalh.data)
             texts = goalh.data["text"]
             volume = goalh.data["volume"]
+            if self.global_volume is not None:
+                volume = self.global_volume
+                self.logger.info(f"{Fore.MAGENTA}Volume forced to {self.global_volume}{Style.RESET_ALL}")
             language = goalh.data["language"]
         except Exception as e:
             self.logger.error("{} wrong parameters: {}".format(self.name, ))
@@ -158,6 +163,9 @@ class SpeakerController:
         try:
             string = goalh.data["string"]
             volume = goalh.data["volume"]
+            if self.global_volume is not None:
+                volume = self.global_volume
+                self.logger.info(f"{Fore.MAGENTA}Volume forced to {self.global_volume}{Style.RESET_ALL}")
         except Exception as e:
             self.logger.error("{} wrong parameters: {}".format(self.name, ))
 
@@ -205,9 +213,22 @@ class SpeakerController:
     def set_global_volume_callback(self, message, meta):
         try:
             _vol = message["volume"]
+            if _vol < 0 or _vol > 100:
+                err = f"Global volume must be between 0 and 100"
+                self.logger.error(err)
+                raise ValueError(err)
+            self.global_volume = _vol
+            self.logger.info(f"{Fore.MAGENTA}Global volume set to {self.global_volume}{Style.RESET_ALL}")
+        except Exception as e:
+            err = f"Global volume message is erroneous: {message}"
+            self.logger.error(err)
+            raise ValueError(err)
+
+        try:
             import alsaaudio
             m = alsaaudio.Mixer()
-            m.setvolume(int(_vol))
+            m.setvolume(int(self.global_volume))
+            self.logger.info(f"{Fore.MAGENTA}Alsamixer audio set to {self.global_volume}{Style.RESET_ALL}")
             return {}
         except Exception as e:
             err = f"Something went wrong with global volume set: {str(e)}. Is the alsaaudio python library installed?"
