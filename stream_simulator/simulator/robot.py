@@ -216,7 +216,7 @@ class Robot:
         v2 = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".detect.source", 0, 0)['val'][0]
         message["actor_id"] = v2["id"]
         self.logger.warning(f"{Fore.CYAN}Sending to amqp notifier: {message}{Style.RESET_ALL}")
-        self.execution_pub.publish(message)
+        self.detects_pub.publish(message)
 
     def button_amqp(self, message, meta):
         self.logger.warning("Got button press from amqp " + str(message))
