@@ -209,8 +209,13 @@ class CameraController:
             # Special handle for qrs
             if closest == "qrs":
                 import qrcode
-                im = qrcode.make(closest_full["message"])
-                im.save(dirname + "/resources/temp.png")
+                try:
+                    im = qrcode.make(closest_full["message"])
+                    im.save(dirname + "/resources/temp.png")
+                except:
+                    self.logger.error(f"QR creator could not produce string: {closest_full['message']}")
+                    im = qrcode.make("This is a test")
+                    im.save(dirname + "/resources/temp.png")
                 img = "temp.png"
 
             # Special handle for texts
