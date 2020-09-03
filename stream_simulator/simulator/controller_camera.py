@@ -271,4 +271,5 @@ class CameraController:
             "height": height,
             "image": data
         }
+        self.logger.warning(f"Camera controller sends {len(data)} bytes")
         return ret
