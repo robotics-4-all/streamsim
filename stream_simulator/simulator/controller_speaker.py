@@ -203,13 +203,16 @@ class SpeakerController:
         return ret
 
     def set_global_volume_callback(self, message, meta):
-        _vol = message["volume"]
         try:
+            _vol = message["volume"]
             import alsaaudio
             m = alsaaudio.Mixer()
-            m.setVolume(int(_vol))
+            m.setvolume(int(_vol))
+            return {}
         except Exception as e:
-            self.logger.error(f"Something went wrong with global volume set: {e}. Is the alsaaudio python library installed?")
+            err = f"Something went wrong with global volume set: {str(e)}. Is the alsaaudio python library installed?"
+            self.logger.error(err)
+            raise ValueError(err)
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
