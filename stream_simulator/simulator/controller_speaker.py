@@ -28,6 +28,7 @@ class SpeakerController:
         self.conf = info["sensor_configuration"]
 
         self.global_volume = None
+        self.blocked = False
 
         self.memory = 100 * [0]
 
@@ -83,8 +84,13 @@ class SpeakerController:
         if self.info["enabled"] == False:
             return {}
 
+        # Concurrent speaker calls handling
+        while self.blocked:
+            time.sleep(0.1)
+        self.logger.info("Speaker unlocked")
+        self.blocked = True
+
         try:
-            print(goalh.data)
             texts = goalh.data["text"]
             volume = goalh.data["volume"]
             if self.global_volume is not None:
@@ -111,6 +117,7 @@ class SpeakerController:
             while time.time() - now < 5:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
+                    self.blocked = False
                     return ret
                 time.sleep(0.1)
             self.logger.info("Speaking done")
@@ -121,6 +128,7 @@ class SpeakerController:
             while time.time() - now < 5:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
+                    self.blocked = False
                     return ret
                 time.sleep(0.1)
             self.logger.info("Speaking done")
@@ -135,6 +143,7 @@ class SpeakerController:
                 while self.speaker.playing:
                     if goalh.cancel_event.is_set():
                         self.logger.info("Cancel got")
+                        self.blocked = False
                         return ret
                     time.sleep(0.1)
             else: # google
@@ -153,12 +162,19 @@ class SpeakerController:
                     time.sleep(0.1)
 
         self.logger.info("{} Speak finished".format(self.name))
+        self.blocked = False
         return ret
 
     def on_goal_play(self, goalh):
         self.logger.info("{} play started".format(self.name))
         if self.info["enabled"] == False:
             return {}
+
+        # Concurrent speaker calls handling
+        while self.blocked:
+            time.sleep(0.1)
+        self.logger.info("Speaker unlocked")
+        self.blocked = True
 
         try:
             string = goalh.data["string"]
@@ -186,6 +202,7 @@ class SpeakerController:
             while time.time() - now < 5:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
+                    self.blocked = False
                     return ret
                 time.sleep(0.1)
             self.logger.info("Playing done")
@@ -196,6 +213,7 @@ class SpeakerController:
             while time.time() - now < 5:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
+                    self.blocked = False
                     return ret
                 time.sleep(0.1)
             self.logger.info("Playing done")
@@ -208,6 +226,7 @@ class SpeakerController:
                 time.sleep(0.1)
 
         self.logger.info("{} Playing finished".format(self.name))
+        self.blocked = False
         return ret
 
     def set_global_volume_callback(self, message, meta):

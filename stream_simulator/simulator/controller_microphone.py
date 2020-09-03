@@ -27,6 +27,8 @@ class MicrophoneController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
+        self.blocked = False
+
         # merge actors
         self.actors = []
         for i in info["actors"]:
@@ -81,6 +83,12 @@ class MicrophoneController:
         if self.info["enabled"] == False:
             return {}
 
+        # Concurrent speaker calls handling
+        while self.blocked:
+            time.sleep(0.1)
+        self.logger.info("Microphone unlocked")
+        self.blocked = True
+
         try:
             duration = goalh.data["duration"]
         except Exception as e:
@@ -105,6 +113,7 @@ class MicrophoneController:
                 self.logger.info("Recording...")
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
+                    self.blocked = False
                     return ret
                 time.sleep(0.1)
 
@@ -200,6 +209,7 @@ class MicrophoneController:
             while time.time() - now < duration:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
+                    self.blocked = False
                     return ret
                 time.sleep(0.1)
             self.logger.info("Recording done")
@@ -213,11 +223,13 @@ class MicrophoneController:
             while time.time() - now < duration + 0.2:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
+                    self.blocked = False
                     return ret
                 time.sleep(0.1)
             ret["record"] = base64.b64encode(self.sensor.record).decode("ascii")
 
         self.logger.info("{} recording finished".format(self.name))
+        self.blocked = False
         return ret
 
     def enable_callback(self, message, meta):
