@@ -9,7 +9,7 @@ map:
 robots:
   -
     name: elsa
-    mode: simulation # [simulation, mock, real]
+    mode: real # [simulation, mock, real]
     speak_mode: google # [google, espeak] - in case of real mode
     wait_for: [rhasspy] # in case of real mode
     amqp_inform: false

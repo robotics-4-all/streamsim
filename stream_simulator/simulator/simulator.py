@@ -48,20 +48,17 @@ class Simulator:
         if self.robot.world['robots'][0]['mode'] == 'real' and self.robot.world['robots'][0]['speak_mode'] == "google":
             from r4a_apis.robot_api import RobotAPI
             from r4a_apis.google_api import GoogleAPI, GoogleLanguages
-            import logging
             import os
-            from r4a_apis.utilities import Logger as r4alog
             from r4a_apis.utilities import InputMessage, OutputMessage, TekException, Languages
 
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
 
-            log = r4alog(allow_cutelog = False)
-            log.debug('main', "TestGoogleApi_text2Speech")
-            self.rapi = RobotAPI(logger = log)
-            self.gapi = GoogleAPI(memory = self.rapi.memory, logger = log)
-            InputMessage.logger = log
-            OutputMessage.logger = log
-            TekException.logger = log
+            self.logger.debug('main', "TestGoogleApi_text2Speech")
+            self.rapi = RobotAPI(logger = self.logger)
+            self.gapi = GoogleAPI(memory = self.rapi.memory, logger = self.logger)
+            InputMessage.logger = self.logger
+            OutputMessage.logger = self.logger
+            TekException.logger = self.logger
 
             # Wait for rhasspy
             from derp_me.client import DerpMeClient
