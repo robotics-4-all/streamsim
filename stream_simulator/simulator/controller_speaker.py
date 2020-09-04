@@ -34,8 +34,12 @@ class SpeakerController:
             self.speaker = Speaker(dev_name = self.conf["dev_name"], name = self.name, max_data_length = self.conf["max_data_length"])
 
             if self.info["speak_mode"] == "espeak":
-                from espeakng import ESpeakNG
+                from espeakng import ESpeakNG 
+                
                 self.esng = ESpeakNG()
+                #self.esng.pitch = 32
+                #self.esng.speed = 150
+
             elif self.info["speak_mode"] == "google":
                 import os
                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
@@ -115,7 +119,7 @@ class SpeakerController:
 
         else: # The real deal
             if self.info["speak_mode"] == "espeak":
-                path = "/home/pi/manos_espeak.wav"
+                path = "/home/pi/tektrain-robot-sw/wav_sounds/file_example_WAV_1MG.wav"
                 self.esng.voice = language
                 self.esng._espeak_exe([texts, "-w", path], sync = True)
                 self.speaker.volume = volume

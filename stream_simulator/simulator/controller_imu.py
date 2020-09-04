@@ -137,13 +137,13 @@ class ImuController:
                 val["accel"]["y"] = data.accel.y
                 val["accel"]["z"] = data.accel.z
 
-                val["gyro"]["x"] = data.gyro.z
-                val["gyro"]["y"] = data.gyro.y
-                val["gyro"]["z"] = data.gyro.x
+                val["gyro"]["yaw"] = data.gyro.z
+                val["gyro"]["pitch"] = data.gyro.y
+                val["gyro"]["roll"] = data.gyro.x
 
-                val["magne"]["x"] = data.magne.z
-                val["magne"]["y"] = data.magne.y
-                val["magne"]["z"] = data.magne.x
+                val["magne"]["yaw"] = data.magne.z
+                val["magne"]["pitch"] = data.magne.y
+                val["magne"]["roll"] = data.magne.x
                 
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 

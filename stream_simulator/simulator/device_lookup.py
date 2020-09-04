@@ -36,6 +36,11 @@ from .controller_speaker import SpeakerController
 from .controller_touch_screen import TouchScreenController
 from .controller_gstreamer_server import GstreamerServerController
 
+#import my controller
+from .controller_button_array_mcp23017 import ButtonArrayController
+
+
+
 class DeviceLookup:
     def __init__(self, world = None, map = None, logger = None, name = None, namespace = None, device_name = None):
         self.world = world
@@ -454,9 +459,10 @@ class DeviceLookup:
                         "sensor_configuration": m["sensor_configuration"],
                         "device_name": self.device_name
                     }
-                    self.devices.append(msg)
+                    self.devices.append(msg)     
             else:
                 self.logger.error("Device declared in yaml does not exist: {}".format(s))
+
 
         # Devices management
         for d in self.devices:
@@ -478,8 +484,8 @@ class DeviceLookup:
                 self.motion_controller = self.controllers[d["name"]]
             elif d["type"] == "TOF":
                 self.controllers[d["name"]] = TofController(info = d, map = self.map)
-            elif d["type"] == "BUTTON":
-                self.controllers[d["name"]] = ButtonController(info = d)
+            # elif d["type"] == "BUTTON":
+            #     self.controllers[d["name"]] = ButtonController(info = d)
             elif d["type"] == "ENCODER":
                 self.controllers[d["name"]] = EncoderController(info = d)
             elif d["type"] == "CAMERA":
@@ -495,6 +501,50 @@ class DeviceLookup:
             else:
                 self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
             self.logger.warning(d["name"] + " controller created")
+
+
+        #===============================Button Array==================================
+        # Gather all buttons and pass them into the Button Array Controller
+
+        self.button_configuration = {
+                "pin_nums": [],
+                "direction": "down",
+                "bounce": 200,
+        }
+
+        for d in self.devices:
+            # gather all button configurations
+            if d["type"] == "BUTTON":
+                self.button_configuration["pin_nums"].append(d["sensor_configuration"].get("pin_num"))
+
+        print(self.button_configuration)
+
+        # if there were any buttons registered create a generic msg passing their configurations
+        if len(self.button_configuration) != 0:
+            cnt = 0
+            id = "id_" + str(cnt)
+            msg = {
+                "type": "BUTTON_ARRAY",
+                "brand": "simple",
+                "base_topic": self.name + "/sensor/button_array/d" + str(cnt) + "/" + id,
+                "name": "button_array_" + str(cnt),
+                "place": "Everywhere",
+                "id": id,
+                "enabled": True,
+                "orientation": "None",
+                "hz": 1,
+                "queue_size": 100,
+                "mode": self.mode,
+                "speak_mode": self.speak_mode,
+                "namespace": self.namespace,
+                "sensor_configuration": self.button_configuration,
+                "device_name": self.device_name
+            }  
+
+            self.devices.append(msg)  
+            self.controllers[msg["name"]] = ButtonArrayController(info = msg) 
+        #===============================================================================
+
 
     def get(self):
         return {

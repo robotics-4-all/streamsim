@@ -42,8 +42,8 @@ class MotionController:
             wiringpi.pinMode(self.M1, OUTPUT)
             wiringpi.pinMode(self.M2, OUTPUT)
 
-            wiringpi.softPwmCreate(self.E1, 0, 100)
-            wiringpi.softPwmCreate(self.E2, 0, 100)
+            wiringpi.softPwmCreate(self.E1, 0, 1000)
+            wiringpi.softPwmCreate(self.E2, 0, 1000)
 
 
             self.wheel_separation = self.conf["wheel_separation"]
@@ -103,8 +103,8 @@ class MotionController:
 
         if self.info["mode"] == "real":
             import wiringpi
-            wiringpi.pinMode(self.M1, 0)
-            wiringpi.pinMode(self.M2, 0)
+            wiringpi.digitalWrite(self.M1, 0)
+            wiringpi.digitalWrite(self.M2, 0)
             wiringpi.softPwmStop(self.E1)
             wiringpi.softPwmStop(self.E2)
 
@@ -130,27 +130,27 @@ class MotionController:
                 import wiringpi
 
                 if self._linear > 0:
-                    print("writting pwm 1111", int(100 * self._linear))
+                    print("writting pwm 1111", int(1000 * self._linear))
                     wiringpi.digitalWrite(self.M1, 1)
                     wiringpi.digitalWrite(self.M2, 0)
-                    wiringpi.softPwmWrite(self.E1, int(100 * self._linear))
-                    wiringpi.softPwmWrite(self.E2, int(100 * self._linear))
+                    wiringpi.softPwmWrite(self.E1, int(1000 * self._linear))
+                    wiringpi.softPwmWrite(self.E2, int(1000 * self._linear))
                 elif self._linear < 0:
                     print("writting pwm 2222", int(100 * self._linear))
                     wiringpi.digitalWrite(self.M1, 0)
                     wiringpi.digitalWrite(self.M2, 1)
-                    wiringpi.softPwmWrite(self.E1, int(100 * abs(self._linear)))
-                    wiringpi.softPwmWrite(self.E2, int(100 * abs(self._linear)))
+                    wiringpi.softPwmWrite(self.E1, int(1000 * abs(self._linear)))
+                    wiringpi.softPwmWrite(self.E2, int(1000 * abs(self._linear)))
                 elif self._angular > 0:
                     wiringpi.digitalWrite(self.M1, 0)
                     wiringpi.digitalWrite(self.M2, 0)
-                    wiringpi.softPwmWrite(self.E1, int(100 * self._angular))
-                    wiringpi.softPwmWrite(self.E2, int(100 * self._angular))
+                    wiringpi.softPwmWrite(self.E1, int(1000 * self._angular))
+                    wiringpi.softPwmWrite(self.E2, int(1000 * self._angular))
                 elif self._angular < 0:
                     wiringpi.digitalWrite(self.M1, 1)
                     wiringpi.digitalWrite(self.M2, 1)
-                    wiringpi.softPwmWrite(self.E1, int(100 * abs(self._angular)))
-                    wiringpi.softPwmWrite(self.E2, int(100 * abs(self._angular)))
+                    wiringpi.softPwmWrite(self.E1, int(1000 * abs(self._angular)))
+                    wiringpi.softPwmWrite(self.E2, int(1000 * abs(self._angular)))
 
 
             self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
