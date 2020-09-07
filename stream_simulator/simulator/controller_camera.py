@@ -209,9 +209,13 @@ class CameraController:
             # Special handle for qrs
             if closest == "qrs":
                 import qrcode
-                im = qrcode.make(closest_full["message"])
-                im.save(dirname + "/resources/temp.png")
-                img = "temp.png"
+                try:
+                    im = qrcode.make(closest_full["message"])
+                    im.save(dirname + "/resources/temp.png")
+                    img = "temp.png"
+                except:
+                    self.logger.error(f"QR creator could not produce string: {closest_full['message']} or qrcode library is not installed")
+                    img = self.images[closest]
 
             # Special handle for texts
             if closest == "texts":
@@ -266,4 +270,5 @@ class CameraController:
             "height": height,
             "image": data
         }
+        self.logger.warning(f"Camera controller sends {len(data)} bytes")
         return ret

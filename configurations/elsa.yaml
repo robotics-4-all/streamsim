@@ -4,19 +4,16 @@ map:
   resolution: 0.02
   obstacles:
     lines: []
-  env:
-    temperature: 31
-    humidity: 60
-    pressure: 1800
-    air_quality: 50
 
 # Numbers are orientations in degrees
 robots:
   -
     name: elsa
-    mode: simulation # [simulation, mock, real]
+    mode: real # [simulation, mock, real]
     speak_mode: google # [google, espeak] - in case of real mode
     wait_for: [rhasspy] # in case of real mode
+    amqp_inform: false
+    step_by_step_execution: false
     devices:
       microphone:
         -
