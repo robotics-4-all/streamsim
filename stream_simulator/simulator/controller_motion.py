@@ -27,7 +27,7 @@ class MotionController:
         self.conf = info["sensor_configuration"]
 
         if self.info["mode"] == "real":
-            import wiringpi
+            from pidevices import DfrobotMotorControllerPiGPIO
 
             OUTPUT = 1
 
@@ -36,15 +36,7 @@ class MotionController:
             self.M1 = self.conf["M1"]
             self.M2 = self.conf["M2"]
 
-            wiringpi.wiringPiSetupGpio()
-            wiringpi.pinMode(self.E1, OUTPUT)
-            wiringpi.pinMode(self.E2, OUTPUT)
-            wiringpi.pinMode(self.M1, OUTPUT)
-            wiringpi.pinMode(self.M2, OUTPUT)
-
-            wiringpi.softPwmCreate(self.E1, 0, 1000)
-            wiringpi.softPwmCreate(self.E2, 0, 1000)
-
+            self.motor_driver = DfrobotMotorControllerPiGPIO(E1=self.E1, E2=self.E2, M1=self.M1, M2=self.M2, range=1.0)
 
             self.wheel_separation = self.conf["wheel_separation"]
             self.wheel_radius = self.conf["wheel_radius"]
@@ -94,6 +86,9 @@ class MotionController:
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
+        if self.info["mode"] == "real":
+            self.motor_driver.start()
+
     def stop(self):
         self.vel_sub.stop()
         self.motion_get_server.stop()
@@ -102,11 +97,7 @@ class MotionController:
         self.disable_rpc_server.stop()
 
         if self.info["mode"] == "real":
-            import wiringpi
-            wiringpi.digitalWrite(self.M1, 0)
-            wiringpi.digitalWrite(self.M2, 0)
-            wiringpi.softPwmStop(self.E1)
-            wiringpi.softPwmStop(self.E2)
+            self.motor_driver.stop()
 
     def memory_write(self, data):
         del self.memory[-1]
@@ -125,32 +116,11 @@ class MotionController:
             elif self.info["mode"] == "simulation":
                 pass
             else: # The real deal
-                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-                print("RUNING...............")
-                import wiringpi
 
-                if self._linear > 0:
-                    print("writting pwm 1111", int(1000 * self._linear))
-                    wiringpi.digitalWrite(self.M1, 1)
-                    wiringpi.digitalWrite(self.M2, 0)
-                    wiringpi.softPwmWrite(self.E1, int(1000 * self._linear))
-                    wiringpi.softPwmWrite(self.E2, int(1000 * self._linear))
-                elif self._linear < 0:
-                    print("writting pwm 2222", int(100 * self._linear))
-                    wiringpi.digitalWrite(self.M1, 0)
-                    wiringpi.digitalWrite(self.M2, 1)
-                    wiringpi.softPwmWrite(self.E1, int(1000 * abs(self._linear)))
-                    wiringpi.softPwmWrite(self.E2, int(1000 * abs(self._linear)))
-                elif self._angular > 0:
-                    wiringpi.digitalWrite(self.M1, 0)
-                    wiringpi.digitalWrite(self.M2, 0)
-                    wiringpi.softPwmWrite(self.E1, int(1000 * self._angular))
-                    wiringpi.softPwmWrite(self.E2, int(1000 * self._angular))
-                elif self._angular < 0:
-                    wiringpi.digitalWrite(self.M1, 1)
-                    wiringpi.digitalWrite(self.M2, 1)
-                    wiringpi.softPwmWrite(self.E1, int(1000 * abs(self._angular)))
-                    wiringpi.softPwmWrite(self.E2, int(1000 * abs(self._angular)))
+                if self._linear != 0:
+                    self.motor_driver.move_linear(self._linear)
+                elif self._angular != 0:
+                    self.motor_driver.move_angular(self._angular)
 
 
             self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))

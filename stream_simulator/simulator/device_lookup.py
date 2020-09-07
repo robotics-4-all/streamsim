@@ -541,7 +541,7 @@ class DeviceLookup:
                 "device_name": self.device_name
             }  
 
-            self.devices.append(msg)  
+            #self.devices.append(msg)  
             self.controllers[msg["name"]] = ButtonArrayController(info = msg) 
         #===============================================================================
 
