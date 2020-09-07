@@ -72,11 +72,13 @@ class Simulator:
 
             if "rhasspy" in wait_for:
                 rhasspy_ok = False
+                self.logger.warning("Waiting for rhasspy")
                 while not rhasspy_ok:
                     time.sleep(0.3)
                     r = self.derp_client.lget("rhasspy/state", 0, 0)
+                    self.logger.info(r)
                     if r['status'] == 1:
-                        print("Rhasspy is up!")
+                        self.logger.warning("Rhasspy is up!")
                         rhasspy_ok = True
 
             self.rapi.speak(InputMessage({
