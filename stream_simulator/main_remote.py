@@ -88,6 +88,7 @@ class SimulatorHandler:
                 time.sleep(0.2)
                 try:
                     v = self.derp_client.lget("stream_sim/state", 0, 0)['val'][0]
+                    self.logger.warning(v)
                     if v['timestamp'] > _time_start and v["device"] == f"/robot/{name}":
                         _started = True
                         self.logger.warning(f"Simulator {name} started")

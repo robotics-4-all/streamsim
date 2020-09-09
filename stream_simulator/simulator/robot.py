@@ -224,7 +224,10 @@ class Robot:
                 time.sleep(0.1)
                 self.logger.info("Source not written yet...")
 
-        message["actor_id"] = v2["id"]
+        if v2 != "empty":
+            message["actor_id"] = v2["id"]
+        else:
+            message["actor_id"] = -1    
         self.logger.warning(f"{Fore.CYAN}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.detects_pub.publish(message)
 
@@ -262,6 +265,7 @@ class Robot:
                 "device": self.name,
                 "timestamp": time.time()
             }])
+        self.logger.warning(f"Wrote in derpme!!!{r}")
         r = self.derp_client.lset(
             f"{self.name}/step_by_step_status",
             [{
