@@ -245,7 +245,7 @@ class SpeakerController:
 
         try:
             import alsaaudio
-            m = alsaaudio.Mixer()
+            m = alsaaudio.Mixer("PCM")
             m.setvolume(int(self.global_volume))
             self.logger.info(f"{Fore.MAGENTA}Alsamixer audio set to {self.global_volume}{Style.RESET_ALL}")
             return {}
