@@ -20,12 +20,14 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib.transports.redis import Publisher, RPCService
 
-from commlib.transports.amqp import RPCService
+from commlib.transports.amqp import RPCService, Subscriber, RPCClient, Publisher
 
 class SimulatorHandler:
     def __init__(self):
         self.logger = Logger("main_remote")
         logging.getLogger("pika").setLevel(logging.WARNING)
+
+        self.timeout = 120
 
         from derp_me.client import DerpMeClient
         self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -46,8 +48,26 @@ class SimulatorHandler:
         )
         self.logger.info(f"{Fore.RED}Created amqp RPCService simulator.stop{Style.RESET_ALL}")
 
+        self.execution_sub = Subscriber(
+            conn_params=ConnParams.get("amqp"),
+            topic="*.execution",
+            on_message=self.execution_callback
+        )
+        self.logger.info(f"{Fore.RED}Created amqp Subscriber *.execution{Style.RESET_ALL}")
+
+        self.stop_sim_rpc_client = RPCClient(
+            conn_params=ConnParams.get("amqp"),
+            rpc_name="thing.simbot.deploy_manager.stop_sim"
+        )
+
+        self.kill_pub = Publisher(
+            conn_params=ConnParams.get("amqp"),
+            topic="simulator.killed"
+        )
+
         self.start.run()
         self.stop.run()
+        self.execution_sub.run()
 
         # Find my absolute path
         self.configurations_dir = os.path.dirname(os.path.abspath(__file__)) + "/../configurations/"
@@ -55,6 +75,26 @@ class SimulatorHandler:
 
         self.processes = {}
         self.simulations = {}
+        self.timestamps = {}
+
+        self.check_thread = threading.Thread(target = self.sims_check)
+        self.check_thread.start()
+
+    def execution_callback(self, message, meta):
+        self.timestamps[message["device"]] = time.time()
+
+    def sims_check(self):
+        while True:
+            time.sleep(5.0)
+            curr_time = time.time()
+            for sim in self.timestamps:
+                tt = self.timeout - (time.time() - self.timestamps[sim])
+                self.logger.info(f"{sim}: Time for inactivity kill: {tt}")
+                if tt < 0:
+                    self.logger.warning(f"Stopping simulator {sim} due to inactivity")
+                    self.stop_sim_rpc_client.call({"sim_id": sim})
+                    self.kill_pub.publish({"killed": sim})
+                    break
 
     def print(self):
         self.logger.info("Available simulators:")
@@ -97,7 +137,7 @@ class SimulatorHandler:
 
             # Leftovers
             os.remove(_file)
-
+            self.timestamps[name] = time.time()
             # Show the running simulators
             self.print()
         except Exception as e:
@@ -112,6 +152,7 @@ class SimulatorHandler:
             self.logger.warning(f"Trying to stop device {name}")
             self.simulations[name].kill()
             self.simulations.pop(name)
+            self.timestamps.pop(name)
             self.print()
         except Exception as e:
             self.logger.error(f"Could not stop simulator {message['device']}")

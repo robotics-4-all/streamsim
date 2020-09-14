@@ -33,6 +33,7 @@ class Robot:
             os.environ["TEKTRAIN_NAMESPACE"] = "/robot"
             self.namespace = "/robot"
 
+        self.raw_name = name
         self.name = self.namespace + "/" + name
         self.dt = tick
 
@@ -209,6 +210,7 @@ class Robot:
     def execution_nodes_redis(self, message, meta):
         self.logger.debug("Got execution node from redis " + str(message))
         self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        message["device"] = self.raw_name 
         self.execution_pub.publish(message)
 
     def detects_redis(self, message, meta):
