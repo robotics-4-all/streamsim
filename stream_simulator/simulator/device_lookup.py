@@ -36,9 +36,9 @@ from .controller_speaker import SpeakerController
 from .controller_touch_screen import TouchScreenController
 from .controller_gstreamer_server import GstreamerServerController
 
-#import my controller
-from .controller_button_array_mcp23017 import ButtonArrayController
-
+#import my controllers
+from .controller_button_array_mcp23017 import ButtonArrayController    
+from .controller_cytron_lf import CytronLFController
 
 
 class DeviceLookup:
@@ -49,6 +49,7 @@ class DeviceLookup:
         self.device_name = device_name
         self.namespace = namespace
         self.devices = []
+        self.button_devices = []
         self.controllers = {}
         self.map = map
 
@@ -112,6 +113,32 @@ class DeviceLookup:
                         "sensor_configuration": m["sensor_configuration"],
                         "device_name": self.device_name,
                         "actors": self.world["actors"]
+                    }
+                    self.devices.append(msg)
+            elif s == "cytron_lf":
+                devices = self.world["robots"][0]["devices"][s]
+                cnt = -1
+                for m in devices:
+                    cnt += 1
+                    id = "id_" + str(cnt)
+                    # id = 'id_' + ''.join(random.choices(
+                    #     string.ascii_lowercase + string.digits, k = id_length))
+                    msg = {
+                        "type": "LINE_FOLLOWER",
+                        "brand": "line_follower",
+                        "base_topic": self.name + "/sensor/distance/cytron_lf/d" + str(cnt) + "/" + id,
+                        "name": "cytron_lf_" + str(cnt),
+                        "place": m["place"],
+                        "id": id,
+                        "enabled": True,
+                        "orientation": m["orientation"],
+                        "hz": 1,
+                        "queue_size": 100,
+                        "mode": self.mode,
+                        "speak_mode": self.speak_mode,
+                        "namespace": self.namespace,
+                        "sensor_configuration": m["sensor_configuration"],
+                        "device_name": self.device_name
                     }
                     self.devices.append(msg)
             elif s == "sonar":
@@ -273,7 +300,8 @@ class DeviceLookup:
                         "sensor_configuration": m["sensor_configuration"],
                         "device_name": self.device_name
                     }
-                    self.devices.append(msg)
+                    self.button_devices.append(msg)
+                    #self.devices.append(msg)
             elif s == "env":
                 devices = self.world["robots"][0]["devices"][s]
                 cnt = -1
@@ -468,6 +496,8 @@ class DeviceLookup:
         for d in self.devices:
             if d["type"] == "PAN_TILT":
                 self.controllers[d["name"]] = PanTiltController(info = d)
+            elif d["type"] == "LINE_FOLLOWER":
+                self.controllers[d["name"]] = CytronLFController(info = d)
             elif d["type"] == "LED":
                 self.controllers[d["name"]] = LedsController(info = d)
             elif d["type"] == "ENV":
@@ -507,20 +537,23 @@ class DeviceLookup:
         # Gather all buttons and pass them into the Button Array Controller
 
         self.button_configuration = {
+                "places": [],
                 "pin_nums": [],
                 "direction": "down",
                 "bounce": 200,
         }
 
-        for d in self.devices:
-            # gather all button configurations
+        for d in self.button_devices:
+            # gather all button numbers and places
             if d["type"] == "BUTTON":
                 self.button_configuration["pin_nums"].append(d["sensor_configuration"].get("pin_num"))
+                self.button_configuration["places"].append(d["place"])
 
-        print(self.button_configuration)
+        #print("Print button configuration:", self.button_configuration,  " of size: ", len(self.button_configuration))
 
         # if there were any buttons registered create a generic msg passing their configurations
-        if len(self.button_configuration) != 0:
+        if len(self.button_configuration["pin_nums"]) > 0:
+            #print("Adding button array")
             cnt = 0
             id = "id_" + str(cnt)
             msg = {
@@ -528,10 +561,10 @@ class DeviceLookup:
                 "brand": "simple",
                 "base_topic": self.name + "/sensor/button_array/d" + str(cnt) + "/" + id,
                 "name": "button_array_" + str(cnt),
-                "place": "Everywhere",
+                "place": "UNKNOWN",
                 "id": id,
                 "enabled": True,
-                "orientation": "None",
+                "orientation": 0,
                 "hz": 1,
                 "queue_size": 100,
                 "mode": self.mode,
@@ -540,6 +573,8 @@ class DeviceLookup:
                 "sensor_configuration": self.button_configuration,
                 "device_name": self.device_name
             }  
+
+            self.devices.append(msg)
 
             #self.devices.append(msg)  
             self.controllers[msg["name"]] = ButtonArrayController(info = msg) 

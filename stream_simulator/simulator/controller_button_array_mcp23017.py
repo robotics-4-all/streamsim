@@ -51,6 +51,9 @@ class ButtonArrayController():
 
         self.memory = 100 * [0]
         self.values = [True] * self.number_of_buttons         # multiple values
+        self.button_places = self.conf["places"]
+
+        print("Button places: ", self.button_places)
 
         self.prev = 0
 
@@ -78,7 +81,7 @@ class ButtonArrayController():
         self.values[button] = False
         print("Button ", button, " pressed at ", current_milli_time())
         r = self.derp_client.lset(
-            self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"],
+            self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.button_places[button],
             [{
                 "data": button,
                 "timestamp": time.time()
@@ -92,7 +95,7 @@ class ButtonArrayController():
         r = self.derp_client.lset(
             self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
             [{
-                "data": "Tactile." + self.info["place"],
+                "data": "Tactile." + self.button_places[button],
                 "timestamp": time.time()
             }])
 

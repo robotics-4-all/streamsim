@@ -132,7 +132,7 @@ class MicrophoneController:
             reso = self.robot_pose["resolution"]
 
             findings = {
-                "humans": [],
+                "humans": [],        
                 "sound_sources": []
             }
             closest = "empty"
