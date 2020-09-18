@@ -166,12 +166,15 @@ class MicrophoneController:
                     self.logger.info("Microphone detected: " + str(j))
             self.logger.info("Closest detection: {}".format(closest))
 
-            if closest != "empty":
-                self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
-                    [closest_full]
-                )
-                print("Derp me updated")
+            cl_f = closest_full
+            if closest == "empty":
+                cl_f = "empty"
+            self.derp_client.lset(
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
+                [cl_f]
+            )
+            print(f"Derp me updated with {cl_f}")
+
 
             # Check if human is the closest:
             wav = "Silent.wav"

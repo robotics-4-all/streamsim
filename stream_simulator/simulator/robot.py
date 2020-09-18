@@ -33,6 +33,7 @@ class Robot:
             os.environ["TEKTRAIN_NAMESPACE"] = "/robot"
             self.namespace = "/robot"
 
+        self.raw_name = name
         self.name = self.namespace + "/" + name
         self.dt = tick
 
@@ -209,6 +210,7 @@ class Robot:
     def execution_nodes_redis(self, message, meta):
         self.logger.debug("Got execution node from redis " + str(message))
         self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        message["device"] = self.raw_name 
         self.execution_pub.publish(message)
 
     def detects_redis(self, message, meta):
@@ -224,7 +226,10 @@ class Robot:
                 time.sleep(0.1)
                 self.logger.info("Source not written yet...")
 
-        message["actor_id"] = v2["id"]
+        if v2 != "empty":
+            message["actor_id"] = v2["id"]
+        else:
+            message["actor_id"] = -1    
         self.logger.warning(f"{Fore.CYAN}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.detects_pub.publish(message)
 
@@ -262,6 +267,7 @@ class Robot:
                 "device": self.name,
                 "timestamp": time.time()
             }])
+        self.logger.warning(f"Wrote in derpme!!!{r}")
         r = self.derp_client.lset(
             f"{self.name}/step_by_step_status",
             [{

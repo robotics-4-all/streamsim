@@ -176,12 +176,14 @@ class CameraController:
 
             dirname = os.path.dirname(__file__)
 
-            if closest != "empty":
-                self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
-                    [closest_full]
-                )
-                print("Derp me updated")
+            cl_f = closest_full
+            if closest == "empty":
+                cl_f = "empty"
+            self.derp_client.lset(
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
+                [cl_f]
+            )
+            print(f"Derp me updated with {cl_f}")
 
             # Special handle for humans
             if closest == "humans":
