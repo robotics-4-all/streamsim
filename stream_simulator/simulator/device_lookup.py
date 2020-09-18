@@ -49,7 +49,6 @@ class DeviceLookup:
         self.device_name = device_name
         self.namespace = namespace
         self.devices = []
-        self.button_devices = []
         self.controllers = {}
         self.map = map
 
@@ -300,8 +299,8 @@ class DeviceLookup:
                         "sensor_configuration": m["sensor_configuration"],
                         "device_name": self.device_name
                     }
-                    self.button_devices.append(msg)
-                    #self.devices.append(msg)
+                    
+                    self.devices.append(msg)
             elif s == "env":
                 devices = self.world["robots"][0]["devices"][s]
                 cnt = -1
@@ -543,7 +542,7 @@ class DeviceLookup:
                 "bounce": 200,
         }
 
-        for d in self.button_devices:
+        for d in self.devices:
             # gather all button numbers and places
             if d["type"] == "BUTTON":
                 self.button_configuration["pin_nums"].append(d["sensor_configuration"].get("pin_num"))

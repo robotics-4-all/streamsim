@@ -121,6 +121,8 @@ class MotionController:
                     self.motor_driver.move_linear(self._linear)
                 elif self._angular != 0:
                     self.motor_driver.move_angular(self._angular)
+                else:
+                    self.motor_driver.stop()
 
 
             self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
