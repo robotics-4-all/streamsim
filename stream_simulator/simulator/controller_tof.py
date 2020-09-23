@@ -21,8 +21,11 @@ elif ConnParams.type == "redis":
 from derp_me.client import DerpMeClient
 
 class TofController:
-    def __init__(self, info = None, map = None):
-        self.logger = Logger(info["name"] + "-" + info["id"])
+    def __init__(self, info = None, map = None, logger = None):
+        if logger is None:
+            self.logger = Logger(info["name"] + "-" + info["id"])
+        else:
+            self.logger = logger
 
         self.info = info
         self.name = info["name"]
@@ -32,7 +35,7 @@ class TofController:
 
         if self.info["mode"] == "real":
             from pidevices.sensors.vl53l1x import VL53L1X
-            self.sensor = VL53L1X(bus=1) 
+            self.sensor = VL53L1X(bus=1)
 
         self.memory = 100 * [0]
 
@@ -91,7 +94,7 @@ class TofController:
             else: # The real deal
                 val = self.sensor.read()
 
-                
+
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             self.memory_write(val)
@@ -103,7 +106,7 @@ class TofController:
                     "timestamp": time.time()
                 }])
 
-        
+
 
         self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
 

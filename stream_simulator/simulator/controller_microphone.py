@@ -20,8 +20,11 @@ elif ConnParams.type == "redis":
     from commlib.transports.redis import ActionServer, RPCService, Subscriber
 
 class MicrophoneController:
-    def __init__(self, info = None):
-        self.logger = Logger(info["name"] + "-" + info["id"])
+    def __init__(self, info = None, logger = None):
+        if logger is None:
+            self.logger = Logger(info["name"] + "-" + info["id"])
+        else:
+            self.logger = logger
 
         self.info = info
         self.name = info["name"]

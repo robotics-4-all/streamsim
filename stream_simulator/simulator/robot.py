@@ -18,8 +18,49 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib.transports.redis import Publisher, RPCService
 
-from commlib.logger import Logger
+from commlib.logger import RemoteLogger, Logger
+from commlib.node import TransportType
+import commlib.transports.amqp as acomm
+
+import configparser
+
 from .device_lookup import DeviceLookup
+
+class HeartbeatThread(threading.Thread):
+    def __init__(self, topic, _conn_params, interval=10,  *args, **kwargs):
+        super(HeartbeatThread, self).__init__(*args, **kwargs)
+        self._stop_event = threading.Event()
+        self._rate_secs = interval
+        import commlib
+        self._heartbeat_pub = commlib.transports.amqp.Publisher(
+            topic=topic,
+            conn_params=_conn_params,
+            debug=False
+        )
+        self.daemon = True
+
+    def run(self):
+        try:
+            while not self._stop_event.isSet():
+                self._heartbeat_pub.publish({})
+                self._stop_event.wait(self._rate_secs)
+        except Exception as exc:
+            # print('Heartbeat Thread Ended')
+            pass
+        finally:
+            # print('Heartbeat Thread Ended')
+            pass
+
+    def force_join(self, timeout=None):
+        """ Stop the thread. """
+        self._stop_event.set()
+        threading.Thread.join(self, timeout)
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
 
 class Robot:
     def __init__(self, world = None, map = None, name = "robot", tick = 0.25):
@@ -32,6 +73,56 @@ class Robot:
             self.logger.warning("No TEKTRAIN_NAMESPACE environmental variable found. Automatically setting it to /robot")
             os.environ["TEKTRAIN_NAMESPACE"] = "/robot"
             self.namespace = "/robot"
+
+        self.common_logging = False
+
+        try: # Get config for remote logging and heartbeat
+            cfg_file = os.path.expanduser("~/.config/streamsim/config")
+            if not os.path.isfile(cfg_file):
+                self.logger = Logger("name")
+                self.logger.warn('Config file does not exist')
+            config = configparser.ConfigParser()
+            config.read(cfg_file)
+
+            self._username = config.get('broker', 'username')
+            self._password = config.get('broker', 'password')
+            self._host = config.get('broker', 'host')
+            self._port = config.get('broker', 'port')
+            self._vhost = config.get('broker', 'vhost')
+
+            self._device = config.get('core', 'device_name')
+            self._heartbeat_topic = config.get('interfaces', 'heartbeat').replace("DEVICE", self._device)
+            self._logs_topic = config.get('interfaces', 'logs').replace("DEVICE", self._device)
+
+            self.server_params = acomm.ConnectionParameters(
+                host=self._host,
+                port=self._port,
+                vhost=self._vhost)
+            self.server_params.credentials.username = self._username
+            self.server_params.credentials.password = self._password
+
+            if config.get('core', 'remote_logging') == "1":
+                self.logger = RemoteLogger(
+                    self.__class__.__name__,
+                    TransportType.AMQP,
+                    self.server_params,
+                    remote_topic=self._logs_topic
+                )
+                self.logger.info("Created remote logger")
+
+            # Heartbeat
+            self._heartbeat_thread = HeartbeatThread(
+                self._heartbeat_topic,
+                self.server_params
+            )
+            self.logger.info(f"{Fore.RED}Created amqp Publisher {self._heartbeat_topic}{Style.RESET_ALL} ")
+            self._heartbeat_thread.start()
+            self.logger.warning("Setting remote connections successful")
+
+            self.common_logging = True
+
+        except Exception as e:
+            self.logger.warning(f"Error in streamsim system configuration file: {str(e)}")
 
         self.raw_name = name
         self.name = self.namespace + "/" + name
@@ -63,9 +154,12 @@ class Robot:
         self.logger.warning("Step by step execution is {}".format(self.step_by_step_execution))
 
         # Devices set
+        _logger = None
+        if self.common_logging is True:
+            _logger = self.logger
         self.device_management = DeviceLookup(
             world = self.world, map = self.map, name = self.name,\
-            namespace = self.namespace, device_name = name)
+            namespace = self.namespace, device_name = name, logger = _logger)
         tmp = self.device_management.get()
         self.devices = tmp['devices']
         self.controllers = tmp['controllers']
@@ -210,7 +304,7 @@ class Robot:
     def execution_nodes_redis(self, message, meta):
         self.logger.debug("Got execution node from redis " + str(message))
         self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {message}{Style.RESET_ALL}")
-        message["device"] = self.raw_name 
+        message["device"] = self.raw_name
         self.execution_pub.publish(message)
 
     def detects_redis(self, message, meta):
@@ -229,7 +323,7 @@ class Robot:
         if v2 != "empty":
             message["actor_id"] = v2["id"]
         else:
-            message["actor_id"] = -1    
+            message["actor_id"] = -1
         self.logger.warning(f"{Fore.CYAN}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.detects_pub.publish(message)
 
