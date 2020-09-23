@@ -17,19 +17,34 @@ robots:
     amqp_inform: false
     step_by_step_execution: false
     devices:
-      microphone:
-        -
-          orientation: 0
-          place: FRONT
-          sensor_configuration:
-            alsa_device: "1"
-            hosts: ["127.0.0.1", "127.0.0.1"]
-            ports: ["12333", "12334"]
-            host_port: "12334"
-            dev_name: "dsnoop:CARD=Mic,DEV=0"
-            channels: 6
-            framerate: 44100
-            max_data_length: 10
+      # microphone:
+      #   -
+      #     orientation: 0
+      #     place: FRONT
+      #     sensor_configuration:
+      #       alsa_device: "1"
+      #       hosts: ["127.0.0.1", "127.0.0.1"]
+      #       ports: ["12333", "12334"]
+      #       host_port: "12334"
+      #       dev_name: "dsnoop:CARD=Mic,DEV=0"
+      #       channels: 6
+      #       framerate: 44100
+      #       max_data_length: 10
+      # cytron_lf:
+      #   -
+      #     orientation: 0
+      #     place: UNDER
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x22
+      #       mode: "dark"
+      #       so_1: "A_2"
+      #       so_2: "A_3"
+      #       so_3: "A_4"
+      #       so_4: "A_5"
+      #       so_5: "A_6"
+      #       cal:  "A_7"
+      #       max_data_length: 10
       # sonar:
       #   -
       #     orientation: -45
@@ -141,15 +156,15 @@ robots:
       #       address: 0x29
       #       mode: 3
       #       max_data_length: 10
-      camera:
-        -
-          orientation: 0
-          place: FRONT
-          sensor_configuration:
-            framerate: 30
-            width: 640
-            height: 480
-            max_data_length: 2
+      # camera:
+      #   -
+      #     orientation: 0
+      #     place: FRONT
+      #     sensor_configuration:
+      #       framerate: 30
+      #       width: 640
+      #       height: 480
+      #       max_data_length: 2
       # imu:
       #   -
       #     orientation: 1
@@ -224,72 +239,72 @@ robots:
             edge: "both"
             bounce: 70
             max_data_length: 10
-        -
-          orientation: -135
-          place: BR
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_1"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
-        -
-          orientation: 135
-          place: BL
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_6"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
-        -
-          orientation: 0
-          place: G1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_5"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
-        -
-          orientation: 0
-          place: G2
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_2"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
-        -
-          orientation: 0
-          place: G3
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_3"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
-        -
-          orientation: 0
-          place: G4
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_4"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+      #   -
+      #     orientation: -135
+      #     place: BR
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x20
+      #       pin_num: "A_1"
+      #       direction: "down"
+      #       edge: "both"
+      #       bounce: 70
+      #       max_data_length: 10
+      #   -
+      #     orientation: 135
+      #     place: BL
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x20
+      #       pin_num: "A_6"
+      #       direction: "down"
+      #       edge: "both"
+      #       bounce: 70
+      #       max_data_length: 10
+      #   -
+      #     orientation: 0
+      #     place: G1
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x20
+      #       pin_num: "A_5"
+      #       direction: "down"
+      #       edge: "both"
+      #       bounce: 70
+      #       max_data_length: 10
+      #   -
+      #     orientation: 0
+      #     place: G2
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x20
+      #       pin_num: "A_2"
+      #       direction: "down"
+      #       edge: "both"
+      #       bounce: 70
+      #       max_data_length: 10
+      #   -
+      #     orientation: 0
+      #     place: G3
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x20
+      #       pin_num: "A_3"
+      #       direction: "down"
+      #       edge: "both"
+      #       bounce: 70
+      #       max_data_length: 10
+      #   -
+      #     orientation: 0
+      #     place: G4
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x20
+      #       pin_num: "A_4"
+      #       direction: "down"
+      #       edge: "both"
+      #       bounce: 70
+      #       max_data_length: 10
       # env:
       #   -
       #     orientation: 0
@@ -314,18 +329,18 @@ robots:
       #     sensor_configuration:
       #       dev_name: "Speaker"
       #       max_data_length: 10
-      # leds:
-      #   -
-      #     orientation: 0
-      #     place: FRONT
-      #     sensor_configuration:
-      #       led_count: 19
-      #       led_pin: 18
-      #       led_freq_hz: 700000
-      #       led_brightness: 255
-      #       led_invert: 0
-      #       led_channel: 0
-      #       max_data_length: 10
+      leds:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            led_count: 19
+            led_pin: 18
+            led_freq_hz: 700000
+            led_brightness: 255
+            led_invert: 0
+            led_channel: 0
+            max_data_length: 10
       # pan_tilt:
       #   -
       #     orientation: 0

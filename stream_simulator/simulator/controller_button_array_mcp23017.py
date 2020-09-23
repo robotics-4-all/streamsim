@@ -44,18 +44,23 @@ class ButtonArrayController():
                                                 max_data_length=10)
             
             self.number_of_buttons = len(self.conf["pin_nums"])
-            print("List length: ",self.number_of_buttons)
+            #print("List length: ",self.number_of_buttons)
+
+            self.memory = 100 * [0]
+            self.values = [True] * self.number_of_buttons         # multiple values
+            self.button_places = self.conf["places"]
+            #print("Button places: ", self.button_places)
+
+            self.prev = 0
 
         elif self.info["mode"] == "simulation":
             pass
 
-        self.memory = 100 * [0]
-        self.values = [True] * self.number_of_buttons         # multiple values
-        self.button_places = self.conf["places"]
+        
 
-        print("Button places: ", self.button_places)
+        
 
-        self.prev = 0
+        
 
         _topic = info["base_topic"] + "/get"
         self.button_array_rpc_server = RPCService(
