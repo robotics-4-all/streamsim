@@ -132,7 +132,8 @@ class MicrophoneController:
             reso = self.robot_pose["resolution"]
 
             findings = {
-                "humans": [],        
+                "humans": [],
+                "superman": [], 
                 "sound_sources": []
             }
             closest = "empty"
@@ -141,7 +142,7 @@ class MicrophoneController:
 
             # Find actors
             for h in self.actors:
-                if h["type"] not in ["humans", "sound_sources"]:
+                if h["type"] not in ["humans", "superman", "sound_sources"]:
                     continue
 
                 xx = h["x"] * reso
@@ -184,6 +185,10 @@ class MicrophoneController:
                         wav = "greek_sentence.wav"
                     else:
                         wav = "english_sentence.wav"
+
+            # Check if superman is the closest:
+            if closest == "superman":
+                wav = "english_sentence.wav"                      
 
             if closest == "sound_sources":
                 if closest_full["lang"] == "EL":

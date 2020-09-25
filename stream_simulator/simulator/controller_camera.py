@@ -80,7 +80,8 @@ class CameraController:
             "qrs": "qr_code.png",
             "texts": "testocr.png",
             "colors": "dog.jpg",
-            "empty": "empty.png"
+            "empty": "empty.png",
+            "superman": "all.png"
         }
 
         from derp_me.client import DerpMeClient
@@ -140,14 +141,15 @@ class CameraController:
                 "qrs": [],
                 "barcodes": [],
                 "colors": [],
-                "texts": []
+                "texts": [],
+                "superman": []
             }
             closest = "empty"
             closest_dist = 1000000000000
             closest_full = None
 
             for h in self.actors:
-                if h["type"] not in ["humans", "qrs", "barcodes", "colors", "texts"]:
+                if h["type"] not in ["humans", "superman", "qrs", "barcodes", "colors", "texts"]:
                     continue
 
                 xx = h["x"] * reso
@@ -162,7 +164,7 @@ class CameraController:
                     self.logger.info("\tThres to {}: {} / {}".format(h["id"], math.hypot(xt - xx, yt - yy), thres))
                     if math.hypot(xt - xx, yt - yy) < thres:
                         # We got a winner!
-                        findings[h["type"]].append(h)
+                        findings[h["type"]].append(h)  
                         if d < closest_dist:
                             closest = h["type"]
                             closest_full = h
@@ -192,6 +194,10 @@ class CameraController:
                 else:
                     img = random.choice(["face.jpg", "face_inverted.jpg"])
 
+            # Special handle for superman
+            if closest == "superman":
+                img = "all.png"
+                
             # Special handle for barcodes
             if closest == "barcodes":
                 img = "barcode.jpg"

@@ -37,9 +37,16 @@ class Robot:
         self.name = self.namespace + "/" + name
         self.dt = tick
 
+        # intial robot pose - remains remains constant throughout streamsim launch
+        self._init_x = 0
+        self._init_y = 0
+        self._init_theta = 0
+
+        # current robot pose - varies during execution
         self._x = 0
         self._y = 0
         self._theta = 0
+
         self._curr_node = -1
 
         self.detection_threshold = 1
@@ -53,11 +60,15 @@ class Robot:
         self.logger.info("Robot {}: map set".format(self.name))
 
         pose = self.world['robots'][0]['starting_pose']
-        self._x = pose['x'] * self.resolution
-        self._y = pose['y'] * self.resolution
-        self._theta = pose['theta'] / 180.0 * math.pi
+        self._init_x = pose['x'] * self.resolution
+        self._init_y = pose['y'] * self.resolution
+        self._init_theta = pose['theta'] / 180.0 * math.pi
         self.logger.info("Robot {} pose set: {}, {}, {}".format(
             self.name, self._x, self._y, self._theta))
+
+        self._x = self._init_x
+        self._y = self._init_y
+        self._theta = self._init_theta
 
         self.step_by_step_execution = self.world['robots'][0]['step_by_step_execution']
         self.logger.warning("Step by step execution is {}".format(self.step_by_step_execution))
@@ -74,6 +85,14 @@ class Robot:
         except:
             self.logger.warning("Robot has no motion controller.. Smells like device!".format(self.name))
             self.motion_controller = None
+
+        # rpc service which resets the robot pose to the initial given values
+        _topic = self.name + '/reset_robot_pose'
+        self.reset_pose_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.reset_pose_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN} Created redis RPCService {_topic} {Style.RESET_ALL}")
 
         _topic = self.name + '/nodes_detector/get_connected_devices'
         self.devices_rpc_server = RPCService(
@@ -257,6 +276,7 @@ class Robot:
                 self.step_by_step_amqp_sub.run()
 
         self.devices_rpc_server.run()
+        self.reset_pose_rpc_server.run()
         self.stopped = False
         self.simulator_thread.start()
 
@@ -287,6 +307,9 @@ class Robot:
 
         self.logger.warning("Trying to stop devices_rpc_server")
         self.devices_rpc_server.stop()
+        self.logger.warning("Trying to stop reset_pose_rpc_server")
+        self.reset_pose_rpc_server.stop()
+
         self.logger.warning("Trying to stop simulation_thread")
         self.stopped = True
 
@@ -302,6 +325,13 @@ class Robot:
                 }
             }
         }
+
+    def reset_pose_callback(self, message, meta):
+        self.logger.warning("Resetting robot pose")
+        self._x = self._init_x
+        self._y = self._init_y
+        self._theta = self._init_theta
+        return {}
 
     def initialize_resources(self):
         pass
