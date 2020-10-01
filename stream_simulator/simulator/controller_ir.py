@@ -21,8 +21,11 @@ elif ConnParams.type == "redis":
 from derp_me.client import DerpMeClient
 
 class IrController:
-    def __init__(self, info = None, map = None):
-        self.logger = Logger(info["name"] + "-" + info["id"])
+    def __init__(self, info = None, map = None, logger = None):
+        if logger is None:
+            self.logger = Logger(info["name"] + "-" + info["id"])
+        else:
+            self.logger = logger
 
         self.info = info
         self.name = info["name"]

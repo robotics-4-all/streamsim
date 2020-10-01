@@ -44,7 +44,13 @@ from .controller_cytron_lf import CytronLFController
 class DeviceLookup:
     def __init__(self, world = None, map = None, logger = None, name = None, namespace = None, device_name = None):
         self.world = world
-        self.logger = Logger(name + "/device_discovery")
+        if logger is None:
+            self.logger = Logger(name + "/device_discovery")
+            self._common_logging = False
+        else:
+            self.logger = logger
+            self._common_logging = True
+            self.logger.info("Common logging is true")
         self.name = name
         self.device_name = device_name
         self.namespace = namespace
@@ -492,23 +498,26 @@ class DeviceLookup:
 
 
         # Devices management
+        _logger = None
+        if self._common_logging is True:
+            _logger = self.logger
         for d in self.devices:
             if d["type"] == "PAN_TILT":
                 self.controllers[d["name"]] = PanTiltController(info = d)
             elif d["type"] == "LINE_FOLLOWER":
                 self.controllers[d["name"]] = CytronLFController(info = d)
             elif d["type"] == "LED":
-                self.controllers[d["name"]] = LedsController(info = d)
+                self.controllers[d["name"]] = LedsController(info = d, logger = _logger)
             elif d["type"] == "ENV":
-                self.controllers[d["name"]] = EnvController(info = d)
+                self.controllers[d["name"]] = EnvController(info = d, logger = _logger)
             elif d["type"] == "IMU":
-                self.controllers[d["name"]] = ImuController(info = d)
+                self.controllers[d["name"]] = ImuController(info = d, logger = _logger)
             elif d["type"] == "SONAR":
-                self.controllers[d["name"]] = SonarController(info = d, map = self.map)
+                self.controllers[d["name"]] = SonarController(info = d, map = self.map, logger = _logger)
             elif d["type"] == "IR":
-                self.controllers[d["name"]] = IrController(info = d, map = self.map)
+                self.controllers[d["name"]] = IrController(info = d, map = self.map, logger = _logger)
             elif d["type"] == "SKID_STEER":
-                self.controllers[d["name"]] = MotionController(info = d)
+                self.controllers[d["name"]] = MotionController(info = d, logger = _logger)
                 # Just keep the motion controller in another var for the simulator:
                 self.motion_controller = self.controllers[d["name"]]
             elif d["type"] == "TOF":
@@ -516,17 +525,17 @@ class DeviceLookup:
             # elif d["type"] == "BUTTON":
             #     self.controllers[d["name"]] = ButtonController(info = d)
             elif d["type"] == "ENCODER":
-                self.controllers[d["name"]] = EncoderController(info = d)
+                self.controllers[d["name"]] = EncoderController(info = d, logger = _logger)
             elif d["type"] == "CAMERA":
-                self.controllers[d["name"]] = CameraController(info = d)
+                self.controllers[d["name"]] = CameraController(info = d, logger = _logger)
             elif d["type"] == "MICROPHONE":
-                self.controllers[d["name"]] = MicrophoneController(info = d)
+                self.controllers[d["name"]] = MicrophoneController(info = d, logger = _logger)
             elif d["type"] == "SPEAKERS":
-                self.controllers[d["name"]] = SpeakerController(info = d)
+                self.controllers[d["name"]] = SpeakerController(info = d, logger = _logger)
             elif d["type"] == "TOUCH_SCREEN":
-                self.controllers[d["name"]] = TouchScreenController(info = d)
+                self.controllers[d["name"]] = TouchScreenController(info = d, logger = _logger)
             elif d["type"] == "GSTREAMER_SERVER":
-                self.controllers[d["name"]] = GstreamerServerController(info = d)
+                self.controllers[d["name"]] = GstreamerServerController(info = d, logger = _logger)
             else:
                 self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
             self.logger.warning(d["name"] + " controller created")
