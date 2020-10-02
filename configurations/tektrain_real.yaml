@@ -30,21 +30,21 @@ robots:
       #       channels: 6
       #       framerate: 44100
       #       max_data_length: 10
-      # cytron_lf:
-      #   -
-      #     orientation: 0
-      #     place: UNDER
-      #     sensor_configuration:
-      #       bus: 1
-      #       address: 0x22
-      #       mode: "dark"
-      #       so_1: "A_2"
-      #       so_2: "A_3"
-      #       so_3: "A_4"
-      #       so_4: "A_5"
-      #       so_5: "A_6"
-      #       cal:  "A_7"
-      #       max_data_length: 10
+      cytron_lf:
+        -
+          orientation: 0
+          place: UNDER
+          sensor_configuration:
+            bus: 1
+            address: 0x22
+            mode: "dark"
+            so_1: "A_2"
+            so_2: "A_3"
+            so_3: "A_4"
+            so_4: "A_5"
+            so_5: "A_6"
+            cal:  "A_7"
+            max_data_length: 10
       # sonar:
       #   -
       #     orientation: -45
@@ -146,32 +146,32 @@ robots:
       #     max_range: 2
       #     sensor_configuration:
       #       max_data_length": 10
-      # tof:
-      #   -
-      #     orientation: 0
-      #     place: F
-      #     max_range: 2
-      #     sensor_configuration:
-      #       bus: 1
-      #       address: 0x29
-      #       mode: 3
-      #       max_data_length: 10
-      # camera:
-      #   -
-      #     orientation: 0
-      #     place: FRONT
-      #     sensor_configuration:
-      #       framerate: 30
-      #       width: 640
-      #       height: 480
-      #       max_data_length: 2
-      # imu:
-      #   -
-      #     orientation: 1
-      #     place: CENTER
-      #     sensor_configuration:
-      #       bus: 1
-      #       max_data_length: 10
+      tof:
+        -
+          orientation: 0
+          place: F
+          max_range: 2
+          sensor_configuration:
+            bus: 1
+            address: 0x29
+            mode: 3
+            max_data_length: 10
+      camera:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            framerate: 30
+            width: 640
+            height: 480
+            max_data_length: 2
+      imu:
+        -
+          orientation: 1
+          place: CENTER
+          sensor_configuration:
+            bus: 1
+            max_data_length: 10
       button:
         -
           orientation: 0
@@ -305,23 +305,23 @@ robots:
       #       edge: "both"
       #       bounce: 70
       #       max_data_length: 10
-      # env:
-      #   -
-      #     orientation: 0
-      #     place: FRONT
-      #     sim_temperature: 31
-      #     sim_humidity: 60
-      #     sim_pressure: 1800
-      #     sim_air_quality: 50
-      #     sensor_configuration:
-      #       bus: 1
-      #       slave: 0
-      #       t_over : 8
-      #       h_over : 2
-      #       p_over : 4
-      #       iir_coef : 3
-      #       g_status : 1
-      #       max_data_length: 10
+      env:
+        -
+          orientation: 0
+          place: FRONT
+          sim_temperature: 31
+          sim_humidity: 60
+          sim_pressure: 1800
+          sim_air_quality: 50
+          sensor_configuration:
+            bus: 1
+            slave: 0
+            t_over : 8
+            h_over : 2
+            p_over : 4
+            iir_coef : 3
+            g_status : 1
+            max_data_length: 10
       # speaker:
       #   -
       #     orientation: 0
@@ -341,14 +341,14 @@ robots:
             led_invert: 0
             led_channel: 0
             max_data_length: 10
-      # pan_tilt:
-      #   -
-      #     orientation: 0
-      #     place: UNDER
-      #     sensor_configuration:
-      #       bus: 1
-      #       frequency: 50
-      #       max_data_length: 1
+      pan_tilt:
+        -
+          orientation: 0
+          place: UNDER
+          sensor_configuration:
+            bus: 1
+            frequency: 50
+            max_data_length: 1
       # touch_screen:
       #   -
       #     orientation: 0

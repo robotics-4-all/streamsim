@@ -293,7 +293,7 @@ class CytronLFController:
 
 
 class LineFollowingMotion(PID):
-    TIMEOUT = 1.0
+    TIMEOUT = 0.4
 
     def __init__(self, line_follower, sample_rate, kp, ki, kd, sensor_config):
         # initialize classes
