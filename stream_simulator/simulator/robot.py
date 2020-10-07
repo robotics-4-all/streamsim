@@ -66,6 +66,8 @@ class Robot:
     def __init__(self, world = None, map = None, name = "robot", tick = 0.25):
         self.logger = Logger(name)
         logging.getLogger("pika").setLevel(logging.INFO)
+        logging.getLogger("Adafruit_I2C").setLevel(logging.INFO)
+        logging.getLogger("RPCClient").setLevel(logging.INFO)
 
         try:
             self.namespace = os.environ['TEKTRAIN_NAMESPACE']

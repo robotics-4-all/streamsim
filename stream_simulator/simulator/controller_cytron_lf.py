@@ -329,7 +329,8 @@ class LineFollowingMotion(PID):
 
         self._alive = True
         self._speed = 0.4
-
+        # self.lf.calibrate()
+        # time.sleep(5)
         self.thread = threading.Thread(target=self._run, args=(), daemon = True)
         self.thread.start()
 

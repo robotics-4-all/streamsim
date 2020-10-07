@@ -119,7 +119,6 @@ class MotionController:
             elif self.info["mode"] == "simulation":
                 pass
             else: # The real deal
-
                 if self._linear != 0:
                     self.motor_driver.move_linear(self._linear)
                 elif self._angular != 0:
