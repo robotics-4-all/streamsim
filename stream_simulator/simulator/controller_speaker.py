@@ -82,6 +82,18 @@ class SpeakerController:
             on_request=self.disable_callback,
             rpc_name=info["base_topic"] + "/disable")
 
+        from derp_me.client import DerpMeClient
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+
+        # Try to get global volume:
+        res = self.derp_client.get(
+            "device.global_volume.persistent",
+            persistent = True
+        )
+        if res['val'] is not None:
+            self.global_volume = int(res['val'])
+            self.set_global_volume()
+
     def on_goal_speak(self, goalh):
         self.logger.info("{} speak started".format(self.name))
         if self.info["enabled"] == False:
@@ -232,6 +244,30 @@ class SpeakerController:
         self.blocked = False
         return ret
 
+    def set_global_volume(self):
+        try:
+            import alsaaudio
+            m = alsaaudio.Mixer("PCM")
+            m.setvolume(int(self.global_volume))
+            self.logger.info(f"{Fore.MAGENTA}Alsamixer audio set to {self.global_volume}{Style.RESET_ALL}")
+        except Exception as e:
+            err = f"Something went wrong with global volume set: {str(e)}. Is the alsaaudio python library installed?"
+            self.logger.error(err)
+            raise ValueError(err)
+
+        try:
+            #Write global volume to persistent storage
+            self.derp_client.set(
+                "device.global_volume.persistent",
+                self.global_volume,
+                persistent = True
+            )
+            self.logger.info(f"{Fore.MAGENTA}Derpme updated for global volume{Style.RESET_ALL}")
+        except Exception as e:
+            err = f"Could not store volume in persistent derp me"
+            self.logger.error(err)
+            raise ValueError(err)
+
     def set_global_volume_callback(self, message, meta):
         try:
             _vol = message["volume"]
@@ -247,15 +283,13 @@ class SpeakerController:
             raise ValueError(err)
 
         try:
-            import alsaaudio
-            m = alsaaudio.Mixer("PCM")
-            m.setvolume(int(self.global_volume))
-            self.logger.info(f"{Fore.MAGENTA}Alsamixer audio set to {self.global_volume}{Style.RESET_ALL}")
-            return {}
+            self.set_global_volume()
         except Exception as e:
-            err = f"Something went wrong with global volume set: {str(e)}. Is the alsaaudio python library installed?"
+            err = f"Something went wrong with global volume set: {str(e)}"
             self.logger.error(err)
             raise ValueError(err)
+
+        return {}
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
