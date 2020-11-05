@@ -8,6 +8,8 @@ import logging
 import threading
 import random
 
+from .imu_calibration import IMUCalibration
+
 from colorama import Fore, Style
 
 from commlib.logger import Logger
@@ -34,8 +36,9 @@ class ImuController:
 
         if self.info["mode"] == "real":
             from pidevices import ICM_20948
-            self.sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
-            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/imu_hw_interface/imu_hw_interface/imu_hw_interface.py
+            self._sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
+            self._imu_calibrator = IMUCalibration(calib_time=5, buf_size=5)
+           
 
         self.memory = 100 * [0]
 
@@ -76,23 +79,6 @@ class ImuController:
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
-            val = {
-                "accel": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "gyro": {
-                    "yaw": 0,
-                    "pitch": 0,
-                    "roll": 0
-                },
-                "magne": {
-                    "yaw": 0,
-                    "pitch": 0,
-                    "roll": 0
-                }
-            }
             if self.info["mode"] == "mock":
                 val = {
                     "accel": {
@@ -134,33 +120,23 @@ class ImuController:
                 except:
                     self.logger.warning("Pose not got yet..")
             else: # The real deal
-                data = self.sensor.read()
+                data = self._sensor.read()
 
-                val["accel"]["x"] = data.accel.x
-                val["accel"]["y"] = data.accel.y
-                val["accel"]["z"] = data.accel.z
+                self._imu_calibrator.update(data)
 
-                val["gyro"]["yaw"] = data.gyro.z
-                val["gyro"]["pitch"] = data.gyro.y
-                val["gyro"]["roll"] = data.gyro.x
-
-                val["magne"]["yaw"] = data.magne.z
-                val["magne"]["pitch"] = data.magne.y
-                val["magne"]["roll"] = data.magne.x
-                
-                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                val = self._imu_calibrator.getCalibData()
 
             self.memory_write(val)
 
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.roll",
-                [{"data": val["magne"]["roll"], "timestamp": time.time()}])
+                [{"data": val["gyro"]["roll"], "timestamp": time.time()}])
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.pitch",
-                [{"data": val["magne"]["pitch"], "timestamp": time.time()}])
+                [{"data": val["gyro"]["pitch"], "timestamp": time.time()}])
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.yaw",
-                [{"data": val["magne"]["yaw"], "timestamp": time.time()}])
+                [{"data": val["gyro"]["yaw"], "timestamp": time.time()}])
 
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
 
@@ -192,6 +168,7 @@ class ImuController:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("IMU {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
+            self._imu_calibrator.start()
 
     def stop(self):
         self.info["enabled"] = False

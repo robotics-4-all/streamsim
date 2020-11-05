@@ -30,16 +30,9 @@ class MotionController:
         self.conf = info["sensor_configuration"]
 
         if self.info["mode"] == "real":
-            from pidevices import DfrobotMotorControllerPiGPIO
+            from pidevices import DfrobotMotorControllerRPiGPIO
 
-            OUTPUT = 1
-
-            self.E1 = self.conf["E1"]
-            self.E2 = self.conf["E2"]
-            self.M1 = self.conf["M1"]
-            self.M2 = self.conf["M2"]
-
-            self.motor_driver = DfrobotMotorControllerPiGPIO(E1=self.E1, E2=self.E2, M1=self.M1, M2=self.M2, range=1.0)
+            self.motor_driver = DfrobotMotorControllerRPiGPIO(E1=self.conf["E1"], M1=self.conf["M1"], E2=self.conf["E2"], M2=self.conf["M2"])
 
             self.wheel_separation = self.conf["wheel_separation"]
             self.wheel_radius = self.conf["wheel_radius"]
@@ -50,7 +43,8 @@ class MotionController:
         self._angular = 0
 
         self.memory = 100 * [0]
-
+        
+        # set Speed
         _topic = info["base_topic"] + "/set"
         self.vel_sub = Subscriber(
             conn_params=ConnParams.get("redis"),
@@ -112,24 +106,23 @@ class MotionController:
             response = message
             self._linear = response['linear']
             self._angular = response['angular']
-            self.memory_write([self._linear, self._angular])
+            self._raw = response['raw']
+            self.memory_write([self._linear, self._angular, self._raw])
 
             if self.info["mode"] == "mock":
                 pass
             elif self.info["mode"] == "simulation":
                 pass
             else: # The real deal
-                if self._linear != 0:
-                    self.motor_driver.move_linear(self._linear)
-                elif self._angular != 0:
-                    self.motor_driver.move_angular(self._angular)
-                else:
-                    self.motor_driver.stop()
-
+                if self._raw == True:
+                    self.motor_driver.write(self._linear, self._angular)        # write pwm values
+                else:   
+                    self.motor_driver.setSpeed(self._linear, self._angular)     # write speed values
 
             self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
         except Exception as e:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
+
 
     def motion_get_callback(self, message, meta):
         self.logger.info("Robot {}: Motion get callback: {}".format(self.name, message))

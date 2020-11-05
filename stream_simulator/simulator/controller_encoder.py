@@ -30,8 +30,9 @@ class EncoderController:
         self.conf = info["sensor_configuration"]
 
         if self.info["mode"] == "real":
-            from pidevices import DfRobotWheelEncoderRpiGPIO
-            self.sensor = DfRobotWheelEncoderRpiGPIO(pin=self.conf["pin"],
+            from pidevices import DfRobotWheelEncoderPiGPIO
+            self.sensor = DfRobotWheelEncoderPiGPIO(gpio=self.conf["pin"], 
+                                                      pulses_per_rev = 10,
                                                       name=self.name,
                                                       max_data_length=self.conf["max_data_length"])
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/encoder_hw_interface/encoder_hw_interface/encoder_hw_interface.py
@@ -57,22 +58,17 @@ class EncoderController:
     def sensor_read(self):
         self.logger.info("Encoder {} sensor read thread started".format(self.info["id"]))
         period = 1.0 / self.info["hz"]
-        print("Setting period: ", period)
-        self.sensor.set_sample_period(period)
 
         while self.info["enabled"]:
             if self.info["mode"] == "mock":
                 self.memory_write(float(random.uniform(1000,2000)))
-                time.sleep(period)
             elif self.info["mode"] == "simulation":
                 self.memory_write(float(random.uniform(1000,2000)))
-                time.sleep(period)
             else: # The real deal
                 self.data = self.sensor.read_rpm()
                 self.memory_write(self.data)
 
-                print("data is:", self.data)
-
+            time.sleep(period)
         self.logger.info("Encoder {} sensor read thread stopped".format(self.info["id"]))
 
     def enable_callback(self, message, meta):
@@ -96,7 +92,6 @@ class EncoderController:
         self.disable_rpc_server.run()
 
         if self.info["enabled"]:
-            self.sensor.stop()
             self.sensor.start()
             self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
