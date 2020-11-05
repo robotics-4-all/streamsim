@@ -60,11 +60,6 @@ class SimulatorHandler:
             rpc_name="thing.simbot.deploy_manager.stop_sim"
         )
 
-        self.kill_pub = Publisher(
-            conn_params=ConnParams.get("amqp"),
-            topic="simulator.killed"
-        )
-
         self.start.run()
         self.stop.run()
         self.execution_sub.run()
@@ -85,7 +80,7 @@ class SimulatorHandler:
 
     def sims_check(self):
         while True:
-            time.sleep(5.0)
+            time.sleep(2.0)
             curr_time = time.time()
             for sim in self.timestamps:
                 tt = self.timeout - (time.time() - self.timestamps[sim])
@@ -93,13 +88,21 @@ class SimulatorHandler:
                 if tt < 0:
                     self.logger.warning(f"Stopping simulator {sim} due to inactivity")
                     self.stop_sim_rpc_client.call({"sim_id": sim})
-                    self.kill_pub.publish({"killed": sim})
+                    kill_pub = Publisher(
+                        conn_params=ConnParams.get("amqp"),
+                        topic=f"thing.simbot.deploy_manager.{sim}.killed"
+                    )
+                    self.logger.warning(f"Publishing to thing.simbot.deploy_manager.{sim}.killed")
+                    kill_pub.publish({})
                     break
 
     def print(self):
         self.logger.info("Available simulators:")
         for s in self.simulations:
             self.logger.info(f"{Fore.MAGENTA}{s} : {self.simulations[s]}{Style.RESET_ALL}")
+        self.logger.info("Timestamps remaining:")
+        for t in self.timestamps:
+            self.logger.info(f"{Fore.MAGENTA}{s} : {self.timestamps[t]}{Style.RESET_ALL}")
 
     def start_callback(self, message, meta):
         print(message)
