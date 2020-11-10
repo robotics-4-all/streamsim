@@ -76,6 +76,8 @@ class SimulatorHandler:
         self.check_thread.start()
 
     def execution_callback(self, message, meta):
+        if "teksim_device" not in message["device"]:
+            return
         self.timestamps[message["device"]] = time.time()
 
     def sims_check(self):
@@ -108,7 +110,7 @@ class SimulatorHandler:
         print(message)
         try:
             self.simulators_cnt += 1
-            name = "device_" + str(self.simulators_cnt)
+            name = "teksim_device_" + str(self.simulators_cnt)
             # Write configuration in yaml
             _t = str(time.time())
             _t = _t[:_t.find(".")]
