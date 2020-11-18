@@ -8,8 +8,6 @@ import logging
 import threading
 import random
 
-from .imu_calibration import IMUCalibration
-
 from colorama import Fore, Style
 
 from commlib.logger import Logger
@@ -36,6 +34,8 @@ class ImuController:
 
         if self.info["mode"] == "real":
             from pidevices import ICM_20948
+            from .imu_calibration import IMUCalibration
+
             self._sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
             self._imu_calibrator = IMUCalibration(calib_time=5, buf_size=5)
            
@@ -168,7 +168,10 @@ class ImuController:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("IMU {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
-            self._imu_calibrator.start()
+
+            if self.info["mode"] == "real":
+                # it the mode is real enable the calibration
+                self._imu_calibrator.start()
 
     def stop(self):
         self.info["enabled"] = False

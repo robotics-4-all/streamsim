@@ -126,7 +126,7 @@ class IMUCalibration:
         self._data["magne"]["pitch"] = s[1,0]
         self._data["magne"]["yaw"] = s[2,0]
 
-        print("Imu angle: ", atan2(s[1,0],s[0,0]))
+        #print("Imu angle: ", atan2(s[1,0],s[0,0]))
 
         return self._data
 

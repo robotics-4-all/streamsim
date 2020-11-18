@@ -14,7 +14,7 @@ robots:
     mode: real # [simulation, mock, real]
     speak_mode: espeak # [google, espeak] - in case of real mode
     wait_for: [] #[rhasspy] # in case of real mode
-    amqp_inform: false
+    amqp_inform: true
     step_by_step_execution: false
     devices:
       # microphone:
@@ -30,21 +30,6 @@ robots:
       #       channels: 6
       #       framerate: 44100
       #       max_data_length: 10
-      cytron_lf:
-        -
-          orientation: 0
-          place: UNDER
-          sensor_configuration:
-            bus: 1
-            address: 0x22
-            mode: "dark"
-            so_1: "A_2"
-            so_2: "A_3"
-            so_3: "A_4"
-            so_4: "A_5"
-            so_5: "A_6"
-            cal:  "A_7"
-            max_data_length: 10
       # sonar:
       #   -
       #     orientation: -45
@@ -145,17 +130,20 @@ robots:
       #     place: BL
       #     max_range: 2
       #     sensor_configuration:
+      #       channel: 1
+      #       v_ref: 3.3
+      #       averages: 10
       #       max_data_length": 10
-      tof:
-        -
-          orientation: 0
-          place: F
-          max_range: 2
-          sensor_configuration:
-            bus: 1
-            address: 0x29
-            mode: 3
-            max_data_length: 10
+      # tof:
+      #   -
+      #     orientation: 0
+      #     place: F
+      #     max_range: 2
+      #     sensor_configuration:
+      #       bus: 1
+      #       address: 0x29
+      #       mode: 3
+      #       max_data_length: 10
       camera:
         -
           orientation: 0
@@ -239,17 +227,17 @@ robots:
             edge: "both"
             bounce: 70
             max_data_length: 10
-      #   -
-      #     orientation: -135
-      #     place: BR
-      #     sensor_configuration:
-      #       bus: 1
-      #       address: 0x20
-      #       pin_num: "A_1"
-      #       direction: "down"
-      #       edge: "both"
-      #       bounce: 70
-      #       max_data_length: 10
+      # -
+      #   orientation: -135
+      #   place: BR
+      #   sensor_configuration:
+      #     bus: 1
+      #     address: 0x20
+      #     pin_num: "A_1"
+      #     direction: "down"
+      #     edge: "both"
+      #     bounce: 70
+      #     max_data_length: 10
       #   -
       #     orientation: 135
       #     place: BL
@@ -305,23 +293,23 @@ robots:
       #       edge: "both"
       #       bounce: 70
       #       max_data_length: 10
-      env:
-        -
-          orientation: 0
-          place: FRONT
-          sim_temperature: 31
-          sim_humidity: 60
-          sim_pressure: 1800
-          sim_air_quality: 50
-          sensor_configuration:
-            bus: 1
-            slave: 0
-            t_over : 8
-            h_over : 2
-            p_over : 4
-            iir_coef : 3
-            g_status : 1
-            max_data_length: 10
+      # env:
+      #   -
+      #     orientation: 0
+      #     place: FRONT
+      #     sim_temperature: 31
+      #     sim_humidity: 60
+      #     sim_pressure: 1800
+      #     sim_air_quality: 50
+      #     sensor_configuration:
+      #       bus: 1
+      #       slave: 0
+      #       t_over : 8
+      #       h_over : 2
+      #       p_over : 4
+      #       iir_coef : 3
+      #       g_status : 1
+      #       max_data_length: 10
       # speaker:
       #   -
       #     orientation: 0
@@ -356,36 +344,49 @@ robots:
       #     sensor_configuration:
       #       param_1: 1
       #       max_data_length: 10
+      encoder:
+      -
+        orientation: 90
+        place: BL
+        sensor_configuration:
+          pin: 23
+          name: "Left Enc"
+          max_data_length: 10
+      -
+        orientation: -90
+        place: BR
+        sensor_configuration:
+          pin: 24
+          name: "Right Enc"
+          max_data_length: 10
       skid_steer:
+      -
+        orientation: 0
+        place: UNDER
+        sensor_configuration:
+          bus: 1
+          E1: 20
+          M1: 21
+          E2: 12
+          M2: 16
+          max_data_length: 10
+          wheel_separation: 0.147
+          wheel_radius: 0.022
+      cytron_lf:
         -
           orientation: 0
           place: UNDER
           sensor_configuration:
             bus: 1
-            E1: 20
-            M1: 21
-            E2: 12
-            M2: 16
+            address: 0x22
+            mode: "dark"
+            so_1: "A_2"
+            so_2: "A_3"
+            so_3: "A_4"
+            so_4: "A_5"
+            so_5: "A_6"
+            cal:  "A_7"
             max_data_length: 10
-            wheel_separation: 0.147
-            wheel_radius: 0.022
-      # encoder:
-      # -
-      #   orientation: 90
-      #   place: BL
-      #   sensor_configuration:
-      #     bus: 1
-      #     address: 0x22
-      #     pin: "B_4"
-      #     max_data_length: 10
-      # -
-      #   orientation: -90
-      #   place: BR
-      #   sensor_configuration:
-      #     bus: 1
-      #     address: 0x22
-      #     pin: "B_5"
-      #     max_data_length: 10
     starting_pose:
       x: 100 # in pixels
       y: 100 # in pixels

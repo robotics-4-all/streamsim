@@ -356,19 +356,6 @@ robots:
           sensor_configuration:
             param_1: 1
             max_data_length: 10
-      skid_steer:
-        -
-          orientation: 0
-          place: UNDER
-          sensor_configuration:
-            bus: 1
-            E1: 20
-            M1: 21
-            E2: 12
-            M2: 16
-            max_data_length: 10
-            wheel_separation: 0.147
-            wheel_radius: 0.022
       encoder:
         -
           orientation: 90
@@ -386,6 +373,19 @@ robots:
             address: 0x22
             pin: "B_5"
             max_data_length: 10
+      skid_steer:
+        -
+          orientation: 0
+          place: UNDER
+          sensor_configuration:
+            bus: 1
+            E1: 20
+            M1: 21
+            E2: 12
+            M2: 16
+            max_data_length: 10
+            wheel_separation: 0.147
+            wheel_radius: 0.022
     starting_pose:
       x: 100 # in pixels
       y: 100 # in pixels

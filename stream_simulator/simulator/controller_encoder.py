@@ -31,6 +31,7 @@ class EncoderController:
 
         if self.info["mode"] == "real":
             from pidevices import DfRobotWheelEncoderPiGPIO
+
             self.sensor = DfRobotWheelEncoderPiGPIO(gpio=self.conf["pin"], 
                                                       pulses_per_rev = 10,
                                                       name=self.name,
@@ -92,18 +93,23 @@ class EncoderController:
         self.disable_rpc_server.run()
 
         if self.info["enabled"]:
-            self.sensor.start()
             self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("Encoder {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
+            if self.info["mode"] == "real":
+                self.sensor.start()
+
     def stop(self):
         self.info["enabled"] = False
-        self.sensor.stop()
+        
         self.encoder_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+
+        if self.info["mode"] == "real":
+            self.sensor.stop()
 
     def memory_write(self, data):
         del self.memory[-1]

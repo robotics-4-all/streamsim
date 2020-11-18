@@ -51,16 +51,7 @@ class ButtonArrayController():
             self.button_places = self.conf["places"]
             #print("Button places: ", self.button_places)
 
-            self.prev = 0
-
-        elif self.info["mode"] == "simulation":
-            pass
-
-        
-
-        
-
-        
+            self.prev = 0 
 
         _topic = info["base_topic"] + "/get"
         self.button_array_rpc_server = RPCService(
