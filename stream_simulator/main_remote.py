@@ -60,11 +60,6 @@ class SimulatorHandler:
             rpc_name="thing.simbot.deploy_manager.stop_sim"
         )
 
-        self.kill_pub = Publisher(
-            conn_params=ConnParams.get("amqp"),
-            topic="simulator.killed"
-        )
-
         self.start.run()
         self.stop.run()
         self.execution_sub.run()
@@ -81,11 +76,13 @@ class SimulatorHandler:
         self.check_thread.start()
 
     def execution_callback(self, message, meta):
+        if "teksim_device" not in message["device"]:
+            return
         self.timestamps[message["device"]] = time.time()
 
     def sims_check(self):
         while True:
-            time.sleep(5.0)
+            time.sleep(2.0)
             curr_time = time.time()
             for sim in self.timestamps:
                 tt = self.timeout - (time.time() - self.timestamps[sim])
@@ -93,19 +90,27 @@ class SimulatorHandler:
                 if tt < 0:
                     self.logger.warning(f"Stopping simulator {sim} due to inactivity")
                     self.stop_sim_rpc_client.call({"sim_id": sim})
-                    self.kill_pub.publish({"killed": sim})
+                    kill_pub = Publisher(
+                        conn_params=ConnParams.get("amqp"),
+                        topic=f"thing.simbot.deploy_manager.{sim}.killed"
+                    )
+                    self.logger.warning(f"Publishing to thing.simbot.deploy_manager.{sim}.killed")
+                    kill_pub.publish({})
                     break
 
     def print(self):
         self.logger.info("Available simulators:")
         for s in self.simulations:
             self.logger.info(f"{Fore.MAGENTA}{s} : {self.simulations[s]}{Style.RESET_ALL}")
+        self.logger.info("Timestamps remaining:")
+        for t in self.timestamps:
+            self.logger.info(f"{Fore.MAGENTA}{s} : {self.timestamps[t]}{Style.RESET_ALL}")
 
     def start_callback(self, message, meta):
         print(message)
         try:
             self.simulators_cnt += 1
-            name = "device_" + str(self.simulators_cnt)
+            name = "teksim_device_" + str(self.simulators_cnt)
             # Write configuration in yaml
             _t = str(time.time())
             _t = _t[:_t.find(".")]
