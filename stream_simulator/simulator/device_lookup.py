@@ -37,7 +37,7 @@ from .controller_touch_screen import TouchScreenController
 from .controller_gstreamer_server import GstreamerServerController
 
 #import my controllers
-from .controller_button_array_mcp23017 import ButtonArrayController    
+from .controller_button_array_mcp23017 import ButtonArrayController
 from .controller_cytron_lf import CytronLFController
 
 
@@ -84,7 +84,6 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -110,7 +109,6 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -137,7 +135,7 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 50,
+                        "hz": m["hz"],
                         "queue_size": 100,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -163,7 +161,7 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 1,
+                        "hz": m["hz"],
                         "queue_size": 100,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -190,7 +188,7 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 1,
+                        "hz": m["hz"],
                         "queue_size": 100,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -217,7 +215,7 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 1,
+                        "hz": m["hz"],
                         "queue_size": 100,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -244,7 +242,7 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 0,
+                        "hz": m["hz"],
                         "queue_size": 0,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -271,7 +269,7 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 50,
+                        "hz": m["hz"],
                         "queue_size": 100,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -305,7 +303,7 @@ class DeviceLookup:
                         "sensor_configuration": m["sensor_configuration"],
                         "device_name": self.device_name
                     }
-                    
+
                     self.devices.append(msg)
             elif s == "env":
                 devices = self.world["robots"][0]["devices"][s]
@@ -324,7 +322,7 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 1,
+                        "hz": m["hz"],
                         "queue_size": 100,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -354,7 +352,6 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -380,7 +377,6 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -406,7 +402,6 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -432,7 +427,6 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -458,7 +452,6 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 0,
                         "queue_size": 0,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -484,7 +477,7 @@ class DeviceLookup:
                         "id": id,
                         "enabled": True,
                         "orientation": m["orientation"],
-                        "hz": 5,
+                        "hz": m["hz"],
                         "queue_size": 100,
                         "mode": self.mode,
                         "speak_mode": self.speak_mode,
@@ -492,7 +485,7 @@ class DeviceLookup:
                         "sensor_configuration": m["sensor_configuration"],
                         "device_name": self.device_name
                     }
-                    self.devices.append(msg)     
+                    self.devices.append(msg)
             else:
                 self.logger.error("Device declared in yaml does not exist: {}".format(s))
 
@@ -580,12 +573,12 @@ class DeviceLookup:
                 "namespace": self.namespace,
                 "sensor_configuration": self.button_configuration,
                 "device_name": self.device_name
-            }  
+            }
 
             self.devices.append(msg)
 
-            #self.devices.append(msg)  
-            self.controllers[msg["name"]] = ButtonArrayController(info = msg) 
+            #self.devices.append(msg)
+            self.controllers[msg["name"]] = ButtonArrayController(info = msg)
         #===============================================================================
 
 

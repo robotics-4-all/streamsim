@@ -34,6 +34,7 @@ robots:
         -
           orientation: -45
           place: FR
+          hz: 1
           max_range: 2
           sensor_configuration:
             bus: 4
@@ -44,6 +45,7 @@ robots:
         -
           orientation: 45
           place: FL
+          hz: 1
           max_range: 2
           sensor_configuration:
             bus: 4
@@ -54,6 +56,7 @@ robots:
         -
           orientation: 90
           place: L
+          hz: 1
           max_range: 2
           sensor_configuration:
             bus: 4
@@ -64,6 +67,7 @@ robots:
         -
           orientation: -90
           place: R
+          hz: 1
           max_range: 2
           sensor_configuration:
             bus: 4
@@ -74,6 +78,7 @@ robots:
         -
           orientation: 135
           place: BL
+          hz: 1
           max_range: 2
           sensor_configuration:
             bus: 4
@@ -84,6 +89,7 @@ robots:
         -
           orientation: -135
           place: BR
+          hz: 1
           max_range: 2
           sensor_configuration:
             bus: 4
@@ -95,6 +101,7 @@ robots:
         -
           orientation: -45
           place: FR
+          hz: 1
           max_range: 2
           sensor_configuration:
             channel: 0
@@ -104,6 +111,7 @@ robots:
         -
           orientation: 45
           place: FL
+          hz: 1
           max_range: 2
           sensor_configuration:
             channel: 0
@@ -113,6 +121,7 @@ robots:
         -
           orientation: -90
           place: R
+          hz: 1
           max_range: 2
           sensor_configuration:
             channel: 0
@@ -122,6 +131,7 @@ robots:
         -
           orientation: 90
           place: L
+          hz: 1
           max_range: 2
           sensor_configuration:
             channel: 0
@@ -131,6 +141,7 @@ robots:
         -
           orientation: -135
           place: BR
+          hz: 1
           max_range: 2
           sensor_configuration:
             channel: 0
@@ -140,6 +151,7 @@ robots:
         -
           orientation: 135
           place: BL
+          hz: 1
           max_range: 2
           sensor_configuration:
             channel: 0
@@ -150,6 +162,7 @@ robots:
         -
           orientation: 0
           place: F
+          hz: 1
           max_range: 2
           sensor_configuration:
             bus: 1
@@ -160,6 +173,7 @@ robots:
         -
           orientation: 0
           place: FRONT
+          hz: 0.5
           sensor_configuration:
             framerate: 30
             width: 640
@@ -169,6 +183,7 @@ robots:
         -
           orientation: 1
           place: CENTER
+          hz: 1
           sensor_configuration:
             bus: 1
             max_data_length: 10
@@ -176,6 +191,7 @@ robots:
         -
           orientation: 0
           place: F
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -187,6 +203,7 @@ robots:
         -
           orientation: -45
           place: FR
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -198,6 +215,7 @@ robots:
         -
           orientation: 45
           place: FL
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -209,6 +227,7 @@ robots:
         -
           orientation: -90
           place: R
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -220,6 +239,7 @@ robots:
         -
           orientation: 90
           place: L
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -231,6 +251,7 @@ robots:
         -
           orientation: 180
           place: B
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -242,6 +263,7 @@ robots:
         -
           orientation: -135
           place: BR
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -253,6 +275,7 @@ robots:
         -
           orientation: 135
           place: BL
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -264,6 +287,7 @@ robots:
         -
           orientation: 0
           place: G1
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -275,6 +299,7 @@ robots:
         -
           orientation: 0
           place: G2
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -286,6 +311,7 @@ robots:
         -
           orientation: 0
           place: G3
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -297,6 +323,7 @@ robots:
         -
           orientation: 0
           place: G4
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x20
@@ -309,6 +336,7 @@ robots:
         -
           orientation: 0
           place: FRONT
+          hz: 1
           sim_temperature: 31
           sim_humidity: 60
           sim_pressure: 1800
@@ -360,6 +388,7 @@ robots:
         -
           orientation: 90
           place: BL
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x22
@@ -368,6 +397,7 @@ robots:
         -
           orientation: -90
           place: BR
+          hz: 1
           sensor_configuration:
             bus: 1
             address: 0x22
@@ -386,6 +416,22 @@ robots:
             max_data_length: 10
             wheel_separation: 0.147
             wheel_radius: 0.022
+      cytron_lf:
+       -
+         orientation: 0
+         place: UNDER
+         hz: 1
+         sensor_configuration:
+           bus: 1
+           address: 0x22
+           mode: "dark"
+           so_1: "A_2"
+           so_2: "A_3"
+           so_3: "A_4"
+           so_4: "A_5"
+           so_5: "A_6"
+           cal:  "A_7"
+           max_data_length: 10
     starting_pose:
       x: 100 # in pixels
       y: 100 # in pixels
