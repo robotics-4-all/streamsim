@@ -15,11 +15,9 @@ from derp_me.client import DerpMeClient
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import ActionServer, RPCService, Subscriber
+    from commlib.transports.amqp import ActionServer, RPCService, Subscriber, Publisher
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import ActionServer, RPCService, Subscriber
-
-
+    from commlib.transports.redis import ActionServer, RPCService, Subscriber, Publisher
 
 class CytronLFController:
     def __init__(self, info = None, logger = None, derp = None):
@@ -31,6 +29,15 @@ class CytronLFController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+        self.streamable = info["streamable"]
+        if self.streamable:
+            _topic = self.base_topic + "/stream"
+            self.publisher = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -52,10 +59,6 @@ class CytronLFController:
                                                 cal=self.conf["cal"],
                                                 name=self.name,
                                                 max_data_length=self.conf["max_data_length"])
-
-            #self._lf_controller = LineFollowingMotion(self.lf, sample_rate=30, kp=0.09, ki=0.003, kd=0.0015, sensor_config=self.info)
-
-            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/imu_hw_interface/imu_hw_interface/imu_hw_interface.py
 
         self.memory = 100 * [0]
 
@@ -113,22 +116,31 @@ class CytronLFController:
 
             self.memory_write(val)
 
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
-                [{"data": val["so_1"], "timestamp": time.time()}])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
-                [{"data": val["so_2"], "timestamp": time.time()}])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
-                [{"data": val["so_3"], "timestamp": time.time()}])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
-                [{"data": val["so_4"], "timestamp": time.time()}])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
-                [{"data": val["so_5"], "timestamp": time.time()}])
-
+            if self.streamable:
+                self.publisher.publish({
+                    'so_1': val['so_1'],
+                    'so_2': val['so_2'],
+                    'so_3': val['so_3'],
+                    'so_4': val['so_4'],
+                    'so_5': val['so_5']
+                })
+                # self.logger.info("Published in cytron publisher")
+            else:
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
+                    [{"data": val["so_1"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
+                    [{"data": val["so_2"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
+                    [{"data": val["so_3"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
+                    [{"data": val["so_4"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
+                    [{"data": val["so_5"], "timestamp": time.time()}])
 
         self.logger.info("Cytron-LF {} sensor read thread stopped".format(self.info["id"]))
 

@@ -14,9 +14,9 @@ from commlib.logger import Logger
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService
+    from commlib.transports.amqp import RPCService, Publisher
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService
+    from commlib.transports.redis import RPCService, Publisher
 
 from derp_me.client import DerpMeClient
 
@@ -30,6 +30,15 @@ class EnvController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+        self.streamable = info["streamable"]
+        if self.streamable:
+            _topic = self.base_topic + "/stream"
+            self.publisher = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -50,11 +59,6 @@ class EnvController:
             self.sensor.set_heating_temp([0], [320])
             self.sensor.set_heating_time([0], [100])
             self.sensor.set_nb_conv(0)
-
-
-
-
-            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/bme680_hw_interface/bme680_hw_interface/bme680_hw_interface.py
 
         self.memory = 100 * [0]
 
@@ -109,18 +113,24 @@ class EnvController:
 
             self.memory_write(val)
 
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.temperature",
-                [{"data": val["temperature"], "timestamp": time.time()}])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.pressure",
-                [{"data": val["pressure"], "timestamp": time.time()}])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.humidity",
-                [{"data": val["humidity"], "timestamp": time.time()}])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.gas",
-                [{"data": val["gas"], "timestamp": time.time()}])
+            if self.streamable:
+                self.publisher.publish({
+                    "data": val,
+                    "timestamp": time.time()
+                })
+            else:
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.temperature",
+                    [{"data": val["temperature"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.pressure",
+                    [{"data": val["pressure"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.humidity",
+                    [{"data": val["humidity"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.gas",
+                    [{"data": val["gas"], "timestamp": time.time()}])
 
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 

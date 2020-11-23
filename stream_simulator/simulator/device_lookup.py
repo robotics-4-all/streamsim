@@ -78,6 +78,7 @@ class DeviceLookup:
         if self.mode not in ["real", "mock", "simulation"]:
             self.logger.error("Selected mode is invalid: {}".format(self.mode))
             exit(1)
+        self.sensors_streamable = self.world["robots"][0]["sensors_streamable"]
 
         id_length = 4
         for s in self.world["robots"][0]["devices"]:
@@ -148,6 +149,7 @@ class DeviceLookup:
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
+                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -174,6 +176,7 @@ class DeviceLookup:
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
+                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -201,6 +204,7 @@ class DeviceLookup:
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
+                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -228,6 +232,7 @@ class DeviceLookup:
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
+                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -255,6 +260,7 @@ class DeviceLookup:
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
+                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 0,
@@ -282,6 +288,7 @@ class DeviceLookup:
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
+                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -308,6 +315,7 @@ class DeviceLookup:
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
+                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": 1,
                         "queue_size": 100,
@@ -335,6 +343,7 @@ class DeviceLookup:
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
+                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -490,6 +499,7 @@ class DeviceLookup:
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
+                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -579,6 +589,7 @@ class DeviceLookup:
                 "place": "UNKNOWN",
                 "id": id,
                 "enabled": True,
+                "streamable": self.sensors_streamable,
                 "orientation": 0,
                 "hz": 1,
                 "queue_size": 100,

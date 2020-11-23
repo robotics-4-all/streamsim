@@ -15,9 +15,9 @@ from derp_me.client import DerpMeClient
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService, Subscriber
+    from commlib.transports.amqp import RPCService, Subscriber, Publisher
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService, Subscriber
+    from commlib.transports.redis import RPCService, Subscriber, Publisher
 
 class ImuController:
     def __init__(self, info = None, logger = None, derp = None):
@@ -29,6 +29,21 @@ class ImuController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+        self.streamable = info["streamable"]
+        if self.streamable:
+            _topic = self.base_topic + "/stream"
+            self.publisher = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+            # _topic = self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.distance." + self.info["place"]
+            # self.var_publisher = Publisher(
+            #     conn_params=ConnParams.get("redis"),
+            #     topic=_topic
+            # )
+            # self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -132,15 +147,21 @@ class ImuController:
 
             self.memory_write(val)
 
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.roll",
-                [{"data": val["gyro"]["roll"], "timestamp": time.time()}])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.pitch",
-                [{"data": val["gyro"]["pitch"], "timestamp": time.time()}])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.yaw",
-                [{"data": val["gyro"]["yaw"], "timestamp": time.time()}])
+            if self.streamable:
+                self.publisher.publish({
+                    "data": val,
+                    "timestamp": time.time()
+                })
+            else:
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.roll",
+                    [{"data": val["gyro"]["roll"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.pitch",
+                    [{"data": val["gyro"]["pitch"], "timestamp": time.time()}])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.yaw",
+                    [{"data": val["gyro"]["yaw"], "timestamp": time.time()}])
 
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
 

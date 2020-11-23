@@ -14,9 +14,9 @@ from commlib.logger import Logger
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService, Subscriber
+    from commlib.transports.amqp import RPCService, Subscriber, Publisher
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService, Subscriber
+    from commlib.transports.redis import RPCService, Subscriber, Publisher
 
 from derp_me.client import DerpMeClient
 
@@ -31,6 +31,21 @@ class IrController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.map = map
+        self.base_topic = info["base_topic"]
+        self.streamable = info["streamable"]
+        if self.streamable:
+            _topic = self.base_topic + "/stream"
+            self.publisher = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+            _topic = self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.distance." + self.info["place"]
+            self.var_publisher = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -107,12 +122,22 @@ class IrController:
 
             self.memory_write(val)
 
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.distance." + self.info["place"],
-                [{
+            if self.streamable:
+                self.publisher.publish({
                     "data": val,
                     "timestamp": time.time()
-                }])
+                })
+                self.var_publisher.publish({
+                    "data": val,
+                    "timestamp": time.time()
+                })
+            else:
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.distance." + self.info["place"],
+                    [{
+                        "data": val,
+                        "timestamp": time.time()
+                    }])
 
         self.logger.info("Ir {} sensor read thread stopped".format(self.info["id"]))
 
