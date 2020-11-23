@@ -18,21 +18,24 @@ elif ConnParams.type == "redis":
 from commlib.logger import Logger
 from derp_me.client import DerpMeClient
 
-
-
 current_milli_time = lambda: int(round(time.time() * 1000))
 
-
 class ButtonArrayController():
-    def __init__(self, info = None):
-        self.logger = Logger(info["name"] + "-" + info["id"])
-       
+    def __init__(self, info = None, logger = None, derp = None):
+        if logger is None:
+            self.logger = Logger(info["name"] + "-" + info["id"])
+        else:
+            self.logger = logger
+
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         if self.info["mode"] == "real":
             from pidevices import ButtonArrayMcp23017
@@ -42,7 +45,7 @@ class ButtonArrayController():
                                                 bounce=self.conf["bounce"],
                                                 name=self.name,
                                                 max_data_length=10)
-            
+
             self.number_of_buttons = len(self.conf["pin_nums"])
             #print("List length: ",self.number_of_buttons)
 
@@ -51,7 +54,7 @@ class ButtonArrayController():
             self.button_places = self.conf["places"]
             #print("Button places: ", self.button_places)
 
-            self.prev = 0 
+            self.prev = 0
 
         _topic = info["base_topic"] + "/get"
         self.button_array_rpc_server = RPCService(
@@ -70,7 +73,7 @@ class ButtonArrayController():
             on_request=self.disable_callback,
             rpc_name=info["base_topic"] + "/disable")
 
-    
+
     def real_button_pressed(self, button):
         if self.values[button] is False:
             return
@@ -109,7 +112,7 @@ class ButtonArrayController():
             for pin_num in range(self.number_of_buttons):
                 print("function assigned for button: ", pin_num)
                 self.sensor.when_pressed(pin_num, self.real_button_pressed, pin_num)
-           
+
             buttons = [i for i in range(self.number_of_buttons)]
             self.sensor.enable_pressed(buttons)
 
@@ -119,7 +122,7 @@ class ButtonArrayController():
         self.button__array_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
-        
+
         self.sensor.stop()
 
 
@@ -143,7 +146,7 @@ class ButtonArrayController():
         self.logger.info(f"Button {self.info['id']} stops reading")
         return {"enabled": False}
 
-    
+
 
     def button_array_callback(self, message, meta):
         if self.info["enabled"] is False:
@@ -179,10 +182,3 @@ class ButtonArrayController():
             pass
 
         return ret
-
-
-
-
-
-        
-    

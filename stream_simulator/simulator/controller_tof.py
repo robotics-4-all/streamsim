@@ -21,7 +21,7 @@ elif ConnParams.type == "redis":
 from derp_me.client import DerpMeClient
 
 class TofController:
-    def __init__(self, info = None, map = None, logger = None):
+    def __init__(self, info = None, map = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -31,7 +31,11 @@ class TofController:
         self.name = info["name"]
         self.map = map
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         if self.info["mode"] == "real":
             from pidevices.sensors.vl53l1x import VL53L1X

@@ -21,7 +21,7 @@ elif ConnParams.type == "redis":
 from derp_me.client import DerpMeClient
 
 class SonarController:
-    def __init__(self, info = None, map = None, logger = None):
+    def __init__(self, info = None, map = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -32,7 +32,11 @@ class SonarController:
         self.conf = info["sensor_configuration"]
         self.map = map
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         self.memory = 100 * [0]
 

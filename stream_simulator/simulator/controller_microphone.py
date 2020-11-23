@@ -19,8 +19,10 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib.transports.redis import ActionServer, RPCService, Subscriber
 
+from derp_me.client import DerpMeClient
+
 class MicrophoneController:
-    def __init__(self, info = None, logger = None):
+    def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -29,6 +31,12 @@ class MicrophoneController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         self.blocked = False
 
@@ -74,9 +82,6 @@ class MicrophoneController:
                 on_message = self.robot_pose_update)
             self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
             self.robot_pose_sub.run()
-
-        from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
@@ -136,7 +141,7 @@ class MicrophoneController:
 
             findings = {
                 "humans": [],
-                "superman": [], 
+                "superman": [],
                 "sound_sources": []
             }
             closest = "empty"
@@ -191,7 +196,7 @@ class MicrophoneController:
 
             # Check if superman is the closest:
             if closest == "superman":
-                wav = "english_sentence.wav"                      
+                wav = "english_sentence.wav"
 
             if closest == "sound_sources":
                 if closest_full["lang"] == "EL":

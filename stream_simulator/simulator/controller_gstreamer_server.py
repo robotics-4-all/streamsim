@@ -20,7 +20,7 @@ from commlib.logger import Logger
 from derp_me.client import DerpMeClient
 
 class GstreamerServerController:
-    def __init__(self, info = None, logger = None):
+    def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -30,7 +30,11 @@ class GstreamerServerController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),

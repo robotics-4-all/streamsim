@@ -22,16 +22,23 @@ elif ConnParams.type == "redis":
 
 
 class CytronLFController:
-    def __init__(self, info = None):
-        self.logger = Logger(info["name"] + "-" + info["id"])
+    def __init__(self, info = None, logger = None, derp = None):
+        if logger is None:
+            self.logger = Logger(info["name"] + "-" + info["id"])
+        else:
+            self.logger = logger
 
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
-        if self.info["mode"] == "real": 
+        if self.info["mode"] == "real":
             from pidevices import CytronLfLSS05Mcp23017
 
             self.lf_sensor = CytronLfLSS05Mcp23017(bus=self.conf["bus"],
@@ -45,7 +52,7 @@ class CytronLFController:
                                                 cal=self.conf["cal"],
                                                 name=self.name,
                                                 max_data_length=self.conf["max_data_length"])
-                        
+
             #self._lf_controller = LineFollowingMotion(self.lf, sample_rate=30, kp=0.09, ki=0.003, kd=0.0015, sensor_config=self.info)
 
             ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/imu_hw_interface/imu_hw_interface/imu_hw_interface.py
@@ -121,7 +128,7 @@ class CytronLFController:
             r = self.derp_client.lset(
                 self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.cytron_lf.roll",
                 [{"data": val["so_5"], "timestamp": time.time()}])
-           
+
 
         self.logger.info("Cytron-LF {} sensor read thread stopped".format(self.info["id"]))
 
@@ -139,7 +146,7 @@ class CytronLFController:
         self.info["enabled"] = False
         self.logger.info("Cytron-LF {} stops reading".format(self.info["id"]))
         return {"enabled": False}
-    
+
     # def on_goal(self, goalh):
     #     self.logger.info("{} Line following motion started".format(self.name))
 
@@ -217,13 +224,13 @@ class CytronLFController:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("Cytron Line Follower {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
-            
+
     def stop(self):
         self.info["enabled"] = False
         self.cytron_lf_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
-        
+
         self.sensor_read_thread.join()
 
         # if we are on "real" mode and the controller has started then Terminate it
@@ -256,7 +263,7 @@ class CytronLFController:
                         "sec": secs,
                         "nanosec": nanosecs
                     }
-                },  
+                },
                 "so_1": self.memory[-i]["so_1"],
                 "so_2": self.memory[-i]["so_2"],
                 "so_3": self.memory[-i]["so_3"],

@@ -11,6 +11,7 @@ import random
 from colorama import Fore, Style
 
 from commlib.logger import Logger
+from derp_me.client import DerpMeClient
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
@@ -19,7 +20,7 @@ elif ConnParams.type == "redis":
     from commlib.transports.redis import RPCService, Subscriber, Publisher
 
 class LedsController:
-    def __init__(self, info = None, logger = None):
+    def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -29,6 +30,12 @@ class LedsController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
+
         if self.info["mode"] == "real":
             from pidevices import LedController
             self.led_strip = LedController(led_count=self.conf["led_count"],
@@ -36,11 +43,6 @@ class LedsController:
                                             led_freq_hz=self.conf["led_freq_hz"],
                                             led_brightness=self.conf["led_brightness"],
                                             led_channel=self.conf["led_channel"])
-
-
-
-            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/led_strip_hw_interface/led_strip_hw_interface/led_strip_hw_interface.py
-
 
         self.memory = 100 * [0]
 
@@ -85,9 +87,6 @@ class LedsController:
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
             rpc_name=info["base_topic"] + "/disable")
-
-        from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

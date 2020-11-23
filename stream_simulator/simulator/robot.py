@@ -166,13 +166,24 @@ class Robot:
         self.step_by_step_execution = self.world['robots'][0]['step_by_step_execution']
         self.logger.warning("Step by step execution is {}".format(self.step_by_step_execution))
 
+        # Derpme client creation
+        from derp_me.client import DerpMeClient
+        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+        self.logger.warning(f"New derp-me client from robot.py")
+
         # Devices set
         _logger = None
         if self.common_logging is True:
             _logger = self.logger
         self.device_management = DeviceLookup(
-            world = self.world, map = self.map, name = self.name,\
-            namespace = self.namespace, device_name = name, logger = _logger)
+            world = self.world,
+            map = self.map,
+            name = self.name,
+            namespace = self.namespace,
+            device_name = name,
+            logger = _logger,
+            derp = self.derp_client
+        )
         tmp = self.device_management.get()
         self.devices = tmp['devices']
         self.controllers = tmp['controllers']
@@ -306,9 +317,6 @@ class Robot:
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
-
-        from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
         self.logger.info("Device {} set-up".format(self.name))
 

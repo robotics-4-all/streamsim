@@ -18,8 +18,10 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib.transports.redis import RPCService
 
+from derp_me.client import DerpMeClient
+
 class TouchScreenController:
-    def __init__(self, info = None, logger = None):
+    def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -27,6 +29,12 @@ class TouchScreenController:
 
         self.info = info
         self.name = info["name"]
+
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         self.memory = 100 * [0]
 

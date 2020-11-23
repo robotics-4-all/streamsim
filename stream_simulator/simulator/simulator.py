@@ -67,6 +67,7 @@ class Simulator:
             # conn_params.host = "localhost"
             # conn_params.port = 6379
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from simulator.py")
 
             wait_for = self.robot.world['robots'][0]['wait_for']
 

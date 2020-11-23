@@ -19,7 +19,7 @@ from commlib.logger import Logger
 from derp_me.client import DerpMeClient
 
 class ButtonController:
-    def __init__(self, info = None, logger = None):
+    def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -29,7 +29,11 @@ class ButtonController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         if self.info["mode"] == "real":
             from pidevices import ButtonMcp23017
@@ -43,8 +47,8 @@ class ButtonController:
                                          max_data_length=self.conf["max_data_length"])
 
             self.sensor.when_pressed(self.real_button_pressed)
-       
-           
+
+
 
             #### Continue implementation: https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/button_hw_interface/button_hw_interface/button_hw_interface.py
         elif self.info["mode"] == "simulation":

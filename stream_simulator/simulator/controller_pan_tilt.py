@@ -19,7 +19,7 @@ elif ConnParams.type == "redis":
     from commlib.transports.redis import RPCService, Subscriber
 
 class PanTiltController:
-    def __init__(self, info = None, logger = None):
+    def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -28,6 +28,12 @@ class PanTiltController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         # create object
         if self.info["mode"] == "real":

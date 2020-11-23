@@ -21,8 +21,10 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib.transports.redis import RPCService, Subscriber
 
+from derp_me.client import DerpMeClient
+
 class CameraController:
-    def __init__(self, info = None, logger = None):
+    def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -31,6 +33,12 @@ class CameraController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         # merge actors
         self.actors = []
@@ -86,9 +94,6 @@ class CameraController:
             "empty": "empty.png",
             "superman": "all.png"
         }
-
-        from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
@@ -167,7 +172,7 @@ class CameraController:
                     self.logger.info("\tThres to {}: {} / {}".format(h["id"], math.hypot(xt - xx, yt - yy), thres))
                     if math.hypot(xt - xx, yt - yy) < thres:
                         # We got a winner!
-                        findings[h["type"]].append(h)  
+                        findings[h["type"]].append(h)
                         if d < closest_dist:
                             closest = h["type"]
                             closest_full = h
@@ -200,7 +205,7 @@ class CameraController:
             # Special handle for superman
             if closest == "superman":
                 img = "all.png"
-                
+
             # Special handle for barcodes
             if closest == "barcodes":
                 img = "barcode.jpg"

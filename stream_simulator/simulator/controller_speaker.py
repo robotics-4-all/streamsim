@@ -19,8 +19,10 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib.transports.redis import ActionServer, RPCService
 
+from derp_me.client import DerpMeClient
+
 class SpeakerController:
-    def __init__(self, info = None, logger = None):
+    def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"] + "-" + info["id"])
         else:
@@ -29,6 +31,12 @@ class SpeakerController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         self.global_volume = None
         self.blocked = False
@@ -40,8 +48,8 @@ class SpeakerController:
             self.speaker = Speaker(dev_name = self.conf["dev_name"], name = self.name, max_data_length = self.conf["max_data_length"])
 
             if self.info["speak_mode"] == "espeak":
-                from espeakng import ESpeakNG 
-                
+                from espeakng import ESpeakNG
+
                 self.esng = ESpeakNG()
                 #self.esng.pitch = 32
                 #self.esng.speed = 150
@@ -85,9 +93,6 @@ class SpeakerController:
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
             rpc_name=info["base_topic"] + "/disable")
-
-        from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
 
         # Try to get global volume:
         res = self.derp_client.get(
