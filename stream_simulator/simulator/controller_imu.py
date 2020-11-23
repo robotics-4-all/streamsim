@@ -38,7 +38,7 @@ class ImuController:
 
             self._sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
             self._imu_calibrator = IMUCalibration(calib_time=5, buf_size=5)
-           
+
 
         self.memory = 100 * [0]
 
@@ -190,7 +190,7 @@ class ImuController:
         if self.info["enabled"] is False:
             return {"data": []}
 
-        self.logger.info("Robot {}: Imu callback: {}".format(self.name, message))
+        self.logger.debug("Robot {}: Imu callback: {}".format(self.name, message))
         try:
             _to = message["from"] + 1
             _from = message["to"]

@@ -32,7 +32,7 @@ class EncoderController:
         if self.info["mode"] == "real":
             from pidevices import DfRobotWheelEncoderPiGPIO
 
-            self.sensor = DfRobotWheelEncoderPiGPIO(gpio=self.conf["pin"], 
+            self.sensor = DfRobotWheelEncoderPiGPIO(gpio=self.conf["pin"],
                                                       pulses_per_rev = 10,
                                                       name=self.name,
                                                       max_data_length=self.conf["max_data_length"])
@@ -103,7 +103,7 @@ class EncoderController:
 
     def stop(self):
         self.info["enabled"] = False
-        
+
         self.encoder_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
@@ -120,7 +120,7 @@ class EncoderController:
         if self.info["enabled"] is False:
             return {"data": []}
 
-        self.logger.info("Robot {}: encoder callback: {}".format(self.name, message))
+        self.logger.debug("Robot {}: encoder callback: {}".format(self.name, message))
         try:
             _to = message["from"] + 1
             _from = message["to"]

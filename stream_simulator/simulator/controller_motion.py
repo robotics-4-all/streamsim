@@ -43,7 +43,7 @@ class MotionController:
         self._angular = 0
 
         self.memory = 100 * [0]
-        
+
         # set Speed
         _topic = info["base_topic"] + "/set"
         self.vel_sub = Subscriber(
@@ -99,7 +99,7 @@ class MotionController:
     def memory_write(self, data):
         del self.memory[-1]
         self.memory.insert(0, data)
-        self.logger.info("Robot {}: memory updated for {}".format(self.name, "leds"))
+        #self.logger.info("Robot {}: memory updated for {}".format(self.name, "leds"))
 
     def cmd_vel(self, message, meta):
         try:
@@ -116,10 +116,10 @@ class MotionController:
             else: # The real deal
                 if self._raw == True:
                     self.motor_driver.write(self._linear, self._angular)        # write pwm values
-                else:   
+                else:
                     self.motor_driver.setSpeed(self._linear, self._angular)     # write speed values
 
-            self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
+            self.logger.debug("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
         except Exception as e:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
 
