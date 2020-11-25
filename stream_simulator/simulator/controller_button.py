@@ -28,6 +28,15 @@ class ButtonController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+        self.streamable = info["streamable"]
+        if self.streamable:
+            _topic = self.base_topic + "/data"
+            self.publisher = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -48,9 +57,6 @@ class ButtonController:
 
             self.sensor.when_pressed(self.real_button_pressed)
 
-
-
-            #### Continue implementation: https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/button_hw_interface/button_hw_interface/button_hw_interface.py
         elif self.info["mode"] == "simulation":
             _topic = self.info['device_name'] + "/buttons_sim"
             self.sim_button_pressed_sub = Subscriber(
@@ -107,24 +113,30 @@ class ButtonController:
 
     def sim_button_pressed(self, data, meta):
         if data["button"] == self.info["place"]:
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"],
-                [{
-                    "data": 1,
-               	    "timestamp": time.time()
-                }])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
-                [{
+            if self.streamable:
+                self.publisher.publish({
                     "data": 1,
                     "timestamp": time.time()
-                }])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
-                [{
-                    "data": "Tactile." + self.info["place"],
-                    "timestamp": time.time()
-                }])
+                })
+            else:
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"],
+                    [{
+                        "data": 1,
+                   	    "timestamp": time.time()
+                    }])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
+                    [{
+                        "data": 1,
+                        "timestamp": time.time()
+                    }])
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
+                    [{
+                        "data": "Tactile." + self.info["place"],
+                        "timestamp": time.time()
+                    }])
 
             self.logger.warning(f"Button controller: Pressed from sim! {data}")
 

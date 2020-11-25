@@ -32,7 +32,7 @@ class CytronLFController:
         self.base_topic = info["base_topic"]
         self.streamable = info["streamable"]
         if self.streamable:
-            _topic = self.base_topic + "/stream"
+            _topic = self.base_topic + "/data"
             self.publisher = Publisher(
                 conn_params=ConnParams.get("redis"),
                 topic=_topic

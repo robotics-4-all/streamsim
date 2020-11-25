@@ -17,9 +17,9 @@ from commlib.logger import Logger
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService, Subscriber
+    from commlib.transports.amqp import RPCService, Subscriber, Publisher
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService, Subscriber
+    from commlib.transports.redis import RPCService, Subscriber, Publisher
 
 from derp_me.client import DerpMeClient
 
@@ -33,6 +33,15 @@ class CameraController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+        self.streamable = info["streamable"]
+        if self.streamable:
+            _topic = self.base_topic + "/data"
+            self.publisher = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -55,7 +64,6 @@ class CameraController:
                                  name=self.name,
                                  max_data_length=self.conf["max_data_length"])
             self.sensor.stop()
-            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/camera_hw_interface/camera_hw_interface/camera_hw_interface.py
 
         self.memory = 100 * [0]
 
@@ -100,6 +108,8 @@ class CameraController:
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
+        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
+        self.sensor_read_thread.start()
         return {"enabled": True}
 
     def disable_callback(self, message, meta):
@@ -111,6 +121,11 @@ class CameraController:
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
+        if self.info["enabled"]:
+            self.sensor_read_thread = threading.Thread(target = self.sensor_read)
+            self.sensor_read_thread.start()
+            self.logger.info("Camera {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
+
     def stop(self):
         self.get_image_rpc_server.stop()
         self.enable_rpc_server.stop()
@@ -121,7 +136,21 @@ class CameraController:
         self.memory.insert(0, data)
         self.logger.info("Robot {}: memory updated for {}".format(self.name, "ir"))
 
+    def sensor_read(self):
+        self.logger.info("camera {} sensor read thread started".format(self.info["id"]))
+        while self.info["enabled"]:
+            time.sleep(1.0 / self.info["hz"])
+            img = self.get_image({"width": 800, "height": 600})
+            self.publisher.publish({
+                "data": img,
+                "timestamp": time.time()
+            })
+            self.logger.debug("camera done")
+
     def get_image_callback(self, message, meta):
+        return self.get_image(message)
+
+    def get_image(self, message):
         self.logger.info("Robot {}: get image callback: {}".format(self.name, message))
         try:
             width = message["width"]
@@ -163,13 +192,13 @@ class CameraController:
                 xx = h["x"] * reso
                 yy = h["y"] * reso
                 d = math.hypot(xx - x, yy - y)
-                self.logger.info("dist to {}: {}".format(h["id"], d))
+                self.logger.debug("dist to {}: {}".format(h["id"], d))
                 if d <= 2.0:
                     # In range - check if in the same semi-plane
                     xt = x + math.cos(th) * d
                     yt = y + math.sin(th) * d
                     thres = d * 1.4142
-                    self.logger.info("\tThres to {}: {} / {}".format(h["id"], math.hypot(xt - xx, yt - yy), thres))
+                    self.logger.debug("\tThres to {}: {} / {}".format(h["id"], math.hypot(xt - xx, yt - yy), thres))
                     if math.hypot(xt - xx, yt - yy) < thres:
                         # We got a winner!
                         findings[h["type"]].append(h)
@@ -179,7 +208,7 @@ class CameraController:
 
             for i in findings:
                 for j in findings[i]:
-                    self.logger.info("Camera detected: " + str(j))
+                    self.logger.debug("Camera detected: " + str(j))
             self.logger.info("Closest detection: {}".format(closest))
 
             img = self.images[closest]
@@ -193,7 +222,7 @@ class CameraController:
                 self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
                 [cl_f]
             )
-            print(f"Derp me updated with {cl_f}")
+            self.logger.debug(f"Derp me updated with {cl_f}")
 
             # Special handle for humans
             if closest == "humans":
@@ -286,5 +315,5 @@ class CameraController:
             "height": height,
             "image": data
         }
-        self.logger.warning(f"Camera controller sends {len(data)} bytes")
+        self.logger.debug(f"Camera controller sends {len(data)} bytes")
         return ret

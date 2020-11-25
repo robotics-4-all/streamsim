@@ -11,9 +11,9 @@ from colorama import Fore, Style
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService, Subscriber
+    from commlib.transports.amqp import RPCService, Subscriber, Publisher
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService, Subscriber
+    from commlib.transports.redis import RPCService, Subscriber, Publisher
 
 from commlib.logger import Logger
 from derp_me.client import DerpMeClient
@@ -30,6 +30,15 @@ class ButtonArrayController():
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+        self.streamable = info["streamable"]
+        if self.streamable:
+            _topic = self.base_topic + "/data"
+            self.publisher = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -78,25 +87,34 @@ class ButtonArrayController():
         if self.values[button] is False:
             return
         self.values[button] = False
-        print("Button ", button, " pressed at ", current_milli_time())
-        r = self.derp_client.lset(
-            self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.button_places[button],
-            [{
-                "data": button,
+        self.logger.info(f"Button {button} pressed at {current_milli_time()}")
+        if self.streamable:
+            self.publisher.publish({
+                "data": {
+                    "button": button,
+                    "value": 1
+                },
                 "timestamp": time.time()
-            }])
-        r = self.derp_client.lset(
-            self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
-            [{
-                "data": button,
-                "timestamp": time.time()
-            }])
-        r = self.derp_client.lset(
-            self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
-            [{
-                "data": "Tactile." + self.button_places[button],
-                "timestamp": time.time()
-            }])
+            })
+        else:
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.button_places[button],
+                [{
+                    "data": button,
+                    "timestamp": time.time()
+                }])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
+                [{
+                    "data": button,
+                    "timestamp": time.time()
+                }])
+            r = self.derp_client.lset(
+                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
+                [{
+                    "data": "Tactile." + self.button_places[button],
+                    "timestamp": time.time()
+                }])
 
         #self.logger.warning("Button controller: Pressed from real! ")
         self.values[button] = True
@@ -116,7 +134,6 @@ class ButtonArrayController():
             buttons = [i for i in range(self.number_of_buttons)]
             self.sensor.enable_pressed(buttons)
 
-
     def stop(self):
         self.info["enabled"] = False
         self.button__array_rpc_server.stop()
@@ -125,11 +142,9 @@ class ButtonArrayController():
 
         self.sensor.stop()
 
-
     def memory_write(self, data):
         del self.memory[-1]
         self.memory.insert(0, data)
-
 
     def enable_callback(self, message, meta):
         print("Button array starting")
@@ -140,13 +155,10 @@ class ButtonArrayController():
         self.memory = self.info["queue_size"] * [0]
         return {"enabled": True}
 
-
     def disable_callback(self, message, meta):
         self.info["enabled"] = False
         self.logger.info(f"Button {self.info['id']} stops reading")
         return {"enabled": False}
-
-
 
     def button_array_callback(self, message, meta):
         if self.info["enabled"] is False:

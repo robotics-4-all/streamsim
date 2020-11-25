@@ -14,9 +14,9 @@ from commlib.logger import Logger
 
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService
+    from commlib.transports.amqp import RPCService, Publisher
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService
+    from commlib.transports.redis import RPCService, Publisher
 
 from derp_me.client import DerpMeClient
 
@@ -30,6 +30,15 @@ class EncoderController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+        self.streamable = info["streamable"]
+        if self.streamable:
+            _topic = self.base_topic + "/data"
+            self.publisher = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -44,7 +53,6 @@ class EncoderController:
                                                       pulses_per_rev = 10,
                                                       name=self.name,
                                                       max_data_length=self.conf["max_data_length"])
-            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/encoder_hw_interface/encoder_hw_interface/encoder_hw_interface.py
 
         self.memory = 100 * [0]
 
@@ -70,14 +78,23 @@ class EncoderController:
 
         while self.info["enabled"]:
             if self.info["mode"] == "mock":
-                self.memory_write(float(random.uniform(1000,2000)))
+                self.data = float(random.uniform(1000,2000))
+                self.memory_write(self.data)
             elif self.info["mode"] == "simulation":
-                self.memory_write(float(random.uniform(1000,2000)))
+                self.data = float(random.uniform(1000,2000))
+                self.memory_write(self.data)
             else: # The real deal
                 self.data = self.sensor.read_rpm()
                 self.memory_write(self.data)
 
             time.sleep(period)
+
+            if self.streamable:
+                self.publisher.publish({
+                    "data": self.data,
+                    "timestamp": time.time()
+                })
+
         self.logger.info("Encoder {} sensor read thread stopped".format(self.info["id"]))
 
     def enable_callback(self, message, meta):
