@@ -54,28 +54,32 @@ class MicrophoneController:
                                      channels=self.conf["channels"],
                                      name=self.name,
                                      max_data_length=self.conf["max_data_length"])
-            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/microphone_hw_interface/microphone_hw_interface/microphone_hw_interface.py
 
         self.memory = 100 * [0]
 
-        _topic = info["base_topic"] + "/record"
+        _topic = info["base_topic"] + ".record"
         self.record_action_server = ActionServer(
             conn_params=ConnParams.get("redis"),
             on_goal=self.on_goal,
             action_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis ActionServer {_topic}{Style.RESET_ALL}")
 
+        _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.enable_callback,
-            rpc_name=info["base_topic"] + "/enable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".disable"
         self.disable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
-            rpc_name=info["base_topic"] + "/disable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
         if self.info["mode"] == "simulation":
-            _topic = self.info['device_name'] + "/pose"
+            _topic = self.info['device_name'] + ".pose"
             self.robot_pose_sub = Subscriber(conn_params=
                 ConnParams.get("redis"),
                 topic = _topic,

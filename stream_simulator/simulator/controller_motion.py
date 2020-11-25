@@ -45,36 +45,39 @@ class MotionController:
             self.wheel_separation = self.conf["wheel_separation"]
             self.wheel_radius = self.conf["wheel_radius"]
 
-            ## https://github.com/robotics-4-all/tektrain-ros-packages/blob/master/ros_packages/robot_hw_interfaces/motor_controller_hw_interface/motor_controller_hw_interface/motor_controller_hw_interface.py
-
         self._linear = 0
         self._angular = 0
 
         self.memory = 100 * [0]
 
         # set Speed
-        _topic = info["base_topic"] + "/set"
+        _topic = info["base_topic"] + ".set"
         self.vel_sub = Subscriber(
             conn_params=ConnParams.get("redis"),
             topic = _topic,
             on_message = self.cmd_vel)
         self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
-        _topic = info["base_topic"] + "/get"
+        _topic = info["base_topic"] + ".get"
         self.motion_get_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.motion_get_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
+        _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.enable_callback,
-            rpc_name=info["base_topic"] + "/enable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".disable"
         self.disable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
-            rpc_name=info["base_topic"] + "/disable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

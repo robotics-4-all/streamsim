@@ -62,10 +62,6 @@ class Simulator:
 
             # Wait for rhasspy
             from derp_me.client import DerpMeClient
-            # from commlib.transports.redis import ConnectionParameters
-            # conn_params = ConnectionParameters()
-            # conn_params.host = "localhost"
-            # conn_params.port = 6379
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
             self.logger.warning(f"New derp-me client from simulator.py")
 

@@ -72,9 +72,9 @@ class Robot:
         try:
             self.namespace = os.environ['TEKTRAIN_NAMESPACE']
         except:
-            self.logger.warning("No TEKTRAIN_NAMESPACE environmental variable found. Automatically setting it to /robot")
-            os.environ["TEKTRAIN_NAMESPACE"] = "/robot"
-            self.namespace = "/robot"
+            self.logger.warning("No TEKTRAIN_NAMESPACE environmental variable found. Automatically setting it to robot")
+            os.environ["TEKTRAIN_NAMESPACE"] = "robot"
+            self.namespace = "robot"
 
         self.common_logging = False
 
@@ -127,7 +127,7 @@ class Robot:
             self.logger.warning(f"Error in streamsim system configuration file: {str(e)}")
 
         self.raw_name = name
-        self.name = self.namespace + "/" + name
+        self.name = self.namespace + "." + name
         self.dt = tick
 
         # intial robot pose - remains remains constant throughout streamsim launch
@@ -194,21 +194,21 @@ class Robot:
             self.motion_controller = None
 
         # rpc service which resets the robot pose to the initial given values
-        _topic = self.name + '/reset_robot_pose'
+        _topic = self.name + '.reset_robot_pose'
         self.reset_pose_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.reset_pose_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN} Created redis RPCService {_topic} {Style.RESET_ALL}")
 
-        _topic = self.name + '/nodes_detector/get_connected_devices'
+        _topic = self.name + '.nodes_detector.get_connected_devices'
         self.devices_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.devices_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN} Created redis RPCService {_topic} {Style.RESET_ALL}")
 
-        _topic =name + "/pose"
+        _topic =name + ".pose"
         self.internal_pose_pub = Publisher(
             conn_params=ConnParams.get("redis"),
             topic= _topic)
@@ -218,7 +218,7 @@ class Robot:
         if self.world['robots'][0]['amqp_inform'] is True:
             import commlib
 
-            final_t = self.name.replace("/", ".")[1:]
+            final_t = self.name
             final_t = final_t[final_t.find(".") + 1:]
             final_top = final_t + ".pose"
             final_dete_top = final_t + ".detect"
@@ -272,7 +272,7 @@ class Robot:
 
             # REDIS Publishers  -----------------------------------------------
 
-            _topic = name + "/buttons_sim"
+            _topic = name + ".buttons_sim"
             self.buttons_sim_pub = Publisher(
                 conn_params=ConnParams.get("redis"),
                 topic= _topic)
@@ -342,7 +342,7 @@ class Robot:
         done = False
         while not done:
             try:
-                v2 = self.derp_client.lget(self.name.replace("/", ".")[1:] + ".detect.source", 0, 0)['val'][0]
+                v2 = self.derp_client.lget(self.name + ".detect.source", 0, 0)['val'][0]
                 self.logger.info("Got the source!")
                 done = True
             except:

@@ -64,14 +64,14 @@ class SpeakerController:
                     audio_encoding = texttospeech.AudioEncoding.LINEAR16,
                     sample_rate_hertz = 44100)
 
-        _topic = info["base_topic"] + "/play"
+        _topic = info["base_topic"] + ".play"
         self.play_action_server = ActionServer(
             conn_params=ConnParams.get("redis"),
             on_goal=self.on_goal_play,
             action_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis ActionServer {_topic}{Style.RESET_ALL}")
 
-        _topic = info["base_topic"] + "/speak"
+        _topic = info["base_topic"] + ".speak"
         self.speak_action_server = ActionServer(
             conn_params=ConnParams.get("redis"),
             on_goal=self.on_goal_speak,
@@ -85,14 +85,19 @@ class SpeakerController:
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
+        _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.enable_callback,
-            rpc_name=info["base_topic"] + "/enable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".disable"
         self.disable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
-            rpc_name=info["base_topic"] + "/disable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
         # Try to get global volume:
         res = self.derp_client.get(

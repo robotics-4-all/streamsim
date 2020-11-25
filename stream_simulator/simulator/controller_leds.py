@@ -46,6 +46,7 @@ class LedsController:
 
         self.memory = 100 * [0]
 
+        # These are to inform amqp###################
         _topic = self.info['device_name'] + ".leds"
         self.leds_pub = Publisher(
             conn_params=ConnParams.get("redis"),
@@ -57,36 +58,42 @@ class LedsController:
             conn_params=ConnParams.get("redis"),
             topic=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+        #############################################
 
-        _topic = info["base_topic"] + "/leds/set"
+        _topic = info["base_topic"] + ".leds.set"
         self.leds_set_sub = Subscriber(
             conn_params=ConnParams.get("redis"),
             topic=_topic,
             on_message = self.leds_set_callback)
         self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
-        _topic = info["base_topic"] + "/leds_wipe/set"
+        _topic = info["base_topic"] + ".leds_wipe.set"
         self.leds_wipe_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.leds_wipe_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
-        _topic = info["base_topic"] + "/get"
+        _topic = info["base_topic"] + ".get"
         self.leds_get_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.leds_get_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
+        _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.enable_callback,
-            rpc_name=info["base_topic"] + "/enable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".disable"
         self.disable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
-            rpc_name=info["base_topic"] + "/disable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

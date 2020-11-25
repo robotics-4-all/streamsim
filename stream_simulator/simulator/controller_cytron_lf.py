@@ -32,7 +32,7 @@ class CytronLFController:
         self.base_topic = info["base_topic"]
         self.streamable = info["streamable"]
         if self.streamable:
-            _topic = self.base_topic + "/data"
+            _topic = self.base_topic + ".data"
             self.publisher = Publisher(
                 conn_params=ConnParams.get("redis"),
                 topic=_topic
@@ -62,21 +62,26 @@ class CytronLFController:
 
         self.memory = 100 * [0]
 
-        _topic = info["base_topic"] + "/get"
+        _topic = info["base_topic"] + ".get"
         self.cytron_lf_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.cytron_lf_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
+        _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.enable_callback,
-            rpc_name=info["base_topic"] + "/enable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".disable"
         self.disable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
-            rpc_name=info["base_topic"] + "/disable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
