@@ -208,7 +208,7 @@ class Robot:
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN} Created redis RPCService {_topic} {Style.RESET_ALL}")
 
-        _topic =name + ".pose"
+        _topic =self.name + ".pose"
         self.internal_pose_pub = Publisher(
             conn_params=ConnParams.get("redis"),
             topic= _topic)

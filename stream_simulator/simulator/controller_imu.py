@@ -76,7 +76,7 @@ class ImuController:
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
         if self.info["mode"] == "simulation":
-            _topic = self.info['device_name'] + ".pose"
+            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
             self.robot_pose_sub = Subscriber(
                 conn_params=ConnParams.get("redis"),
                 topic = _topic,

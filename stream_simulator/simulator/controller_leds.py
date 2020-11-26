@@ -60,14 +60,14 @@ class LedsController:
         self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
         #############################################
 
-        _topic = info["base_topic"] + ".leds.set"
+        _topic = info["base_topic"] + ".set"
         self.leds_set_sub = Subscriber(
             conn_params=ConnParams.get("redis"),
             topic=_topic,
             on_message = self.leds_set_callback)
         self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
-        _topic = info["base_topic"] + ".leds_wipe.set"
+        _topic = info["base_topic"] + ".wipe"
         self.leds_wipe_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.leds_wipe_callback,
