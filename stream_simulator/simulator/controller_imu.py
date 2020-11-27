@@ -145,21 +145,11 @@ class ImuController:
 
             self.memory_write(val)
 
-            if self.streamable:
-                self.publisher.publish({
-                    "data": val,
-                    "timestamp": time.time()
-                })
-            else:
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.roll",
-                    [{"data": val["gyro"]["roll"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.pitch",
-                    [{"data": val["gyro"]["pitch"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.imu.yaw",
-                    [{"data": val["gyro"]["yaw"], "timestamp": time.time()}])
+            # Publish data to sensor stream
+            self.publisher.publish({
+                "data": val,
+                "timestamp": time.time()
+            })
 
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
 
