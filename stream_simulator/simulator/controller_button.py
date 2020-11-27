@@ -122,6 +122,12 @@ class ButtonController:
                     "data": 1,
                     "timestamp": time.time()
                 })
+                time.sleep(0.1)
+                # Simulated release
+                self.publisher.publish({
+                    "data": 0,
+                    "timestamp": time.time()
+                })
             else:
                 r = self.derp_client.lset(
                     self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"],
@@ -140,6 +146,14 @@ class ButtonController:
                     [{
                         "data": "Tactile." + self.info["place"],
                         "timestamp": time.time()
+                    }])
+
+                # Simulated release
+                r = self.derp_client.lset(
+                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"],
+                    [{
+                        "data": 0,
+                   	    "timestamp": time.time()
                     }])
 
             self.logger.warning(f"Button controller: Pressed from sim! {data}")
