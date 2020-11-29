@@ -223,7 +223,7 @@ class CameraController:
             if closest == "empty":
                 cl_f = "empty"
             self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
+                self.info["namespace"] + "." + self.info["device_name"] + ".detect.source",
                 [cl_f]
             )
             self.logger.debug(f"Derp me updated with {cl_f}")
