@@ -150,13 +150,12 @@ class CameraController:
                 "data": img,
                 "timestamp": time.time()
             })
-            self.logger.debug("camera done")
 
     def get_image_callback(self, message, meta):
         return self.get_image(message)
 
     def get_image(self, message):
-        self.logger.info("Robot {}: get image callback: {}".format(self.name, message))
+        self.logger.debug("Robot {}: get image callback: {}".format(self.name, message))
         try:
             width = message["width"]
             height = message["height"]
@@ -214,7 +213,7 @@ class CameraController:
             for i in findings:
                 for j in findings[i]:
                     self.logger.debug("Camera detected: " + str(j))
-            self.logger.info("Closest detection: {}".format(closest))
+            self.logger.debug("Closest detection: {}".format(closest))
 
             img = self.images[closest]
 
