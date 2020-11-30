@@ -31,14 +31,13 @@ class TofController:
         self.name = info["name"]
         self.map = map
         self.base_topic = info["base_topic"]
-        self.streamable = info["streamable"]
-        if self.streamable:
-            _topic = self.base_topic + ".data"
-            self.publisher = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic
-            )
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+
+        _topic = self.base_topic + ".data"
+        self.publisher = Publisher(
+            conn_params=ConnParams.get("redis"),
+            topic=_topic
+        )
+        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -114,18 +113,10 @@ class TofController:
 
             self.memory_write(val)
 
-            if self.streamable:
-                self.publisher.publish({
-                    "data": val,
-                    "timestamp": time.time()
-                })
-            else:
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.distance." + self.info["place"],
-                    [{
-                        "data": val,
-                        "timestamp": time.time()
-                    }])
+            self.publisher.publish({
+                "distance": val,
+                "timestamp": time.time()
+            })
 
         self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
 
