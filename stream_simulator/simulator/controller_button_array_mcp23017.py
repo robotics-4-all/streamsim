@@ -45,24 +45,29 @@ class ButtonArrayController():
         else:
             self.derp_client = derp
 
+        self.number_of_buttons = len(self.conf["pin_nums"])
+        self.memory = 100 * [0]
+        self.values = [True] * self.number_of_buttons         # multiple values
+        self.button_places = self.conf["places"]
+        self.prev = 0
+
         if self.info["mode"] == "real":
             from pidevices import ButtonArrayMcp23017
-
             self.sensor = ButtonArrayMcp23017(pin_nums=self.conf["pin_nums"],
                                                 direction=self.conf["direction"],
                                                 bounce=self.conf["bounce"],
                                                 name=self.name,
                                                 max_data_length=10)
 
-            self.number_of_buttons = len(self.conf["pin_nums"])
-            #print("List length: ",self.number_of_buttons)
+        elif self.info["mode"] == "simulation":
+            _topic = self.info['device_name'] + ".buttons_sim"
+            self.sim_button_pressed_sub = Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic = _topic,
+                on_message = self.sim_button_pressed)
 
-            self.memory = 100 * [0]
-            self.values = [True] * self.number_of_buttons         # multiple values
-            self.button_places = self.conf["places"]
-            #print("Button places: ", self.button_places)
-
-            self.prev = 0
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+            self.sim_button_pressed_sub.run()
 
         _topic = info["base_topic"] + ".get"
         self.button_array_rpc_server = RPCService(
@@ -85,6 +90,38 @@ class ButtonArrayController():
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
+    # Untested!!!
+    def sim_button_pressed(self, data, meta):
+        self.publisher.publish({
+            "data": 1,
+            "source": data["button"],
+            "timestamp": time.time()
+        })
+        time.sleep(0.1)
+        # Simulated release
+        self.publisher.publish({
+            "data": 0,
+            "source": data["button"],
+            "timestamp": time.time()
+        })
+        self.logger.warning(f"Button controller: Pressed from sim! {data}")
+
+    def sensor_read(self):
+        self.logger.info(f"Button {self.info['id']} sensor read thread started")
+        while self.info["enabled"]:
+            time.sleep(1.0 / self.info["hz"])
+            if self.info["mode"] == "mock":
+                _val = float(random.randint(0,1))
+                _place = random.randint(0, len(self.button_places) - 1)
+                self.publisher.publish({
+                    "data": _val,
+                    "source": self.button_places[_place],
+                    "timestamp": time.time()
+                })
+
+        self.logger.info(f"Button {self.info['id']} sensor read thread stopped")
+
+    # Untested!!!
     def real_button_pressed(self, button):
         if self.values[button] is False:
             return
@@ -92,34 +129,11 @@ class ButtonArrayController():
         self.logger.info(f"Button {button} pressed at {current_milli_time()}")
 
         self.publisher.publish({
-            "data": {
-                "button": button,
-                "value": 1
-            },
+            "data": 1,
+            "source": self.button_places[button],
             "timestamp": time.time()
         })
-            # r = self.derp_client.lset(
-            #     self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.button_places[button],
-            #     [{
-            #         "data": button,
-            #         "timestamp": time.time()
-            #     }])
-            # r = self.derp_client.lset(
-            #     self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
-            #     [{
-            #         "data": button,
-            #         "timestamp": time.time()
-            #     }])
-            # r = self.derp_client.lset(
-            #     self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
-            #     [{
-            #         "data": "Tactile." + self.button_places[button],
-            #         "timestamp": time.time()
-            #     }])
-
-        #self.logger.warning("Button controller: Pressed from real! ")
         self.values[button] = True
-
 
     def start(self):
         print("Button array starting")
@@ -134,6 +148,10 @@ class ButtonArrayController():
 
             buttons = [i for i in range(self.number_of_buttons)]
             self.sensor.enable_pressed(buttons)
+        if self.info["mode"] == "mock":
+            self.sensor_read_thread = threading.Thread(target = self.sensor_read)
+            self.sensor_read_thread.start()
+            self.logger.info(f"Button {self.info['id']} reads with {self.info['hz']} Hz")
 
     def stop(self):
         self.info["enabled"] = False
@@ -152,6 +170,10 @@ class ButtonArrayController():
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
+
+        if self.info["mode"] == "mock":
+            self.sensor_read_thread = threading.Thread(target = self.sensor_read)
+            self.sensor_read_thread.start()
 
         self.memory = self.info["queue_size"] * [0]
         return {"enabled": True}
@@ -175,8 +197,11 @@ class ButtonArrayController():
         ret = {"data": []}
 
         try:
-            r = self.derp_client.lget(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.info["place"], _from, _to)
+            self.logger.warning(message)
+            _topic = self.info["namespace"] + "." + self.info["device_name"] + ".variables.buttons." + message["button"]
+            self.logger.warning(_topic + " " + str(_from) + " " + str(_to))
+
+            r = self.derp_client.lget(_topic, _from, _to)
             for rr in r['val']:
                 timestamp = time.time()
                 secs = int(timestamp)
@@ -191,7 +216,7 @@ class ButtonArrayController():
                     "change": rr['data']
                 })
 
-        except:
-            pass
+        except Exception as e:
+            print(str(e))
 
         return ret

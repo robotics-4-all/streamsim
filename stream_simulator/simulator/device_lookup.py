@@ -692,7 +692,6 @@ class DeviceLookup:
 
         #===============================Button Array==================================
         # Gather all buttons and pass them into the Button Array Controller
-
         self.button_configuration = {
                 "places": [],
                 "pin_nums": [],
@@ -706,11 +705,8 @@ class DeviceLookup:
                 self.button_configuration["pin_nums"].append(d["sensor_configuration"].get("pin_num"))
                 self.button_configuration["places"].append(d["place"])
 
-        #print("Print button configuration:", self.button_configuration,  " of size: ", len(self.button_configuration))
-
         # if there were any buttons registered create a generic msg passing their configurations
         if len(self.button_configuration["pin_nums"]) > 0:
-            #print("Adding button array")
             cnt += 1
             id = "id_" + str(cnt)
             msg = {
@@ -734,10 +730,14 @@ class DeviceLookup:
 
             self.devices.append(msg)
 
-            #self.devices.append(msg)
             self.controllers[msg["name"]] = ButtonArrayController(info = msg, logger = _logger, derp = self.derp_client)
-        #===============================================================================
 
+            # Change simple buttons' base topic so that then talk to button_array
+            for d in self.devices:
+                # gather all button numbers and places
+                if d["type"] == "BUTTON":
+                    d["base_topic"] = self.name + ".sensor.button_array.d" + str(cnt)
+        #===============================================================================
 
     def get(self):
         return {
