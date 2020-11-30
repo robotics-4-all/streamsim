@@ -69,6 +69,8 @@ class ButtonArrayController():
             self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
             self.sim_button_pressed_sub.run()
 
+        self.derp_me_data_topic = info["base_topic"] + ".raw"
+
         _topic = info["base_topic"] + ".get"
         self.button_array_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
