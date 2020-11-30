@@ -144,7 +144,6 @@ class EncoderController:
     def memory_write(self, data):
         del self.memory[-1]
         self.memory.insert(0, data)
-        # self.logger.info("Robot {}: memory updated for {}".format(self.name, "encoder"))
 
     def encoder_callback(self, message, meta):
         if self.info["enabled"] is False:

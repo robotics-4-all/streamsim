@@ -31,14 +31,13 @@ class EnvController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
-        self.streamable = info["streamable"]
-        if self.streamable:
-            _topic = self.base_topic + ".data"
-            self.publisher = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic
-            )
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+
+        _topic = self.base_topic + ".data"
+        self.publisher = Publisher(
+            conn_params=ConnParams.get("redis"),
+            topic=_topic
+        )
+        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -107,8 +106,6 @@ class EnvController:
                 val["humidity"] = self.info["humidity"] + random.uniform(-3, 3)
                 val["gas"] = self.info["gas"] + random.uniform(-3, 3)
             else: # The real deal
-                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-                # read the sensor values and populate the <val> dictionary
                 data = self.sensor.read()
 
                 val["temperature"] = data.temp
@@ -118,24 +115,10 @@ class EnvController:
 
             self.memory_write(val)
 
-            if self.streamable:
-                self.publisher.publish({
-                    "data": val,
-                    "timestamp": time.time()
-                })
-            else:
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.temperature",
-                    [{"data": val["temperature"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.pressure",
-                    [{"data": val["pressure"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.humidity",
-                    [{"data": val["humidity"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.gas",
-                    [{"data": val["gas"], "timestamp": time.time()}])
+            self.publisher.publish({
+                "data": val,
+                "timestamp": time.time()
+            })
 
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 
