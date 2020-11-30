@@ -32,7 +32,6 @@ class IrController:
         self.conf = info["sensor_configuration"]
         self.map = map
         self.base_topic = info["base_topic"]
-
         self.derp_data_key = info["base_topic"] + ".raw"
 
         _topic = self.base_topic + ".data"
