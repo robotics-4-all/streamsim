@@ -31,14 +31,13 @@ class ButtonArrayController():
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
-        self.streamable = info["streamable"]
-        if self.streamable:
-            _topic = self.base_topic + ".data"
-            self.publisher = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic
-            )
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+
+        _topic = self.base_topic + ".data"
+        self.publisher = Publisher(
+            conn_params=ConnParams.get("redis"),
+            topic=_topic
+        )
+        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -91,33 +90,32 @@ class ButtonArrayController():
             return
         self.values[button] = False
         self.logger.info(f"Button {button} pressed at {current_milli_time()}")
-        if self.streamable:
-            self.publisher.publish({
-                "data": {
-                    "button": button,
-                    "value": 1
-                },
-                "timestamp": time.time()
-            })
-        else:
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.button_places[button],
-                [{
-                    "data": button,
-                    "timestamp": time.time()
-                }])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
-                [{
-                    "data": button,
-                    "timestamp": time.time()
-                }])
-            r = self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
-                [{
-                    "data": "Tactile." + self.button_places[button],
-                    "timestamp": time.time()
-                }])
+
+        self.publisher.publish({
+            "data": {
+                "button": button,
+                "value": 1
+            },
+            "timestamp": time.time()
+        })
+            # r = self.derp_client.lset(
+            #     self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons." + self.button_places[button],
+            #     [{
+            #         "data": button,
+            #         "timestamp": time.time()
+            #     }])
+            # r = self.derp_client.lset(
+            #     self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.touch_detected",
+            #     [{
+            #         "data": button,
+            #         "timestamp": time.time()
+            #     }])
+            # r = self.derp_client.lset(
+            #     self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.buttons.pressed_part",
+            #     [{
+            #         "data": "Tactile." + self.button_places[button],
+            #         "timestamp": time.time()
+            #     }])
 
         #self.logger.warning("Button controller: Pressed from real! ")
         self.values[button] = True
