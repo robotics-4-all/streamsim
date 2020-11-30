@@ -16,7 +16,6 @@ robots:
     wait_for: [] #[rhasspy] # in case of real mode
     amqp_inform: false
     step_by_step_execution: false
-    sensors_streamable: true
     devices:
       microphone:
         -

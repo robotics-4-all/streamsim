@@ -29,7 +29,6 @@ class CytronLFController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
-        self.streamable = info["streamable"]
 
         _topic = self.base_topic + ".data"
         self.publisher = Publisher(
