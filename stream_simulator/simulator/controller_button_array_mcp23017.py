@@ -31,6 +31,7 @@ class ButtonArrayController():
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         _topic = self.base_topic + ".data"
         self.publisher = Publisher(
@@ -46,7 +47,6 @@ class ButtonArrayController():
             self.derp_client = derp
 
         self.number_of_buttons = len(self.conf["pin_nums"])
-        self.memory = 100 * [0]
         self.values = [True] * self.number_of_buttons         # multiple values
         self.button_places = self.conf["places"]
         self.prev = 0
@@ -69,15 +69,6 @@ class ButtonArrayController():
             self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
             self.sim_button_pressed_sub.run()
 
-        self.derp_me_data_topic = info["base_topic"] + ".raw"
-
-        _topic = info["base_topic"] + ".get"
-        self.button_array_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.button_array_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
@@ -92,20 +83,30 @@ class ButtonArrayController():
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
+
+    def dispatch_information(self, _data, _button):
+        # Publish to stream
+        self.publisher.publish({
+            "data": _data,
+            "source": _button,
+            "timestamp": time.time()
+        })
+        # Set in memory
+        r = self.derp_client.lset(
+            self.derp_data_key,
+            [{
+                "data": _data,
+                "source": _button,
+                "timestamp": time.time()
+            }]
+        )
+
     # Untested!!!
     def sim_button_pressed(self, data, meta):
-        self.publisher.publish({
-            "data": 1,
-            "source": data["button"],
-            "timestamp": time.time()
-        })
+        self.dispatch_information(1, data["button"])
         time.sleep(0.1)
         # Simulated release
-        self.publisher.publish({
-            "data": 0,
-            "source": data["button"],
-            "timestamp": time.time()
-        })
+        self.dispatch_information(0, data["button"])
         self.logger.warning(f"Button controller: Pressed from sim! {data}")
 
     def sensor_read(self):
@@ -115,11 +116,8 @@ class ButtonArrayController():
             if self.info["mode"] == "mock":
                 _val = float(random.randint(0,1))
                 _place = random.randint(0, len(self.button_places) - 1)
-                self.publisher.publish({
-                    "data": _val,
-                    "source": self.button_places[_place],
-                    "timestamp": time.time()
-                })
+
+                self.dispatch_information(_val, self.button_places[_place])
 
         self.logger.info(f"Button {self.info['id']} sensor read thread stopped")
 
@@ -130,16 +128,12 @@ class ButtonArrayController():
         self.values[button] = False
         self.logger.info(f"Button {button} pressed at {current_milli_time()}")
 
-        self.publisher.publish({
-            "data": 1,
-            "source": self.button_places[button],
-            "timestamp": time.time()
-        })
+        self.dispatch_information(1, self.button_places[button])
+
         self.values[button] = True
 
     def start(self):
         print("Button array starting")
-        self.button_array_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -157,15 +151,10 @@ class ButtonArrayController():
 
     def stop(self):
         self.info["enabled"] = False
-        self.button__array_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
         self.sensor.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
 
     def enable_callback(self, message, meta):
         print("Button array starting")
@@ -184,41 +173,3 @@ class ButtonArrayController():
         self.info["enabled"] = False
         self.logger.info(f"Button {self.info['id']} stops reading")
         return {"enabled": False}
-
-    def button_array_callback(self, message, meta):
-        if self.info["enabled"] is False:
-            return {"data": []}
-
-        self.logger.info(f"Robot {self.name}: Button callback: {message}")
-        try:
-            _to = message["from"] + 1
-            _from = message["to"]
-        except Exception as e:
-            self.logger.error(f"{self.name}: Malformed message for button: {e.__class__} - {e}")
-            return []
-        ret = {"data": []}
-
-        try:
-            self.logger.warning(message)
-            _topic = self.info["namespace"] + "." + self.info["device_name"] + ".variables.buttons." + message["button"]
-            self.logger.warning(_topic + " " + str(_from) + " " + str(_to))
-
-            r = self.derp_client.lget(_topic, _from, _to)
-            for rr in r['val']:
-                timestamp = time.time()
-                secs = int(timestamp)
-                nanosecs = int((timestamp-secs) * 10**(9))
-                ret["data"].append({
-                    "header":{
-                        "stamp":{
-                            "sec": secs,
-                            "nanosec": nanosecs
-                        }
-                    },
-                    "change": rr['data']
-                })
-
-        except Exception as e:
-            print(str(e))
-
-        return ret

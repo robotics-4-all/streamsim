@@ -31,6 +31,7 @@ class TofController:
         self.name = info["name"]
         self.map = map
         self.base_topic = info["base_topic"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         _topic = self.base_topic + ".data"
         self.publisher = Publisher(
@@ -48,15 +49,13 @@ class TofController:
         if self.info["mode"] == "real":
             from pidevices.sensors.vl53l1x import VL53L1X
             self.sensor = VL53L1X(bus=1)
-
-        self.memory = 100 * [0]
-
-        _topic = info["base_topic"] + ".get"
-        self.tof_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.tof_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        if self.info["mode"] == "simulation":
+            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
+            self.robot_pose_sub = Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic = _topic,
+                on_message = self.robot_pose_update)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
@@ -71,14 +70,6 @@ class TofController:
             on_request=self.disable_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        if self.info["mode"] == "simulation":
-            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
-            self.robot_pose_sub = Subscriber(
-                conn_params=ConnParams.get("redis"),
-                topic = _topic,
-                on_message = self.robot_pose_update)
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
@@ -111,12 +102,20 @@ class TofController:
             else: # The real deal
                 val = self.sensor.read()
 
-            self.memory_write(val)
-
+            # Publishing value:
             self.publisher.publish({
                 "distance": val,
                 "timestamp": time.time()
             })
+
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "distance": val,
+                    "timestamp": time.time()
+                }]
+            )
 
         self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
 
@@ -136,7 +135,6 @@ class TofController:
         return {"enabled": False}
 
     def start(self):
-        self.tof_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -151,41 +149,8 @@ class TofController:
 
     def stop(self):
         self.info["enabled"] = False
-        self.tof_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-        # self.logger.info("Robot {}: memory updated for {}".format(self.name, "tof"))
-
-    def tof_callback(self, message, meta):
-        if self.info["enabled"] is False:
-            return {"data": []}
-
-        self.logger.info("Robot {}: tof callback: {}".format(self.name, message))
-        try:
-            _to = message["from"] + 1
-            _from = message["to"]
-        except Exception as e:
-            self.logger.error("{}: Malformed message for tof: {} - {}".format(self.name, str(e.__class__), str(e)))
-            return []
-        ret = {"data": []}
-        for i in range(_from, _to): # 0 to -1
-            timestamp = time.time()
-            secs = int(timestamp)
-            nanosecs = int((timestamp-secs) * 10**(9))
-            ret["data"].append({
-                "header":{
-                    "stamp":{
-                        "sec": secs,
-                        "nanosec": nanosecs
-                    }
-                },
-                "distance": self.memory[-i]
-            })
-        return ret
