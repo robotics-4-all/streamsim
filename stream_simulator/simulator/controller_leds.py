@@ -29,6 +29,8 @@ class LedsController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -43,8 +45,6 @@ class LedsController:
                                             led_freq_hz=self.conf["led_freq_hz"],
                                             led_brightness=self.conf["led_brightness"],
                                             led_channel=self.conf["led_channel"])
-
-        self.memory = 100 * [0]
 
         # These are to inform amqp###################
         _topic = self.info['device_name'] + ".leds"
@@ -74,13 +74,6 @@ class LedsController:
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
-        _topic = info["base_topic"] + ".get"
-        self.leds_get_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.leds_get_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
@@ -106,54 +99,14 @@ class LedsController:
     def start(self):
         self.leds_set_sub.run()
         self.leds_wipe_server.run()
-        self.leds_get_server.run()
-
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
     def stop(self):
         self.leds_set_sub.stop()
         self.leds_wipe_server.stop()
-        self.leds_get_server.stop()
-
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-        self.logger.info("Robot {}: memory updated for {}".format(self.name, "leds"))
-
-    def leds_get_callback(self, message, meta):
-        self.logger.info("Robot {}: Leds get callback: {}".format(self.name, message))
-        try:
-            _to = message["from"] + 1
-            _from = message["to"]
-        except Exception as e:
-            self.logger.error("{}: Malformed message for leds get: {} - {}".format(self.name, str(e.__class__), str(e)))
-            return []
-        ret = {"data": []}
-        for i in range(_from, _to): # 0 to -1
-            timestamp = time.time()
-            secs = int(timestamp)
-            nanosecs = int((timestamp-secs) * 10**(9))
-            ret["data"].append({
-                "header":{
-                    "stamp":{
-                        "sec": secs,
-                        "nanosec": nanosecs
-                    }
-                },
-                "leds": [
-                    {
-                        "r": self.memory[-i][0],
-                        "g": self.memory[-i][1],
-                        "b": self.memory[-i][2],
-                        "intensity": self.memory[-i][3]
-                    }
-                ]
-            })
-        return ret
 
     def leds_set_callback(self, message, meta):
         try:
@@ -172,8 +125,17 @@ class LedsController:
             else: # The real deal
                 self.led_strip.write([self._color], wipe = False)
 
-            self.memory_write(self._color)
             self.leds_pub.publish({"r": r, "g": g, "b": b})
+
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "data": {"r": r, "g": g, "b": b, "intensity": intensity},
+                    "type": "simple",
+                    "timestamp": time.time()
+                }]
+            )
 
         except Exception as e:
             self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
@@ -195,9 +157,17 @@ class LedsController:
             else: # The real deal
                 self.led_strip.write([self._color], wipe=True)
 
-            self.memory_write(self._color)
-
             self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
+
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "data": {"r": r, "g": g, "b": b, "intensity": intensity},
+                    "type": "wipe",
+                    "timestamp": time.time()
+                }]
+            )
 
             self.logger.info("{}: New leds wipe command: {}".format(self.name, message))
 

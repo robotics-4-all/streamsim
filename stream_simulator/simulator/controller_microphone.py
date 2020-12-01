@@ -55,8 +55,6 @@ class MicrophoneController:
                                      name=self.name,
                                      max_data_length=self.conf["max_data_length"])
 
-        self.memory = 100 * [0]
-
         _topic = info["base_topic"] + ".record"
         self.record_action_server = ActionServer(
             conn_params=ConnParams.get("redis"),
@@ -271,7 +269,3 @@ class MicrophoneController:
         self.record_action_server._result_rpc.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)

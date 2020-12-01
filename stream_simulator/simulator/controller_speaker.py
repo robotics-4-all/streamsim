@@ -41,8 +41,6 @@ class SpeakerController:
         self.global_volume = None
         self.blocked = False
 
-        self.memory = 100 * [0]
-
         if self.info["mode"] == "real":
             from pidevices import Speaker
             self.speaker = Speaker(dev_name = self.conf["dev_name"], name = self.name, max_data_length = self.conf["max_data_length"])
@@ -330,7 +328,3 @@ class SpeakerController:
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
         self.global_volume_rpc_server.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
