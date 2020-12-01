@@ -30,6 +30,8 @@ class MotionController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -48,8 +50,6 @@ class MotionController:
         self._linear = 0
         self._angular = 0
 
-        self.memory = 100 * [0]
-
         # set Speed
         _topic = info["base_topic"] + ".set"
         self.vel_sub = Subscriber(
@@ -57,13 +57,6 @@ class MotionController:
             topic = _topic,
             on_message = self.cmd_vel)
         self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".get"
-        self.motion_get_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.motion_get_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
@@ -89,7 +82,6 @@ class MotionController:
 
     def start(self):
         self.vel_sub.run()
-        self.motion_get_server.run()
 
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
@@ -99,7 +91,6 @@ class MotionController:
 
     def stop(self):
         self.vel_sub.stop()
-        self.motion_get_server.stop()
 
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
@@ -107,18 +98,25 @@ class MotionController:
         if self.info["mode"] == "real":
             self.motor_driver.stop()
 
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-        #self.logger.info("Robot {}: memory updated for {}".format(self.name, "leds"))
-
     def cmd_vel(self, message, meta):
         try:
             response = message
             self._linear = response['linear']
             self._angular = response['angular']
             self._raw = response['raw']
-            self.memory_write([self._linear, self._angular, self._raw])
+
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "data": {
+                        "linear": self._linear,
+                        "angular": self._angular,
+                        "raw": self._raw
+                    },
+                    "timestamp": time.time()
+                }]
+            )
 
             if self.info["mode"] == "mock":
                 pass
@@ -133,30 +131,3 @@ class MotionController:
             self.logger.debug("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
         except Exception as e:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
-
-
-    def motion_get_callback(self, message, meta):
-        self.logger.info("Robot {}: Motion get callback: {}".format(self.name, message))
-        try:
-            _to = message["from"] + 1
-            _from = message["to"]
-        except Exception as e:
-            self.logger.error("{}: Malformed message for motion get: {} - {}".format(self.name, str(e.__class__), str(e)))
-            return []
-        ret = {"data": []}
-        for i in range(_from, _to): # 0 to -1
-            timestamp = time.time()
-            secs = int(timestamp)
-            nanosecs = int((timestamp-secs) * 10**(9))
-            ret["data"].append({
-                "header":{
-                    "stamp":{
-                        "sec": secs,
-                        "nanosec": nanosecs
-                    }
-                },
-                "linear": self.memory[-i][0],
-                "angular": self.memory[-i][1],
-                "deviceId": 0
-            })
-        return ret
