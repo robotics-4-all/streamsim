@@ -29,6 +29,7 @@ class CytronLFController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         _topic = self.base_topic + ".data"
         self.publisher = Publisher(
@@ -36,6 +37,12 @@ class CytronLFController:
             topic=_topic
         )
         self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+
+        if derp is None:
+            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+            self.logger.warning(f"New derp-me client from {info['name']}")
+        else:
+            self.derp_client = derp
 
         if self.info["mode"] == "real":
             from pidevices import CytronLfLSS05Mcp23017
@@ -52,15 +59,6 @@ class CytronLFController:
                                                 name=self.name,
                                                 max_data_length=self.conf["max_data_length"])
 
-        self.memory = 100 * [0]
-
-        _topic = info["base_topic"] + ".get"
-        self.cytron_lf_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.cytron_lf_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
@@ -74,9 +72,6 @@ class CytronLFController:
             on_request=self.disable_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-    def robot_pose_update(self, message, meta):
-        self.robot_pose = message
 
     def sensor_read(self):
         self.logger.info("Cytron-LF {} sensor read thread started".format(self.info["id"]))
@@ -111,8 +106,7 @@ class CytronLFController:
 
                 val = data._asdict()
 
-            self.memory_write(val)
-
+            # Publishing value:
             self.publisher.publish({
                 'so_1': val['so_1'],
                 'so_2': val['so_2'],
@@ -120,6 +114,21 @@ class CytronLFController:
                 'so_4': val['so_4'],
                 'so_5': val['so_5']
             })
+
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "data": {
+                        'so_1': val['so_1'],
+                        'so_2': val['so_2'],
+                        'so_3': val['so_3'],
+                        'so_4': val['so_4'],
+                        'so_5': val['so_5']
+                    },
+                    "timestamp": time.time()
+                }]
+            )
 
         self.logger.info("Cytron-LF {} sensor read thread stopped".format(self.info["id"]))
 
@@ -139,7 +148,6 @@ class CytronLFController:
         return {"enabled": False}
 
     def start(self):
-        self.cytron_lf_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -154,7 +162,6 @@ class CytronLFController:
 
     def stop(self):
         self.info["enabled"] = False
-        self.cytron_lf_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
@@ -163,38 +170,3 @@ class CytronLFController:
         # if we are on "real" mode and the controller has started then Terminate it
         if self.info["mode"] == "real":
             self.lf_sensor.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-
-    def cytron_lf_callback(self, message, meta):
-        if self.info["enabled"] is False:
-            return {"data": []}
-
-        self.logger.info("Robot {}: Cytron lf callback: {}".format(self.name, message))
-        try:
-            _to = message["from"] + 1
-            _from = message["to"]
-        except Exception as e:
-            self.logger.error("{}: Malformed message for Cytron lf: {} - {}".format(self.name, str(e.__class__), str(e)))
-            return []
-        ret = {"data": []}
-        for i in range(_from, _to): # 0 to -1
-            timestamp = time.time()
-            secs = int(timestamp)
-            nanosecs = int((timestamp-secs) * 10**(9))
-            ret["data"].append({
-                "header":{
-                    "stamp":{
-                        "sec": secs,
-                        "nanosec": nanosecs
-                    }
-                },
-                "so_1": self.memory[-i]["so_1"],
-                "so_2": self.memory[-i]["so_2"],
-                "so_3": self.memory[-i]["so_3"],
-                "so_4": self.memory[-i]["so_4"],
-                "so_5": self.memory[-i]["so_5"]
-            })
-        return ret

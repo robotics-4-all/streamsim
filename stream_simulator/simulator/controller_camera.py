@@ -34,6 +34,7 @@ class CameraController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         _topic = self.base_topic + ".data"
         self.publisher = Publisher(
@@ -63,15 +64,14 @@ class CameraController:
                                  name=self.name,
                                  max_data_length=self.conf["max_data_length"])
             self.sensor.stop()
-
-        self.memory = 100 * [0]
-
-        _topic = info["base_topic"] + ".get"
-        self.get_image_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.get_image_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        if self.info["mode"] == "simulation":
+            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
+            self.robot_pose_sub = Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic = _topic,
+                on_message = self.robot_pose_update)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+            self.robot_pose_sub.run()
 
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
@@ -86,15 +86,6 @@ class CameraController:
             on_request=self.disable_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        if self.info["mode"] == "simulation":
-            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
-            self.robot_pose_sub = Subscriber(
-                conn_params=ConnParams.get("redis"),
-                topic = _topic,
-                on_message = self.robot_pose_update)
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-            self.robot_pose_sub.run()
 
         # The images
         self.images = {
@@ -121,7 +112,6 @@ class CameraController:
         return {"enabled": False}
 
     def start(self):
-        self.get_image_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -131,27 +121,29 @@ class CameraController:
             self.logger.info("Camera {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
     def stop(self):
-        self.get_image_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-        self.logger.info("Robot {}: memory updated for {}".format(self.name, "ir"))
 
     def sensor_read(self):
         self.logger.info("camera {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
-            img = self.get_image({"width": 800, "height": 600})
+            img = self.get_image({"width": 640, "height": 480})
+
+            # Publishing value:
             self.publisher.publish({
                 "data": img,
                 "timestamp": time.time()
             })
 
-    def get_image_callback(self, message, meta):
-        return self.get_image(message)
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "data": img,
+                    "timestamp": time.time()
+                }]
+            )
 
     def get_image(self, message):
         self.logger.debug("Robot {}: get image callback: {}".format(self.name, message))
@@ -306,12 +298,7 @@ class CameraController:
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
         ret = {
-            "header":{
-                "stamp":{
-                    "sec": secs,
-                    "nanosec": nanosecs
-                }
-            },
+            "timestamp": time.time(),
             "format": "RGB",
             "per_rows": True,
             "width": width,

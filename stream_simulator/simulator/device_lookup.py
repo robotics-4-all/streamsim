@@ -29,15 +29,13 @@ from .controller_motion import MotionController
 from .controller_sonar import SonarController
 from .controller_ir import IrController
 from .controller_tof import TofController
-from .controller_button import ButtonController
+# from .controller_button import ButtonController
 from .controller_encoder import EncoderController
 from .controller_camera import CameraController
 from .controller_microphone import MicrophoneController
 from .controller_speaker import SpeakerController
 from .controller_touch_screen import TouchScreenController
 from .controller_gstreamer_server import GstreamerServerController
-
-#import my controllers
 from .controller_button_array_mcp23017 import ButtonArrayController
 from .controller_cytron_lf import CytronLFController
 
@@ -661,8 +659,6 @@ class DeviceLookup:
                 self.motion_controller = self.controllers[d["name"]]
             elif d["type"] == "TOF":
                 self.controllers[d["name"]] = TofController(info = d, map = self.map, derp = self.derp_client)
-            # elif d["type"] == "BUTTON":
-            #     self.controllers[d["name"]] = ButtonController(info = d)
             elif d["type"] == "ENCODER":
                 self.controllers[d["name"]] = EncoderController(info = d, logger = _logger, derp = self.derp_client)
             elif d["type"] == "CAMERA":

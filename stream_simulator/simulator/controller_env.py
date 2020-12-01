@@ -31,6 +31,7 @@ class EnvController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         _topic = self.base_topic + ".data"
         self.publisher = Publisher(
@@ -58,15 +59,6 @@ class EnvController:
             self.sensor.set_heating_temp([0], [320])
             self.sensor.set_heating_time([0], [100])
             self.sensor.set_nb_conv(0)
-
-        self.memory = 100 * [0]
-
-        _topic = info["base_topic"] + ".get"
-        self.env_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.env_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
@@ -113,12 +105,20 @@ class EnvController:
                 val["humidity"] = data.hum
                 val["gas"] = data.gas
 
-            self.memory_write(val)
-
+            # Publishing value:
             self.publisher.publish({
                 "data": val,
                 "timestamp": time.time()
             })
+
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "data": val,
+                    "timestamp": time.time()
+                }]
+            )
 
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 
@@ -138,7 +138,6 @@ class EnvController:
         return {"enabled": False}
 
     def start(self):
-        self.env_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -150,41 +149,5 @@ class EnvController:
 
     def stop(self):
         self.info["enabled"] = False
-        self.env_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-        # self.logger.info("Robot {}: memory updated for {}".format(self.name, "leds"))
-
-    def env_callback(self, message, meta):
-        if self.info["enabled"] is False:
-            return {"data": []}
-
-        self.logger.info("Robot {}: Env callback: {}".format(self.name, message))
-        try:
-            _to = message["from"] + 1
-            _from = message["to"]
-        except Exception as e:
-            self.logger.error("{}: Malformed message for env: {} - {}".format(self.name, str(e.__class__), str(e)))
-            return []
-        ret = {"data": []}
-        for i in range(_from, _to): # 0 to -1
-            timestamp = time.time()
-            secs = int(timestamp)
-            nanosecs = int((timestamp-secs) * 10**(9))
-            ret["data"].append({
-                "header":{
-                    "stamp":{
-                        "sec": secs,
-                        "nanosec": nanosecs
-                    }
-                },
-                "temperature": self.memory[-i]["temperature"],
-                "pressure": self.memory[-i]["pressure"],
-                "humidity": self.memory[-i]["humidity"],
-                "gas": self.memory[-i]["gas"]
-            })
-        return ret

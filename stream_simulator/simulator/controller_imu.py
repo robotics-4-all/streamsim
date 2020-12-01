@@ -30,6 +30,7 @@ class ImuController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         _topic = self.base_topic + ".data"
         self.publisher = Publisher(
@@ -50,15 +51,18 @@ class ImuController:
 
             self._sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
             self._imu_calibrator = IMUCalibration(calib_time=5, buf_size=5)
-
-        self.memory = 100 * [0]
-
-        _topic = info["base_topic"] + ".get"
-        self.imu_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.imu_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        if self.info["mode"] == "simulation":
+            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
+            self.robot_pose_sub = Subscriber(
+                conn_params=ConnParams.get("redis"),
+                topic = _topic,
+                on_message = self.robot_pose_update)
+            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+            self.robot_pose = {
+                "x": 0,
+                "y": 0,
+                "theta": 0
+            }
 
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
@@ -73,19 +77,6 @@ class ImuController:
             on_request=self.disable_callback,
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        if self.info["mode"] == "simulation":
-            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
-            self.robot_pose_sub = Subscriber(
-                conn_params=ConnParams.get("redis"),
-                topic = _topic,
-                on_message = self.robot_pose_update)
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-            self.robot_pose = {
-                "x": 0,
-                "y": 0,
-                "theta": 0
-            }
 
     def robot_pose_update(self, message, meta):
         self.robot_pose = message
@@ -142,13 +133,20 @@ class ImuController:
 
                 val = self._imu_calibrator.getCalibData()
 
-            self.memory_write(val)
-
             # Publish data to sensor stream
             self.publisher.publish({
                 "data": val,
                 "timestamp": time.time()
             })
+
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "data": val,
+                    "timestamp": time.time()
+                }]
+            )
 
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
 
@@ -168,7 +166,6 @@ class ImuController:
         return {"enabled": False}
 
     def start(self):
-        self.imu_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -187,42 +184,7 @@ class ImuController:
 
     def stop(self):
         self.info["enabled"] = False
-        self.imu_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
         if self.info["mode"] == "simulation":
             self.robot_pose_sub.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-        # self.logger.info("Robot {}: memory updated for {}".format(self.name, "imu"))
-
-    def imu_callback(self, message, meta):
-        if self.info["enabled"] is False:
-            return {"data": []}
-
-        self.logger.debug("Robot {}: Imu callback: {}".format(self.name, message))
-        try:
-            _to = message["from"] + 1
-            _from = message["to"]
-        except Exception as e:
-            self.logger.error("{}: Malformed message for Imu: {} - {}".format(self.name, str(e.__class__), str(e)))
-            return []
-        ret = {"data": []}
-        for i in range(_from, _to): # 0 to -1
-            timestamp = time.time()
-            secs = int(timestamp)
-            nanosecs = int((timestamp-secs) * 10**(9))
-            ret["data"].append({
-                "header":{
-                    "stamp":{
-                        "sec": secs,
-                        "nanosec": nanosecs
-                    }
-                },
-                "accel": self.memory[-i]["accel"],
-                "gyro": self.memory[-i]["gyro"],
-                "magne": self.memory[-i]["magne"]
-            })
-        return ret
