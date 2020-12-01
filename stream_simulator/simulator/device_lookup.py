@@ -29,14 +29,13 @@ from .controller_motion import MotionController
 from .controller_sonar import SonarController
 from .controller_ir import IrController
 from .controller_tof import TofController
-# from .controller_button import ButtonController
 from .controller_encoder import EncoderController
 from .controller_camera import CameraController
 from .controller_microphone import MicrophoneController
 from .controller_speaker import SpeakerController
 from .controller_touch_screen import TouchScreenController
 from .controller_gstreamer_server import GstreamerServerController
-from .controller_button_array_mcp23017 import ButtonArrayController
+from .controller_button_array import ButtonArrayController
 from .controller_cytron_lf import CytronLFController
 
 class DeviceLookup:
