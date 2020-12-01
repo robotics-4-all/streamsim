@@ -161,14 +161,10 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "data": "publisher",
-                            "get": "rpc"
+                            "data": "publisher"
                         },
                         "data_models": {
-                            "data": ["so_1", "so_2", "so_3", "so_4", "so_5"],
-                            "get": {
-                                "data":["so_1", "so_2", "so_3", "so_4", "so_5"]
-                            }
+                            "data": ["so_1", "so_2", "so_3", "so_4", "so_5"]
                         }
                     }
                     self.devices.append(msg)
@@ -197,14 +193,10 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "data": "publisher",
-                            "get": "rpc"
+                            "data": "publisher"
                         },
                         "data_models": {
-                            "data": ["distance"],
-                            "get": {
-                                "data": ["distance"]
-                            }
+                            "data": ["distance"]
                         }
                     }
                     self.devices.append(msg)
@@ -233,14 +225,10 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "data": "publisher",
-                            "get": "rpc"
+                            "data": "publisher"
                         },
                         "data_models": {
-                            "data": ["distance"],
-                            "get": {
-                                "data": ["distance"]
-                            }
+                            "data": ["distance"]
                         }
                     }
                     self.devices.append(msg)
@@ -269,14 +257,10 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "data": "publisher",
-                            "get": "rpc"
+                            "data": "publisher"
                         },
                         "data_models": {
-                            "data": ["distance"],
-                            "get": {
-                                "data": ["distance"]
-                            }
+                            "data": ["distance"]
                         }
                     }
                     self.devices.append(msg)
@@ -305,14 +289,12 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "data": "publisher",
-                            "get": "rpc"
+                            "data": "publisher"
                         },
                         "data_models": {
                             "data": {"data":
                                 ["format", "per_rows", "width", "height", "image"]
-                            },
-                            "get": ["format", "per_rows", "width", "height", "image"]
+                            }
                         }
                     }
                     self.devices.append(msg)
@@ -340,18 +322,10 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "data": "publisher",
-                            "get": "rpc"
+                            "data": "publisher"
                         },
                         "data_models": {
                             "data": {
-                                "data":{
-                                    "accel": ["x", "y", "z"],
-                                    "gyro": ["yaw", "pitch", "roll"],
-                                    "magne": ["yaw", "pitch", "roll"],
-                                }
-                            },
-                            "get": {
                                 "data":{
                                     "accel": ["x", "y", "z"],
                                     "gyro": ["yaw", "pitch", "roll"],
@@ -385,14 +359,10 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "data": "publisher",
-                            "get": "rpc"
+                            "data": "publisher"
                         },
                         "data_models": {
-                            "data": ["data"],
-                            "get": {
-                                "data": ["change"]
-                            }
+                            "data": ["data"]
                         }
                     }
 
@@ -425,14 +395,10 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "data": "publisher",
-                            "get": "rpc"
+                            "data": "publisher"
                         },
                         "data_models": {
                             "data": {
-                                "data": ["temperature", "pressure", "humidity", "gas"]
-                            },
-                            "get": {
                                 "data": ["temperature", "pressure", "humidity", "gas"]
                             }
                         }
@@ -491,16 +457,9 @@ class DeviceLookup:
                             "enable": "rpc",
                             "disable": "rpc",
                             "leds.set": "subscriber",
-                            "leds_wipe.set": "rpc",
-                            "get": "rpc"
+                            "leds_wipe.set": "rpc"
                         },
-                        "data_models": {
-                            "get": {
-                                "data":{
-                                    "leds": ["r", "g", "b", "intensity"]
-                                }
-                            }
-                        }
+                        "data_models": []
                     }
                     self.devices.append(msg)
             elif s == "pan_tilt":
@@ -526,14 +485,9 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "set": "subscriber",
-                            "get": "rpc"
+                            "set": "subscriber"
                         },
-                        "data_models": {
-                            "get": {
-                                "data": ["yaw", "pitch"]
-                            }
-                        }
+                        "data_models": []
                     }
                     self.devices.append(msg)
             elif s == "touch_screen":
@@ -587,8 +541,7 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "set": "subscriber",
-                            "get": "rpc"
+                            "set": "subscriber"
                         },
                         "data_models": {
                             "data": ["linear", "angular"]
@@ -619,14 +572,10 @@ class DeviceLookup:
                         "endpoints":{
                             "enable": "rpc",
                             "disable": "rpc",
-                            "data": "publisher",
-                            "get": "rpc"
+                            "data": "publisher"
                         },
                         "data_models": {
-                            "data": ["rpm"],
-                            "get": {
-                                "data": ["rpm"]
-                            }
+                            "data": ["rpm"]
                         }
                     }
                     self.devices.append(msg)
