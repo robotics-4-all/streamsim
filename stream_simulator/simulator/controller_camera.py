@@ -195,11 +195,17 @@ class CameraController:
         # Load video and send it as base64 string
         self.logger.info(f"Encoding")
         import base64
-        data = open(video_name, "r").read()
-        enc_data = base64.b64encode(data).decode("ascii")
+        data = open(video_name, "rb").read()
+        enc_data = base64.b64encode(data)
+        print(len(enc_data))
+
+        self.logger.info(f"Cleaning up images")
+        dir = expanduser("~")
+        os.system(f"cd {dir} && rm *_motion.jpg")
 
         self.logger.info(f"Sending it")
-        return {"data": enc_data}
+
+        return {"data": enc_data.decode('ascii')}
 
     def sensor_read(self):
         self.logger.info("camera {} sensor read thread started".format(self.info["id"]))
