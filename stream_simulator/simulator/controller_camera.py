@@ -9,6 +9,7 @@ import threading
 import random
 import cv2
 import os
+from os.path import expanduser
 import base64
 
 from colorama import Fore, Style
@@ -73,6 +74,13 @@ class CameraController:
             self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
             self.robot_pose_sub.run()
 
+        _topic = info["base_topic"] + ".video"
+        self.video_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.video_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
@@ -114,6 +122,7 @@ class CameraController:
     def start(self):
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+        self.video_rpc_server.run()
 
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
@@ -123,16 +132,85 @@ class CameraController:
     def stop(self):
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+        self.video_rpc_server.stop()
+
+    def writeImageToFile(self, path = None, image = None, w = None, h = None):
+        try:
+            from PIL import Image
+            imgdata = list(base64.b64decode(image.encode("ascii")))
+            img = Image.new('RGB', [w, h], 255)
+            data = img.load()
+            cnt = 0
+            for line in range(0, h):
+                for column in range(0, w):
+                    data[column, line] = (
+                        imgdata[cnt + 0],
+                        imgdata[cnt + 1],
+                        imgdata[cnt + 2]
+                    )
+                    cnt += 3
+            img.save(path)
+        except Exception as e:
+            self.logger.error(str(e))
+
+    def video_callback(self, message, meta):
+        self.logger.info(f"Video requested with input {message}")
+        duration = message["duration"]
+        width = 640
+        height = 480
+        # Wait till time passes
+        now = time.time()
+        curr_img = self.image_counter
+
+        self.logger.info(f"Generating images")
+        while time.time() - now < duration:
+            self.writeImageToFile(
+                path = expanduser("~") + f"/img_{self.image_counter}_motion.jpg",
+                image = self.img["image"],
+                w = width,
+                h = height
+            )
+            while curr_img == self.image_counter:
+                time.sleep(0.1)
+            curr_img = self.image_counter
+
+        self.logger.info(f"Creating the video")
+        # Write the video
+        import cv2
+        import os
+        image_folder = expanduser("~")
+        video_name = expanduser("~") + '/video_motion_detection.avi'
+
+        images = [img for img in os.listdir(image_folder) if img.endswith("_motion.jpg")]
+        frame = cv2.imread(os.path.join(image_folder, images[0]))
+        height, width, layers = frame.shape
+        video = cv2.VideoWriter(video_name, 0, 3,  (int(width/4),int(height/4)))
+        for image in images:
+            i = cv2.imread(os.path.join(image_folder, image))
+            i = cv2.resize(i, (int(width/4),int(height/4)))
+            video.write(i)
+        cv2.destroyAllWindows()
+        video.release()
+
+        # Load video and send it as base64 string
+        self.logger.info(f"Encoding")
+        import base64
+        data = open(video_name, "r").read()
+        enc_data = base64.b64encode(data).decode("ascii")
+
+        self.logger.info(f"Sending it")
+        return {"data": enc_data}
 
     def sensor_read(self):
         self.logger.info("camera {} sensor read thread started".format(self.info["id"]))
+        self.image_counter = 0
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
-            img = self.get_image({"width": 640, "height": 480})
-
+            self.img = self.get_image({"width": 640, "height": 480})
+            self.image_counter += 1
             # Publishing value:
             self.publisher.publish({
-                "data": img,
+                "data": self.img,
                 "timestamp": time.time()
             })
 
@@ -140,7 +218,7 @@ class CameraController:
             r = self.derp_client.lset(
                 self.derp_data_key,
                 [{
-                    "data": img,
+                    "data": self.img,
                     "timestamp": time.time()
                 }]
             )
