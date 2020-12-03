@@ -22,7 +22,7 @@ elif ConnParams.type == "redis":
 class ImuController:
     def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
-            self.logger = Logger(info["name"] + "-" + info["id"])
+            self.logger = Logger(info["name"])
         else:
             self.logger = logger
 

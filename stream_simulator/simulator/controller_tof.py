@@ -23,7 +23,7 @@ from derp_me.client import DerpMeClient
 class TofController:
     def __init__(self, info = None, map = None, logger = None, derp = None):
         if logger is None:
-            self.logger = Logger(info["name"] + "-" + info["id"])
+            self.logger = Logger(info["name"])
         else:
             self.logger = logger
 
