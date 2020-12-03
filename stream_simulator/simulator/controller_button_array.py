@@ -23,7 +23,7 @@ current_milli_time = lambda: int(round(time.time() * 1000))
 class ButtonArrayController():
     def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
-            self.logger = Logger(info["name"] + "-" + info["id"])
+            self.logger = Logger(info["name"])
         else:
             self.logger = logger
 
@@ -31,14 +31,20 @@ class ButtonArrayController():
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
-        self.derp_data_key = info["base_topic"] + ".raw"
 
-        _topic = self.base_topic + ".data"
-        self.publisher = Publisher(
-            conn_params=ConnParams.get("redis"),
-            topic=_topic
-        )
-        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+        self.buttons_base_topics = self.conf["base_topics"]
+        self.publishers = {}
+        self.derp_data_keys = {}
+
+        for b in self.buttons_base_topics:
+            _topic = self.buttons_base_topics[b] + ".data"
+            self.publishers[b] = Publisher(
+                conn_params=ConnParams.get("redis"),
+                topic=_topic
+            )
+            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+
+            self.derp_data_keys[b] = self.buttons_base_topics[b] + ".raw"
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -86,17 +92,15 @@ class ButtonArrayController():
 
     def dispatch_information(self, _data, _button):
         # Publish to stream
-        self.publisher.publish({
+        self.publishers[_button].publish({
             "data": _data,
-            "source": _button,
             "timestamp": time.time()
         })
         # Set in memory
         r = self.derp_client.lset(
-            self.derp_data_key,
+            self.derp_data_keys[_button],
             [{
                 "data": _data,
-                "source": _button,
                 "timestamp": time.time()
             }]
         )

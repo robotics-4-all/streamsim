@@ -623,21 +623,21 @@ class DeviceLookup:
                 self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
             self.logger.warning(d["name"] + " controller created")
 
-
-        #===============================Button Array==================================
         # Gather all buttons and pass them into the Button Array Controller
         self.button_configuration = {
                 "places": [],
                 "pin_nums": [],
+                "base_topics": {},
                 "direction": "down",
                 "bounce": 200,
         }
 
-        for d in self.devices:
-            # gather all button numbers and places
-            if d["type"] == "BUTTON":
-                self.button_configuration["pin_nums"].append(d["sensor_configuration"].get("pin_num"))
-                self.button_configuration["places"].append(d["place"])
+        buttons = [x for x in self.devices if x["type"] == "BUTTON"]
+        for d in buttons:
+            self.logger.warning(f"Button {d['id']} added in button_array")
+            self.button_configuration["pin_nums"].append(d["sensor_configuration"].get("pin_num"))
+            self.button_configuration["places"].append(d["place"])
+            self.button_configuration["base_topics"][d["place"]] = d["base_topic"]
 
         # if there were any buttons registered create a generic msg passing their configurations
         if len(self.button_configuration["pin_nums"]) > 0:
@@ -664,13 +664,6 @@ class DeviceLookup:
             self.devices.append(msg)
 
             self.controllers[msg["name"]] = ButtonArrayController(info = msg, logger = _logger, derp = self.derp_client)
-
-            # Change simple buttons' base topic so that then talk to button_array
-            for d in self.devices:
-                # gather all button numbers and places
-                if d["type"] == "BUTTON":
-                    d["base_topic"] = self.name + ".sensor.button_array.d" + str(cnt)
-        #===============================================================================
 
     def get(self):
         return {
