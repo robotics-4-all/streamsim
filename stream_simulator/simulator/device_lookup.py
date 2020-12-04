@@ -652,7 +652,7 @@ class DeviceLookup:
                 "id": id,
                 "enabled": True,
                 "orientation": 0,
-                "hz": 1,
+                "hz": 4,
                 "queue_size": 100,
                 "mode": self.mode,
                 "speak_mode": self.speak_mode,
