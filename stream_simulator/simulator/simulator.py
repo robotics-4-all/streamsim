@@ -7,6 +7,7 @@ import logging
 import pathlib
 import yaml
 import math
+import pprint as pp
 
 from .robot import Robot
 from .world import World
@@ -23,13 +24,9 @@ class Simulator:
         self.tick = tick
         self.logger = Logger("simulator")
 
-        curr_dir = pathlib.Path().absolute()
-
         self.world = World()
-        if conf_file is not None:
-            self.world.load_file(filename = str(curr_dir) + "/../configurations/" + conf_file + ".yaml")
-        elif configuration is not None:
-            self.world.from_configuration(configuration = configuration)
+
+        self.parseConfiguration(conf_file, configuration)
 
         self.robot = Robot(
             world = self.world.world,
@@ -41,6 +38,54 @@ class Simulator:
     def stop(self):
         self.robot.stop()
         self.logger.warning("Simulation stopped")
+
+    def loadYaml(self, yaml_file):
+        import yaml
+        try:
+            with open(yaml_file, 'r') as stream:
+                conf = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            self.logger.critical(f"Yaml file {yaml_file} does not exist")
+        return conf
+
+    def recursiveConfParse(self, conf, curr_dir):
+        if isinstance(conf, dict):
+            tmp_conf = {}
+            for s in conf:
+                # Check if "source"
+                if s == "source":
+                    self.logger.warning(f"We hit a source: {conf[s]}")
+                    r = self.loadYaml(curr_dir + conf[s] + ".yaml")
+                    tmp_conf = {**tmp_conf, **r}
+                else:
+                    r = self.recursiveConfParse(conf[s], curr_dir)
+                    tmp_conf[s] = r
+
+            return tmp_conf
+
+        elif isinstance(conf, list):
+            tmp_conf = []
+            for s in conf:
+                tmp_conf.append(self.recursiveConfParse(s, curr_dir))
+            return tmp_conf
+        else:
+            return conf
+
+    def parseConfiguration(self, conf_file, configuration):
+        tmp_conf = {}
+        curr_dir = str(pathlib.Path().absolute()) + "/../configurations/"
+        if conf_file is not None:
+            # Must load and parse file here
+            filename = curr_dir + conf_file + ".yaml"
+            try:
+                tmp_conf = self.loadYaml(filename)
+                tmp_conf = self.recursiveConfParse(tmp_conf, curr_dir)
+            except Exception as e:
+                self.logger.critical(str(e))
+
+            self.world.from_configuration(configuration = tmp_conf)
+        elif configuration is not None:
+            self.world.from_configuration(configuration = configuration)
 
     def start(self):
         self.robot.start()
