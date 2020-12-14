@@ -192,6 +192,21 @@ class SpeakerController:
         self.blocked = False
         return ret
 
+    def google_speak(self, language = None, texts = None, volume = None):
+        from google.cloud import texttospeech
+        self.voice = texttospeech.VoiceSelectionParams(\
+            language_code = language,\
+            ssml_gender = texttospeech.SsmlVoiceGender.FEMALE)
+
+        synthesis_input = texttospeech.SynthesisInput(text = texts)
+        response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
+
+        self.speaker.volume = volume
+        self.speaker.async_write(response.audio_content, file_flag=False)
+        while self.speaker.playing:
+            print("Speaking...")
+            time.sleep(0.1)
+
     def on_goal_play(self, goalh):
         self.logger.info("{} play started".format(self.name))
         if self.info["enabled"] == False:

@@ -91,19 +91,19 @@ class Simulator:
         self.robot.start()
         self.logger.warning("Simulation started")
         if self.robot.world['robots'][0]['mode'] == 'real' and self.robot.world['robots'][0]['speak_mode'] == "google":
-            from r4a_apis.robot_api import RobotAPI
-            from r4a_apis.google_api import GoogleAPI, GoogleLanguages
-            import os
-            from r4a_apis.utilities import InputMessage, OutputMessage, TekException, Languages
-
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
-
-            self.logger.debug('main', "TestGoogleApi_text2Speech")
-            self.rapi = RobotAPI(logger = self.logger)
-            self.gapi = GoogleAPI(memory = self.rapi.memory, logger = self.logger)
-            InputMessage.logger = self.logger
-            OutputMessage.logger = self.logger
-            TekException.logger = self.logger
+            # from r4a_apis.robot_api import RobotAPI
+            # from r4a_apis.google_api import GoogleAPI, GoogleLanguages
+            # import os
+            # from r4a_apis.utilities import InputMessage, OutputMessage, TekException, Languages
+            #
+            # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
+            #
+            # self.logger.debug('main', "TestGoogleApi_text2Speech")
+            # self.rapi = RobotAPI(logger = self.logger)
+            # self.gapi = GoogleAPI(memory = self.rapi.memory, logger = self.logger)
+            # InputMessage.logger = self.logger
+            # OutputMessage.logger = self.logger
+            # TekException.logger = self.logger
 
             # Wait for rhasspy
             from derp_me.client import DerpMeClient
@@ -123,9 +123,17 @@ class Simulator:
                         self.logger.warning("Rhasspy is up!")
                         rhasspy_ok = True
 
-            self.rapi.speak(InputMessage({
-                'device_id': "id_0",
-                'texts': ['Η συσκευή σας είναι έτοιμη προς χρήση!'],
-                'language': Languages.EL,
-                'volume': 50
-            }))
+            # ell
+            # Get the speaker
+            sp_con = None
+            for c in self.robot.controllers:
+                if "speaker" in c:
+                    sp_con = self.robot.controllers[c]
+                    break
+
+            if sp_con != None:
+                sp_con.google_speak(
+                        language="el",
+                        texts='Η συσκευή σας είναι έτοιμη προς χρήση!',
+                        volume=50
+                )

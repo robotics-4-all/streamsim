@@ -40,6 +40,7 @@ robots:
         -
           orientation: 0
           place: FRONT
+          hz: 1
           sensor_configuration:
             framerate: 30
             width: 640
