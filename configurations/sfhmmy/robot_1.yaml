@@ -1,0 +1,36 @@
+name: robot_1
+mode: mock # [simulation, mock, real]
+speak_mode: espeak # [google, espeak] - in case of real mode
+wait_for: [] #[rhasspy] # in case of real mode
+amqp_inform: false
+step_by_step_execution: false
+devices:
+  sonar:
+    -
+      orientation: -45
+      place: FR
+      hz: 1
+      max_range: 2
+      sensor_configuration:
+        bus: 4
+        address: 0x21
+        echo_pin: "B_1"
+        trigger_pin: "B_0"
+        max_data_length": 10
+  skid_steer:
+    -
+      orientation: 0
+      place: UNDER
+      sensor_configuration:
+        bus: 1
+        E1: 20
+        M1: 21
+        E2: 12
+        M2: 16
+        max_data_length: 10
+        wheel_separation: 0.147
+        wheel_radius: 0.022
+starting_pose:
+  x: 100 # in pixels
+  y: 100 # in pixels
+  theta: 0 # in degrees

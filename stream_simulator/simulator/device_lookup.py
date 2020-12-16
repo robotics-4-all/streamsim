@@ -41,6 +41,7 @@ from .controller_cytron_lf import CytronLFController
 class DeviceLookup:
     def __init__(self,
         world = None,
+        configuration = None,
         map = None,
         logger = None,
         name = None,
@@ -48,6 +49,7 @@ class DeviceLookup:
         device_name = None,
         derp = None
     ):
+        self.configuration = configuration
         self.world = world
         if logger is None:
             self.logger = Logger(name + "/device_discovery")
@@ -70,16 +72,16 @@ class DeviceLookup:
             self.derp_client = derp
 
         # Mode: one of {real, mock, simulation}
-        self.mode = self.world["robots"][0]["mode"]
-        self.speak_mode = self.world["robots"][0]["speak_mode"]
+        self.mode = self.configuration["mode"]
+        self.speak_mode = self.configuration["speak_mode"]
         if self.mode not in ["real", "mock", "simulation"]:
             self.logger.error("Selected mode is invalid: {}".format(self.mode))
             exit(1)
 
         cnt = -1
-        for s in self.world["robots"][0]["devices"]:
+        for s in self.configuration["devices"]:
             if s == "gstreamer_server":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -106,7 +108,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "microphone":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -137,7 +139,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "cytron_lf":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -168,7 +170,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "sonar":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -200,7 +202,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "ir":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -232,7 +234,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "tof":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -264,7 +266,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "camera":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -298,7 +300,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "imu":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -335,7 +337,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "button":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -367,7 +369,7 @@ class DeviceLookup:
 
                     self.devices.append(msg)
             elif s == "env":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -404,7 +406,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "speaker":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -433,7 +435,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "leds":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -462,7 +464,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "pan_tilt":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -490,7 +492,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "touch_screen":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -518,7 +520,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "skid_steer":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
@@ -548,7 +550,7 @@ class DeviceLookup:
                     }
                     self.devices.append(msg)
             elif s == "encoder":
-                devices = self.world["robots"][0]["devices"][s]
+                devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
