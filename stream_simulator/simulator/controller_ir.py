@@ -23,7 +23,7 @@ from derp_me.client import DerpMeClient
 class IrController:
     def __init__(self, info = None, map = None, logger = None, derp = None):
         if logger is None:
-            self.logger = Logger(info["name"] + "-" + info["id"])
+            self.logger = Logger(info["name"])
         else:
             self.logger = logger
 
@@ -32,14 +32,14 @@ class IrController:
         self.conf = info["sensor_configuration"]
         self.map = map
         self.base_topic = info["base_topic"]
-        self.streamable = info["streamable"]
-        if self.streamable:
-            _topic = self.base_topic + "/data"
-            self.publisher = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic
-            )
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+        self.derp_data_key = info["base_topic"] + ".raw"
+
+        _topic = self.base_topic + ".data"
+        self.publisher = Publisher(
+            conn_params=ConnParams.get("redis"),
+            topic=_topic
+        )
+        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -47,26 +47,22 @@ class IrController:
         else:
             self.derp_client = derp
 
-        self.memory = 100 * [0]
-
-        _topic = info["base_topic"] + "/get"
-        self.ir_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.ir_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
+        _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.enable_callback,
-            rpc_name=info["base_topic"] + "/enable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".disable"
         self.disable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
-            rpc_name=info["base_topic"] + "/disable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
         if self.info["mode"] == "simulation":
-            _topic = self.info['device_name'] + "/pose"
+            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
             self.robot_pose_sub = Subscriber(
                 conn_params=ConnParams.get("redis"),
                 topic = _topic,
@@ -109,25 +105,23 @@ class IrController:
                 except:
                     self.logger.warning("Pose not got yet..")
             else: # The real deal
-                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
                 """Already read() acculturate moving average"""
                 val = self.sensor.read()
 
+            # Publishing value:
+            self.publisher.publish({
+                "distance": val,
+                "timestamp": time.time()
+            })
 
-            self.memory_write(val)
-
-            if self.streamable:
-                self.publisher.publish({
-                    "data": val,
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "distance": val,
                     "timestamp": time.time()
-                })
-            else:
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.distance." + self.info["place"],
-                    [{
-                        "data": val,
-                        "timestamp": time.time()
-                    }])
+                }]
+            )
 
         self.logger.info("Ir {} sensor read thread stopped".format(self.info["id"]))
 
@@ -147,7 +141,6 @@ class IrController:
         return {"enabled": False}
 
     def start(self):
-        self.ir_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -164,7 +157,6 @@ class IrController:
 
     def stop(self):
         self.info["enabled"] = False
-        self.ir_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
@@ -173,35 +165,3 @@ class IrController:
         elif self.info["mode"] == "real":
             # terminate adc
             self.sensor.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-        # self.logger.info("Robot {}: memory updated for {}".format(self.name, "ir"))
-
-    def ir_callback(self, message, meta):
-        if self.info["enabled"] is False:
-            return {"data": []}
-
-        self.logger.info("Robot {}: ir callback: {}".format(self.name, message))
-        try:
-            _to = message["from"] + 1
-            _from = message["to"]
-        except Exception as e:
-            self.logger.error("{}: Malformed message for env: {} - {}".format(self.name, str(e.__class__), str(e)))
-            return []
-        ret = {"data": []}
-        for i in range(_from, _to): # 0 to -1
-            timestamp = time.time()
-            secs = int(timestamp)
-            nanosecs = int((timestamp-secs) * 10**(9))
-            ret["data"].append({
-                "header":{
-                    "stamp":{
-                        "sec": secs,
-                        "nanosec": nanosecs
-                    }
-                },
-                "distance": self.memory[-i]
-            })
-        return ret

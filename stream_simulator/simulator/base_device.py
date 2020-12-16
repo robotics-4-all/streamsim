@@ -10,17 +10,18 @@ import random
 
 from colorama import Fore, Style
 
+from commlib.logger import Logger
+
 from .conn_params import ConnParams
 if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService
+    from commlib.transports.amqp import RPCService, Subscriber, Publisher
 elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService
+    from commlib.transports.redis import RPCService, Subscriber, Publisher
 
-from commlib.logger import Logger
 from derp_me.client import DerpMeClient
 
-class GstreamerServerController:
-    def __init__(self, info = None, logger = None, derp = None):
+class BaseController:
+    def __init__(self, info = None, map = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
@@ -29,6 +30,9 @@ class GstreamerServerController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.map = map
+        self.base_topic = info["base_topic"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -52,42 +56,19 @@ class GstreamerServerController:
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
-        self.start()
+        self.info["queue_size"] = message["queue_size"]
         return {"enabled": True}
 
     def disable_callback(self, message, meta):
         self.info["enabled"] = False
-        self.stream.set_state(Gst.State.PAUSED)
+        self.logger.info("Ir {} stops reading".format(self.info["id"]))
         return {"enabled": False}
 
-    def stop(self):
-        pass
-
     def start(self):
-        if self.info["mode"] == "real":
-            import gi
-            gi.require_version("Gst", "1.0")
-            from gi.repository import Gst  # noqaE402
+        self.enable_rpc_server.run()
+        self.disable_rpc_server.run()
 
-            self.conf["alsa_device"] = \
-                "alsasrc device=dsnoop:CARD={},DEV=0".format(\
-                self.conf["alsa_device"])
-
-            # Concat hosts and ports
-            # TODO check if the ports and hosts haven't the same lenght.
-            hosts_ports = ""
-            for h, p in zip(self.conf["hosts"][:-1], self.conf["ports"][:-1]):
-                hosts_ports += "{}:{},".format(h, p)
-            hosts_ports += "{}:{}".format(self.conf["hosts"][-1], self.conf["ports"][-1])
-
-            # Create gstreamer stream pipeline
-            Gst.init()
-            self.stream = Gst.parse_launch("{} ! audioconvert ! audioresample !"
-                                           "audio/x-raw, rate=16000, channels=1,"
-                                           " format=S16LE !"
-                                           " multiudpsink clients={}".format(
-                                               self.conf["alsa_device"], hosts_ports))
-
-            self.logger.info("GStreamer Server is up (?)")
-
-            self.stream.set_state(Gst.State.PLAYING)
+    def stop(self):
+        self.info["enabled"] = False
+        self.enable_rpc_server.stop()
+        self.disable_rpc_server.stop()

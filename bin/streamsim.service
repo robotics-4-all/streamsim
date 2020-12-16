@@ -6,7 +6,6 @@ After=multi-user.target network.target redis-server.service
 [Service]
 User=pi
 Type=idle
-Environment="TEKTRAIN_NAMESPACE=/robot"
 ExecStart=/usr/bin/python3 -u main.py elsa
 WorkingDirectory=/home/pi/v2/stream-sim-backend/stream_simulator
 StandardOutput=inherit

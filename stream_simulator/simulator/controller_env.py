@@ -23,7 +23,7 @@ from derp_me.client import DerpMeClient
 class EnvController:
     def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
-            self.logger = Logger(info["name"] + "-" + info["id"])
+            self.logger = Logger(info["name"])
         else:
             self.logger = logger
 
@@ -31,14 +31,14 @@ class EnvController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
-        self.streamable = info["streamable"]
-        if self.streamable:
-            _topic = self.base_topic + "/data"
-            self.publisher = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic
-            )
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+        self.derp_data_key = info["base_topic"] + ".raw"
+
+        _topic = self.base_topic + ".data"
+        self.publisher = Publisher(
+            conn_params=ConnParams.get("redis"),
+            topic=_topic
+        )
+        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -60,23 +60,19 @@ class EnvController:
             self.sensor.set_heating_time([0], [100])
             self.sensor.set_nb_conv(0)
 
-        self.memory = 100 * [0]
-
-        _topic = info["base_topic"] + "/get"
-        self.env_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.env_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
+        _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.enable_callback,
-            rpc_name=info["base_topic"] + "/enable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".disable"
         self.disable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
-            rpc_name=info["base_topic"] + "/disable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
     def sensor_read(self):
         self.logger.info("Env {} sensor read thread started".format(self.info["id"]))
@@ -102,8 +98,6 @@ class EnvController:
                 val["humidity"] = self.info["humidity"] + random.uniform(-3, 3)
                 val["gas"] = self.info["gas"] + random.uniform(-3, 3)
             else: # The real deal
-                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-                # read the sensor values and populate the <val> dictionary
                 data = self.sensor.read()
 
                 val["temperature"] = data.temp
@@ -111,26 +105,20 @@ class EnvController:
                 val["humidity"] = data.hum
                 val["gas"] = data.gas
 
-            self.memory_write(val)
+            # Publishing value:
+            self.publisher.publish({
+                "data": val,
+                "timestamp": time.time()
+            })
 
-            if self.streamable:
-                self.publisher.publish({
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
                     "data": val,
                     "timestamp": time.time()
-                })
-            else:
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.temperature",
-                    [{"data": val["temperature"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.pressure",
-                    [{"data": val["pressure"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.humidity",
-                    [{"data": val["humidity"], "timestamp": time.time()}])
-                r = self.derp_client.lset(
-                    self.info["namespace"][1:] + "." + self.info["device_name"] + ".variables.robot.env.gas",
-                    [{"data": val["gas"], "timestamp": time.time()}])
+                }]
+            )
 
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 
@@ -150,7 +138,6 @@ class EnvController:
         return {"enabled": False}
 
     def start(self):
-        self.env_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -162,41 +149,5 @@ class EnvController:
 
     def stop(self):
         self.info["enabled"] = False
-        self.env_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-        # self.logger.info("Robot {}: memory updated for {}".format(self.name, "leds"))
-
-    def env_callback(self, message, meta):
-        if self.info["enabled"] is False:
-            return {"data": []}
-
-        self.logger.info("Robot {}: Env callback: {}".format(self.name, message))
-        try:
-            _to = message["from"] + 1
-            _from = message["to"]
-        except Exception as e:
-            self.logger.error("{}: Malformed message for env: {} - {}".format(self.name, str(e.__class__), str(e)))
-            return []
-        ret = {"data": []}
-        for i in range(_from, _to): # 0 to -1
-            timestamp = time.time()
-            secs = int(timestamp)
-            nanosecs = int((timestamp-secs) * 10**(9))
-            ret["data"].append({
-                "header":{
-                    "stamp":{
-                        "sec": secs,
-                        "nanosec": nanosecs
-                    }
-                },
-                "temperature": self.memory[-i]["temperature"],
-                "pressure": self.memory[-i]["pressure"],
-                "humidity": self.memory[-i]["humidity"],
-                "gas": self.memory[-i]["gas"]
-            })
-        return ret

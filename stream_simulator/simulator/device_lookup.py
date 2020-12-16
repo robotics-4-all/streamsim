@@ -29,16 +29,13 @@ from .controller_motion import MotionController
 from .controller_sonar import SonarController
 from .controller_ir import IrController
 from .controller_tof import TofController
-from .controller_button import ButtonController
 from .controller_encoder import EncoderController
 from .controller_camera import CameraController
 from .controller_microphone import MicrophoneController
 from .controller_speaker import SpeakerController
 from .controller_touch_screen import TouchScreenController
 from .controller_gstreamer_server import GstreamerServerController
-
-#import my controllers
-from .controller_button_array_mcp23017 import ButtonArrayController
+from .controller_button_array import ButtonArrayController
 from .controller_cytron_lf import CytronLFController
 
 class DeviceLookup:
@@ -78,22 +75,18 @@ class DeviceLookup:
         if self.mode not in ["real", "mock", "simulation"]:
             self.logger.error("Selected mode is invalid: {}".format(self.mode))
             exit(1)
-        self.sensors_streamable = self.world["robots"][0]["sensors_streamable"]
 
-        id_length = 4
+        cnt = -1
         for s in self.world["robots"][0]["devices"]:
             if s == "gstreamer_server":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "GSTREAMER_SERVER",
                         "brand": "gstream",
-                        "base_topic": self.name + "/sensor/audio/gstreamer/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.audio.gstreamer.d" + str(cnt),
                         "name": "gstreamer_" + str(cnt),
                         "place": m["place"],
                         "id": id,
@@ -104,21 +97,23 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc"
+                        },
+                        "data_models": {}
                     }
                     self.devices.append(msg)
             elif s == "microphone":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "MICROPHONE",
                         "brand": "usb_mic",
-                        "base_topic": self.name + "/sensor/audio/microphone/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.audio.microphone.d" + str(cnt),
                         "name": "microphone_" + str(cnt),
                         "place": m["place"],
                         "id": id,
@@ -130,26 +125,30 @@ class DeviceLookup:
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "device_name": self.device_name,
-                        "actors": self.world["actors"]
+                        "actors": self.world["actors"],
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "record": "action"
+                        },
+                        "data_models": {
+                            "record": ["record"]
+                        }
                     }
                     self.devices.append(msg)
             elif s == "cytron_lf":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "LINE_FOLLOWER",
                         "brand": "line_follower",
-                        "base_topic": self.name + "/sensor/distance/cytron_lf/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.line_follow.cytron_lf.d" + str(cnt),
                         "name": "cytron_lf_" + str(cnt),
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -157,26 +156,30 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "data": "publisher"
+                        },
+                        "data_models": {
+                            "data": ["so_1", "so_2", "so_3", "so_4", "so_5"]
+                        }
                     }
                     self.devices.append(msg)
             elif s == "sonar":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "SONAR",
                         "brand": "sonar",
-                        "base_topic": self.name + "/sensor/distance/sonar/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.distance.sonar.d" + str(cnt),
                         "name": "sonar_" + str(cnt),
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -185,26 +188,30 @@ class DeviceLookup:
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "max_range": m["max_range"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "data": "publisher"
+                        },
+                        "data_models": {
+                            "data": ["distance"]
+                        }
                     }
                     self.devices.append(msg)
             elif s == "ir":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "IR",
                         "brand": "ir",
-                        "base_topic": self.name + "/sensor/distance/ir/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.distance.ir.d" + str(cnt),
                         "name": "ir_" + str(cnt),
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -213,26 +220,30 @@ class DeviceLookup:
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "max_range": m["max_range"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "data": "publisher"
+                        },
+                        "data_models": {
+                            "data": ["distance"]
+                        }
                     }
                     self.devices.append(msg)
             elif s == "tof":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "TOF",
                         "brand": "vl53l1x",
-                        "base_topic": self.name + "/sensor/distance/tof/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.distance.tof.d" + str(cnt),
                         "name": "tof_" + str(cnt),
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -241,26 +252,30 @@ class DeviceLookup:
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "max_range": m["max_range"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "data": "publisher"
+                        },
+                        "data_models": {
+                            "data": ["distance"]
+                        }
                     }
                     self.devices.append(msg)
             elif s == "camera":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "CAMERA",
                         "brand": "picamera",
-                        "base_topic": self.name + "/sensor/visual/camera/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.visual.camera.d" + str(cnt),
                         "name": "camera_" + str(cnt),
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 0,
@@ -269,26 +284,32 @@ class DeviceLookup:
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
                         "device_name": self.device_name,
-                        "actors": self.world["actors"]
+                        "actors": self.world["actors"],
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "data": "publisher"
+                        },
+                        "data_models": {
+                            "data": {"data":
+                                ["format", "per_rows", "width", "height", "image"]
+                            }
+                        }
                     }
                     self.devices.append(msg)
             elif s == "imu":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "IMU",
                         "brand": "icm_20948",
-                        "base_topic": self.name + "/sensor/imu/accel_gyro_magne_temp/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.imu.accel_gyro_magne_temp.d" + str(cnt),
                         "name": "imu_" + str(cnt),
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -296,26 +317,36 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "data": "publisher"
+                        },
+                        "data_models": {
+                            "data": {
+                                "data":{
+                                    "accel": ["x", "y", "z"],
+                                    "gyro": ["yaw", "pitch", "roll"],
+                                    "magne": ["yaw", "pitch", "roll"],
+                                }
+                            }
+                        }
                     }
                     self.devices.append(msg)
             elif s == "button":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "BUTTON",
                         "brand": "simple",
-                        "base_topic": self.name + "/sensor/button/tactile_switch/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.button.tactile_switch.d" + str(cnt),
                         "name": "button_" + str(cnt),
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": 1,
                         "queue_size": 100,
@@ -323,27 +354,31 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "data": "publisher"
+                        },
+                        "data_models": {
+                            "data": ["data"]
+                        }
                     }
 
                     self.devices.append(msg)
             elif s == "env":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "ENV",
                         "brand": "bme680",
-                        "base_topic": self.name + "/sensor/env/temp_hum_pressure_gas/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.env.temp_hum_pressure_gas.d" + str(cnt),
                         "name": "env_" + str(cnt),
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -355,21 +390,28 @@ class DeviceLookup:
                         "temperature": m["sim_temperature"],
                         "humidity": m["sim_humidity"],
                         "gas": m["sim_air_quality"],
-                        "pressure": m["sim_pressure"]
+                        "pressure": m["sim_pressure"],
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "data": "publisher"
+                        },
+                        "data_models": {
+                            "data": {
+                                "data": ["temperature", "pressure", "humidity", "gas"]
+                            }
+                        }
                     }
                     self.devices.append(msg)
             elif s == "speaker":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "SPEAKERS",
                         "brand": "usb_speaker",
-                        "base_topic": self.name + "/actuator/audio/speaker/usb_speaker/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".actuator.audio.speaker.usb_speaker.d" + str(cnt),
                         "name": "speaker_" + str(cnt),
                         "place": m["place"],
                         "id": id,
@@ -380,21 +422,25 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "play": "action",
+                            "speak": "action"
+                        },
+                        "data_models": []
                     }
                     self.devices.append(msg)
             elif s == "leds":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "LED",
                         "brand": "neopx",
-                        "base_topic": self.name + "/actuator/visual/leds/neopx/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".actuator.visual.leds.neopx.d" + str(cnt),
                         "name": "led_" + str(cnt),
                         "place": m["place"],
                         "id": id,
@@ -405,21 +451,25 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "leds.set": "subscriber",
+                            "leds_wipe.set": "rpc"
+                        },
+                        "data_models": []
                     }
                     self.devices.append(msg)
             elif s == "pan_tilt":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "PAN_TILT",
                         "brand": "pca9685",
-                        "base_topic": self.name + "/actuator/servo/pantilt/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".actuator.servo.pantilt.d" + str(cnt),
                         "name": "pan_tilt_" + str(cnt),
                         "place": m["place"],
                         "id": id,
@@ -430,21 +480,24 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "set": "subscriber"
+                        },
+                        "data_models": []
                     }
                     self.devices.append(msg)
             elif s == "touch_screen":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "TOUCH_SCREEN",
                         "brand": "touch_screen",
-                        "base_topic": self.name + "/actuator/visual/screen/touch_screen/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".actuator.visual.screen.touch_screen.d" + str(cnt),
                         "name": "touch_screen_" + str(cnt),
                         "place": m["place"],
                         "id": id,
@@ -455,21 +508,24 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "show_image": "rpc"
+                        },
+                        "data_models": {}
                     }
                     self.devices.append(msg)
             elif s == "skid_steer":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "SKID_STEER",
                         "brand": "twist",
-                        "base_topic": self.name + "/actuator/motion/base/twist/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".actuator.motion.twist.d" + str(cnt),
                         "name": "skid_steer_" + str(cnt),
                         "place": m["place"],
                         "id": id,
@@ -480,26 +536,30 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "set": "subscriber"
+                        },
+                        "data_models": {
+                            "data": ["linear", "angular"]
+                        }
                     }
                     self.devices.append(msg)
             elif s == "encoder":
                 devices = self.world["robots"][0]["devices"][s]
-                cnt = -1
                 for m in devices:
                     cnt += 1
                     id = "id_" + str(cnt)
-                    # id = 'id_' + ''.join(random.choices(
-                    #     string.ascii_lowercase + string.digits, k = id_length))
                     msg = {
                         "type": "ENCODER",
                         "brand": "simple",
-                        "base_topic": self.name + "/sensor/encoder/d" + str(cnt) + "/" + id,
+                        "base_topic": self.name + ".sensor.encoder.d" + str(cnt),
                         "name": "encoder_" + str(cnt),
                         "place": m["place"],
                         "id": id,
                         "enabled": True,
-                        "streamable": self.sensors_streamable,
                         "orientation": m["orientation"],
                         "hz": m["hz"],
                         "queue_size": 100,
@@ -507,7 +567,15 @@ class DeviceLookup:
                         "speak_mode": self.speak_mode,
                         "namespace": self.namespace,
                         "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name
+                        "device_name": self.device_name,
+                        "endpoints":{
+                            "enable": "rpc",
+                            "disable": "rpc",
+                            "data": "publisher"
+                        },
+                        "data_models": {
+                            "data": ["rpm"]
+                        }
                     }
                     self.devices.append(msg)
             else:
@@ -539,8 +607,6 @@ class DeviceLookup:
                 self.motion_controller = self.controllers[d["name"]]
             elif d["type"] == "TOF":
                 self.controllers[d["name"]] = TofController(info = d, map = self.map, derp = self.derp_client)
-            # elif d["type"] == "BUTTON":
-            #     self.controllers[d["name"]] = ButtonController(info = d)
             elif d["type"] == "ENCODER":
                 self.controllers[d["name"]] = EncoderController(info = d, logger = _logger, derp = self.derp_client)
             elif d["type"] == "CAMERA":
@@ -557,41 +623,36 @@ class DeviceLookup:
                 self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
             self.logger.warning(d["name"] + " controller created")
 
-
-        #===============================Button Array==================================
         # Gather all buttons and pass them into the Button Array Controller
-
         self.button_configuration = {
                 "places": [],
                 "pin_nums": [],
+                "base_topics": {},
                 "direction": "down",
                 "bounce": 200,
         }
 
-        for d in self.devices:
-            # gather all button numbers and places
-            if d["type"] == "BUTTON":
-                self.button_configuration["pin_nums"].append(d["sensor_configuration"].get("pin_num"))
-                self.button_configuration["places"].append(d["place"])
-
-        #print("Print button configuration:", self.button_configuration,  " of size: ", len(self.button_configuration))
+        buttons = [x for x in self.devices if x["type"] == "BUTTON"]
+        for d in buttons:
+            self.logger.warning(f"Button {d['id']} added in button_array")
+            self.button_configuration["pin_nums"].append(d["sensor_configuration"].get("pin_num"))
+            self.button_configuration["places"].append(d["place"])
+            self.button_configuration["base_topics"][d["place"]] = d["base_topic"]
 
         # if there were any buttons registered create a generic msg passing their configurations
         if len(self.button_configuration["pin_nums"]) > 0:
-            #print("Adding button array")
-            cnt = 0
+            cnt += 1
             id = "id_" + str(cnt)
             msg = {
                 "type": "BUTTON_ARRAY",
                 "brand": "simple",
-                "base_topic": self.name + "/sensor/button_array/d" + str(cnt) + "/" + id,
+                "base_topic": self.name + ".sensor.button_array.d" + str(cnt),
                 "name": "button_array_" + str(cnt),
                 "place": "UNKNOWN",
                 "id": id,
                 "enabled": True,
-                "streamable": self.sensors_streamable,
                 "orientation": 0,
-                "hz": 1,
+                "hz": 4,
                 "queue_size": 100,
                 "mode": self.mode,
                 "speak_mode": self.speak_mode,
@@ -602,10 +663,7 @@ class DeviceLookup:
 
             self.devices.append(msg)
 
-            #self.devices.append(msg)
             self.controllers[msg["name"]] = ButtonArrayController(info = msg, logger = _logger, derp = self.derp_client)
-        #===============================================================================
-
 
     def get(self):
         return {

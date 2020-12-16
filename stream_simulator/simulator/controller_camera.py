@@ -9,6 +9,7 @@ import threading
 import random
 import cv2
 import os
+from os.path import expanduser
 import base64
 
 from colorama import Fore, Style
@@ -26,7 +27,7 @@ from derp_me.client import DerpMeClient
 class CameraController:
     def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
-            self.logger = Logger(info["name"] + "-" + info["id"])
+            self.logger = Logger(info["name"])
         else:
             self.logger = logger
 
@@ -34,14 +35,14 @@ class CameraController:
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
-        self.streamable = info["streamable"]
-        if self.streamable:
-            _topic = self.base_topic + "/data"
-            self.publisher = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic
-            )
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+        self.derp_data_key = info["base_topic"] + ".raw"
+
+        _topic = self.base_topic + ".data"
+        self.publisher = Publisher(
+            conn_params=ConnParams.get("redis"),
+            topic=_topic
+        )
+        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         if derp is None:
             self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -64,33 +65,35 @@ class CameraController:
                                  name=self.name,
                                  max_data_length=self.conf["max_data_length"])
             self.sensor.stop()
-
-        self.memory = 100 * [0]
-
-        _topic = info["base_topic"] + "/get"
-        self.get_image_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.get_image_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        self.enable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.enable_callback,
-            rpc_name=info["base_topic"] + "/enable")
-        self.disable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.disable_callback,
-            rpc_name=info["base_topic"] + "/disable")
-
         if self.info["mode"] == "simulation":
-            _topic = self.info['device_name'] + "/pose"
+            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
             self.robot_pose_sub = Subscriber(
                 conn_params=ConnParams.get("redis"),
                 topic = _topic,
                 on_message = self.robot_pose_update)
             self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
             self.robot_pose_sub.run()
+
+        _topic = info["base_topic"] + ".video"
+        self.video_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.video_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".enable"
+        self.enable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.enable_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".disable"
+        self.disable_rpc_server = RPCService(
+            conn_params=ConnParams.get("redis"),
+            on_request=self.disable_callback,
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
         # The images
         self.images = {
@@ -117,9 +120,9 @@ class CameraController:
         return {"enabled": False}
 
     def start(self):
-        self.get_image_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+        self.video_rpc_server.run()
 
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
@@ -127,31 +130,107 @@ class CameraController:
             self.logger.info("Camera {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
     def stop(self):
-        self.get_image_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+        self.video_rpc_server.stop()
 
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
-        self.logger.info("Robot {}: memory updated for {}".format(self.name, "ir"))
+    def writeImageToFile(self, path = None, image = None, w = None, h = None):
+        try:
+            from PIL import Image
+            imgdata = list(base64.b64decode(image.encode("ascii")))
+            img = Image.new('RGB', [w, h], 255)
+            data = img.load()
+            cnt = 0
+            for line in range(0, h):
+                for column in range(0, w):
+                    data[column, line] = (
+                        imgdata[cnt + 0],
+                        imgdata[cnt + 1],
+                        imgdata[cnt + 2]
+                    )
+                    cnt += 3
+            img.save(path)
+        except Exception as e:
+            self.logger.error(str(e))
+
+    def video_callback(self, message, meta):
+        self.logger.info(f"Video requested with input {message}")
+        duration = message["duration"]
+        width = 640
+        height = 480
+        # Wait till time passes
+        now = time.time()
+        curr_img = self.image_counter
+
+        self.logger.info(f"Generating images")
+        while time.time() - now < duration:
+            self.writeImageToFile(
+                path = expanduser("~") + f"/img_{self.image_counter}_motion.jpg",
+                image = self.img["image"],
+                w = width,
+                h = height
+            )
+            while curr_img == self.image_counter:
+                time.sleep(0.1)
+            curr_img = self.image_counter
+
+        self.logger.info(f"Creating the video")
+        # Write the video
+        import cv2
+        import os
+        image_folder = expanduser("~")
+        video_name = expanduser("~") + '/video_motion_detection.avi'
+
+        images = [img for img in os.listdir(image_folder) if img.endswith("_motion.jpg")]
+        frame = cv2.imread(os.path.join(image_folder, images[0]))
+        height, width, layers = frame.shape
+        video = cv2.VideoWriter(video_name, 0, 3,  (int(width/4),int(height/4)))
+        for image in images:
+            i = cv2.imread(os.path.join(image_folder, image))
+            i = cv2.resize(i, (int(width/4),int(height/4)))
+            video.write(i)
+        cv2.destroyAllWindows()
+        video.release()
+
+        # Load video and send it as base64 string
+        self.logger.info(f"Encoding")
+        import base64
+        data = open(video_name, "rb").read()
+        enc_data = base64.b64encode(data)
+        print(len(enc_data))
+
+        self.logger.info(f"Cleaning up images")
+        dir = expanduser("~")
+        os.system(f"cd {dir} && rm *_motion.jpg")
+
+        self.logger.info(f"Sending it")
+
+        return {"data": enc_data.decode('ascii')}
 
     def sensor_read(self):
         self.logger.info("camera {} sensor read thread started".format(self.info["id"]))
+        self.image_counter = 0
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
-            img = self.get_image({"width": 800, "height": 600})
+            self.img = self.get_image({"width": 640, "height": 480})
+            self.image_counter += 1
+            # Publishing value:
             self.publisher.publish({
-                "data": img,
+                "data": self.img,
                 "timestamp": time.time()
             })
-            self.logger.debug("camera done")
 
-    def get_image_callback(self, message, meta):
-        return self.get_image(message)
+            # Storing value:
+            r = self.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "data": self.img,
+                    "timestamp": time.time()
+                }]
+            )
 
     def get_image(self, message):
-        self.logger.info("Robot {}: get image callback: {}".format(self.name, message))
+        self.logger.debug("Robot {}: get image callback: {}".format(self.name, message))
         try:
             width = message["width"]
             height = message["height"]
@@ -209,7 +288,7 @@ class CameraController:
             for i in findings:
                 for j in findings[i]:
                     self.logger.debug("Camera detected: " + str(j))
-            self.logger.info("Closest detection: {}".format(closest))
+            self.logger.debug("Closest detection: {}".format(closest))
 
             img = self.images[closest]
 
@@ -219,7 +298,7 @@ class CameraController:
             if closest == "empty":
                 cl_f = "empty"
             self.derp_client.lset(
-                self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
+                self.info["namespace"] + "." + self.info["device_name"] + ".detect.source",
                 [cl_f]
             )
             self.logger.debug(f"Derp me updated with {cl_f}")
@@ -303,12 +382,7 @@ class CameraController:
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
         ret = {
-            "header":{
-                "stamp":{
-                    "sec": secs,
-                    "nanosec": nanosecs
-                }
-            },
+            "timestamp": time.time(),
             "format": "RGB",
             "per_rows": True,
             "width": width,

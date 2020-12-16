@@ -24,7 +24,7 @@ from derp_me.client import DerpMeClient
 class SpeakerController:
     def __init__(self, info = None, logger = None, derp = None):
         if logger is None:
-            self.logger = Logger(info["name"] + "-" + info["id"])
+            self.logger = Logger(info["name"])
         else:
             self.logger = logger
 
@@ -40,8 +40,6 @@ class SpeakerController:
 
         self.global_volume = None
         self.blocked = False
-
-        self.memory = 100 * [0]
 
         if self.info["mode"] == "real":
             from pidevices import Speaker
@@ -64,14 +62,14 @@ class SpeakerController:
                     audio_encoding = texttospeech.AudioEncoding.LINEAR16,
                     sample_rate_hertz = 44100)
 
-        _topic = info["base_topic"] + "/play"
+        _topic = info["base_topic"] + ".play"
         self.play_action_server = ActionServer(
             conn_params=ConnParams.get("redis"),
             on_goal=self.on_goal_play,
             action_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis ActionServer {_topic}{Style.RESET_ALL}")
 
-        _topic = info["base_topic"] + "/speak"
+        _topic = info["base_topic"] + ".speak"
         self.speak_action_server = ActionServer(
             conn_params=ConnParams.get("redis"),
             on_goal=self.on_goal_speak,
@@ -85,14 +83,19 @@ class SpeakerController:
             rpc_name=_topic)
         self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
+        _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.enable_callback,
-            rpc_name=info["base_topic"] + "/enable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+
+        _topic = info["base_topic"] + ".disable"
         self.disable_rpc_server = RPCService(
             conn_params=ConnParams.get("redis"),
             on_request=self.disable_callback,
-            rpc_name=info["base_topic"] + "/disable")
+            rpc_name=_topic)
+        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
 
         # Try to get global volume:
         res = self.derp_client.get(
@@ -188,6 +191,21 @@ class SpeakerController:
         self.logger.info("{} Speak finished".format(self.name))
         self.blocked = False
         return ret
+
+    def google_speak(self, language = None, texts = None, volume = None):
+        from google.cloud import texttospeech
+        self.voice = texttospeech.VoiceSelectionParams(\
+            language_code = language,\
+            ssml_gender = texttospeech.SsmlVoiceGender.FEMALE)
+
+        synthesis_input = texttospeech.SynthesisInput(text = texts)
+        response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
+
+        self.speaker.volume = volume
+        self.speaker.async_write(response.audio_content, file_flag=False)
+        while self.speaker.playing:
+            print("Speaking...")
+            time.sleep(0.1)
 
     def on_goal_play(self, goalh):
         self.logger.info("{} play started".format(self.name))
@@ -325,7 +343,3 @@ class SpeakerController:
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
         self.global_volume_rpc_server.stop()
-
-    def memory_write(self, data):
-        del self.memory[-1]
-        self.memory.insert(0, data)
