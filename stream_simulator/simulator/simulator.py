@@ -71,12 +71,6 @@ class Simulator:
             self.logger.critical(f"Yaml file {yaml_file} does not exist")
         return conf
 
-    def stop(self):
-        for r in self.robots:
-            r.stop()
-        self.logger.warning("Simulation stopped")
-
-
     def recursiveConfParse(self, conf, curr_dir):
         if isinstance(conf, dict):
             tmp_conf = {}
@@ -85,6 +79,7 @@ class Simulator:
                 if s == "source":
                     self.logger.warning(f"We hit a source: {conf[s]}")
                     r = self.loadYaml(curr_dir + conf[s] + ".yaml")
+                    r = self.recursiveConfParse(r, curr_dir)
                     tmp_conf = {**tmp_conf, **r}
                 else:
                     r = self.recursiveConfParse(conf[s], curr_dir)
@@ -99,6 +94,11 @@ class Simulator:
             return tmp_conf
         else:
             return conf
+
+    def stop(self):
+        for r in self.robots:
+            r.stop()
+        self.logger.warning("Simulation stopped")
 
     def start(self):
         for i in range(0, len(self.robots)):

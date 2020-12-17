@@ -50,6 +50,8 @@ class DeviceLookup:
         derp = None
     ):
         self.configuration = configuration
+        # import pprint
+        # pprint.pprint(self.configuration)
         self.world = world
         if logger is None:
             self.logger = Logger(name + "/device_discovery")

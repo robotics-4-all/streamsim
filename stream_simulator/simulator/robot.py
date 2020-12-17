@@ -522,7 +522,7 @@ class Robot:
                             "theta": theta2,
                             "resolution": self.resolution
                         })
-                    self.logger.info(f"New pose: {xx}, {yy}, {theta2}")
+                    self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
 
                 # Send internal pose for distance sensors
 
