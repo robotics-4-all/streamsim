@@ -101,6 +101,17 @@ class MotionController:
     def cmd_vel(self, message, meta):
         try:
             response = message
+
+            # Checks for types
+            try:
+                float(response['linear'])
+                float(response['angular'])
+            except:
+                if not response['linear'].isdigit():
+                    raise Exception("Linear is no integer nor float")
+                if not response['angular'].isdigit():
+                    raise Exception("Angular is no integer nor float")
+
             self._linear = response['linear']
             self._angular = response['angular']
             self._raw = response['raw']

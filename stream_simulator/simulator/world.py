@@ -19,30 +19,30 @@ class World:
     def __init__(self):
         self.logger = Logger("world")
 
-    def load_file(self, filename = None):
-        with open(filename, 'r') as stream:
-            try:
-                self.world = yaml.safe_load(stream)
-                self.logger.info("World loaded")
-                self.setup()
-            except yaml.YAMLError as exc:
-                self.logger.critical("World filename does not exist")
+    # def load_file(self, filename = None):
+    #     with open(filename, 'r') as stream:
+    #         try:
+    #             self.world = yaml.safe_load(stream)
+    #             self.logger.info("World loaded")
+    #             self.setup()
+    #         except yaml.YAMLError as exc:
+    #             self.logger.critical("World filename does not exist")
 
-    def from_configuration(self, configuration = None):
-        self.world = configuration
+    def load_environment(self, configuration = None):
+        self.configuration = configuration
         self.logger.info("World loaded")
         self.setup()
 
     def setup(self):
 
-        self.width = self.world['map']['width']
-        self.height = self.world['map']['height']
+        self.width = self.configuration['map']['width']
+        self.height = self.configuration['map']['height']
 
         self.map = numpy.zeros((self.width, self.height))
-        self.resolution = self.world['map']['resolution']
+        self.resolution = self.configuration['map']['resolution']
 
         # Add obstacles information in map
-        self.obstacles = self.world['map']['obstacles']['lines']
+        self.obstacles = self.configuration['map']['obstacles']['lines']
         for obst in self.obstacles:
             x1 = obst['x1']
             x2 = obst['x2']

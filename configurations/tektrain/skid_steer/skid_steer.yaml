@@ -1,0 +1,11 @@
+orientation: 0
+place: UNDER
+sensor_configuration:
+  bus: 1
+  E1: 20
+  M1: 21
+  E2: 12
+  M2: 16
+  max_data_length: 10
+  wheel_separation: 0.147
+  wheel_radius: 0.022

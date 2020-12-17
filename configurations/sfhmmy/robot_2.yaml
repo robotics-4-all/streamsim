@@ -1,0 +1,17 @@
+name: robot_2
+mode: mock # [simulation, mock, real]
+speak_mode: espeak # [google, espeak] - in case of real mode
+wait_for: [] #[rhasspy] # in case of real mode
+amqp_inform: false
+step_by_step_execution: false
+devices:
+  ir:
+    -
+      source: "tektrain/irs/ir_fr"
+  skid_steer:
+    -
+      source: "tektrain/skid_steer/skid_steer"
+starting_pose:
+  x: 200 # in pixels
+  y: 200 # in pixels
+  theta: 90 # in degrees

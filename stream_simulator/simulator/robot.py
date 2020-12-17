@@ -63,8 +63,14 @@ class HeartbeatThread(threading.Thread):
         return self._stop_event.is_set()
 
 class Robot:
-    def __init__(self, world = None, map = None, name = "robot", tick = 0.25):
-        self.logger = Logger(name)
+    def __init__(self,
+                 configuration = None,
+                 world = None,
+                 map = None,
+                 tick = 0.25):
+
+        self.configuration = configuration
+        self.logger = Logger(self.configuration["name"])
         logging.getLogger("pika").setLevel(logging.INFO)
         logging.getLogger("Adafruit_I2C").setLevel(logging.INFO)
         logging.getLogger("RPCClient").setLevel(logging.INFO)
@@ -81,7 +87,7 @@ class Robot:
         try: # Get config for remote logging and heartbeat
             cfg_file = os.path.expanduser("~/.config/streamsim/config")
             if not os.path.isfile(cfg_file):
-                self.logger = Logger("name")
+                self.logger = Logger(self.configuration["name"])
                 self.logger.warn('Config file does not exist')
             config = configparser.ConfigParser()
             config.read(cfg_file)
@@ -126,8 +132,8 @@ class Robot:
         except Exception as e:
             self.logger.warning(f"Error in streamsim system configuration file: {str(e)}")
 
-        self.raw_name = name
-        self.name = self.namespace + "." + name
+        self.raw_name = self.configuration["name"]
+        self.name = self.namespace + "." + self.configuration["name"]
         self.dt = tick
 
         # intial robot pose - remains remains constant throughout streamsim launch
@@ -152,7 +158,7 @@ class Robot:
         self.resolution = self.world["map"]["resolution"]
         self.logger.info("Robot {}: map set".format(self.name))
 
-        pose = self.world['robots'][0]['starting_pose']
+        pose = self.configuration['starting_pose']
         self._init_x = pose['x'] * self.resolution
         self._init_y = pose['y'] * self.resolution
         self._init_theta = pose['theta'] / 180.0 * math.pi
@@ -163,7 +169,7 @@ class Robot:
         self._y = self._init_y
         self._theta = self._init_theta
 
-        self.step_by_step_execution = self.world['robots'][0]['step_by_step_execution']
+        self.step_by_step_execution = self.configuration['step_by_step_execution']
         self.logger.warning("Step by step execution is {}".format(self.step_by_step_execution))
 
         # Derpme client creation
@@ -177,10 +183,11 @@ class Robot:
             _logger = self.logger
         self.device_management = DeviceLookup(
             world = self.world,
+            configuration = self.configuration,
             map = self.map,
             name = self.name,
             namespace = self.namespace,
-            device_name = name,
+            device_name = self.configuration["name"],
             logger = _logger,
             derp = self.derp_client
         )
@@ -215,7 +222,7 @@ class Robot:
         self.logger.info(f"{Fore.GREEN} Created redis Publisher {_topic}{Style.RESET_ALL}")
 
         # SIMULATOR ------------------------------------------------------------
-        if self.world['robots'][0]['amqp_inform'] is True:
+        if self.configuration['amqp_inform'] is True:
             import commlib
 
             final_t = self.name
@@ -272,13 +279,13 @@ class Robot:
 
             # REDIS Publishers  -----------------------------------------------
 
-            _topic = name + ".buttons_sim"
+            _topic = self.configuration["name"] + ".buttons_sim"
             self.buttons_sim_pub = Publisher(
                 conn_params=ConnParams.get("redis"),
                 topic= _topic)
             self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
 
-            _topic = name + ".next_step"
+            _topic = self.configuration["name"] + ".next_step"
             self.next_step_pub = Publisher(
                 conn_params=ConnParams.get("redis"),
                 topic= _topic)
@@ -370,7 +377,7 @@ class Robot:
         for c in self.controllers:
             self.controllers[c].start()
 
-        if self.world['robots'][0]['amqp_inform'] is True:
+        if self.configuration['amqp_inform'] is True:
             self.buttons_amqp_sub.run()
             self.execution_nodes_redis_sub.run()
             self.detects_redis_sub.run()
@@ -404,7 +411,7 @@ class Robot:
             self.logger.warning("Trying to stop controller {}".format(c))
             self.controllers[c].stop()
 
-        if self.world['robots'][0]['amqp_inform'] is True:
+        if self.configuration['amqp_inform'] is True:
             self.buttons_sub.stop()
             if self.step_by_step_execution:
                 self.step_by_step_sub.stop()
@@ -507,7 +514,7 @@ class Robot:
                 theta2 = float("{:.2f}".format(self._theta))
 
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
-                    if self.world['robots'][0]['amqp_inform'] is True:
+                    if self.configuration['amqp_inform'] is True:
                         self.logger.info("AMQP pose updated")
                         self.pose_pub.publish({
                             "x": xx,
@@ -515,7 +522,7 @@ class Robot:
                             "theta": theta2,
                             "resolution": self.resolution
                         })
-                    self.logger.info(f"New pose: {xx}, {yy}, {theta2}")
+                    self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
 
                 # Send internal pose for distance sensors
 
