@@ -9,7 +9,7 @@ import threading
 import random
 from colorama import Fore, Style
 
-from .conn_params import ConnParams
+from stream_simulator.connectivity import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import RPCService, Subscriber, Publisher
 elif ConnParams.type == "redis":

@@ -11,16 +11,17 @@ import random
 from colorama import Fore, Style
 
 from commlib.logger import Logger
-from derp_me.client import DerpMeClient
 
-from .conn_params import ConnParams
+from stream_simulator.connectivity import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import RPCService, Subscriber, Publisher
 elif ConnParams.type == "redis":
     from commlib.transports.redis import RPCService, Subscriber, Publisher
 
-class ImuController:
-    def __init__(self, info = None, logger = None, derp = None):
+from derp_me.client import DerpMeClient
+
+class TofController:
+    def __init__(self, info = None, map = None, logger = None, derp = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
@@ -28,7 +29,7 @@ class ImuController:
 
         self.info = info
         self.name = info["name"]
-        self.conf = info["sensor_configuration"]
+        self.map = map
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
@@ -46,11 +47,8 @@ class ImuController:
             self.derp_client = derp
 
         if self.info["mode"] == "real":
-            from pidevices import ICM_20948
-            from .imu_calibration import IMUCalibration
-
-            self._sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
-            self._imu_calibrator = IMUCalibration(calib_time=5, buf_size=5)
+            from pidevices.sensors.vl53l1x import VL53L1X
+            self.sensor = VL53L1X(bus=1)
         if self.info["mode"] == "simulation":
             _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
             self.robot_pose_sub = Subscriber(
@@ -58,11 +56,6 @@ class ImuController:
                 topic = _topic,
                 on_message = self.robot_pose_update)
             self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-            self.robot_pose = {
-                "x": 0,
-                "y": 0,
-                "theta": 0
-            }
 
         _topic = info["base_topic"] + ".enable"
         self.enable_rpc_server = RPCService(
@@ -82,60 +75,36 @@ class ImuController:
         self.robot_pose = message
 
     def sensor_read(self):
-        self.logger.info("IMU {} sensor read thread started".format(self.info["id"]))
+        self.logger.info("TOF {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
+            val = 0
             if self.info["mode"] == "mock":
-                val = {
-                    "accel": {
-                        "x": 1,
-                        "y": 1,
-                        "z": 1
-                    },
-                    "gyro": {
-                        "yaw": random.uniform(0.3, -0.3),
-                        "pitch": random.uniform(0.3, -0.3),
-                        "roll": random.uniform(0.3, -0.3)
-                    },
-                    "magne": {
-                        "yaw": random.uniform(0.3, -0.3),
-                        "pitch": random.uniform(0.3, -0.3),
-                        "roll": random.uniform(0.3, -0.3)
-                    }
-                }
-
+                val = float(random.uniform(30, 10))
             elif self.info["mode"] == "simulation":
                 try:
-                    val = {
-                        "accel": {
-                            "x": random.uniform(0.3, -0.3),
-                            "y": random.uniform(0.3, -0.3),
-                            "z": random.uniform(0.3, -0.3)
-                        },
-                        "gyro": {
-                            "yaw": random.uniform(0.3, -0.3),
-                            "pitch": random.uniform(0.3, -0.3),
-                            "roll": random.uniform(0.3, -0.3)
-                        },
-                        "magne": {
-                            "yaw": self.robot_pose["theta"] + random.uniform(0.3, -0.3),
-                            "pitch": random.uniform(0.3, -0.3),
-                            "roll": random.uniform(0.3, -0.3)
-                        }
-                    }
+                    ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
+                    # Calculate distance
+                    d = 1
+                    originx = self.robot_pose["x"] / self.robot_pose["resolution"]
+                    originy = self.robot_pose["y"] / self.robot_pose["resolution"]
+                    tmpx = originx
+                    tmpy = originy
+                    limit = self.info["max_range"] / self.robot_pose["resolution"]
+                    while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
+                        d += 1
+                        tmpx = originx + d * math.cos(ths)
+                        tmpy = originx + d * math.cos(ths)
+                    val = d * self.robot_pose["resolution"]
                 except:
                     self.logger.warning("Pose not got yet..")
             else: # The real deal
-                data = self._sensor.read()
+                val = self.sensor.read()
 
-                self._imu_calibrator.update(data)
-
-                val = self._imu_calibrator.getCalibData()
-
-            # Publish data to sensor stream
+            # Publishing value:
             self.publisher.publish({
-                "data": val,
+                "distance": val,
                 "timestamp": time.time()
             })
 
@@ -143,12 +112,12 @@ class ImuController:
             r = self.derp_client.lset(
                 self.derp_data_key,
                 [{
-                    "data": val,
+                    "distance": val,
                     "timestamp": time.time()
                 }]
             )
 
-        self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
+        self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -162,7 +131,7 @@ class ImuController:
 
     def disable_callback(self, message, meta):
         self.info["enabled"] = False
-        self.logger.info("IMU {} stops reading".format(self.info["id"]))
+        self.logger.info("TOF {} stops reading".format(self.info["id"]))
         return {"enabled": False}
 
     def start(self):
@@ -176,15 +145,12 @@ class ImuController:
             self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
-            self.logger.info("IMU {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
-
-            if self.info["mode"] == "real":
-                # it the mode is real enable the calibration
-                self._imu_calibrator.start()
+            self.logger.info("TOF {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
     def stop(self):
         self.info["enabled"] = False
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+
         if self.info["mode"] == "simulation":
             self.robot_pose_sub.stop()

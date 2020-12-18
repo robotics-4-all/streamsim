@@ -9,7 +9,7 @@ import logging
 
 from commlib.logger import Logger
 
-from .conn_params import ConnParams
+from stream_simulator.connectivity import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import Publisher
 elif ConnParams.type == "redis":
@@ -18,15 +18,6 @@ elif ConnParams.type == "redis":
 class World:
     def __init__(self):
         self.logger = Logger("world")
-
-    # def load_file(self, filename = None):
-    #     with open(filename, 'r') as stream:
-    #         try:
-    #             self.world = yaml.safe_load(stream)
-    #             self.logger.info("World loaded")
-    #             self.setup()
-    #         except yaml.YAMLError as exc:
-    #             self.logger.critical("World filename does not exist")
 
     def load_environment(self, configuration = None):
         self.configuration = configuration
