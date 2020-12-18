@@ -1,5 +1,5 @@
 name: robot_2
-mode: mock # [simulation, mock, real]
+mode: simulation # [simulation, mock, real]
 speak_mode: espeak # [google, espeak] - in case of real mode
 wait_for: [] #[rhasspy] # in case of real mode
 amqp_inform: false
