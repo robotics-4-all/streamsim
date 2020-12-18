@@ -21,22 +21,27 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib.transports.redis import RPCService
 
-from .controller_pan_tilt import PanTiltController
-from .controller_leds import LedsController
-from .controller_env import EnvController
-from .controller_imu import ImuController
-from .controller_motion import MotionController
-from .controller_sonar import SonarController
-from .controller_ir import IrController
-from .controller_tof import TofController
-from .controller_encoder import EncoderController
-from .controller_camera import CameraController
-from .controller_microphone import MicrophoneController
-from .controller_speaker import SpeakerController
-from .controller_touch_screen import TouchScreenController
-from .controller_gstreamer_server import GstreamerServerController
-from .controller_button_array import ButtonArrayController
-from .controller_cytron_lf import CytronLFController
+# Sensors
+from stream_simulator.controllers import EnvController
+from stream_simulator.controllers import ImuController
+from stream_simulator.controllers import SonarController
+from stream_simulator.controllers import IrController
+from stream_simulator.controllers import TofController
+from stream_simulator.controllers import EncoderController
+from stream_simulator.controllers import CameraController
+from stream_simulator.controllers import MicrophoneController
+from stream_simulator.controllers import ButtonArrayController
+from stream_simulator.controllers import CytronLFController
+
+# Effectors
+from stream_simulator.controllers import PanTiltController
+from stream_simulator.controllers import LedsController
+from stream_simulator.controllers import MotionController
+from stream_simulator.controllers import SpeakerController
+
+# Others
+from stream_simulator.controllers import TouchScreenController
+from stream_simulator.controllers import GstreamerServerController
 
 class DeviceLookup:
     def __init__(self,

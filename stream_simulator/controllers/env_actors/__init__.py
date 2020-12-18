@@ -3,4 +3,4 @@
 
 from __future__ import absolute_import
 
-from .human import Human
+from .human import HumanActor
