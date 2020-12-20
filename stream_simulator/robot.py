@@ -71,9 +71,10 @@ class Robot:
 
         self.configuration = configuration
         self.logger = Logger(self.configuration["name"])
-        logging.getLogger("pika").setLevel(logging.INFO)
+        logging.getLogger("pika").setLevel(logging.WARNING)
         logging.getLogger("Adafruit_I2C").setLevel(logging.INFO)
-        logging.getLogger("RPCClient").setLevel(logging.INFO)
+        logging.getLogger("RPCClient").setLevel(logging.WARNING)
+        logging.getLogger("RPCService").setLevel(logging.WARNING)
 
         try:
             self.namespace = os.environ['TEKTRAIN_NAMESPACE']

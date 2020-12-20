@@ -13,12 +13,6 @@ from colorama import Fore, Style
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService, Subscriber, Publisher
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService, Subscriber, Publisher
-
 class IrController:
     def __init__(self, info = None, map = None, logger = None, derp = None):
         if logger is None:

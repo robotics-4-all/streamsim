@@ -14,7 +14,11 @@ class CommlibFactory:
     colors = {
         "redis": Fore.GREEN,
         "amqp": Fore.RED,
-        "method": Fore.BLUE
+        "RPCService": Fore.YELLOW,
+        "RPCClient": Fore.BLUE,
+        "Subscriber": Fore.MAGENTA,
+        "Publisher": Fore.CYAN,
+        "ActionServer": Fore.WHITE
     }
     reset = Style.RESET_ALL
     derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -22,10 +26,10 @@ class CommlibFactory:
     @staticmethod
     def inform(broker, topic, type):
         col = CommlibFactory.colors[broker]
-        met = CommlibFactory.colors["method"]
+        met = CommlibFactory.colors[type]
         res = CommlibFactory.reset
         CommlibFactory.logger.info(
-            f"{met}{broker}::{type} {col}<{topic}>{res}"
+            f"{met}{Style.BRIGHT}{broker}::{type} {col}<{topic}>{res}"
         )
 
     @staticmethod

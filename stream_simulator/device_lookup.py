@@ -629,8 +629,8 @@ class DeviceLookup:
             elif d["type"] == "GSTREAMER_SERVER":
                 self.controllers[d["name"]] = GstreamerServerController(info = d, logger = _logger, derp = self.derp_client)
             else:
-                self.logger.error("Controller declared in yaml does not exist: {}".format(d["name"]))
-            self.logger.warning(d["name"] + " controller created")
+                self.logger.warning("Controller declared in yaml does not exist: {}".format(d["name"]))
+            self.logger.debug(d["name"] + " controller created")
 
         # Gather all buttons and pass them into the Button Array Controller
         self.button_configuration = {
@@ -643,7 +643,7 @@ class DeviceLookup:
 
         buttons = [x for x in self.devices if x["type"] == "BUTTON"]
         for d in buttons:
-            self.logger.warning(f"Button {d['id']} added in button_array")
+            self.logger.debug(f"Button {d['id']} added in button_array")
             self.button_configuration["pin_nums"].append(d["sensor_configuration"].get("pin_num"))
             self.button_configuration["places"].append(d["place"])
             self.button_configuration["base_topics"][d["place"]] = d["base_topic"]

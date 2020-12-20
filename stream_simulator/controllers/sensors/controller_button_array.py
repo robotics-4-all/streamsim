@@ -9,14 +9,8 @@ import threading
 import random
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService, Subscriber, Publisher
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService, Subscriber, Publisher
-
 from commlib.logger import Logger
-from derp_me.client import DerpMeClient
+from stream_simulator.connectivity import CommlibFactory
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 
@@ -36,59 +30,46 @@ class ButtonArrayController():
         self.publishers = {}
         self.derp_data_keys = {}
 
-        for b in self.buttons_base_topics:
-            _topic = self.buttons_base_topics[b] + ".data"
-            self.publishers[b] = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic
-            )
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
-
-            self.derp_data_keys[b] = self.buttons_base_topics[b] + ".raw"
-
-        if derp is None:
-            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-            self.logger.warning(f"New derp-me client from {info['name']}")
-        else:
-            self.derp_client = derp
-
         self.number_of_buttons = len(self.conf["pin_nums"])
         self.values = [True] * self.number_of_buttons         # multiple values
         self.button_places = self.conf["places"]
         self.prev = 0
 
+        for b in self.buttons_base_topics:
+            self.publishers[b] = CommlibFactory.getPublisher(
+                broker = "redis",
+                topic = self.buttons_base_topics[b] + ".data"
+            )
+            self.derp_data_keys[b] = self.buttons_base_topics[b] + ".raw"
+
+        self.enable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.enable_callback,
+            rpc_name = info["base_topic"] + ".enable"
+        )
+        self.disable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.disable_callback,
+            rpc_name = info["base_topic"] + ".disable"
+        )
+
         if self.info["mode"] == "real":
             from pidevices import ButtonArrayMcp23017
-            self.sensor = ButtonArrayMcp23017(pin_nums=self.conf["pin_nums"],
-                                                direction=self.conf["direction"],
-                                                bounce=self.conf["bounce"],
-                                                name=self.name,
-                                                max_data_length=10)
+            self.sensor = ButtonArrayMcp23017(
+                pin_nums=self.conf["pin_nums"],
+                direction=self.conf["direction"],
+                bounce=self.conf["bounce"],
+                name=self.name,
+                max_data_length=10
+            )
 
         elif self.info["mode"] == "simulation":
-            _topic = self.info['device_name'] + ".buttons_sim"
-            self.sim_button_pressed_sub = Subscriber(
-                conn_params=ConnParams.get("redis"),
-                topic = _topic,
-                on_message = self.sim_button_pressed)
-
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+            self.sim_button_pressed_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = self.info['device_name'] + ".buttons_sim",
+                callback = self.sim_button_pressed
+            )
             self.sim_button_pressed_sub.run()
-
-        _topic = info["base_topic"] + ".enable"
-        self.enable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.enable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".disable"
-        self.disable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.disable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
 
     def dispatch_information(self, _data, _button):
         # Publish to stream
@@ -97,7 +78,7 @@ class ButtonArrayController():
             "timestamp": time.time()
         })
         # Set in memory
-        r = self.derp_client.lset(
+        r = CommlibFactory.derp_client.lset(
             self.derp_data_keys[_button],
             [{
                 "data": _data,
@@ -137,13 +118,11 @@ class ButtonArrayController():
         self.values[button] = True
 
     def start(self):
-        print("Button array starting")
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
         if self.info["mode"] == "real":
             for pin_num in range(self.number_of_buttons):
-                print("function assigned for button: ", pin_num)
                 self.sensor.when_pressed(pin_num, self.real_button_pressed, pin_num)
 
             buttons = [i for i in range(self.number_of_buttons)]
@@ -161,7 +140,6 @@ class ButtonArrayController():
         self.sensor.stop()
 
     def enable_callback(self, message, meta):
-        print("Button array starting")
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
