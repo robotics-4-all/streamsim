@@ -13,13 +13,7 @@ import os
 from colorama import Fore, Style
 
 from commlib.logger import Logger
-from derp_me.client import DerpMeClient
-
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService
+from stream_simulator.connectivity import CommlibFactory
 
 # Sensors
 from stream_simulator.controllers import EnvController
@@ -71,12 +65,6 @@ class DeviceLookup:
         self.devices = []
         self.controllers = {}
         self.map = map
-
-        if derp is None:
-            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-            self.logger.warning(f"New derp-me client from device lookup")
-        else:
-            self.derp_client = derp
 
         # Mode: one of {real, mock, simulation}
         self.mode = self.configuration["mode"]
@@ -597,37 +585,37 @@ class DeviceLookup:
             _logger = self.logger
         for d in self.devices:
             if d["type"] == "PAN_TILT":
-                self.controllers[d["name"]] = PanTiltController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = PanTiltController(info = d, logger = _logger)
             elif d["type"] == "LINE_FOLLOWER":
-                self.controllers[d["name"]] = CytronLFController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = CytronLFController(info = d, logger = _logger)
             elif d["type"] == "LED":
-                self.controllers[d["name"]] = LedsController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = LedsController(info = d, logger = _logger)
             elif d["type"] == "ENV":
-                self.controllers[d["name"]] = EnvController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = EnvController(info = d, logger = _logger)
             elif d["type"] == "IMU":
-                self.controllers[d["name"]] = ImuController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = ImuController(info = d, logger = _logger)
             elif d["type"] == "SONAR":
-                self.controllers[d["name"]] = SonarController(info = d, map = self.map, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = SonarController(info = d, map = self.map, logger = _logger)
             elif d["type"] == "IR":
-                self.controllers[d["name"]] = IrController(info = d, map = self.map, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = IrController(info = d, map = self.map, logger = _logger)
             elif d["type"] == "SKID_STEER":
-                self.controllers[d["name"]] = MotionController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = MotionController(info = d, logger = _logger)
                 # Just keep the motion controller in another var for the simulator:
                 self.motion_controller = self.controllers[d["name"]]
             elif d["type"] == "TOF":
-                self.controllers[d["name"]] = TofController(info = d, map = self.map, derp = self.derp_client)
+                self.controllers[d["name"]] = TofController(info = d, map = self.map)
             elif d["type"] == "ENCODER":
-                self.controllers[d["name"]] = EncoderController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = EncoderController(info = d, logger = _logger)
             elif d["type"] == "CAMERA":
-                self.controllers[d["name"]] = CameraController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = CameraController(info = d, logger = _logger)
             elif d["type"] == "MICROPHONE":
-                self.controllers[d["name"]] = MicrophoneController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = MicrophoneController(info = d, logger = _logger)
             elif d["type"] == "SPEAKERS":
-                self.controllers[d["name"]] = SpeakerController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = SpeakerController(info = d, logger = _logger)
             elif d["type"] == "TOUCH_SCREEN":
-                self.controllers[d["name"]] = TouchScreenController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = TouchScreenController(info = d, logger = _logger)
             elif d["type"] == "GSTREAMER_SERVER":
-                self.controllers[d["name"]] = GstreamerServerController(info = d, logger = _logger, derp = self.derp_client)
+                self.controllers[d["name"]] = GstreamerServerController(info = d, logger = _logger)
             else:
                 self.logger.warning("Controller declared in yaml does not exist: {}".format(d["name"]))
             self.logger.debug(d["name"] + " controller created")
@@ -672,7 +660,7 @@ class DeviceLookup:
 
             self.devices.append(msg)
 
-            self.controllers[msg["name"]] = ButtonArrayController(info = msg, logger = _logger, derp = self.derp_client)
+            self.controllers[msg["name"]] = ButtonArrayController(info = msg, logger = _logger)
 
     def get(self):
         return {

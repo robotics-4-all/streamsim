@@ -12,17 +12,10 @@ import base64
 from colorama import Fore, Style
 
 from commlib.logger import Logger
-
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import ActionServer, RPCService, Subscriber
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import ActionServer, RPCService, Subscriber
-
-from derp_me.client import DerpMeClient
+from stream_simulator.connectivity import CommlibFactory
 
 class MicrophoneController:
-    def __init__(self, info = None, logger = None, derp = None):
+    def __init__(self, info = None, logger = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
@@ -31,12 +24,6 @@ class MicrophoneController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
-
-        if derp is None:
-            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-            self.logger.warning(f"New derp-me client from {info['name']}")
-        else:
-            self.derp_client = derp
 
         self.blocked = False
 
@@ -55,34 +42,28 @@ class MicrophoneController:
                                      name=self.name,
                                      max_data_length=self.conf["max_data_length"])
 
-        _topic = info["base_topic"] + ".record"
-        self.record_action_server = ActionServer(
-            conn_params=ConnParams.get("redis"),
-            on_goal=self.on_goal,
-            action_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis ActionServer {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".enable"
-        self.enable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.enable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".disable"
-        self.disable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.disable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        self.record_action_server = CommlibFactory.getActionServer(
+            broker = "redis",
+            callback = self.on_goal,
+            action_name = info["base_topic"] + ".record"
+        )
+        self.enable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.enable_callback,
+            rpc_name = info["base_topic"] + ".enable"
+        )
+        self.disable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.disable_callback,
+            rpc_name = info["base_topic"] + ".disable"
+        )
 
         if self.info["mode"] == "simulation":
-            _topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose"
-            self.robot_pose_sub = Subscriber(conn_params=
-                ConnParams.get("redis"),
-                topic = _topic,
-                on_message = self.robot_pose_update)
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
+            self.robot_pose_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose",
+                callback = self.robot_pose_update
+            )
             self.robot_pose_sub.run()
 
     def robot_pose_update(self, message, meta):
@@ -180,7 +161,7 @@ class MicrophoneController:
             cl_f = closest_full
             if closest == "empty":
                 cl_f = "empty"
-            self.derp_client.lset(
+            CommlibFactory.derp_client.lset(
                 self.info["namespace"][1:] + "." + self.info["device_name"] + ".detect.source",
                 [cl_f]
             )

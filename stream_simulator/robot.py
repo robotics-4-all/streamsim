@@ -11,18 +11,12 @@ import string
 import os
 
 from colorama import Fore, Style
-
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import Publisher, RPCService
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import Publisher, RPCService
+import configparser
 
 from commlib.logger import RemoteLogger, Logger
 from commlib.node import TransportType
 import commlib.transports.amqp as acomm
-
-import configparser
+from stream_simulator.connectivity import CommlibFactory
 
 from .device_lookup import DeviceLookup
 
@@ -173,11 +167,6 @@ class Robot:
         self.step_by_step_execution = self.configuration['step_by_step_execution']
         self.logger.warning("Step by step execution is {}".format(self.step_by_step_execution))
 
-        # Derpme client creation
-        from derp_me.client import DerpMeClient
-        self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-        self.logger.warning(f"New derp-me client from robot.py")
-
         # Devices set
         _logger = None
         if self.common_logging is True:
@@ -190,7 +179,7 @@ class Robot:
             namespace = self.namespace,
             device_name = self.configuration["name"],
             logger = _logger,
-            derp = self.derp_client
+            derp = CommlibFactory.derp_client
         )
         tmp = self.device_management.get()
         self.devices = tmp['devices']
@@ -202,25 +191,20 @@ class Robot:
             self.motion_controller = None
 
         # rpc service which resets the robot pose to the initial given values
-        _topic = self.name + '.reset_robot_pose'
-        self.reset_pose_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.reset_pose_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN} Created redis RPCService {_topic} {Style.RESET_ALL}")
-
-        _topic = self.name + '.nodes_detector.get_connected_devices'
-        self.devices_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.devices_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN} Created redis RPCService {_topic} {Style.RESET_ALL}")
-
-        _topic =self.name + ".pose"
-        self.internal_pose_pub = Publisher(
-            conn_params=ConnParams.get("redis"),
-            topic= _topic)
-        self.logger.info(f"{Fore.GREEN} Created redis Publisher {_topic}{Style.RESET_ALL}")
+        self.reset_pose_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.reset_pose_callback,
+            rpc_name = self.name + '.reset_robot_pose'
+        )
+        self.devices_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.devices_callback,
+            rpc_name = self.name + '.nodes_detector.get_connected_devices'
+        )
+        self.internal_pose_pub = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = self.name + ".pose"
+        )
 
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['amqp_inform'] is True:
@@ -235,93 +219,74 @@ class Robot:
             final_exec = final_t + ".execution"
 
             # AMQP Publishers  -----------------------------------------------
-
-            self.pose_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"),
-                topic= final_top)
-            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_top}{Style.RESET_ALL}")
-
-            self.detects_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"),
-                topic= final_dete_top)
-            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_dete_top}{Style.RESET_ALL}")
-
-            self.leds_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"),
-                topic= final_leds_top)
-            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_leds_top}{Style.RESET_ALL}")
-
-            self.leds_wipe_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"),
-                topic= final_leds_wipe_top)
-            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_leds_wipe_top}{Style.RESET_ALL}")
-
-            self.execution_pub = commlib.transports.amqp.Publisher(
-                conn_params=ConnParams.get("amqp"),
-                topic= final_exec)
-            self.logger.info(f"{Fore.RED}Created amqp Publisher {final_exec}{Style.RESET_ALL}")
+            self.pose_pub = CommlibFactory.getPublisher(
+                broker = "amqp",
+                topic = final_top
+            )
+            self.detects_pub = CommlibFactory.getPublisher(
+                broker = "amqp",
+                topic = final_dete_top
+            )
+            self.leds_pub = CommlibFactory.getPublisher(
+                broker = "amqp",
+                topic = final_leds_top
+            )
+            self.leds_wipe_pub = CommlibFactory.getPublisher(
+                broker = "amqp",
+                topic = final_leds_wipe_top
+            )
+            self.execution_pub = CommlibFactory.getPublisher(
+                broker = "amqp",
+                topic = final_exec
+            )
 
             # AMQP Subscribers  -----------------------------------------------
-
-            _topic = final_t + ".buttons"
-            self.buttons_amqp_sub = commlib.transports.amqp.Subscriber(
-                conn_params=ConnParams.get("amqp"),
-                topic=_topic,
-                on_message=self.button_amqp)
-            self.logger.info(f"{Fore.RED}Created amqp Subscriber {_topic}{Style.RESET_ALL}")
+            self.buttons_amqp_sub = CommlibFactory.getSubscriber(
+                broker = "amqp",
+                topic = final_t + ".buttons",
+                callback = self.button_amqp
+            )
 
             if self.step_by_step_execution:
-                _topic = final_t + ".step_by_step"
-                self.step_by_step_amqp_sub = commlib.transports.amqp.Subscriber(
-                    conn_params=ConnParams.get("amqp"),
-                    topic=_topic,
-                    on_message=self.step_by_step_amqp)
-                self.logger.info(f"{Fore.RED}Created amqp Subscriber {_topic}{Style.RESET_ALL}")
+                self.step_by_step_amqp_sub = CommlibFactory.getSubscriber(
+                    broker = "amqp",
+                    topic = final_t + ".step_by_step",
+                    callback = self.step_by_step_amqp
+                )
 
             # REDIS Publishers  -----------------------------------------------
 
-            _topic = self.configuration["name"] + ".buttons_sim"
-            self.buttons_sim_pub = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic= _topic)
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
-
-            _topic = self.configuration["name"] + ".next_step"
-            self.next_step_pub = Publisher(
-                conn_params=ConnParams.get("redis"),
-                topic= _topic)
-            self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+            self.buttons_sim_pub = CommlibFactory.getPublisher(
+                broker = "redis",
+                topic = self.configuration["name"] + ".buttons_sim"
+            )
+            self.next_step_pub = CommlibFactory.getPublisher(
+                broker = "redis",
+                topic = self.configuration["name"] + ".next_step"
+            )
 
             # REDIS Subscribers -----------------------------------------------
 
-            _topic = final_t + ".execution.nodes"
-            self.execution_nodes_redis_sub = commlib.transports.redis.Subscriber(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic,
-                on_message=self.execution_nodes_redis)
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-
-            _topic = final_t + ".detects"
-            self.detects_redis_sub = commlib.transports.redis.Subscriber(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic,
-                on_message=self.detects_redis)
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-
-            _topic = final_t + ".leds"
-            self.leds_redis_sub = commlib.transports.redis.Subscriber(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic,
-                on_message=self.leds_redis)
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-
-            _topic = final_t + ".leds.wipe"
-            self.leds_wipe_redis_sub = commlib.transports.redis.Subscriber(
-                conn_params=ConnParams.get("redis"),
-                topic=_topic,
-                on_message=self.leds_wipe_redis)
-            self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-
+            self.execution_nodes_redis_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = final_t + ".execution.nodes",
+                callback = self.execution_nodes_redis
+            )
+            self.detects_redis_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = final_t + ".detects",
+                callback = self.detects_redis
+            )
+            self.leds_redis_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = final_t + ".leds",
+                callback = self.leds_redis
+            )
+            self.leds_wipe_redis_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = final_t + ".leds.wipe",
+                callback = self.leds_wipe_redis
+            )
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
@@ -350,7 +315,7 @@ class Robot:
         done = False
         while not done:
             try:
-                v2 = self.derp_client.lget(self.name + ".detect.source", 0, 0)['val'][0]
+                v2 = CommlibFactory.derp_client.lget(self.name + ".detect.source", 0, 0)['val'][0]
                 self.logger.info("Got the source!")
                 done = True
             except:
@@ -392,7 +357,7 @@ class Robot:
         self.stopped = False
         self.simulator_thread.start()
 
-        r = self.derp_client.lset(
+        r = CommlibFactory.derp_client.lset(
             "stream_sim/state",
             [{
                 "state": "ACTIVE",
@@ -400,7 +365,7 @@ class Robot:
                 "timestamp": time.time()
             }])
         self.logger.warning(f"Wrote in derpme!!!{r}")
-        r = self.derp_client.lset(
+        r = CommlibFactory.derp_client.lset(
             f"{self.name}/step_by_step_status",
             [{
                 "value": self.step_by_step_execution,

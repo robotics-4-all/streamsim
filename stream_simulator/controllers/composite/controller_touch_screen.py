@@ -11,17 +11,10 @@ import random
 from colorama import Fore, Style
 
 from commlib.logger import Logger
-
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService
-
-from derp_me.client import DerpMeClient
+from stream_simulator.connectivity import CommlibFactory
 
 class TouchScreenController:
-    def __init__(self, info = None, logger = None, derp = None):
+    def __init__(self, info = None, logger = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
@@ -30,34 +23,21 @@ class TouchScreenController:
         self.info = info
         self.name = info["name"]
 
-        if derp is None:
-            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-            self.logger.warning(f"New derp-me client from {info['name']}")
-        else:
-            self.derp_client = derp
-
-        self.memory = 100 * [0]
-
-        _topic = info["base_topic"] + ".show_image"
-        self.show_image_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.show_image_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".enable"
-        self.enable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.enable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".disable"
-        self.disable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.disable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        self.show_image_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.show_image_callback,
+            rpc_name = info["base_topic"] + ".show_image"
+        )
+        self.enable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.enable_callback,
+            rpc_name = info["base_topic"] + ".enable"
+        )
+        self.disable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.disable_callback,
+            rpc_name = info["base_topic"] + ".disable"
+        )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

@@ -12,17 +12,10 @@ import base64
 from colorama import Fore, Style
 
 from commlib.logger import Logger
-
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import ActionServer, RPCService
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import ActionServer, RPCService
-
-from derp_me.client import DerpMeClient
+from stream_simulator.connectivity import CommlibFactory
 
 class SpeakerController:
-    def __init__(self, info = None, logger = None, derp = None):
+    def __init__(self, info = None, logger = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
@@ -31,12 +24,6 @@ class SpeakerController:
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
-
-        if derp is None:
-            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-            self.logger.warning(f"New derp-me client from {info['name']}")
-        else:
-            self.derp_client = derp
 
         self.global_volume = None
         self.blocked = False
@@ -62,43 +49,34 @@ class SpeakerController:
                     audio_encoding = texttospeech.AudioEncoding.LINEAR16,
                     sample_rate_hertz = 44100)
 
-        _topic = info["base_topic"] + ".play"
-        self.play_action_server = ActionServer(
-            conn_params=ConnParams.get("redis"),
-            on_goal=self.on_goal_play,
-            action_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis ActionServer {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".speak"
-        self.speak_action_server = ActionServer(
-            conn_params=ConnParams.get("redis"),
-            on_goal=self.on_goal_speak,
-            action_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis ActionServer {_topic}{Style.RESET_ALL}")
-
-        _topic = "device.global.volume"
-        self.global_volume_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.set_global_volume_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".enable"
-        self.enable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.enable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".disable"
-        self.disable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.disable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        self.play_action_server = CommlibFactory.getActionServer(
+            broker = "redis",
+            callback = self.on_goal_play,
+            action_name = info["base_topic"] + ".play"
+        )
+        self.speak_action_server = CommlibFactory.getActionServer(
+            broker = "redis",
+            callback = self.on_goal_speak,
+            action_name = info["base_topic"] + ".speak"
+        )
+        self.global_volume_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.set_global_volume_callback,
+            rpc_name = "device.global.volume"
+        )
+        self.enable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.enable_callback,
+            rpc_name = info["base_topic"] + ".enable"
+        )
+        self.disable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.disable_callback,
+            rpc_name = info["base_topic"] + ".disable"
+        )
 
         # Try to get global volume:
-        res = self.derp_client.get(
+        res = CommlibFactory.derp_client.get(
             "device.global_volume.persistent",
             persistent = True
         )

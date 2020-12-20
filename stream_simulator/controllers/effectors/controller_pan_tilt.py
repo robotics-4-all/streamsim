@@ -11,15 +11,10 @@ import random
 from colorama import Fore, Style
 
 from commlib.logger import Logger
-
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService, Subscriber
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService, Subscriber
+from stream_simulator.connectivity import CommlibFactory
 
 class PanTiltController:
-    def __init__(self, info = None, logger = None, derp = None):
+    def __init__(self, info = None, logger = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
@@ -31,12 +26,6 @@ class PanTiltController:
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
-        if derp is None:
-            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-            self.logger.warning(f"New derp-me client from {info['name']}")
-        else:
-            self.derp_client = derp
-
         # create object
         if self.info["mode"] == "real":
             from pidevices import PCA9685
@@ -46,26 +35,21 @@ class PanTiltController:
             self.yaw_channel = 0
             self.pitch_channel = 1
 
-        _topic = info["base_topic"] + ".set"
-        self.pan_tilt_set_sub = Subscriber(
-            conn_params=ConnParams.get("redis"),
-            topic = _topic,
-            on_message = self.pan_tilt_set_callback)
-        self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".enable"
-        self.enable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.enable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".disable"
-        self.disable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.disable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        self.pan_tilt_set_sub = CommlibFactory.getSubscriber(
+            broker = "redis",
+            topic = info["base_topic"] + ".set",
+            callback = self.pan_tilt_set_callback
+        )
+        self.enable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.enable_callback,
+            rpc_name = info["base_topic"] + ".enable"
+        )
+        self.disable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.disable_callback,
+            rpc_name = info["base_topic"] + ".disable"
+        )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -102,7 +86,7 @@ class PanTiltController:
             self._pitch = response['pitch']
 
             # Storing value:
-            r = self.derp_client.lset(
+            r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
                     "data": {

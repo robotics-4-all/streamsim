@@ -11,16 +11,10 @@ import random
 from colorama import Fore, Style
 
 from commlib.logger import Logger
-from derp_me.client import DerpMeClient
-
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService, Subscriber, Publisher
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService, Subscriber, Publisher
+from stream_simulator.connectivity import CommlibFactory
 
 class LedsController:
-    def __init__(self, info = None, logger = None, derp = None):
+    def __init__(self, info = None, logger = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
@@ -32,12 +26,6 @@ class LedsController:
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
-        if derp is None:
-            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-            self.logger.warning(f"New derp-me client from {info['name']}")
-        else:
-            self.derp_client = derp
-
         if self.info["mode"] == "real":
             from pidevices import LedController
             self.led_strip = LedController(led_count=self.conf["led_count"],
@@ -47,46 +35,36 @@ class LedsController:
                                             led_channel=self.conf["led_channel"])
 
         # These are to inform amqp###################
-        _topic = self.info['device_name'] + ".leds"
-        self.leds_pub = Publisher(
-            conn_params=ConnParams.get("redis"),
-            topic=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
-
-        _topic = self.info['device_name'] + ".leds.wipe"
-        self.leds_wipe_pub = Publisher(
-            conn_params=ConnParams.get("redis"),
-            topic=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
+        self.leds_pub = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = self.info['device_name'] + ".leds"
+        )
+        self.leds_wipe_pub = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = self.info['device_name'] + ".leds.wipe"
+        )
         #############################################
 
-        _topic = info["base_topic"] + ".set"
-        self.leds_set_sub = Subscriber(
-            conn_params=ConnParams.get("redis"),
-            topic=_topic,
-            on_message = self.leds_set_callback)
-        self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".wipe"
-        self.leds_wipe_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.leds_wipe_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".enable"
-        self.enable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.enable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".disable"
-        self.disable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.disable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        self.leds_set_sub = CommlibFactory.getSubscriber(
+            broker = "redis",
+            topic = info["base_topic"] + ".set",
+            callback = self.leds_set_callback
+        )
+        self.leds_wipe_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.leds_wipe_callback,
+            rpc_name = info["base_topic"] + ".wipe"
+        )
+        self.enable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.enable_callback,
+            rpc_name = info["base_topic"] + ".enable"
+        )
+        self.disable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.disable_callback,
+            rpc_name = info["base_topic"] + ".disable"
+        )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -128,7 +106,7 @@ class LedsController:
             self.leds_pub.publish({"r": r, "g": g, "b": b})
 
             # Storing value:
-            r = self.derp_client.lset(
+            r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
                     "data": {"r": r, "g": g, "b": b, "intensity": intensity},
@@ -160,7 +138,7 @@ class LedsController:
             self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
 
             # Storing value:
-            r = self.derp_client.lset(
+            r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
                     "data": {"r": r, "g": g, "b": b, "intensity": intensity},

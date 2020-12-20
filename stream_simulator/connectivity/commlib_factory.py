@@ -72,3 +72,17 @@ class CommlibFactory:
         )
         CommlibFactory.inform(broker, rpc_name, "RPCService")
         return ret
+
+    @staticmethod
+    def getActionServer(broker = None, action_name = None, callback = None):
+        ret = None
+        module = importlib.import_module(
+            f"commlib.transports.{broker}"
+        )
+        ret = module.ActionServer(
+            conn_params = ConnParams.get("redis"),
+            on_goal = callback,
+            action_name = action_name
+        )
+        CommlibFactory.inform(broker, action_name, "ActionServer")
+        return ret

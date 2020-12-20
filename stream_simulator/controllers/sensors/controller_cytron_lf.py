@@ -11,15 +11,10 @@ import random
 from colorama import Fore, Style
 
 from commlib.logger import Logger
-
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import ActionServer, RPCService, Subscriber, Publisher
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import ActionServer, RPCService, Subscriber, Publisher
+from stream_simulator.connectivity import CommlibFactory
 
 class CytronLFController:
-    def __init__(self, info = None, logger = None, derp = None):
+    def __init__(self, info = None, logger = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
@@ -31,18 +26,10 @@ class CytronLFController:
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
-        _topic = self.base_topic + ".data"
-        self.publisher = Publisher(
-            conn_params=ConnParams.get("redis"),
-            topic=_topic
+        self.publisher = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = self.base_topic + ".data"
         )
-        self.logger.info(f"{Fore.GREEN}Created redis Publisher {_topic}{Style.RESET_ALL}")
-
-        if derp is None:
-            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-            self.logger.warning(f"New derp-me client from {info['name']}")
-        else:
-            self.derp_client = derp
 
         if self.info["mode"] == "real":
             from pidevices import CytronLfLSS05Mcp23017
@@ -59,19 +46,16 @@ class CytronLFController:
                                                 name=self.name,
                                                 max_data_length=self.conf["max_data_length"])
 
-        _topic = info["base_topic"] + ".enable"
-        self.enable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.enable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".disable"
-        self.disable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.disable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        self.enable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.enable_callback,
+            rpc_name = info["base_topic"] + ".enable"
+        )
+        self.disable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.disable_callback,
+            rpc_name = info["base_topic"] + ".disable"
+        )
 
     def sensor_read(self):
         self.logger.info("Cytron-LF {} sensor read thread started".format(self.info["id"]))
@@ -116,7 +100,7 @@ class CytronLFController:
             })
 
             # Storing value:
-            r = self.derp_client.lset(
+            r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
                     "data": {

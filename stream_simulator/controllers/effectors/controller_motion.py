@@ -11,17 +11,10 @@ import random
 from colorama import Fore, Style
 
 from commlib.logger import Logger
-
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import RPCService, Subscriber
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import RPCService, Subscriber
-
-from derp_me.client import DerpMeClient
+from stream_simulator.connectivity import CommlibFactory
 
 class MotionController:
-    def __init__(self, info = None, logger = None, derp = None):
+    def __init__(self, info = None, logger = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
@@ -32,12 +25,6 @@ class MotionController:
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
-
-        if derp is None:
-            self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-            self.logger.warning(f"New derp-me client from {info['name']}")
-        else:
-            self.derp_client = derp
 
         if self.info["mode"] == "real":
             from pidevices import DfrobotMotorControllerRPiGPIO
@@ -50,27 +37,21 @@ class MotionController:
         self._linear = 0
         self._angular = 0
 
-        # set Speed
-        _topic = info["base_topic"] + ".set"
-        self.vel_sub = Subscriber(
-            conn_params=ConnParams.get("redis"),
-            topic = _topic,
-            on_message = self.cmd_vel)
-        self.logger.info(f"{Fore.GREEN}Created redis Subscriber {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".enable"
-        self.enable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.enable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
-
-        _topic = info["base_topic"] + ".disable"
-        self.disable_rpc_server = RPCService(
-            conn_params=ConnParams.get("redis"),
-            on_request=self.disable_callback,
-            rpc_name=_topic)
-        self.logger.info(f"{Fore.GREEN}Created redis RPCService {_topic}{Style.RESET_ALL}")
+        self.vel_sub = CommlibFactory.getSubscriber(
+            broker = "redis",
+            topic = info["base_topic"] + ".set",
+            callback = self.cmd_vel
+        )
+        self.enable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.enable_callback,
+            rpc_name = info["base_topic"] + ".enable"
+        )
+        self.disable_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.disable_callback,
+            rpc_name = info["base_topic"] + ".disable"
+        )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -117,7 +98,7 @@ class MotionController:
             self._raw = response['raw']
 
             # Storing value:
-            r = self.derp_client.lset(
+            r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
                     "data": {

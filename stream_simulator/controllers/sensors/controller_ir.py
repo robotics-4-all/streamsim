@@ -8,13 +8,11 @@ import logging
 import threading
 import random
 
-from colorama import Fore, Style
-
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class IrController:
-    def __init__(self, info = None, map = None, logger = None, derp = None):
+    def __init__(self, info = None, map = None, logger = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:

@@ -15,7 +15,7 @@ from stream_simulator.connectivity import CommlibFactory
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 class ButtonArrayController():
-    def __init__(self, info = None, logger = None, derp = None):
+    def __init__(self, info = None, logger = None):
         if logger is None:
             self.logger = Logger(info["name"])
         else:
