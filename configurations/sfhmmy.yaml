@@ -14,9 +14,11 @@ robots:
 env_devices:
   relays:
     -
+      place: {x: 100, y: 100}
       name: relay_X
       states: [0, 1]
       initial_state: 0
+      place: "office" # or "gym.bathroom" for nested
 
 actors:
   humans:

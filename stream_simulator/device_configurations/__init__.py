@@ -6,3 +6,5 @@ from __future__ import absolute_import
 from .device_lookup import DeviceLookup
 from .gstreamer_server_conf import GStreamerServerConf
 from .ir_conf import IrConf
+from .microphone_conf import MicrophoneConf
+from .relay_env_conf import RelayEnvConf

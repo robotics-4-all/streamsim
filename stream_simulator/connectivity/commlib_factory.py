@@ -66,11 +66,24 @@ class CommlibFactory:
             f"commlib.transports.{broker}"
         )
         ret = module.RPCService(
-            conn_params = ConnParams.get("redis"),
+            conn_params = ConnParams.get(broker),
             on_request = callback,
             rpc_name = rpc_name
         )
         CommlibFactory.inform(broker, rpc_name, "RPCService")
+        return ret
+
+    @staticmethod
+    def getRPCClient(broker = None, rpc_name = None, callback = None):
+        ret = None
+        module = importlib.import_module(
+            f"commlib.transports.{broker}"
+        )
+        ret = module.RPCClient(
+            conn_params = ConnParams.get("redis"),
+            rpc_name = rpc_name
+        )
+        CommlibFactory.inform(broker, rpc_name, "RPCClient")
         return ret
 
     @staticmethod
@@ -80,7 +93,7 @@ class CommlibFactory:
             f"commlib.transports.{broker}"
         )
         ret = module.ActionServer(
-            conn_params = ConnParams.get("redis"),
+            conn_params = ConnParams.get(broker),
             on_goal = callback,
             action_name = action_name
         )

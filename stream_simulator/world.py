@@ -9,11 +9,7 @@ import logging
 
 from commlib.logger import Logger
 
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import Publisher
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import Publisher
+from stream_simulator.device_configurations import RelayEnvConf
 
 class World:
     def __init__(self):
@@ -21,8 +17,13 @@ class World:
 
     def load_environment(self, configuration = None):
         self.configuration = configuration
+        self.env_devices = self.configuration["env_devices"]
         self.logger.info("World loaded")
+        self.devices = []
+        self.controllers = {}
+
         self.setup()
+        self.device_lookup()
 
     def setup(self):
 
@@ -53,3 +54,26 @@ class World:
                     x1 = tmp
                 for i in range(x1, x2 + 1):
                     self.map[i, y1] = 1
+
+    def device_lookup(self):
+        cnt = -1
+        package = {
+            "base": "world.",
+            "mode": "simulation",
+            "logger": None
+        }
+        for d in self.env_devices:
+            devices = self.env_devices[d]
+            if d == "relays":
+                for dev in devices:
+                    cnt += 1
+                    c = RelayEnvConf.configure(
+                        id = cnt,
+                        conf = dev,
+                        package = package
+                    )
+                    self.devices.append(c['device'])
+                    if dev['name'] in self.controllers:
+                        self.logger.error(f"Device {dev['name']} declared twice")
+                    else:
+                        self.controllers[dev['name']] = c['controller']

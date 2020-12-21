@@ -25,5 +25,8 @@ from .composite import \
     GstreamerServerController, \
     TouchScreenController
 
+from .env_devices import \
+    RelayController
+
 from .env_actors import \
     HumanActor
