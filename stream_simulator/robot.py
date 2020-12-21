@@ -18,7 +18,7 @@ from commlib.node import TransportType
 import commlib.transports.amqp as acomm
 from stream_simulator.connectivity import CommlibFactory
 
-from .device_lookup import DeviceLookup
+from stream_simulator.device_configurations import DeviceLookup
 
 class HeartbeatThread(threading.Thread):
     def __init__(self, topic, _conn_params, interval=10,  *args, **kwargs):

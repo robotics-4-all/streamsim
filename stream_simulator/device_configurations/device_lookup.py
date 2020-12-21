@@ -19,11 +19,11 @@ from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.controllers import EnvController
 from stream_simulator.controllers import ImuController
 from stream_simulator.controllers import SonarController
-from stream_simulator.controllers import IrController
+
 from stream_simulator.controllers import TofController
 from stream_simulator.controllers import EncoderController
 from stream_simulator.controllers import CameraController
-from stream_simulator.controllers import MicrophoneController
+
 from stream_simulator.controllers import ButtonArrayController
 from stream_simulator.controllers import CytronLFController
 
@@ -35,7 +35,11 @@ from stream_simulator.controllers import SpeakerController
 
 # Others
 from stream_simulator.controllers import TouchScreenController
-from stream_simulator.controllers import GstreamerServerController
+
+# Configurators
+from .gstreamer_server_conf import GStreamerServerConf
+from .ir_conf import IrConf
+from .microphone_conf import MicrophoneConf
 
 class DeviceLookup:
     def __init__(self,
@@ -73,66 +77,47 @@ class DeviceLookup:
             self.logger.error("Selected mode is invalid: {}".format(self.mode))
             exit(1)
 
+        _logger = None
+        if self._common_logging is True:
+            _logger = self.logger
+
+        package = {
+            "name": self.name,
+            "mode": self.mode,
+            "speak_mode": self.speak_mode,
+            "namespace": self.namespace,
+            "device_name": self.device_name,
+            "logger": _logger,
+            "map": self.map,
+            "actors": self.world["actors"]
+        }
+
         cnt = -1
         for s in self.configuration["devices"]:
             if s == "gstreamer_server":
                 devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
-                    id = "id_" + str(cnt)
-                    msg = {
-                        "type": "GSTREAMER_SERVER",
-                        "brand": "gstream",
-                        "base_topic": self.name + ".sensor.audio.gstreamer.d" + str(cnt),
-                        "name": "gstreamer_" + str(cnt),
-                        "place": m["place"],
-                        "id": id,
-                        "enabled": True,
-                        "orientation": m["orientation"],
-                        "queue_size": 0,
-                        "mode": self.mode,
-                        "speak_mode": self.speak_mode,
-                        "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name,
-                        "endpoints":{
-                            "enable": "rpc",
-                            "disable": "rpc"
-                        },
-                        "data_models": {}
-                    }
+                    c = GStreamerServerConf.configure(
+                        id = cnt,
+                        conf = m,
+                        package = package
+                    )
+                    msg = c["device"]
                     self.devices.append(msg)
+                    self.controllers[msg["name"]] = c["controller"]
             elif s == "microphone":
                 devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
-                    id = "id_" + str(cnt)
-                    msg = {
-                        "type": "MICROPHONE",
-                        "brand": "usb_mic",
-                        "base_topic": self.name + ".sensor.audio.microphone.d" + str(cnt),
-                        "name": "microphone_" + str(cnt),
-                        "place": m["place"],
-                        "id": id,
-                        "enabled": True,
-                        "orientation": m["orientation"],
-                        "queue_size": 0,
-                        "mode": self.mode,
-                        "speak_mode": self.speak_mode,
-                        "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"],
-                        "device_name": self.device_name,
-                        "actors": self.world["actors"],
-                        "endpoints":{
-                            "enable": "rpc",
-                            "disable": "rpc",
-                            "record": "action"
-                        },
-                        "data_models": {
-                            "record": ["record"]
-                        }
-                    }
+                    c = MicrophoneConf.configure(
+                        id = cnt,
+                        conf = m,
+                        package = package
+                    )
+                    msg = c["device"]
                     self.devices.append(msg)
+                    self.controllers[msg["name"]] = c["controller"]
             elif s == "cytron_lf":
                 devices = self.configuration["devices"][s]
                 for m in devices:
@@ -200,34 +185,14 @@ class DeviceLookup:
                 devices = self.configuration["devices"][s]
                 for m in devices:
                     cnt += 1
-                    id = "id_" + str(cnt)
-                    msg = {
-                        "type": "IR",
-                        "brand": "ir",
-                        "base_topic": self.name + ".sensor.distance.ir.d" + str(cnt),
-                        "name": "ir_" + str(cnt),
-                        "place": m["place"],
-                        "id": id,
-                        "enabled": True,
-                        "orientation": m["orientation"],
-                        "hz": m["hz"],
-                        "queue_size": 100,
-                        "mode": self.mode,
-                        "speak_mode": self.speak_mode,
-                        "namespace": self.namespace,
-                        "sensor_configuration": m["sensor_configuration"],
-                        "max_range": m["max_range"],
-                        "device_name": self.device_name,
-                        "endpoints":{
-                            "enable": "rpc",
-                            "disable": "rpc",
-                            "data": "publisher"
-                        },
-                        "data_models": {
-                            "data": ["distance"]
-                        }
-                    }
+                    c = IrConf.configure(
+                        id = cnt,
+                        conf = m,
+                        package = package
+                    )
+                    msg = c["device"]
                     self.devices.append(msg)
+                    self.controllers[msg["name"]] = c["controller"]
             elif s == "tof":
                 devices = self.configuration["devices"][s]
                 for m in devices:
@@ -580,9 +545,7 @@ class DeviceLookup:
 
 
         # Devices management
-        _logger = None
-        if self._common_logging is True:
-            _logger = self.logger
+
         for d in self.devices:
             if d["type"] == "PAN_TILT":
                 self.controllers[d["name"]] = PanTiltController(info = d, logger = _logger)
@@ -596,8 +559,8 @@ class DeviceLookup:
                 self.controllers[d["name"]] = ImuController(info = d, logger = _logger)
             elif d["type"] == "SONAR":
                 self.controllers[d["name"]] = SonarController(info = d, map = self.map, logger = _logger)
-            elif d["type"] == "IR":
-                self.controllers[d["name"]] = IrController(info = d, map = self.map, logger = _logger)
+            # elif d["type"] == "IR":
+            #     self.controllers[d["name"]] = IrController(info = d, map = self.map, logger = _logger)
             elif d["type"] == "SKID_STEER":
                 self.controllers[d["name"]] = MotionController(info = d, logger = _logger)
                 # Just keep the motion controller in another var for the simulator:
@@ -608,14 +571,14 @@ class DeviceLookup:
                 self.controllers[d["name"]] = EncoderController(info = d, logger = _logger)
             elif d["type"] == "CAMERA":
                 self.controllers[d["name"]] = CameraController(info = d, logger = _logger)
-            elif d["type"] == "MICROPHONE":
-                self.controllers[d["name"]] = MicrophoneController(info = d, logger = _logger)
+            # elif d["type"] == "MICROPHONE":
+            #     self.controllers[d["name"]] = MicrophoneController(info = d, logger = _logger)
             elif d["type"] == "SPEAKERS":
                 self.controllers[d["name"]] = SpeakerController(info = d, logger = _logger)
             elif d["type"] == "TOUCH_SCREEN":
                 self.controllers[d["name"]] = TouchScreenController(info = d, logger = _logger)
-            elif d["type"] == "GSTREAMER_SERVER":
-                self.controllers[d["name"]] = GstreamerServerController(info = d, logger = _logger)
+            # elif d["type"] == "GSTREAMER_SERVER":
+            #     self.controllers[d["name"]] = GstreamerServerController(info = d, logger = _logger)
             else:
                 self.logger.warning("Controller declared in yaml does not exist: {}".format(d["name"]))
             self.logger.debug(d["name"] + " controller created")

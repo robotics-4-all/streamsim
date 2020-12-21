@@ -32,7 +32,7 @@ class Simulator:
         self.tick = tick
         self.logger = Logger("simulator")
 
-        self.parseConfiguration(conf_file, configuration)
+        self.configuration = self.parseConfiguration(conf_file, configuration)
 
         self.world = World()
         self.world.load_environment(configuration = self.configuration)
@@ -62,7 +62,7 @@ class Simulator:
         elif configuration is not None:
             tmp_conf = configuration
 
-        self.configuration = tmp_conf
+        return tmp_conf
 
     def loadYaml(self, yaml_file):
         import yaml
@@ -103,6 +103,10 @@ class Simulator:
         self.logger.warning("Simulation stopped")
 
     def start(self):
+        # Create environmental devices
+
+
+        # Create robots
         for i in range(0, len(self.robots)):
             _robot = self.robots[i]
             _robot.start()

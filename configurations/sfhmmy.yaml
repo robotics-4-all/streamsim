@@ -11,6 +11,13 @@ robots:
   - source: "sfhmmy/robot_1"
   - source: "sfhmmy/robot_2"
 
+env_devices:
+  relays:
+    -
+      name: relay_X
+      states: [0, 1]
+      initial_state: 0
+
 actors:
   humans:
     - {id: 0, x: 120, y: 150, move: 0, sound: 1, lang: EN}
