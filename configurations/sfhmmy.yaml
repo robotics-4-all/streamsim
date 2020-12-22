@@ -1,3 +1,6 @@
+simulation:
+  name: "streamsim"
+
 map:
   width: 1000
   height: 800
@@ -6,6 +9,10 @@ map:
     lines:
       - {x1: 100, y1: 250, x2: 400, y2: 250}
       #- {x1: 5, y1: 4, x2: 8, y2: 4}
+
+world:
+  name: "world_sfhmmy"
+  places: ["office"]
 
 robots:
   - source: "sfhmmy/robot_1"

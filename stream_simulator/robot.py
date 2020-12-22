@@ -395,12 +395,9 @@ class Robot:
         timestamp = time.time()
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
-        return {"devices": self.devices, "header":{
-                "stamp":{
-                    "sec": secs,
-                    "nanosec": nanosecs
-                }
-            }
+        return {
+                "devices": self.devices,
+                "timestamp": time.time()
         }
 
     def reset_pose_callback(self, message, meta):

@@ -8,6 +8,7 @@ import numpy
 import logging
 
 from commlib.logger import Logger
+from stream_simulator.connectivity import CommlibFactory
 
 from stream_simulator.device_configurations import RelayEnvConf
 
@@ -17,13 +18,27 @@ class World:
 
     def load_environment(self, configuration = None):
         self.configuration = configuration
+        self.name = self.configuration["world"]["name"]
         self.env_devices = self.configuration["env_devices"]
         self.logger.info("World loaded")
         self.devices = []
         self.controllers = {}
 
+        self.devices_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.devices_callback,
+            rpc_name = self.name + '.nodes_detector.get_connected_devices'
+        )
+        self.devices_rpc_server.run()
+
         self.setup()
         self.device_lookup()
+
+    def devices_callback(self, message, meta):
+        return {
+            "devices": self.devices,
+            "timestamp": time.time()
+        }
 
     def setup(self):
 

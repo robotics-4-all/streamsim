@@ -19,6 +19,8 @@ if ConnParams.type == "amqp":
 elif ConnParams.type == "redis":
     from commlib.transports.redis import Subscriber
 
+from stream_simulator.connectivity import CommlibFactory
+
 # from simulator import Human
 
 class Simulator:
@@ -33,11 +35,14 @@ class Simulator:
         self.logger = Logger("simulator")
 
         self.configuration = self.parseConfiguration(conf_file, configuration)
+        self.name = self.configuration["simulation"]["name"]
 
         self.world = World()
         self.world.load_environment(configuration = self.configuration)
+        self.world_name = self.world.name
 
         self.robots = []
+        self.robot_names = []
         for r in self.configuration["robots"]:
             self.robots.append(
                 Robot(
@@ -47,6 +52,20 @@ class Simulator:
                     tick = self.tick
                 )
             )
+            self.robot_names.append(r["name"])
+
+        self.devices_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.devices_callback,
+            rpc_name = self.name + '.get_device_groups'
+        )
+        self.devices_rpc_server.run()
+
+    def devices_callback(self, message, meta):
+        return {
+                "robots": self.robot_names,
+                "world": self.world_name
+        }
 
     def parseConfiguration(self, conf_file, configuration):
         tmp_conf = {}
