@@ -10,8 +10,6 @@ import logging
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
-from stream_simulator.device_configurations import RelayEnvConf
-
 class World:
     def __init__(self):
         self.logger = Logger("world")
@@ -33,6 +31,10 @@ class World:
 
         self.setup()
         self.device_lookup()
+
+        # Start all controllers
+        for c in self.controllers:
+            self.controllers[c].start()
 
     def devices_callback(self, message, meta):
         return {
@@ -70,9 +72,15 @@ class World:
                 for i in range(x1, x2 + 1):
                     self.map[i, y1] = 1
 
+    def register_controller(self, c):
+        if c.name in self.controllers:
+            self.logger.error(f"Device {c.name} declared twice")
+        else:
+            self.devices.append(c.info)
+            self.controllers[c.name] = c
+
     def device_lookup(self):
-        cnt = -1
-        package = {
+        p = {
             "base": "world.",
             "mode": "simulation",
             "logger": None
@@ -80,15 +88,12 @@ class World:
         for d in self.env_devices:
             devices = self.env_devices[d]
             if d == "relays":
+                from stream_simulator.controllers import RelayController
                 for dev in devices:
-                    cnt += 1
-                    c = RelayEnvConf.configure(
-                        id = cnt,
-                        conf = dev,
-                        package = package
-                    )
-                    self.devices.append(c['device'])
-                    if dev['name'] in self.controllers:
-                        self.logger.error(f"Device {dev['name']} declared twice")
-                    else:
-                        self.controllers[dev['name']] = c['controller']
+                    c = RelayController(conf = dev, package = p)
+                    self.register_controller(c)
+            if d == "ph_sensors":
+                from stream_simulator.controllers import PhSensorController
+                for dev in devices:
+                    c = PhSensorController(conf = dev, package = p)
+                    self.register_controller(c)

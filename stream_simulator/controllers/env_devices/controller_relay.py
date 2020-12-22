@@ -11,14 +11,35 @@ import random
 from colorama import Fore, Style
 
 from commlib.logger import Logger
+from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
-class RelayController:
-    def __init__(self, info = None, logger = None):
-        if logger is None:
-            self.logger = Logger(info["name"])
+class RelayController(BaseThing):
+    def __init__(self, conf = None, package = None):
+        if package["logger"] is None:
+            self.logger = Logger(conf["name"])
         else:
-            self.logger = logger
+            self.logger = package["logger"]
+
+        super(RelayController, self).__init__()
+
+        id = BaseThing.id
+        info = {
+            "type": "RELAY",
+            "brand": "relay",
+            "base_topic": package["base"] + conf["place"] + ".effector.mechanical.relay.d" + str(id),
+            "name": "relay_" + str(id),
+            "place": conf["place"],
+            "enabled": True,
+            "mode": package["mode"],
+            "conf": conf,
+            "endpoints":{
+                "enable": "rpc",
+                "disable": "rpc",
+                "set": "rpc",
+                "get": "rpc"
+            }
+        }
 
         self.info = info
         self.name = info["name"]

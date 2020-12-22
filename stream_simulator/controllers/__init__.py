@@ -26,7 +26,8 @@ from .composite import \
     TouchScreenController
 
 from .env_devices import \
-    RelayController
+    RelayController, \
+    PhSensorController
 
 from .env_actors import \
     HumanActor
