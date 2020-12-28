@@ -14,14 +14,16 @@ from commlib.logger import Logger
 from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
-class RelayController(BaseThing):
+class EnvRelayController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = Logger(conf["name"])
         else:
             self.logger = package["logger"]
 
-        super(RelayController, self).__init__()
+        super(self.__class__, self).__init__()
+
+        _name = conf["name"]
 
         id = BaseThing.id
         info = {
@@ -40,6 +42,8 @@ class RelayController(BaseThing):
                 "get": "rpc"
             }
         }
+
+        self.pose = info["conf"]["pose"]
 
         self.info = info
         self.name = info["name"]

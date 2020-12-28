@@ -364,7 +364,7 @@ class Robot:
                 "device": self.name,
                 "timestamp": time.time()
             }])
-        self.logger.warning(f"Wrote in derpme!!!{r}")
+        self.logger.warning(f"Notified for being ready")
         r = CommlibFactory.derp_client.lset(
             f"{self.name}/step_by_step_status",
             [{

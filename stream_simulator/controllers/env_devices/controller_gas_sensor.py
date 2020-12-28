@@ -3,15 +3,15 @@
 
 from stream_simulator.base_classes import BasicSensor
 
-class EnvPhSensorController(BasicSensor):
+class EnvGasSensorController(BasicSensor):
     def __init__(self, conf = None, package = None):
         super(self.__class__, self).__init__(
             conf = conf,
             package = package,
-            _type = "PH_SENSOR",
+            _type = "GAS_SENSOR",
             _category = "chemical",
-            _brand = "phmeter",
-            _name_suffix = "ph_sensor_",
+            _brand = "co2",
+            _name_suffix = "gas_",
             _endpoints = {
                 "enable": "rpc",
                 "disable": "rpc",

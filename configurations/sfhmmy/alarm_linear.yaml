@@ -1,0 +1,7 @@
+pose:
+  start: {x: 100, y: 100}
+  end: {x: 150, y: 150}
+name: alarm_lin_X
+hz: 1
+mode: mock # mock, simulation, real
+place: "office" # or "gym.bathroom" for nested

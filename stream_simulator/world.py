@@ -84,15 +84,21 @@ class World:
             "base": "world.",
             "logger": None
         }
+        str_sim = __import__("stream_simulator")
+        str_contro = getattr(str_sim, "controllers")
+        map = {
+           "relays": getattr(str_contro, "EnvRelayController"),
+           "ph_sensors": getattr(str_contro, "EnvPhSensorController"),
+           "temperature_sensors": getattr(str_contro, "EnvTemperatureSensorController"),
+           "humidity_sensors": getattr(str_contro, "EnvHumiditySensorController"),
+           "gas_sensors": getattr(str_contro, "EnvGasSensorController"),
+           "camera_sensors": getattr(str_contro, "EnvCameraController"),
+           "distance_sensors": getattr(str_contro, "EnvDistanceController"),
+           "alarms_linear": getattr(str_contro, "EnvLinearAlarmController"),
+           "alarms_area": getattr(str_contro, "EnvAreaAlarmController"),
+           "ambient_light_sensor": getattr(str_contro, "EnvAmbientLightController"),
+        }
         for d in self.env_devices:
             devices = self.env_devices[d]
-            if d == "relays":
-                from stream_simulator.controllers import RelayController
-                for dev in devices:
-                    c = RelayController(conf = dev, package = p)
-                    self.register_controller(c)
-            if d == "ph_sensors":
-                from stream_simulator.controllers import PhSensorController
-                for dev in devices:
-                    c = PhSensorController(conf = dev, package = p)
-                    self.register_controller(c)
+            for dev in devices:
+                self.register_controller(map[d](conf = dev, package = p))

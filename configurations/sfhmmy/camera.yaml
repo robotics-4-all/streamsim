@@ -1,0 +1,7 @@
+pose: {x: 100, y: 100, theta: 90}
+place: office
+name: rouf
+hz: 1
+mode: mock # mock, simulation, real
+width: 640
+height: 480

@@ -26,8 +26,16 @@ from .composite import \
     TouchScreenController
 
 from .env_devices import \
-    RelayController, \
-    PhSensorController
+    EnvRelayController, \
+    EnvPhSensorController, \
+    EnvTemperatureSensorController,\
+    EnvHumiditySensorController, \
+    EnvGasSensorController, \
+    EnvCameraController, \
+    EnvDistanceController, \
+    EnvLinearAlarmController, \
+    EnvAreaAlarmController, \
+    EnvAmbientLightController
 
 from .env_actors import \
     HumanActor

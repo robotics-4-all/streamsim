@@ -21,37 +21,34 @@ robots:
 env_devices:
   relays:
     -
-      place: {x: 100, y: 100}
-      name: relay_X
-      mode: mock # mock, simulation, real
-      states: [0, 1]
-      initial_state: 0
-      place: "office" # or "gym.bathroom" for nested
+      source: "sfhmmy/relay"
   ph_sensors:
     -
-      place: {x: 100, y: 100}
-      name: ph_X
-      place: field
-      hz: 3
-      mode: mock # mock, simulation, real
-      operation: sinus # constant, triangle, random, normal, sinus
-      operation_parameters:
-        constant:
-          value: 7.4
-        random:
-          min: 4
-          max: 9
-        triangle:
-          min: 4
-          max: 9
-          step: 0.3
-        normal:
-          mean: 7
-          std: 0.3
-        sinus:
-          dc: 7
-          amplitute: 2
-          step: 0.1
+      source: "sfhmmy/ph_sensor"
+  temperature_sensors:
+    -
+      source: "sfhmmy/temperature"
+  humidity_sensors:
+    -
+      source: "sfhmmy/humidity"
+  gas_sensors:
+    -
+      source: "sfhmmy/gas"
+  camera_sensors:
+    -
+      source: "sfhmmy/camera"
+  distance_sensors:
+    -
+      source: "sfhmmy/distance_sensor"
+  alarms_linear:
+    -
+      source: "sfhmmy/alarm_linear"
+  alarms_area:
+    -
+      source: "sfhmmy/alarm_area"
+  ambient_light_sensor:
+    -
+      source: "sfhmmy/ambient_light_sensor"
 
 actors:
   humans:
