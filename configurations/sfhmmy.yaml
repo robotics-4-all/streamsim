@@ -23,6 +23,7 @@ env_devices:
     -
       place: {x: 100, y: 100}
       name: relay_X
+      mode: mock # mock, simulation, real
       states: [0, 1]
       initial_state: 0
       place: "office" # or "gym.bathroom" for nested
@@ -32,6 +33,7 @@ env_devices:
       name: ph_X
       place: field
       hz: 3
+      mode: mock # mock, simulation, real
       operation: sinus # constant, triangle, random, normal, sinus
       operation_parameters:
         constant:

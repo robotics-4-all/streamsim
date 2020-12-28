@@ -31,7 +31,7 @@ class PhSensorController(BaseThing):
             "name": "ph_sensor_" + str(id),
             "place": conf["place"],
             "enabled": True,
-            "mode": package["mode"],
+            "mode": conf["mode"],
             "conf": conf,
             "endpoints":{
                 "enable": "rpc",
@@ -46,7 +46,7 @@ class PhSensorController(BaseThing):
         self.name = info["name"]
         self.base_topic = info["base_topic"]
         self.hz = info['conf']['hz']
-
+        self.mode = info["mode"]
         self.operation = info['conf']['operation']
         self.operation_parameters = info['conf']['operation_parameters']
         self.place = info["conf"]["place"]
@@ -122,28 +122,30 @@ class PhSensorController(BaseThing):
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
 
-            if self.operation == "constant":
-                val = self.constant_value
-            elif self.operation == "random":
-                val = random.uniform(
-                    self.random_min,
-                    self.random_max
-                )
-            elif self.operation == "normal":
-                val = random.gauss(
-                    self.normal_mean,
-                    self.normal_std
-                )
-            elif self.operation == "triangle":
-                val = self.prev + self.way * self.triangle_step
-                if val >= self.triangle_max or val <= self.triangle_min:
-                    self.way *= -1
-                self.prev = val
-            elif self.operation == "sinus":
-                val = self.sinus_dc + self.sinus_amp * math.sin(self.prev)
-                self.prev += self.sinus_step
-            else:
-                self.logger.warning(f"Unsupported operation: {self.operation}")
+            val = None
+            if self.mode in ["simulation", "mock"]:
+                if self.operation == "constant":
+                    val = self.constant_value
+                elif self.operation == "random":
+                    val = random.uniform(
+                        self.random_min,
+                        self.random_max
+                    )
+                elif self.operation == "normal":
+                    val = random.gauss(
+                        self.normal_mean,
+                        self.normal_std
+                    )
+                elif self.operation == "triangle":
+                    val = self.prev + self.way * self.triangle_step
+                    if val >= self.triangle_max or val <= self.triangle_min:
+                        self.way *= -1
+                    self.prev = val
+                elif self.operation == "sinus":
+                    val = self.sinus_dc + self.sinus_amp * math.sin(self.prev)
+                    self.prev += self.sinus_step
+                else:
+                    self.logger.warning(f"Unsupported operation: {self.operation}")
 
             # Publishing value:
             self.publisher.publish({

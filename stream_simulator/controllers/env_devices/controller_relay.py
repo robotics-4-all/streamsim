@@ -31,7 +31,7 @@ class RelayController(BaseThing):
             "name": "relay_" + str(id),
             "place": conf["place"],
             "enabled": True,
-            "mode": package["mode"],
+            "mode": conf["mode"],
             "conf": conf,
             "endpoints":{
                 "enable": "rpc",

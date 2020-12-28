@@ -82,7 +82,6 @@ class World:
     def device_lookup(self):
         p = {
             "base": "world.",
-            "mode": "simulation",
             "logger": None
         }
         for d in self.env_devices:
