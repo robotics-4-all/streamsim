@@ -49,6 +49,9 @@ env_devices:
   ambient_light_sensor:
     -
       source: "sfhmmy/ambient_light_sensor"
+  pan_tilt:
+    -
+      source: "sfhmmy/pan_tilt"
 
 actors:
   humans:

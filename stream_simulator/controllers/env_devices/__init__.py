@@ -13,3 +13,4 @@ from .controller_distance import EnvDistanceController
 from .controller_linear_alarm import EnvLinearAlarmController
 from .controller_area_alarm import EnvAreaAlarmController
 from .controller_ambient_light import EnvAmbientLightController
+from .controller_pan_tilt import EnvPanTiltController
