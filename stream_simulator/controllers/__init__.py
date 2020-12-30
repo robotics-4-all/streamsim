@@ -38,7 +38,8 @@ from .env_devices import \
     EnvAmbientLightController, \
     EnvPanTiltController, \
     EnvSpeakerController, \
-    EnvLightController
+    EnvLightController, \
+    EnvThermostatController
 
 from .env_actors import \
     HumanActor

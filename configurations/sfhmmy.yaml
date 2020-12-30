@@ -58,6 +58,9 @@ env_devices:
   lights:
     -
       source: "sfhmmy/light"
+  thermostats:
+    -
+      source: "sfhmmy/thermostat"
 
 actors:
   humans:
