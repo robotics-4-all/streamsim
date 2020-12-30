@@ -17,3 +17,4 @@ from .controller_pan_tilt import EnvPanTiltController
 from .controller_speaker import EnvSpeakerController
 from .controller_light import EnvLightController
 from .controller_thermostat import EnvThermostatController
+from .controller_microphone import EnvMicrophoneController

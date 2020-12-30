@@ -61,6 +61,9 @@ env_devices:
   thermostats:
     -
       source: "sfhmmy/thermostat"
+  microphones:
+    -
+      source: "sfhmmy/microphone"
 
 actors:
   humans:
