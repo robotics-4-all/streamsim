@@ -99,6 +99,7 @@ class World:
            "ambient_light_sensor": getattr(str_contro, "EnvAmbientLightController"),
            "pan_tilt": getattr(str_contro, "EnvPanTiltController"),
            "speakers": getattr(str_contro, "EnvSpeakerController"),
+           "lights": getattr(str_contro, "EnvLightController"),
         }
         for d in self.env_devices:
             devices = self.env_devices[d]

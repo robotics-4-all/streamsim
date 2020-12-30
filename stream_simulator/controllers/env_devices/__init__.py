@@ -15,3 +15,4 @@ from .controller_area_alarm import EnvAreaAlarmController
 from .controller_ambient_light import EnvAmbientLightController
 from .controller_pan_tilt import EnvPanTiltController
 from .controller_speaker import EnvSpeakerController
+from .controller_light import EnvLightController

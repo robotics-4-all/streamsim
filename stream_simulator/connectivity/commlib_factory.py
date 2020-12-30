@@ -34,7 +34,7 @@ class CommlibFactory:
         )
 
     @staticmethod
-    def getPublisher(broker = None, topic = None):
+    def getPublisher(broker = "redis", topic = None):
         ret = None
         module = importlib.import_module(
             f"commlib.transports.{broker}"
@@ -47,7 +47,7 @@ class CommlibFactory:
         return ret
 
     @staticmethod
-    def getSubscriber(broker = None, topic = None, callback = None):
+    def getSubscriber(broker = "redis", topic = None, callback = None):
         ret = None
         module = importlib.import_module(
             f"commlib.transports.{broker}"
@@ -61,7 +61,7 @@ class CommlibFactory:
         return ret
 
     @staticmethod
-    def getRPCService(broker = None, rpc_name = None, callback = None):
+    def getRPCService(broker = "redis", rpc_name = None, callback = None):
         ret = None
         module = importlib.import_module(
             f"commlib.transports.{broker}"
@@ -75,7 +75,7 @@ class CommlibFactory:
         return ret
 
     @staticmethod
-    def getRPCClient(broker = None, rpc_name = None, callback = None):
+    def getRPCClient(broker = "redis", rpc_name = None, callback = None):
         ret = None
         module = importlib.import_module(
             f"commlib.transports.{broker}"
@@ -88,7 +88,7 @@ class CommlibFactory:
         return ret
 
     @staticmethod
-    def getActionServer(broker = None, action_name = None, callback = None):
+    def getActionServer(broker = "redis", action_name = None, callback = None):
         ret = None
         module = importlib.import_module(
             f"commlib.transports.{broker}"
@@ -102,7 +102,7 @@ class CommlibFactory:
         return ret
 
     @staticmethod
-    def getActionClient(broker = None, action_name = None):
+    def getActionClient(broker = "redis", action_name = None):
         ret = None
         module = importlib.import_module(
             f"commlib.transports.{broker}"

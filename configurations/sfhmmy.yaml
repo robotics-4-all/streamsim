@@ -55,6 +55,9 @@ env_devices:
   speakers:
     -
       source: "sfhmmy/speaker"
+  lights:
+    -
+      source: "sfhmmy/light"
 
 actors:
   humans:
