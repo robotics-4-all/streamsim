@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import importlib
-from colorama import Fore, Style
+from colorama import Fore, Back, Style
 
 from stream_simulator.connectivity import ConnParams
 
@@ -18,7 +18,8 @@ class CommlibFactory:
         "RPCClient": Fore.BLUE,
         "Subscriber": Fore.MAGENTA,
         "Publisher": Fore.CYAN,
-        "ActionServer": Fore.WHITE
+        "ActionServer": Fore.WHITE,
+        "ActionClient": Back.RED + Fore.WHITE
     }
     reset = Style.RESET_ALL
     derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -98,4 +99,17 @@ class CommlibFactory:
             action_name = action_name
         )
         CommlibFactory.inform(broker, action_name, "ActionServer")
+        return ret
+
+    @staticmethod
+    def getActionClient(broker = None, action_name = None):
+        ret = None
+        module = importlib.import_module(
+            f"commlib.transports.{broker}"
+        )
+        ret = module.ActionClient(
+            conn_params = ConnParams.get(broker),
+            action_name = action_name
+        )
+        CommlibFactory.inform(broker, action_name, "ActionClient")
         return ret

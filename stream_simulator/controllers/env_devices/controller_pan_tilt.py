@@ -39,7 +39,8 @@ class EnvPanTiltController(BaseThing):
                 "enable": "rpc",
                 "disable": "rpc",
                 "set": "pub",
-                "get": "rpc"
+                "get": "rpc",
+                "set_mode": "rpc"
             }
         }
 
@@ -52,6 +53,9 @@ class EnvPanTiltController(BaseThing):
         self.place = info["conf"]["place"]
         self.pan = 0
         self.tilt = 0
+
+        self.operation = info['conf']['operation']
+        self.operation_parameters = info['conf']['operation_parameters']
 
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -73,6 +77,15 @@ class EnvPanTiltController(BaseThing):
             callback = self.get_callback,
             rpc_name = info["base_topic"] + ".get"
         )
+        self.set_operation_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.set_mode_callback,
+            rpc_name = info["base_topic"] + ".set_mode"
+        )
+
+    def set_mode_callback(self, message, meta):
+        self.operation = message["mode"]
+        return {}
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

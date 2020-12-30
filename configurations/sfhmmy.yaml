@@ -52,6 +52,9 @@ env_devices:
   pan_tilt:
     -
       source: "sfhmmy/pan_tilt"
+  speakers:
+    -
+      source: "sfhmmy/speaker"
 
 actors:
   humans:

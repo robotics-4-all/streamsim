@@ -36,7 +36,8 @@ from .env_devices import \
     EnvLinearAlarmController, \
     EnvAreaAlarmController, \
     EnvAmbientLightController, \
-    EnvPanTiltController
+    EnvPanTiltController, \
+    EnvSpeakerController
 
 from .env_actors import \
     HumanActor

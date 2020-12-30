@@ -2,3 +2,11 @@ pose: {x: 100, y: 100, theta: 0}
 name: pan_tilt_X
 mode: mock # mock, simulation, real
 place: "office" # or "gym.bathroom" for nested
+operation: sinus # or linear
+operation_parameters:
+  sinus:
+    step: 0.01
+    hz: 3
+  linear:
+    step: 0.01
+    hz: 3
