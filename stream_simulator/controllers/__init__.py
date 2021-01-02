@@ -13,7 +13,8 @@ from .sensors import \
     ImuController, \
     MicrophoneController, \
     SonarController, \
-    TofController
+    TofController, \
+    ButtonController
 
 from .effectors import \
     LedsController, \

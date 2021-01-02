@@ -11,15 +11,36 @@ from colorama import Fore, Style
 
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
+from stream_simulator.base_classes import BaseThing
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 
-class ButtonArrayController():
-    def __init__(self, info = None, logger = None):
-        if logger is None:
-            self.logger = Logger(info["name"])
+class ButtonArrayController(BaseThing):
+    def __init__(self, conf = None, package = None):
+        if package["logger"] is None:
+            self.logger = Logger(conf["name"])
         else:
-            self.logger = logger
+            self.logger = package["logger"]
+
+        super(self.__class__, self).__init__()
+        id = BaseThing.id
+
+        info = {
+            "type": "BUTTON_ARRAY",
+            "brand": "simple",
+            "base_topic": package["name"] + ".sensor.button_array.d" + str(id),
+            "name": "button_array_" + str(id),
+            "place": "UNKNOWN",
+            "id": id,
+            "enabled": True,
+            "orientation": 0,
+            "hz": 4,
+            "mode": package["mode"],
+            "speak_mode": package["speak_mode"],
+            "namespace": package["namespace"],
+            "sensor_configuration": conf["sensor_configuration"],
+            "device_name": package["device_name"],
+        }
 
         self.info = info
         self.name = info["name"]
@@ -148,7 +169,6 @@ class ButtonArrayController():
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
 
-        self.memory = self.info["queue_size"] * [0]
         return {"enabled": True}
 
     def disable_callback(self, message, meta):

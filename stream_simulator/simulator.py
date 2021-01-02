@@ -21,7 +21,8 @@ elif ConnParams.type == "redis":
 
 from stream_simulator.connectivity import CommlibFactory
 
-# from simulator import Human
+### Dont know why but if I remove this no controllers are found
+from stream_simulator.controllers import IrController
 
 class Simulator:
     def __init__(self,

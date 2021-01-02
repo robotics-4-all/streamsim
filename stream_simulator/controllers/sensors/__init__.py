@@ -13,3 +13,4 @@ from .controller_imu import ImuController
 from .controller_microphone import MicrophoneController
 from .controller_sonar import SonarController
 from .controller_tof import TofController
+from .controller_button import ButtonController

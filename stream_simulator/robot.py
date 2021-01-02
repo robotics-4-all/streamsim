@@ -10,7 +10,7 @@ import random
 import string
 import os
 
-from colorama import Fore, Style
+from colorama import Fore, Style, Back
 import configparser
 
 from commlib.logger import RemoteLogger, Logger
@@ -292,10 +292,16 @@ class Robot:
             self.logger.error(f"Device {c.name} declared twice")
         else:
             self.devices.append(c.info)
+            if c.info["type"] == "BUTTON":
+                # Do not put in controllers
+                return
             self.controllers[c.name] = c
 
         if c.info["type"] == "SKID_STEER":
             self.motion_controller = c
+
+        self.logger.info(\
+            f"{Fore.RED + Style.BRIGHT}{c.name} controller created {Style.RESET_ALL}")
 
     def device_lookup(self):
         actors = {}
@@ -329,28 +335,33 @@ class Robot:
            "touch_screen": getattr(str_contro, "TouchScreenController"),
            "encoder": getattr(str_contro, "EncoderController"),
            "gstreamer_server": getattr(str_contro, "GstreamerServerController"),
+           "button": getattr(str_contro, "ButtonController"),
+           "button_array": getattr(str_contro, "ButtonArrayController"),
         }
         for s in self.configuration["devices"]:
-            if s not in [
-                         "ir",
-                         "sonar",
-                         "tof",
-                         "camera",
-                         "skid_steer",
-                         "microphone",
-                         "cytron_lf",
-                         "imu",
-                         "env",
-                         "speaker",
-                         "leds",
-                         "pan_tilt",
-                         "touch_screen",
-                         "encoder",
-                         "gstreamer_server"
-            ]:
-                continue
             for m in self.configuration["devices"][s]:
                 self.register_controller(map[s](conf = m, package = p))
+
+        # Handle the buttons
+        self.button_configuration = {
+                "places": [],
+                "pin_nums": [],
+                "base_topics": {},
+                "direction": "down",
+                "bounce": 200,
+        }
+        buttons = [x for x in self.devices if x["type"] == "BUTTON"]
+        for d in buttons:
+            self.logger.debug(f"Button {d['id']} added in button_array")
+            self.button_configuration["pin_nums"].append(\
+                d["sensor_configuration"].get("pin_num"))
+            self.button_configuration["places"].append(d["place"])
+            self.button_configuration["base_topics"][d["place"]] = d["base_topic"]
+        if len(self.button_configuration["pin_nums"]) > 0:
+            m = {
+                "sensor_configuration": self.button_configuration
+            }
+            self.register_controller(map["button_array"](conf = m, package = p))
 
     def leds_redis(self, message, meta):
         self.logger.debug("Got leds from redis " + str(message))
