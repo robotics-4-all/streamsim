@@ -12,13 +12,41 @@ from colorama import Fore, Style
 
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
+from stream_simulator.base_classes import BaseThing
 
-class MotionController:
-    def __init__(self, info = None, logger = None):
-        if logger is None:
-            self.logger = Logger(info["name"])
+class MotionController(BaseThing):
+    def __init__(self, conf = None, package = None):
+        if package["logger"] is None:
+            self.logger = Logger(conf["name"])
         else:
-            self.logger = logger
+            self.logger = package["logger"]
+
+        super(self.__class__, self).__init__()
+        id = BaseThing.id
+
+        info = {
+            "type": "SKID_STEER",
+            "brand": "twist",
+            "base_topic": package["name"] + ".actuator.motion.twist.d" + str(id),
+            "name": "skid_steer_" + str(id),
+            "place": conf["place"],
+            "id": id,
+            "enabled": True,
+            "orientation": conf["orientation"],
+            "queue_size": 0,
+            "mode": package["mode"],
+            "namespace": package["namespace"],
+            "sensor_configuration": conf["sensor_configuration"],
+            "device_name": package["device_name"],
+            "endpoints":{
+                "enable": "rpc",
+                "disable": "rpc",
+                "set": "subscriber"
+            },
+            "data_models": {
+                "data": ["linear", "angular"]
+            }
+        }
 
         self.info = info
         self.name = info["name"]

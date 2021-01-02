@@ -12,13 +12,41 @@ from colorama import Fore, Style
 
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
+from stream_simulator.base_classes import BaseThing
 
-class LedsController:
-    def __init__(self, info = None, logger = None):
-        if logger is None:
-            self.logger = Logger(info["name"])
+class LedsController(BaseThing):
+    def __init__(self, conf = None, package = None):
+        if package["logger"] is None:
+            self.logger = Logger(conf["name"])
         else:
-            self.logger = logger
+            self.logger = package["logger"]
+
+        super(self.__class__, self).__init__()
+        id = BaseThing.id
+
+        info = {
+            "type": "LED",
+            "brand": "neopx",
+            "base_topic": package["name"] + ".actuator.visual.leds.neopx.d" + str(id),
+            "name": "led_" + str(id),
+            "place": conf["place"],
+            "id": id,
+            "enabled": True,
+            "orientation": conf["orientation"],
+            "queue_size": 0,
+            "mode": package["mode"],
+            "speak_mode": package["speak_mode"],
+            "namespace": package["namespace"],
+            "sensor_configuration": conf["sensor_configuration"],
+            "device_name": package["device_name"],
+            "endpoints":{
+                "enable": "rpc",
+                "disable": "rpc",
+                "leds.set": "subscriber",
+                "leds_wipe.set": "rpc"
+            },
+            "data_models": []
+        }
 
         self.info = info
         self.name = info["name"]

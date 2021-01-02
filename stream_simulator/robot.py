@@ -18,8 +18,6 @@ from commlib.node import TransportType
 import commlib.transports.amqp as acomm
 from stream_simulator.connectivity import CommlibFactory
 
-from stream_simulator.device_configurations import DeviceLookup
-
 class HeartbeatThread(threading.Thread):
     def __init__(self, topic, _conn_params, interval=10,  *args, **kwargs):
         super(HeartbeatThread, self).__init__(*args, **kwargs)
@@ -153,42 +151,38 @@ class Robot:
         self.resolution = self.world["map"]["resolution"]
         self.logger.info("Robot {}: map set".format(self.name))
 
-        pose = self.configuration['starting_pose']
-        self._init_x = pose['x'] * self.resolution
-        self._init_y = pose['y'] * self.resolution
-        self._init_theta = pose['theta'] / 180.0 * math.pi
-        self.logger.info("Robot {} pose set: {}, {}, {}".format(
-            self.name, self._x, self._y, self._theta))
+        self._x = 0
+        self._y = 0
+        self._theta = 0
+        if "starting_pose" in self.configuration:
+            pose = self.configuration['starting_pose']
+            self._init_x = pose['x'] * self.resolution
+            self._init_y = pose['y'] * self.resolution
+            self._init_theta = pose['theta'] / 180.0 * math.pi
+            self.logger.info("Robot {} pose set: {}, {}, {}".format(
+                self.name, self._x, self._y, self._theta))
 
-        self._x = self._init_x
-        self._y = self._init_y
-        self._theta = self._init_theta
+            self._x = self._init_x
+            self._y = self._init_y
+            self._theta = self._init_theta
 
         self.step_by_step_execution = self.configuration['step_by_step_execution']
         self.logger.warning("Step by step execution is {}".format(self.step_by_step_execution))
 
         # Devices set
+        self.speak_mode = self.configuration["speak_mode"]
+        self.mode = self.configuration["mode"]
+        if self.mode not in ["real", "mock", "simulation"]:
+            self.logger.error("Selected mode is invalid: {}".format(self.mode))
+            exit(1)
+
         _logger = None
         if self.common_logging is True:
             _logger = self.logger
-        self.device_management = DeviceLookup(
-            world = self.world,
-            configuration = self.configuration,
-            map = self.map,
-            name = self.name,
-            namespace = self.namespace,
-            device_name = self.configuration["name"],
-            logger = _logger,
-            derp = CommlibFactory.derp_client
-        )
-        tmp = self.device_management.get()
-        self.devices = tmp['devices']
-        self.controllers = tmp['controllers']
-        try:
-            self.motion_controller = self.device_management.motion_controller
-        except:
-            self.logger.warning("Robot has no motion controller.. Smells like device!".format(self.name))
-            self.motion_controller = None
+
+        self.devices = []
+        self.controllers = {}
+        self.device_lookup()
 
         # rpc service which resets the robot pose to the initial given values
         self.reset_pose_rpc_server = CommlibFactory.getRPCService(
@@ -292,6 +286,71 @@ class Robot:
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
         self.logger.info("Device {} set-up".format(self.name))
+
+    def register_controller(self, c):
+        if c.name in self.controllers:
+            self.logger.error(f"Device {c.name} declared twice")
+        else:
+            self.devices.append(c.info)
+            self.controllers[c.name] = c
+
+        if c.info["type"] == "SKID_STEER":
+            self.motion_controller = c
+
+    def device_lookup(self):
+        actors = {}
+        if "actors" in self.world:
+            actors = self.world["actors"]
+        p = {
+            "name": self.name,
+            "mode": self.mode,
+            "speak_mode": self.speak_mode,
+            "namespace": self.namespace,
+            "device_name": self.configuration["name"],
+            "logger": self.logger,
+            "map": self.map,
+            "actors": actors
+        }
+        str_sim = __import__("stream_simulator")
+        str_contro = getattr(str_sim, "controllers")
+        map = {
+           "ir": getattr(str_contro, "IrController"),
+           "sonar": getattr(str_contro, "SonarController"),
+           "tof": getattr(str_contro, "TofController"),
+           "camera": getattr(str_contro, "CameraController"),
+           "skid_steer": getattr(str_contro, "MotionController"),
+           "microphone": getattr(str_contro, "MicrophoneController"),
+           "cytron_lf": getattr(str_contro, "CytronLFController"),
+           "imu": getattr(str_contro, "ImuController"),
+           "env": getattr(str_contro, "EnvController"),
+           "speaker": getattr(str_contro, "SpeakerController"),
+           "leds": getattr(str_contro, "LedsController"),
+           "pan_tilt": getattr(str_contro, "PanTiltController"),
+           "touch_screen": getattr(str_contro, "TouchScreenController"),
+           "encoder": getattr(str_contro, "EncoderController"),
+           "gstreamer_server": getattr(str_contro, "GstreamerServerController"),
+        }
+        for s in self.configuration["devices"]:
+            if s not in [
+                         "ir",
+                         "sonar",
+                         "tof",
+                         "camera",
+                         "skid_steer",
+                         "microphone",
+                         "cytron_lf",
+                         "imu",
+                         "env",
+                         "speaker",
+                         "leds",
+                         "pan_tilt",
+                         "touch_screen",
+                         "encoder",
+                         "gstreamer_server"
+            ]:
+                continue
+            for m in self.configuration["devices"][s]:
+                self.register_controller(map[s](conf = m, package = p))
 
     def leds_redis(self, message, meta):
         self.logger.debug("Got leds from redis " + str(message))

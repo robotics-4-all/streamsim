@@ -16,8 +16,15 @@ class World:
 
     def load_environment(self, configuration = None):
         self.configuration = configuration
-        self.name = self.configuration["world"]["name"]
-        self.env_devices = self.configuration["env_devices"]
+
+        self.name = "world"
+        if "world" in self.configuration:
+            self.name = self.configuration["world"]["name"]
+
+        self.env_devices = []
+        if "env_devices" in self.configuration:
+            self.env_devices = self.configuration["env_devices"]
+
         self.logger.info("World loaded")
         self.devices = []
         self.controllers = {}
@@ -43,34 +50,40 @@ class World:
         }
 
     def setup(self):
+        self.width = 0
+        self.height = 0
+        self.map = None
+        self.resolution = 0
+        self.obstacles = []
+        if 'map' in self.configuration:
+            self.width = self.configuration['map']['width']
+            self.height = self.configuration['map']['height']
 
-        self.width = self.configuration['map']['width']
-        self.height = self.configuration['map']['height']
+            self.map = numpy.zeros((self.width, self.height))
+            self.resolution = self.configuration['map']['resolution']
 
-        self.map = numpy.zeros((self.width, self.height))
-        self.resolution = self.configuration['map']['resolution']
+            # Add obstacles information in map
+            self.obstacles = self.configuration['map']['obstacles']['lines']
+            for obst in self.obstacles:
+                x1 = obst['x1']
+                x2 = obst['x2']
+                y1 = obst['y1']
+                y2 = obst['y2']
+                if x1 == x2:
+                    if y1 > y2:
+                        tmp = y2
+                        y2 = y1
+                        y1 = tmp
+                    for i in range(y1, y2 + 1):
+                        self.map[x1, i] = 1
+                elif y1 == y2:
+                    if x1 > x2:
+                        tmp = x2
+                        x2 = x1
+                        x1 = tmp
+                    for i in range(x1, x2 + 1):
+                        self.map[i, y1] = 1
 
-        # Add obstacles information in map
-        self.obstacles = self.configuration['map']['obstacles']['lines']
-        for obst in self.obstacles:
-            x1 = obst['x1']
-            x2 = obst['x2']
-            y1 = obst['y1']
-            y2 = obst['y2']
-            if x1 == x2:
-                if y1 > y2:
-                    tmp = y2
-                    y2 = y1
-                    y1 = tmp
-                for i in range(y1, y2 + 1):
-                    self.map[x1, i] = 1
-            elif y1 == y2:
-                if x1 > x2:
-                    tmp = x2
-                    x2 = x1
-                    x1 = tmp
-                for i in range(x1, x2 + 1):
-                    self.map[i, y1] = 1
 
     def register_controller(self, c):
         if c.name in self.controllers:

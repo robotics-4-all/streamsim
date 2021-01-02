@@ -12,13 +12,48 @@ from colorama import Fore, Style
 
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
+from stream_simulator.base_classes import BaseThing
 
-class EnvController:
-    def __init__(self, info = None, logger = None):
-        if logger is None:
-            self.logger = Logger(info["name"])
+class EnvController(BaseThing):
+    def __init__(self, conf = None, package = None):
+        if package["logger"] is None:
+            self.logger = Logger(conf["name"])
         else:
-            self.logger = logger
+            self.logger = package["logger"]
+
+        super(self.__class__, self).__init__()
+        id = BaseThing.id
+
+        info = {
+            "type": "ENV",
+            "brand": "bme680",
+            "base_topic": package["name"] + ".sensor.env.temp_hum_pressure_gas.d" + str(id),
+            "name": "env_" + str(id),
+            "place": conf["place"],
+            "id": id,
+            "enabled": True,
+            "orientation": conf["orientation"],
+            "hz": conf["hz"],
+            "mode": package["mode"],
+            "speak_mode": package["speak_mode"],
+            "namespace": package["namespace"],
+            "sensor_configuration": conf["sensor_configuration"],
+            "device_name": package["device_name"],
+            "temperature": conf["sim_temperature"],
+            "humidity": conf["sim_humidity"],
+            "gas": conf["sim_air_quality"],
+            "pressure": conf["sim_pressure"],
+            "endpoints":{
+                "enable": "rpc",
+                "disable": "rpc",
+                "data": "publisher"
+            },
+            "data_models": {
+                "data": {
+                    "data": ["temperature", "pressure", "humidity", "gas"]
+                }
+            }
+        }
 
         self.info = info
         self.name = info["name"]
@@ -109,7 +144,6 @@ class EnvController:
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
 
-        self.memory = self.info["queue_size"] * [0]
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
         return {"enabled": True}
@@ -124,7 +158,6 @@ class EnvController:
         self.disable_rpc_server.run()
 
         if self.info["enabled"]:
-            self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("Env {} reads with {} Hz".format(self.info["id"], self.info["hz"]))

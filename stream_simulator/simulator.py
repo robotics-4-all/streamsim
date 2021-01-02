@@ -35,7 +35,10 @@ class Simulator:
         self.logger = Logger("simulator")
 
         self.configuration = self.parseConfiguration(conf_file, configuration)
-        self.name = self.configuration["simulation"]["name"]
+        if "simulation" in self.configuration:
+            self.name = self.configuration["simulation"]["name"]
+        else:
+            self.name = "streamsim"
 
         self.world = World()
         self.world.load_environment(configuration = self.configuration)
@@ -43,16 +46,17 @@ class Simulator:
 
         self.robots = []
         self.robot_names = []
-        for r in self.configuration["robots"]:
-            self.robots.append(
-                Robot(
-                    configuration = r,
-                    world = self.world.configuration,
-                    map = self.world.map,
-                    tick = self.tick
+        if "robots" in self.configuration:
+            for r in self.configuration["robots"]:
+                self.robots.append(
+                    Robot(
+                        configuration = r,
+                        world = self.world.configuration,
+                        map = self.world.map,
+                        tick = self.tick
+                    )
                 )
-            )
-            self.robot_names.append(r["name"])
+                self.robot_names.append(r["name"])
 
         self.devices_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",

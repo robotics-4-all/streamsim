@@ -13,13 +13,43 @@ from colorama import Fore, Style
 
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
+from stream_simulator.base_classes import BaseThing
 
-class MicrophoneController:
-    def __init__(self, info = None, logger = None):
-        if logger is None:
-            self.logger = Logger(info["name"])
+class MicrophoneController(BaseThing):
+    def __init__(self, conf = None, package = None):
+        if package["logger"] is None:
+            self.logger = Logger(conf["name"])
         else:
-            self.logger = logger
+            self.logger = package["logger"]
+
+        super(self.__class__, self).__init__()
+        id = BaseThing.id
+
+        info = {
+            "type": "MICROPHONE",
+            "brand": "usb_mic",
+            "base_topic": package["name"] + ".sensor.audio.microphone.d" + str(id),
+            "name": "microphone_" + str(id),
+            "place": conf["place"],
+            "id": "id_" + str(id),
+            "enabled": True,
+            "orientation": conf["orientation"],
+            "queue_size": 0,
+            "mode": package["mode"],
+            "speak_mode": package["speak_mode"],
+            "namespace": package["namespace"],
+            "sensor_configuration": conf["sensor_configuration"],
+            "device_name": package["device_name"],
+            "actors": package["actors"],
+            "endpoints":{
+                "enable": "rpc",
+                "disable": "rpc",
+                "record": "action"
+            },
+            "data_models": {
+                "record": ["record"]
+            }
+        }
 
         self.info = info
         self.name = info["name"]
