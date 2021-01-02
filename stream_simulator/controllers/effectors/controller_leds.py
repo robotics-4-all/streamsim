@@ -143,8 +143,12 @@ class LedsController(BaseThing):
                 }]
             )
 
+            self.logger.info("{}: New leds command: {}".format(self.name, message))
+
         except Exception as e:
             self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
+
+        return {}
 
     def leds_wipe_callback(self, message, meta):
         try:
