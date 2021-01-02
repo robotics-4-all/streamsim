@@ -25,6 +25,10 @@ class World:
         if "env_devices" in self.configuration:
             self.env_devices = self.configuration["env_devices"]
 
+        self.env_devices = []
+        if "actors" in self.configuration:
+            self.actors = self.configuration["actors"]
+
         self.logger.info("World loaded")
         self.devices = []
         self.controllers = {}
@@ -38,6 +42,10 @@ class World:
 
         self.setup()
         self.device_lookup()
+
+        self.actors_configurations = []
+        self.actors_controllers = {}
+        self.actors_lookup()
 
         # Start all controllers
         for c in self.controllers:
@@ -120,3 +128,22 @@ class World:
             devices = self.env_devices[d]
             for dev in devices:
                 self.register_controller(map[d](conf = dev, package = p))
+
+    def actors_lookup(self):
+        p = {
+            "logger": None
+        }
+        str_sim = __import__("stream_simulator")
+        str_contro = getattr(str_sim, "controllers")
+        map = {
+           "human": getattr(str_contro, "HumanActor"),
+        }
+        for type in self.actors:
+            actors = self.actors[type]
+            for act in actors:
+                c = map[type](conf = act, package = p)
+                if c.name in self.actors:
+                    self.logger.error(f"Device {c.name} declared twice")
+                else:
+                    self.devices.append(c.info)
+                    self.controllers[c.name] = c
