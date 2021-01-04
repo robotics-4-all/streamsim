@@ -51,4 +51,5 @@ from .env_actors import \
     BarcodeActor, \
     ColorActor, \
     TextActor, \
-    RfidTagActor
+    RfidTagActor, \
+    FireActor

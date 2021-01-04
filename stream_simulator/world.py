@@ -144,6 +144,7 @@ class World:
            "colors": getattr(str_contro, "ColorActor"),
            "texts": getattr(str_contro, "TextActor"),
            "rfid_tags": getattr(str_contro, "RfidTagActor"),
+           "fires": getattr(str_contro, "FireActor"),
         }
         for type in self.actors:
             actors = self.actors[type]
@@ -154,3 +155,4 @@ class World:
                 else:
                     self.actors_configurations.append(c.info)
                     self.actors_controllers[c.name] = c
+                    self.logger.info(f"Actor {c.name} declared")

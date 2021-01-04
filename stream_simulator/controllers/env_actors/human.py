@@ -33,5 +33,3 @@ class HumanActor(BaseThing):
         self.sound = conf['sound']
         self.language = conf['lang']
         self.name = info['name']
-
-        self.logger.info(f"Actor {self.name} declared")

@@ -30,5 +30,3 @@ class RfidTagActor(BaseThing):
             'theta': None
         }
         self.message = conf['message']
-
-        self.logger.info(f"Actor {self.name} declared")

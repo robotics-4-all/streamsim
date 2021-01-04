@@ -32,5 +32,3 @@ class ColorActor(BaseThing):
         self.r = conf['r']
         self.g = conf['g']
         self.b = conf['b']
-
-        self.logger.info(f"Actor {self.name} declared")

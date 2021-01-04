@@ -87,3 +87,5 @@ actors:
     # - {id: 8, x: 120, y: 100, text: έλα εδώ} # for OCR
   rfid_tags:
     - {id: 10, x: 320, y: 100, message: test}
+  fires:
+    - {id: 10, x: 320, y: 100}

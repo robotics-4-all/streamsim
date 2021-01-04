@@ -30,5 +30,3 @@ class SoundSourceActor(BaseThing):
             'theta': None
         }
         self.language = conf['lang']
-
-        self.logger.info(f"Actor {self.name} declared")

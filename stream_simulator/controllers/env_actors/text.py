@@ -30,5 +30,3 @@ class TextActor(BaseThing):
             'theta': None
         }
         self.text = conf['text']
-
-        self.logger.info(f"Actor {self.name} declared")
