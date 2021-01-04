@@ -136,7 +136,14 @@ class World:
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
         map = {
-           "human": getattr(str_contro, "HumanActor"),
+           "humans": getattr(str_contro, "HumanActor"),
+           "superman": getattr(str_contro, "SupermanActor"),
+           "sound_sources": getattr(str_contro, "SoundSourceActor"),
+           "qrs": getattr(str_contro, "QrActor"),
+           "barcodes": getattr(str_contro, "BarcodeActor"),
+           "colors": getattr(str_contro, "ColorActor"),
+           "texts": getattr(str_contro, "TextActor"),
+           "rfid_tags": getattr(str_contro, "RfidTagActor"),
         }
         for type in self.actors:
             actors = self.actors[type]
@@ -145,5 +152,5 @@ class World:
                 if c.name in self.actors:
                     self.logger.error(f"Device {c.name} declared twice")
                 else:
-                    self.devices.append(c.info)
-                    self.controllers[c.name] = c
+                    self.actors_configurations.append(c.info)
+                    self.actors_controllers[c.name] = c

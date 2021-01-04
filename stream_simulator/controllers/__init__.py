@@ -44,4 +44,11 @@ from .env_devices import \
     EnvMicrophoneController
 
 from .env_actors import \
-    HumanActor
+    HumanActor, \
+    SupermanActor, \
+    SoundSourceActor, \
+    QrActor, \
+    BarcodeActor, \
+    ColorActor, \
+    TextActor, \
+    RfidTagActor

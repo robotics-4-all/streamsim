@@ -5,10 +5,10 @@ from commlib.logger import Logger
 from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
-class HumanActor(BaseThing):
+class TextActor(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger("human_" + str(conf["id"]))
+            self.logger = Logger("text_" + str(conf["id"]))
         else:
             self.logger = package["logger"]
 
@@ -16,10 +16,10 @@ class HumanActor(BaseThing):
         id = BaseThing.id
 
         info = {
-            "type": "HUMAN",
+            "type": "TEXT",
             "conf": conf,
             "id": id,
-            "name": "human_" + str(conf["id"])
+            "name": "text_" + str(conf["id"])
         }
 
         self.info = info
@@ -29,9 +29,6 @@ class HumanActor(BaseThing):
             'y': conf['y'],
             'theta': None
         }
-        self.motion = conf['move']
-        self.sound = conf['sound']
-        self.language = conf['lang']
-        self.name = info['name']
+        self.text = conf['text']
 
         self.logger.info(f"Actor {self.name} declared")
