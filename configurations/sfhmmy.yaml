@@ -68,9 +68,6 @@ env_devices:
 actors:
   humans:
     - {id: 0, x: 120, y: 150, move: 0, sound: 1, lang: EN}
-    # - {id: 1, x: 50, y: 330, move: 1, sound: 0, lang: EL}
-    # - {id: 2, x: 250, y: 130, move: 0, sound: 1, lang: EL}
-    # - {id: 3, x: 320, y: 330, move: 1, sound: 1, lang: EL} # move is for motion detection, no dyn obstacles yet
   superman:
     - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
   sound_sources:
@@ -82,9 +79,7 @@ actors:
   colors:
     - {id: 7, x: 410, y: 100, r: 0, g: 255, b: 0} # for dominant color
   texts:
-    # - {id: 8, x: 120, y: 100, text: this is a text} # for OCR
     - {id: 8, x: 420, y: 100, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
-    # - {id: 8, x: 120, y: 100, text: έλα εδώ} # for OCR
   rfid_tags:
     - {id: 10, x: 320, y: 100, message: test}
   fires:

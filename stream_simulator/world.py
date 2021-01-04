@@ -25,7 +25,7 @@ class World:
         if "env_devices" in self.configuration:
             self.env_devices = self.configuration["env_devices"]
 
-        self.env_devices = []
+        self.actors = []
         if "actors" in self.configuration:
             self.actors = self.configuration["actors"]
 

@@ -14,7 +14,8 @@ from .sensors import \
     MicrophoneController, \
     SonarController, \
     TofController, \
-    ButtonController
+    ButtonController, \
+    RfidReaderController
 
 from .effectors import \
     LedsController, \

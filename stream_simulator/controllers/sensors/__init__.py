@@ -14,3 +14,4 @@ from .controller_microphone import MicrophoneController
 from .controller_sonar import SonarController
 from .controller_tof import TofController
 from .controller_button import ButtonController
+from .controller_rfid_reader import RfidReaderController

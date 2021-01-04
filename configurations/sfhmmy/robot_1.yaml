@@ -11,6 +11,9 @@ devices:
   skid_steer:
     -
       source: "tektrain/skid_steer/skid_steer"
+  rfid_reader:
+    -
+      source: "sfhmmy/rfid_reader"
 starting_pose:
   x: 100 # in pixels
   y: 100 # in pixels

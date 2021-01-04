@@ -39,10 +39,6 @@ class RfidReaderController(BaseThing):
             "namespace": package["namespace"],
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
-            "temperature": conf["sim_temperature"],
-            "humidity": conf["sim_humidity"],
-            "gas": conf["sim_air_quality"],
-            "pressure": conf["sim_pressure"],
             "endpoints":{
                 "enable": "rpc",
                 "disable": "rpc",
@@ -50,7 +46,7 @@ class RfidReaderController(BaseThing):
             },
             "data_models": {
                 "data": {
-                    "data": ["temperature", "pressure", "humidity", "gas"]
+                    "data": ["tags"]
                 }
             }
         }
@@ -65,21 +61,6 @@ class RfidReaderController(BaseThing):
             broker = "redis",
             topic = self.base_topic + ".data"
         )
-
-        if self.info["mode"] == "real":
-            from pidevices import BME680
-            self.sensor = BME680(self.conf["bus"], self.conf["slave"],
-                                 t_oversample=self.conf["t_over"],
-                                 h_oversample=self.conf["h_over"],
-                                 p_oversample=self.conf["p_over"],
-                                 iir_coef=self.conf["iir_coef"],
-                                 gas_status=self.conf["g_status"],
-                                 name=self.name,
-                                 max_data_length=self.conf["max_data_length"])
-            self.sensor.set_heating_temp([0], [320])
-            self.sensor.set_heating_time([0], [100])
-            self.sensor.set_nb_conv(0)
-
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.enable_callback,
@@ -92,37 +73,29 @@ class RfidReaderController(BaseThing):
         )
 
     def sensor_read(self):
-        self.logger.info("Env {} sensor read thread started".format(self.info["id"]))
+        self.logger.info("RFID reader {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
-            val = {
-                "temperature": 0,
-                "pressure": 0,
-                "humidity": 0,
-                "gas": 0
-            }
+            val = {'tags': []}
+            tags = []
             if self.info["mode"] == "mock":
-                val["temperature"] = float(random.uniform(30, 10))
-                val["pressure"] = float(random.uniform(30, 10))
-                val["humidity"] = float(random.uniform(30, 10))
-                val["gas"] = float(random.uniform(30, 10))
-
+                if random.uniform(0, 10) < 3:
+                    tags.append({
+                        "id": "RF432423",
+                        "msg": "dsadada"
+                    })
             elif self.info["mode"] == "simulation":
-                val["temperature"] = self.info["temperature"] + \
-                    random.uniform(-3, 3)
-                val["pressure"] = self.info["pressure"] + random.uniform(-3, 3)
-                val["humidity"] = self.info["humidity"] + random.uniform(-3, 3)
-                val["gas"] = self.info["gas"] + random.uniform(-3, 3)
+                if random.uniform(0, 10) < 3:
+                    tags.append({
+                        "id": "RF432423",
+                        "msg": "dsadada"
+                    })
             else: # The real deal
-                data = self.sensor.read()
-
-                val["temperature"] = data.temp
-                val["pressure"] = data.pres
-                val["humidity"] = data.hum
-                val["gas"] = data.gas
+                pass
 
             # Publishing value:
+            val['tags'] = tags
             self.publisher.publish({
                 "data": val,
                 "timestamp": time.time()
@@ -137,12 +110,11 @@ class RfidReaderController(BaseThing):
                 }]
             )
 
-        self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
+        self.logger.info("RFID reader {} sensor read thread stopped".format(self.info["id"]))
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
-        self.info["queue_size"] = message["queue_size"]
 
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
@@ -150,7 +122,7 @@ class RfidReaderController(BaseThing):
 
     def disable_callback(self, message, meta):
         self.info["enabled"] = False
-        self.logger.info("Env {} stops reading".format(self.info["id"]))
+        self.logger.info("Sensor {} stops reading".format(self.info["id"]))
         return {"enabled": False}
 
     def start(self):
@@ -160,7 +132,6 @@ class RfidReaderController(BaseThing):
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
-            self.logger.info("Env {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
     def stop(self):
         self.info["enabled"] = False

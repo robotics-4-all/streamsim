@@ -337,6 +337,7 @@ class Robot:
            "gstreamer_server": getattr(str_contro, "GstreamerServerController"),
            "button": getattr(str_contro, "ButtonController"),
            "button_array": getattr(str_contro, "ButtonArrayController"),
+           "rfid_reader": getattr(str_contro, "RfidReaderController"),
         }
         for s in self.configuration["devices"]:
             for m in self.configuration["devices"][s]:
