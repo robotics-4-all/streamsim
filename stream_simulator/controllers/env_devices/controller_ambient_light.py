@@ -64,6 +64,14 @@ class EnvAmbientLightController(BaseThing):
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
 
+        package["tf_declare"].call({
+            "type": "env",
+            "subtype": "ambient_light",
+            "pose": self.pose,
+            "base_topic": self.base_topic,
+            "name": self.name
+        })
+
         # Communication
         self.publisher = CommlibFactory.getPublisher(
             broker = "redis",

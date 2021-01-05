@@ -17,6 +17,11 @@ class World:
     def load_environment(self, configuration = None):
         self.configuration = configuration
 
+        self.tf_base = self.configuration['tf_base']
+        self.tf_declare_rpc = CommlibFactory.getRPCClient(
+            rpc_name = self.tf_base + ".declare"
+        )
+
         self.name = "world"
         if "world" in self.configuration:
             self.name = self.configuration["world"]["name"]
@@ -103,7 +108,8 @@ class World:
     def device_lookup(self):
         p = {
             "base": "world.",
-            "logger": None
+            "logger": None,
+            'tf_declare': self.tf_declare_rpc
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
@@ -131,7 +137,8 @@ class World:
 
     def actors_lookup(self):
         p = {
-            "logger": None
+            "logger": None,
+            'tf_declare': self.tf_declare_rpc
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")

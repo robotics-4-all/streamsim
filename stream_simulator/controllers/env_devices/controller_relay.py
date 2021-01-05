@@ -16,10 +16,8 @@ from stream_simulator.connectivity import CommlibFactory
 
 class EnvRelayController(BaseThing):
     def __init__(self, conf = None, package = None):
-        if package["logger"] is None:
-            self.logger = Logger(conf["name"])
-        else:
-            self.logger = package["logger"]
+        self.logger = Logger(conf['name']) if package['logger'] is None \
+            else package['logger']
 
         super(self.__class__, self).__init__()
 

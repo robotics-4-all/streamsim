@@ -68,6 +68,11 @@ class Robot:
         logging.getLogger("RPCClient").setLevel(logging.WARNING)
         logging.getLogger("RPCService").setLevel(logging.WARNING)
 
+        self.tf_base = world['tf_base']
+        self.tf_declare_rpc = CommlibFactory.getRPCClient(
+            rpc_name = self.tf_base + ".declare"
+        )
+
         try:
             self.namespace = os.environ['TEKTRAIN_NAMESPACE']
         except:
@@ -315,7 +320,8 @@ class Robot:
             "device_name": self.configuration["name"],
             "logger": self.logger,
             "map": self.map,
-            "actors": actors
+            "actors": actors,
+            'tf_declare': self.tf_declare_rpc
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")

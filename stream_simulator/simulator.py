@@ -20,6 +20,7 @@ elif ConnParams.type == "redis":
     from commlib.transports.redis import Subscriber
 
 from stream_simulator.connectivity import CommlibFactory
+from stream_simulator.transformations import TfController
 
 ### Dont know why but if I remove this no controllers are found
 from stream_simulator.controllers import IrController
@@ -41,10 +42,16 @@ class Simulator:
         else:
             self.name = "streamsim"
 
+        # Declaring tf controller and setting basetopic
+        self.tf = TfController(base = self.name)
+        self.configuration['tf_base'] = self.tf.base_topic
+
+        # Initializing world
         self.world = World()
         self.world.load_environment(configuration = self.configuration)
         self.world_name = self.world.name
 
+        # Initializing robots
         self.robots = []
         self.robot_names = []
         if "robots" in self.configuration:

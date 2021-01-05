@@ -75,7 +75,7 @@ class CommlibFactory:
         return ret
 
     @staticmethod
-    def getRPCClient(broker = "redis", rpc_name = None, callback = None):
+    def getRPCClient(broker = "redis", rpc_name = None):
         ret = None
         module = importlib.import_module(
             f"commlib.transports.{broker}"
