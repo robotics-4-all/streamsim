@@ -31,7 +31,6 @@ jobs:
             sudo pip3 install pillow
             sudo pip3 install qrcode[pil]
             sudo pip3 install colorama
-            sudo pip3 install unittest
       - run:
           name: Build & Install Commlib
           command: |
