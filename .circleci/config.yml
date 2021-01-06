@@ -25,7 +25,11 @@ jobs:
             sudo pip3 install google-api-core==1.21.0
             sudo pip3 install google-auth==1.18.0
             sudo pip3 install googleapis-common-protos==1.52.0
-            sudo pip3 install yaml
+            sudo pip3 install pyyaml
+            sudo pip3 install numpy
+            sudo pip3 install wave
+            sudo pip3 install pillow
+            sudo pip3 install qrcode[pil]
       - run:
           name: Build & Install Commlib
           command: |
