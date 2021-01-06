@@ -1,0 +1,73 @@
+version: 0.1
+
+executors:
+  tektrain_sim:
+    docker:
+      - image: circleci/python:3.7.4
+      - image: circleci/redis:latest
+    working_directory: ~/
+
+jobs:
+  build_and_test:
+    executor: tektrain_sim
+    steps:
+      - checkout
+      - run:
+          name: Install Python Dependencies
+          command: |
+            sudo -H pip3 install --upgrade pip
+            sudo pip3 install flake8
+            sudo pip3 install pytest==5.4.3
+            sudo pip3 install pytest-html==2.1.1
+            sudo pip3 install opencv-python==4.0.0.21
+            sudo pip3 install mock==2.0.0
+            sudo pip3 install json-rpc==1.13.0
+            sudo pip3 install google-api-core==1.21.0
+            sudo pip3 install google-auth==1.18.0
+            sudo pip3 install googleapis-common-protos==1.52.0
+      - run:
+          name: Build & Install Commlib
+          command: |
+            git clone git@github.com:robotics-4-all/commlib-py.git
+            cd commlib-py
+            sudo python3 setup.py install
+      - run:
+          name: Build & Install derp-me
+          command: |
+            git clone git@github.com:robotics-4-all/derp-me.git
+            cd derp-me
+            sudo python3 setup.py install
+      - run:
+          name: Build & Install Streamsim backend
+          command: |
+            git clone --single-branch --branch ${CIRCLE_BRANCH} git@github.com:robotics-4-all/stream-sim-backend.git
+            cd stream-sim-backend
+            sudo python3 setup.py install
+      - run:
+          name: Setup derp-me (background)
+          command: |
+            cd ./derp-me/bin
+            python3 derpme.py
+          background: true
+      - run:
+          name: Setup Stream-sim-backend (background)
+          command: |
+            sleep 2
+            cd ./stream-sim-backend/bin/
+            sudo python3 main.py circleci_testing
+          background: true
+      - run:
+          name: Run Unit Tests
+          command: |
+            sleep 5
+            cd ~/stream-sim-backend/tests/controllers
+            pytest --junitxml=~/test-reports/${CIRCLE_BRANCH}/${CIRCLE_USERNAME}/streamsim/junit.xml --html=~/test-reports/${CIRCLE_BRANCH}/${CIRCLE_USERNAME}/streamsim/pytest_report.html --self-contained-html
+      - store_test_results:
+          path: ~/streamsim/test-reports/
+      - store_artifacts:
+          path: ~/streamsim/test-reports/
+
+workflows:
+  build_and_test:
+    jobs:
+      - build_and_test

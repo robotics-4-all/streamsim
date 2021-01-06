@@ -25,8 +25,10 @@ class TfController:
         self.declare_rpc_server.run()
 
         self.declare_rpc_input = [
-            'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov'
+            'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', 'host'
         ]
+
+        self.declarations = []
 
     def start(self):
         self.declare_rpc_server.run()
@@ -42,6 +44,7 @@ class TfController:
     #     base_topic:
     #     range:
     #     fov:
+    #     host:
     # }
     def declare_callback(self, message, meta):
         m = message
@@ -56,5 +59,11 @@ class TfController:
                 return {}
             temp[m] = message[m]
 
-        self.logger.info(f"{Style.DIM}Declared {temp['name']} as {temp['type']}::{temp['subtype']} @ {temp['pose']}{Style.RESET_ALL}")
+        host_msg = ""
+        if 'host' in message:
+            host_msg = f"on {message['host']}"
+
+        self.logger.info(f"{Style.DIM}{temp['name']}::{temp['type']}::{temp['subtype']} @ {temp['pose']} {host_msg}{Style.RESET_ALL}")
+
+        self.declarations.append(temp)
         return {}

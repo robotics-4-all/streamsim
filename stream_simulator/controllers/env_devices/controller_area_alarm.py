@@ -30,7 +30,7 @@ class EnvAreaAlarmController(BaseThing):
         _type = "AREA_ALARM"
         _category = "alarm"
         _brand = "secur"
-        _name_suffix = "alarm_line_"
+        _name_suffix = "alarm_area_"
         _endpoints = {
             "enable": "rpc",
             "disable": "rpc",
@@ -60,6 +60,21 @@ class EnvAreaAlarmController(BaseThing):
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
         self.radius = info["conf"]["radius"]
+
+        tf_package = {
+            "type": "env",
+            "subtype": "area_alarm",
+            "pose": self.pose,
+            "base_topic": self.base_topic,
+            "name": self.name
+        }
+
+        self.host = None
+        if 'host' in info['conf']:
+            self.host = info['conf']['host']
+            tf_package['host'] = self.host
+
+        package["tf_declare"].call(tf_package)
 
         # Communication
         self.publisher = CommlibFactory.getPublisher(
