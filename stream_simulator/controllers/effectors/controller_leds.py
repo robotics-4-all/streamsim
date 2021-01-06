@@ -54,6 +54,18 @@ class LedsController(BaseThing):
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
+        # tf handling
+        tf_package = {
+            "type": "robot",
+            "subtype": "leds",
+            "pose": conf["pose"],
+            "base_topic": info['base_topic'],
+            "name": self.name
+        }
+        tf_package['host'] = package['device_name']
+        tf_package['host_type'] = 'robot'
+        package["tf_declare"].call(tf_package)
+
         if self.info["mode"] == "real":
             from pidevices import LedController
             self.led_strip = LedController(led_count=self.conf["led_count"],

@@ -1,0 +1,11 @@
+orientation: 0
+place: FRONT
+pose: {x: 0, y: 0, theta: 0}
+sensor_configuration:
+  led_count: 19
+  led_pin: 18
+  led_freq_hz: 700000
+  led_brightness: 255
+  led_invert: 0
+  led_channel: 0
+  max_data_length: 10

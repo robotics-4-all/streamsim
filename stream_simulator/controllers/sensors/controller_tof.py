@@ -57,6 +57,18 @@ class TofController(BaseThing):
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
+        # tf handling
+        tf_package = {
+            "type": "robot",
+            "subtype": "tof",
+            "pose": conf["pose"],
+            "base_topic": info['base_topic'],
+            "name": self.name
+        }
+        tf_package['host'] = package['device_name']
+        tf_package['host_type'] = 'robot'
+        package["tf_declare"].call(tf_package)
+
         self.publisher = CommlibFactory.getPublisher(
             broker = "redis",
             topic = self.base_topic + ".data"

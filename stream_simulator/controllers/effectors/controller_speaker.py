@@ -53,6 +53,18 @@ class SpeakerController(BaseThing):
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
 
+        # tf handling
+        tf_package = {
+            "type": "robot",
+            "subtype": "speaker",
+            "pose": conf["pose"],
+            "base_topic": info['base_topic'],
+            "name": self.name
+        }
+        tf_package['host'] = package['device_name']
+        tf_package['host_type'] = 'robot'
+        package["tf_declare"].call(tf_package)
+
         self.global_volume = None
         self.blocked = False
 

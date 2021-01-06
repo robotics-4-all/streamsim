@@ -10,17 +10,17 @@ devices:
       source: "tektrain/microphone_front"
   sonar:
     -
-      source: "tektrain/sonars/sonar_fr"
+      source: "circleci_confs/sonars/sonar_fr"
     -
-      source: "tektrain/sonars/sonar_fl"
+      source: "circleci_confs/sonars/sonar_fl"
     -
-      source: "tektrain/sonars/sonar_l"
+      source: "circleci_confs/sonars/sonar_l"
     -
-      source: "tektrain/sonars/sonar_r"
+      source: "circleci_confs/sonars/sonar_r"
     -
-      source: "tektrain/sonars/sonar_bl"
+      source: "circleci_confs/sonars/sonar_bl"
     -
-      source: "tektrain/sonars/sonar_br"
+      source: "circleci_confs/sonars/sonar_br"
   ir:
     -
       source: "tektrain/irs/ir_fr"
@@ -76,15 +76,7 @@ devices:
         max_data_length": 10
   tof:
     -
-      orientation: 0
-      place: F
-      hz: 1
-      max_range: 2
-      sensor_configuration:
-        bus: 1
-        address: 0x29
-        mode: 3
-        max_data_length: 10
+      source: "circleci_confs/tof"
   camera:
     -
       orientation: 0
@@ -268,31 +260,13 @@ devices:
         max_data_length: 10
   speaker:
     -
-      orientation: 0
-      place: FRONT
-      sensor_configuration:
-        dev_name: "Speaker"
-        max_data_length: 10
+      source: "circleci_confs/speaker"
   leds:
     -
-      orientation: 0
-      place: FRONT
-      sensor_configuration:
-        led_count: 19
-        led_pin: 18
-        led_freq_hz: 700000
-        led_brightness: 255
-        led_invert: 0
-        led_channel: 0
-        max_data_length: 10
+      source: "circleci_confs/leds"
   pan_tilt:
     -
-      orientation: 0
-      place: UNDER
-      sensor_configuration:
-        bus: 1
-        frequency: 50
-        max_data_length: 1
+      source: "circleci_confs/pan_tilt"
   touch_screen:
     -
       source: "circleci_confs/touch_screen"
@@ -317,17 +291,7 @@ devices:
         max_data_length: 10
   skid_steer:
     -
-      orientation: 0
-      place: UNDER
-      sensor_configuration:
-        bus: 1
-        E1: 20
-        M1: 21
-        E2: 12
-        M2: 16
-        max_data_length: 10
-        wheel_separation: 0.147
-        wheel_radius: 0.022
+      source: "circleci_confs/skid_steer"
   cytron_lf:
    -
      orientation: 0
