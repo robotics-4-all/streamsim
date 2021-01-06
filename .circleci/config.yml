@@ -5,7 +5,7 @@ executors:
     docker:
       - image: circleci/python:3.7.4
       - image: circleci/redis:latest
-    working_directory: ~/
+    working_directory: ~/new_infrastructure
 
 jobs:
   build_and_test:
@@ -60,12 +60,12 @@ jobs:
           name: Run Unit Tests
           command: |
             sleep 5
-            cd ~/stream-sim-backend/tests/controllers
-            pytest --junitxml=~/test-reports/${CIRCLE_BRANCH}/${CIRCLE_USERNAME}/streamsim/junit.xml --html=~/test-reports/${CIRCLE_BRANCH}/${CIRCLE_USERNAME}/streamsim/pytest_report.html --self-contained-html
+            cd ~/new_infrastructure/stream-sim-backend/tests/controllers
+            pytest --junitxml=~/new_infrastructure/stream-sim-backend/test-reports/${CIRCLE_BRANCH}/${CIRCLE_USERNAME}/streamsim/junit.xml --html=~/new_infrastructure/stream-sim-backend/test-reports/${CIRCLE_BRANCH}/${CIRCLE_USERNAME}/streamsim/pytest_report.html --self-contained-html
       - store_test_results:
-          path: ~/streamsim/test-reports/
+          path: ~/new_infrastructure/streamsim/test-reports/
       - store_artifacts:
-          path: ~/streamsim/test-reports/
+          path: ~/new_infrastructure/streamsim/test-reports/
 
 workflows:
   build_and_test:
