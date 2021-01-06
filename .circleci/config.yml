@@ -63,15 +63,19 @@ jobs:
             sudo python3 main.py circleci_testing
           background: true
       - run:
+          name: Setup results directories
+          command: |
+            mkdir -p ~/new_infrastructure/test-reports
+      - run:
           name: Run Unit Tests
           command: |
             sleep 5
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            pytest --junitxml=~/new_infrastructure/stream-sim-backend/test-reports/${CIRCLE_BRANCH}/${CIRCLE_USERNAME}/streamsim/junit.xml --html=~/new_infrastructure/stream-sim-backend/test-reports/${CIRCLE_BRANCH}/${CIRCLE_USERNAME}/streamsim/pytest_report.html --self-contained-html
+            sudo python3 *.py
       - store_test_results:
-          path: ~/new_infrastructure/streamsim/test-reports/
+          path: ~/new_infrastructure/test-reports/
       - store_artifacts:
-          path: ~/new_infrastructure/streamsim/test-reports/
+          path: ~/new_infrastructure/test-reports/
 
 workflows:
   build_and_test:
