@@ -61,6 +61,7 @@ class EnvAreaAlarmController(BaseThing):
         self.pose = info["conf"]["pose"]
         self.radius = info["conf"]["radius"]
 
+        # tf handling
         tf_package = {
             "type": "env",
             "subtype": "area_alarm",

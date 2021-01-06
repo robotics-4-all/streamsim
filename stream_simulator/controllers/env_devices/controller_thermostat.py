@@ -50,6 +50,22 @@ class EnvThermostatController(BaseThing):
         self.place = info["conf"]["place"]
         self.temperarure = info['conf']['temperature']
 
+        # tf handling
+        tf_package = {
+            "type": "env",
+            "subtype": "thermostat",
+            "pose": self.pose,
+            "base_topic": self.base_topic,
+            "name": self.name
+        }
+
+        self.host = None
+        if 'host' in info['conf']:
+            self.host = info['conf']['host']
+            tf_package['host'] = self.host
+
+        package["tf_declare"].call(tf_package)
+
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.enable_callback,

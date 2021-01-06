@@ -54,6 +54,22 @@ class EnvPanTiltController(BaseThing):
         self.pan = 0
         self.tilt = 0
 
+        # tf handling
+        tf_package = {
+            "type": "env",
+            "subtype": "pan_tilt",
+            "pose": self.pose,
+            "base_topic": self.base_topic,
+            "name": self.name
+        }
+
+        self.host = None
+        if 'host' in info['conf']:
+            self.host = info['conf']['host']
+            tf_package['host'] = self.host
+
+        package["tf_declare"].call(tf_package)
+
         self.operation = info['conf']['operation']
         self.operation_parameters = info['conf']['operation_parameters']
 

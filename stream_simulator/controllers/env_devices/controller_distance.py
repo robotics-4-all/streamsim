@@ -64,6 +64,22 @@ class EnvDistanceController(BaseThing):
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
 
+        # tf handling
+        tf_package = {
+            "type": "env",
+            "subtype": "distance",
+            "pose": self.pose,
+            "base_topic": self.base_topic,
+            "name": self.name
+        }
+
+        self.host = None
+        if 'host' in info['conf']:
+            self.host = info['conf']['host']
+            tf_package['host'] = self.host
+
+        package["tf_declare"].call(tf_package)
+
         # Communication
         self.publisher = CommlibFactory.getPublisher(
             broker = "redis",
