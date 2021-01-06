@@ -31,6 +31,7 @@ jobs:
             sudo pip3 install pillow
             sudo pip3 install qrcode[pil]
             sudo pip3 install colorama
+            sudo pip3 install unittest
       - run:
           name: Build & Install Commlib
           command: |
@@ -71,7 +72,7 @@ jobs:
           command: |
             sleep 5
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            sudo python3 *.py
+            python3 -m unittest -v
       - store_test_results:
           path: ~/new_infrastructure/test-reports/
       - store_artifacts:
