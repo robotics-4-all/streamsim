@@ -25,16 +25,17 @@ jobs:
             sudo pip3 install google-api-core==1.21.0
             sudo pip3 install google-auth==1.18.0
             sudo pip3 install googleapis-common-protos==1.52.0
+            sudo pip3 install yaml
       - run:
           name: Build & Install Commlib
           command: |
-            git clone git@github.com:robotics-4-all/commlib-py.git
+            git clone --branch v0.3.1 git@github.com:robotics-4-all/commlib-py.git
             cd commlib-py
             sudo python3 setup.py install
       - run:
           name: Build & Install derp-me
           command: |
-            git clone git@github.com:robotics-4-all/derp-me.git
+            git clone --branch v0.1.2 git@github.com:robotics-4-all/derp-me.git
             cd derp-me
             sudo python3 setup.py install
       - run:
