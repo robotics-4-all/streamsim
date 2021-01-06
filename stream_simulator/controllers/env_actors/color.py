@@ -32,3 +32,20 @@ class ColorActor(BaseThing):
         self.r = conf['r']
         self.g = conf['g']
         self.b = conf['b']
+
+        # tf handling
+        tf_package = {
+            "type": "actor",
+            "subtype": "color",
+            "pose": self.pose,
+            "name": self.name
+        }
+
+        self.host = None
+        if 'host' in info['conf']:
+            self.host = info['conf']['host']
+            tf_package['host'] = self.host
+            # No other host type is available for env_devices
+            tf_package['host_type'] = 'pan_tilt'
+
+        package["tf_declare"].call(tf_package)
