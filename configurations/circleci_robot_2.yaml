@@ -295,11 +295,7 @@ devices:
         max_data_length: 1
   touch_screen:
     -
-      orientation: 0
-      place: UNKNOWN
-      sensor_configuration:
-        param_1: 1
-        max_data_length: 10
+      source: "circleci_confs/touch_screen"
   encoder:
     -
       orientation: 90

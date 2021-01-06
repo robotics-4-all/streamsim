@@ -49,6 +49,18 @@ class TouchScreenController(BaseThing):
         self.info = info
         self.name = info["name"]
 
+        # tf handling
+        tf_package = {
+            "type": "robot",
+            "subtype": "touch_screen",
+            "pose": conf["pose"],
+            "base_topic": info['base_topic'],
+            "name": self.name
+        }
+        tf_package['host'] = package['device_name']
+        tf_package['host_type'] = 'robot'
+        package["tf_declare"].call(tf_package)
+
         self.show_image_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.show_image_callback,
