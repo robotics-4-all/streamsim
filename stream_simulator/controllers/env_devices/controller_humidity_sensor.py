@@ -34,5 +34,7 @@ class EnvHumiditySensorController(BasicSensor):
         if 'host' in self.info['conf']:
             self.host = self.info['conf']['host']
             tf_package['host'] = self.host
+            # No other host type is available for env_devices
+            tf_package['host_type'] = 'pan_tilt'
 
         package["tf_declare"].call(tf_package)

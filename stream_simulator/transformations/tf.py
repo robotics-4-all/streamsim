@@ -25,7 +25,8 @@ class TfController:
         self.declare_rpc_server.run()
 
         self.declare_rpc_input = [
-            'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', 'host'
+            'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
+            'host', 'host_type'
         ]
 
         self.declarations = []
@@ -45,6 +46,7 @@ class TfController:
     #     range:
     #     fov:
     #     host:
+    #     host_type
     # }
     def declare_callback(self, message, meta):
         m = message
@@ -62,6 +64,10 @@ class TfController:
         host_msg = ""
         if 'host' in message:
             host_msg = f"on {message['host']}"
+
+        if 'host_type' in message:
+            if message['host_type'] not in ['robot', 'pan_tilt']:
+                self.logger.error(f"tf: Invalid host type for {message['name']}: {message['host_type']}")
 
         self.logger.info(f"{Style.DIM}{temp['name']}::{temp['type']}::{temp['subtype']} @ {temp['pose']} {host_msg}{Style.RESET_ALL}")
 

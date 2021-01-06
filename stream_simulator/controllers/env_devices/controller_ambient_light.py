@@ -76,6 +76,8 @@ class EnvAmbientLightController(BaseThing):
         if 'host' in info['conf']:
             self.host = info['conf']['host']
             tf_package['host'] = self.host
+            # No other host type is available for env_devices
+            tf_package['host_type'] = 'pan_tilt'
 
         package["tf_declare"].call(tf_package)
 
