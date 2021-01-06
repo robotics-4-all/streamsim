@@ -1,4 +1,4 @@
-version: 0.1
+version: 2.1
 
 executors:
   tektrain_sim:
@@ -40,7 +40,7 @@ jobs:
       - run:
           name: Build & Install Streamsim backend
           command: |
-            git clone --single-branch --branch ${CIRCLE_BRANCH} git@github.com:robotics-4-all/stream-sim-backend.git
+            git clone --single-branch --branch ${CIRCLE_BRANCH} https://github.com/robotics-4-all/stream-sim-backend.git
             cd stream-sim-backend
             sudo python3 setup.py install
       - run:
