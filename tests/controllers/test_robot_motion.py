@@ -46,7 +46,7 @@ class Test(unittest.TestCase):
                             'raw': 0
                         })
 
-                        time.sleep(3)
+                        time.sleep(2)
                         print("Stopping")
                         set_rpc.publish({
                             'linear': 0,

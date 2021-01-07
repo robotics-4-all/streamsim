@@ -44,7 +44,7 @@ class Test(unittest.TestCase):
                         callback = self.callback2
                     )
                     sub2.run()
-                    time.sleep(10)
+                    time.sleep(3)
                     sub.stop()
                     sub2.stop()
 

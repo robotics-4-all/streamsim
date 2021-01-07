@@ -38,7 +38,7 @@ class Test(unittest.TestCase):
                         callback = self.callback
                     )
                     sub.run()
-                    time.sleep(5)
+                    time.sleep(2)
                     sub.stop()
 
         except:

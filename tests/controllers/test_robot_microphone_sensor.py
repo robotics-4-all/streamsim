@@ -38,7 +38,7 @@ class Test(unittest.TestCase):
                             action_name = s["base_topic"] + ".record"
                         )
                         resp = action.send_goal({
-                            'duration': 5
+                            'duration': 2
                         })
                         goal_id = resp["goal_id"]
                         while action.get_result(goal_id)["status"] == 1:
