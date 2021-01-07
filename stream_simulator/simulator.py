@@ -45,6 +45,7 @@ class Simulator:
         # Declaring tf controller and setting basetopic
         self.tf = TfController(base = self.name)
         self.configuration['tf_base'] = self.tf.base_topic
+        time.sleep(0.5)
 
         # Initializing world
         self.world = World()

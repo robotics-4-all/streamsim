@@ -1,0 +1,12 @@
+pose: {x: 0, y: 0, theta: 180}
+orientation: 180
+place: B
+hz: 1
+sensor_configuration:
+  bus: 1
+  address: 0x20
+  pin_num: "B_5"
+  direction: "down"
+  edge: "both"
+  bounce: 70
+  max_data_length: 10

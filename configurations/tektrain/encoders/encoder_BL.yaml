@@ -1,0 +1,8 @@
+orientation: 90
+place: BL
+hz: 1
+sensor_configuration:
+  bus: 1
+  address: 0x22
+  pin: "B_4"
+  max_data_length: 10

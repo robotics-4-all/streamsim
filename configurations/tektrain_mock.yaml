@@ -19,7 +19,7 @@ robots:
     devices:
       microphone:
         -
-          source: "tektrain/microphone_front"
+          source: "tektrain/microphone"
       sonar:
         -
           source: "tektrain/sonars/sonar_fr"
@@ -37,329 +37,75 @@ robots:
         -
           source: "tektrain/irs/ir_fr"
         -
-          orientation: 45
-          place: FL
-          hz: 1
-          max_range: 2
-          sensor_configuration:
-            channel: 0
-            v_ref: 3.3
-            averages: 10
-            max_data_length": 10
+          source: "tektrain/irs/ir_fl"
         -
-          orientation: -90
-          place: R
-          hz: 1
-          max_range: 2
-          sensor_configuration:
-            channel: 0
-            v_ref: 3.3
-            averages: 10
-            max_data_length": 10
+          source: "tektrain/irs/ir_r"
         -
-          orientation: 90
-          place: L
-          hz: 1
-          max_range: 2
-          sensor_configuration:
-            channel: 0
-            v_ref: 3.3
-            averages: 10
-            max_data_length": 10
+          source: "tektrain/irs/ir_l"
         -
-          orientation: -135
-          place: BR
-          hz: 1
-          max_range: 2
-          sensor_configuration:
-            channel: 0
-            v_ref: 3.3
-            averages: 10
-            max_data_length": 10
+          source: "tektrain/irs/ir_br"
         -
-          orientation: 135
-          place: BL
-          hz: 1
-          max_range: 2
-          sensor_configuration:
-            channel: 0
-            v_ref: 3.3
-            averages: 10
-            max_data_length": 10
+          source: "tektrain/irs/ir_bl"
       tof:
         -
-          orientation: 0
-          place: F
-          hz: 1
-          max_range: 2
-          sensor_configuration:
-            bus: 1
-            address: 0x29
-            mode: 3
-            max_data_length: 10
+          source: "tektrain/tof"
       camera:
         -
-          orientation: 0
-          place: FRONT
-          hz: 0.5
-          sensor_configuration:
-            framerate: 30
-            width: 640
-            height: 480
-            max_data_length: 2
+          source: "tektrain/camera"
       imu:
         -
-          orientation: 1
-          place: CENTER
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            max_data_length: 10
+          source: "tektrain/imu"
       button:
         -
-          orientation: 0
-          place: F
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_0"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_F"
         -
-          orientation: -45
-          place: FR
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_1"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_FR"
         -
-          orientation: 45
-          place: FL
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_2"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_FL"
         -
-          orientation: -90
-          place: R
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_3"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_R"
         -
-          orientation: 90
-          place: L
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_4"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_L"
         -
-          orientation: 180
-          place: B
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_5"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_B"
         -
-          orientation: -135
-          place: BR
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_1"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_BR"
         -
-          orientation: 135
-          place: BL
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_6"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_BL"
         -
-          orientation: 0
-          place: G1
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_5"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_G1"
         -
-          orientation: 0
-          place: G2
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_4"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_G2"
         -
-          orientation: 0
-          place: G3
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_3"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_G3"
         -
-          orientation: 0
-          place: G4
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "A_4"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_G4"
       env:
         -
-          orientation: 0
-          place: FRONT
-          hz: 1
-          sim_temperature: 31
-          sim_humidity: 60
-          sim_pressure: 1800
-          sim_air_quality: 50
-          sensor_configuration:
-            bus: 1
-            slave: 0
-            t_over : 8
-            h_over : 2
-            p_over : 4
-            iir_coef : 3
-            g_status : 1
-            max_data_length: 10
+          source: "tektrain/env"
       speaker:
         -
-          orientation: 0
-          place: FRONT
-          sensor_configuration:
-            dev_name: "Speaker"
-            max_data_length: 10
+          source: "tektrain/speaker"
       leds:
         -
-          orientation: 0
-          place: FRONT
-          sensor_configuration:
-            led_count: 19
-            led_pin: 18
-            led_freq_hz: 700000
-            led_brightness: 255
-            led_invert: 0
-            led_channel: 0
-            max_data_length: 10
+          source: "tektrain/leds"
       pan_tilt:
         -
-          orientation: 0
-          place: UNDER
-          sensor_configuration:
-            bus: 1
-            frequency: 50
-            max_data_length: 1
+          source: "tektrain/pan_tilt"
       touch_screen:
         -
-          orientation: 0
-          place: UNKNOWN
-          sensor_configuration:
-            param_1: 1
-            max_data_length: 10
+          source: "tektrain/touch_screen"
       encoder:
         -
-          orientation: 90
-          place: BL
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x22
-            pin: "B_4"
-            max_data_length: 10
+          source: "tektrain/encoders/encoder_BR"
         -
-          orientation: -90
-          place: BR
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x22
-            pin: "B_5"
-            max_data_length: 10
+          source: "tektrain/encoders/encoder_BL"
       skid_steer:
         -
-          orientation: 0
-          place: UNDER
-          sensor_configuration:
-            bus: 1
-            E1: 20
-            M1: 21
-            E2: 12
-            M2: 16
-            max_data_length: 10
-            wheel_separation: 0.147
-            wheel_radius: 0.022
+          source: "tektrain/skid_steer"
       cytron_lf:
-       -
-         orientation: 0
-         place: UNDER
-         hz: 1
-         sensor_configuration:
-           bus: 1
-           address: 0x22
-           mode: "dark"
-           so_1: "A_2"
-           so_2: "A_3"
-           so_3: "A_4"
-           so_4: "A_5"
-           so_5: "A_6"
-           cal:  "A_7"
-           max_data_length: 10
+        -
+          source: "tektrain/cytron_lf"
     starting_pose:
       x: 100 # in pixels
       y: 100 # in pixels

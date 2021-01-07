@@ -15,8 +15,8 @@ world:
   places: ["office"]
 
 robots:
-  - source: "circleci_robot_1"
-  - source: "circleci_robot_2"
+  - source: "circleci/circleci_robot_1"
+  - source: "circleci/circleci_robot_2"
 
 env_devices:
   relays:

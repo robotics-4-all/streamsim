@@ -1,0 +1,15 @@
+pose: {x: 0, y: 0, theta: 45}
+orientation: 0
+place: UNDER
+hz: 1
+sensor_configuration:
+  bus: 1
+  address: 0x22
+  mode: "dark"
+  so_1: "A_2"
+  so_2: "A_3"
+  so_3: "A_4"
+  so_4: "A_5"
+  so_5: "A_6"
+  cal:  "A_7"
+  max_data_length: 10

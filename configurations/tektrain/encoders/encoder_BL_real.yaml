@@ -1,0 +1,8 @@
+pose: {x: 0, y: 0, theta: 0}
+orientation: 90
+place: BL
+hz: 5
+sensor_configuration:
+  pin: 23
+  name: "Left Enc"
+  max_data_length: 10
