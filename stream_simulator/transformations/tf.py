@@ -16,13 +16,19 @@ from stream_simulator.connectivity import CommlibFactory
 class TfController:
     def __init__(self, base = None, logger = None):
         self.logger = Logger("tf") if logger is None else logger
-        self.base_topic = base if base is not None else "streamsim.tf"
+        self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
 
         self.declare_rpc_server = CommlibFactory.getRPCService(
             callback = self.declare_callback,
             rpc_name = self.base_topic + ".declare"
         )
         self.declare_rpc_server.run()
+
+        self.get_declarations_rpc_server = CommlibFactory.getRPCService(
+            callback = self.get_declarations_callback,
+            rpc_name = self.base_topic + ".get_declarations"
+        )
+        self.get_declarations_rpc_server.run()
 
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
@@ -36,6 +42,9 @@ class TfController:
 
     def stop(self):
         self.declare_rpc_server.stop()
+
+    def get_declarations_callback(self, message, meta):
+        return {"declarations": self.declarations}
 
     # {
     #     type: robot/env/actor
