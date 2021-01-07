@@ -10,7 +10,7 @@ devices:
       source: "tektrain/sonars/sonar_bl"
   skid_steer:
     -
-      source: "tektrain/skid_steer/skid_steer"
+      source: "tektrain/skid_steer"
   rfid_reader:
     -
       source: "sfhmmy/rfid_reader"

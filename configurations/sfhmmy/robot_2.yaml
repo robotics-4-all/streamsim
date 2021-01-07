@@ -10,7 +10,7 @@ devices:
       source: "tektrain/irs/ir_fr"
   skid_steer:
     -
-      source: "tektrain/skid_steer/skid_steer"
+      source: "tektrain/skid_steer"
 starting_pose:
   x: 200 # in pixels
   y: 200 # in pixels
