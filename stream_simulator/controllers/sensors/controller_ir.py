@@ -20,12 +20,17 @@ class IrController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "ir_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
+
         info = {
             "type": "IR",
             "brand": "ir",
-            "base_topic": package["name"] + ".sensor.distance.ir.d" + str(id),
-            "name": "ir_" + str(id),
+            "base_topic": package["name"] + ".sensor.distance.ir." + str(id),
+            "name": name,
             "place": conf["place"],
             "id": "id_" + str(id),
             "enabled": True,
@@ -54,6 +59,21 @@ class IrController(BaseThing):
         self.map = package["map"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
+
+        # tf handling
+        tf_package = {
+            "type": "robot",
+            "subtype": "ir",
+            "pose": conf["pose"],
+            "base_topic": info['base_topic'],
+            "name": self.name
+        }
+        tf_package['host'] = package['device_name']
+        tf_package['host_type'] = 'robot'
+        if 'host' in conf:
+            tf_package['host'] = conf['host']
+            tf_package['host_type'] = 'pan_tilt'
+        package["tf_declare"].call(tf_package)
 
         self.publisher = CommlibFactory.getPublisher(
             broker = "redis",

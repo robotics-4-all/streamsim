@@ -23,12 +23,12 @@ class ButtonArrayController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
 
         info = {
             "type": "BUTTON_ARRAY",
             "brand": "simple",
-            "base_topic": package["name"] + ".sensor.button_array.d" + str(id),
+            "base_topic": package["name"] + ".sensor.button_array." + str(id),
             "name": "button_array_" + str(id),
             "place": "UNKNOWN",
             "id": id,

@@ -20,13 +20,17 @@ class EncoderController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "encoder_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
 
         info = {
             "type": "ENCODER",
             "brand": "simple",
-            "base_topic": package["name"] + ".sensor.encoder.d" + str(id),
-            "name": "encoder_" + str(id),
+            "base_topic": package["name"] + ".sensor.encoder." + str(id),
+            "name": name,
             "place": conf["place"],
             "id": id,
             "enabled": True,
@@ -52,6 +56,18 @@ class EncoderController(BaseThing):
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
+
+        # tf handling
+        tf_package = {
+            "type": "robot",
+            "subtype": "encoder",
+            "pose": conf["pose"],
+            "base_topic": info['base_topic'],
+            "name": self.name
+        }
+        tf_package['host'] = package['device_name']
+        tf_package['host_type'] = 'robot'
+        package["tf_declare"].call(tf_package)
 
         self.publisher = CommlibFactory.getPublisher(
             broker = "redis",

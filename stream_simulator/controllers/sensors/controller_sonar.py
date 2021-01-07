@@ -22,12 +22,17 @@ class SonarController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "sonar_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
+
         info = {
             "type": "SONAR",
             "brand": "sonar",
-            "base_topic": package["name"] + ".sensor.distance.sonar.d" + str(id),
-            "name": "sonar_" + str(id),
+            "base_topic": package["name"] + ".sensor.distance.sonar." + str(id),
+            "name": name,
             "place": conf["place"],
             "id": id,
             "enabled": True,
@@ -67,6 +72,9 @@ class SonarController(BaseThing):
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
+        if 'host' in conf:
+            tf_package['host'] = conf['host']
+            tf_package['host_type'] = 'pan_tilt'
         package["tf_declare"].call(tf_package)
 
         self.publisher = CommlibFactory.getPublisher(

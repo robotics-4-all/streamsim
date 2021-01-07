@@ -15,12 +15,18 @@ from stream_simulator.base_classes import BaseThing
 class ButtonController(BaseThing):
     def __init__(self, conf = None, package = None):
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+
+        id = "d_" + str(BaseThing.id)
+        name = "button_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
+
         info = {
             "type": "BUTTON",
             "brand": "simple",
-            "base_topic": package["name"] + ".sensor.button.tactile_switch.d" + str(id),
-            "name": "button_" + str(id),
+            "base_topic": package["name"] + ".sensor.button.tactile_switch." + str(id),
+            "name": name,
             "place": conf["place"],
             "id": id,
             "enabled": True,
@@ -43,3 +49,18 @@ class ButtonController(BaseThing):
 
         self.info = info
         self.name = info["name"]
+
+        # tf handling
+        tf_package = {
+            "type": "robot",
+            "subtype": "button",
+            "pose": conf["pose"],
+            "base_topic": info['base_topic'],
+            "name": self.name
+        }
+        tf_package['host'] = package['device_name']
+        tf_package['host_type'] = 'robot'
+        if 'host' in conf:
+            tf_package['host'] = conf['host']
+            tf_package['host_type'] = 'pan_tilt'
+        package["tf_declare"].call(tf_package)

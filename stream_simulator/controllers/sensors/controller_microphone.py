@@ -23,12 +23,16 @@ class MicrophoneController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "camera_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
 
         info = {
             "type": "MICROPHONE",
             "brand": "usb_mic",
-            "base_topic": package["name"] + ".sensor.audio.microphone.d" + str(id),
+            "base_topic": package["name"] + ".sensor.audio.microphone." + str(id),
             "name": "microphone_" + str(id),
             "place": conf["place"],
             "id": "id_" + str(id),
@@ -54,6 +58,21 @@ class MicrophoneController(BaseThing):
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        # tf handling
+        tf_package = {
+            "type": "robot",
+            "subtype": "microphone",
+            "pose": conf["pose"],
+            "base_topic": info['base_topic'],
+            "name": self.name
+        }
+        tf_package['host'] = package['device_name']
+        tf_package['host_type'] = 'robot'
+        if 'host' in conf:
+            tf_package['host'] = conf['host']
+            tf_package['host_type'] = 'pan_tilt'
+        package["tf_declare"].call(tf_package)
 
         self.blocked = False
 

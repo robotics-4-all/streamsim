@@ -22,13 +22,17 @@ class EnvController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "env_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
 
         info = {
             "type": "ENV",
             "brand": "bme680",
-            "base_topic": package["name"] + ".sensor.env.temp_hum_pressure_gas.d" + str(id),
-            "name": "env_" + str(id),
+            "base_topic": package["name"] + ".sensor.env.temp_hum_pressure_gas." + str(id),
+            "name": name,
             "place": conf["place"],
             "id": id,
             "enabled": True,
@@ -60,6 +64,21 @@ class EnvController(BaseThing):
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
+
+        # tf handling
+        tf_package = {
+            "type": "robot",
+            "subtype": "env",
+            "pose": conf["pose"],
+            "base_topic": info['base_topic'],
+            "name": self.name
+        }
+        tf_package['host'] = package['device_name']
+        tf_package['host_type'] = 'robot'
+        if 'host' in conf:
+            tf_package['host'] = conf['host']
+            tf_package['host_type'] = 'pan_tilt'
+        package["tf_declare"].call(tf_package)
 
         self.publisher = CommlibFactory.getPublisher(
             broker = "redis",

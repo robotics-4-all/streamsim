@@ -22,7 +22,11 @@ class TofController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "tof_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
 
         info = {
             "type": "TOF",
@@ -67,6 +71,9 @@ class TofController(BaseThing):
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
+        if 'host' in conf:
+            tf_package['host'] = conf['host']
+            tf_package['host_type'] = 'pan_tilt'
         package["tf_declare"].call(tf_package)
 
         self.publisher = CommlibFactory.getPublisher(
