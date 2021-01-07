@@ -23,13 +23,17 @@ class SpeakerController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "speaker_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
 
         info = {
             "type": "SPEAKERS",
             "brand": "usb_speaker",
-            "base_topic": package["name"] + ".actuator.audio.speaker.usb_speaker.d" + str(id),
-            "name": "speaker_" + str(id),
+            "base_topic": package["name"] + ".actuator.audio.speaker.usb_speaker." + str(id),
+            "name": name,
             "place": conf["place"],
             "id": id,
             "enabled": True,
@@ -63,6 +67,9 @@ class SpeakerController(BaseThing):
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
+        if 'host' in conf:
+            tf_package['host'] = conf['host']
+            tf_package['host_type'] = 'pan_tilt'
         package["tf_declare"].call(tf_package)
 
         self.global_volume = None

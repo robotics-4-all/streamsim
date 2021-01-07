@@ -22,13 +22,17 @@ class PanTiltController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "pan_tilt_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
 
         info = {
             "type": "PAN_TILT",
             "brand": "pca9685",
-            "base_topic": package["name"] + ".actuator.servo.pantilt.d" + str(id),
-            "name": "pan_tilt_" + str(id),
+            "base_topic": package["name"] + ".actuator.servo.pantilt." + str(id),
+            "name": name,
             "place": conf["place"],
             "id": id,
             "enabled": True,
@@ -62,6 +66,9 @@ class PanTiltController(BaseThing):
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
+        if 'host' in conf:
+            tf_package['host'] = conf['host']
+            tf_package['host_type'] = 'pan_tilt'
         package["tf_declare"].call(tf_package)
 
         # create object

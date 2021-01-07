@@ -22,13 +22,17 @@ class GstreamerServerController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "gstreamer_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
 
         info = {
             "type": "GSTREAMER_SERVER",
             "brand": "gstream",
-            "base_topic": package["name"] + ".sensor.audio.gstreamer.d" + str(id),
-            "name": "gstreamer_" + str(id),
+            "base_topic": package["name"] + ".sensor.audio.gstreamer." + str(id),
+            "name": name,
             "place": conf["place"],
             "id": "id_" + str(id),
             "enabled": True,

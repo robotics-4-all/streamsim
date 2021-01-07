@@ -22,13 +22,17 @@ class LedsController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
+        name = "led_" + str(id)
+        if 'name' in conf:
+            name = conf['name']
+            id = name
 
         info = {
             "type": "LED",
             "brand": "neopx",
-            "base_topic": package["name"] + ".actuator.visual.leds.neopx.d" + str(id),
-            "name": "led_" + str(id),
+            "base_topic": package["name"] + ".actuator.visual.leds.neopx." + str(id),
+            "name": name,
             "place": conf["place"],
             "id": id,
             "enabled": True,
@@ -64,6 +68,9 @@ class LedsController(BaseThing):
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
+        if 'host' in conf:
+            tf_package['host'] = conf['host']
+            tf_package['host_type'] = 'pan_tilt'
         package["tf_declare"].call(tf_package)
 
         if self.info["mode"] == "real":
