@@ -133,6 +133,10 @@ class World:
         for d in self.env_devices:
             devices = self.env_devices[d]
             for dev in devices:
+                # Handle pose theta
+                if 'theta' not in dev['pose']:
+                    dev['pose']['theta'] = None
+
                 self.register_controller(map[d](conf = dev, package = p))
 
     def actors_lookup(self):

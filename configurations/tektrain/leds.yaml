@@ -1,6 +1,5 @@
 orientation: 0
 place: FRONT
-pose: {x: 0, y: 0, theta: 0}
 sensor_configuration:
   led_count: 19
   led_pin: 18

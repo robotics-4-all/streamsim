@@ -1,6 +1,5 @@
 orientation: 0
 place: UNKNOWN
-pose: {x: 0, y: 0, theta: 0}
 sensor_configuration:
   param_1: 1
   max_data_length: 10

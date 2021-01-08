@@ -347,6 +347,21 @@ class Robot:
         }
         for s in self.configuration["devices"]:
             for m in self.configuration["devices"][s]:
+                # Handle pose
+                if 'pose' not in m:
+                    m['pose'] = {'x': 0, 'y': 0, 'theta': None}
+                else:
+                    if 'x' not in m['pose']:
+                        m['pose']['x'] = 0
+                    if 'y' not in m['pose']:
+                        m['pose']['y'] = 0
+                    if 'theta' not in m['pose']:
+                        m['pose']['theta'] = None
+
+                # Handle sensor configuration
+                if 'sensor_configuration' not in m and \
+                    self.mode is "real":
+                    self.logger.error(f"Device {m} lacks real sensor configuration!")
                 self.register_controller(map[s](conf = m, package = p))
 
         # Handle the buttons

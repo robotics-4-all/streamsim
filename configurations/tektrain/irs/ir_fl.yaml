@@ -1,4 +1,4 @@
-pose: {x: 0, y: 0, theta: 45}
+pose: {theta: 45}
 orientation: 45
 place: FL
 hz: 1

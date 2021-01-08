@@ -1,4 +1,4 @@
-pose: {x: 0, y: 0, theta: 180}
+pose: {theta: 180}
 orientation: 180
 place: B
 hz: 1
