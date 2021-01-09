@@ -82,6 +82,11 @@ class BasicSensor(BaseThing):
             rpc_name = self.base_topic + ".get_mode"
         )
 
+        if self.mode == 'mock':
+            if self.operation not in self.operation_parameters:
+                self.logger.error(f"Operation parameters missing from {self.name}: {self.operation}")
+                raise Exception(f"Operation parameters missing from {self.name}: {self.operation}")
+
         if self.operation == "triangle":
             self.prev = self.operation_parameters["triangle"]['min']
             self.way = 1
@@ -110,25 +115,28 @@ class BasicSensor(BaseThing):
 
     def sensor_read(self):
         self.logger.info(f"Sensor {self.name} read thread started")
-
         # Operation parameters
-        self.constant_value = self.operation_parameters["constant"]['value']
-        self.random_min = self.operation_parameters["random"]['min']
-        self.random_max = self.operation_parameters["random"]['max']
-        self.triangle_min = self.operation_parameters["triangle"]['min']
-        self.triangle_max = self.operation_parameters["triangle"]['max']
-        self.triangle_step = self.operation_parameters["triangle"]['step']
-        self.normal_std = self.operation_parameters["normal"]['std']
-        self.normal_mean = self.operation_parameters["normal"]['mean']
-        self.sinus_dc = self.operation_parameters["sinus"]['dc']
-        self.sinus_amp = self.operation_parameters["sinus"]['amplitute']
-        self.sinus_step = self.operation_parameters["sinus"]['step']
+
+        try:
+            self.constant_value = self.operation_parameters["constant"]['value']
+            self.random_min = self.operation_parameters["random"]['min']
+            self.random_max = self.operation_parameters["random"]['max']
+            self.triangle_min = self.operation_parameters["triangle"]['min']
+            self.triangle_max = self.operation_parameters["triangle"]['max']
+            self.triangle_step = self.operation_parameters["triangle"]['step']
+            self.normal_std = self.operation_parameters["normal"]['std']
+            self.normal_mean = self.operation_parameters["normal"]['mean']
+            self.sinus_dc = self.operation_parameters["sinus"]['dc']
+            self.sinus_amp = self.operation_parameters["sinus"]['amplitute']
+            self.sinus_step = self.operation_parameters["sinus"]['step']
+        except Exception as e:
+            self.logger.warning(f"Missing operation parameters for {self.name}: {str(e)}. Change operation with caution!")
 
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
 
             val = None
-            if self.mode in ["simulation", "mock"]:
+            if self.mode in ["mock"]:
                 if self.operation == "constant":
                     val = self.constant_value
                 elif self.operation == "random":
