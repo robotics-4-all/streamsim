@@ -4,16 +4,13 @@ mode: mock # mock, simulation, real
 place: "office" # or "gym.bathroom" for nested
 limits:
   pan:
-    min: -100
-    max: 100
+    min: -90
+    max: 90
   tilt:
     min: -100
     max: 100
-operation: sinus # or linear
+operation: sinus
 operation_parameters:
   sinus:
-    step: 0.01
-    hz: 3
-  linear:
-    step: 0.01
+    step: 0.05
     hz: 3

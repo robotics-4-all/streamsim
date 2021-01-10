@@ -49,11 +49,23 @@ class EnvPanTiltController(BaseThing):
         self.info = info
         self.name = info["name"]
         self.base_topic = info["base_topic"]
+        self.mode = info['conf']['mode']
 
         self.place = info["conf"]["place"]
         self.pan = 0
         self.tilt = 0
         self.limits = info['conf']['limits']
+        # Turn to rads
+        self.limits['pan']['min'] *= math.pi / 180.0
+        self.limits['pan']['max'] *= math.pi / 180.0
+        self.limits['tilt']['min'] *= math.pi / 180.0
+        self.limits['tilt']['max'] *= math.pi / 180.0
+        self.pan_range = \
+            self.limits['pan']['max'] - self.limits['pan']['min']
+        self.tilt_range = \
+            self.limits['tilt']['max'] - self.limits['tilt']['min']
+        self.pan_dc = \
+            (self.limits['pan']['max'] + self.limits['pan']['min'])/2.0
 
         # tf handling
         tf_package = {
@@ -109,6 +121,22 @@ class EnvPanTiltController(BaseThing):
         self.operation = message["mode"]
         return {}
 
+    # Only for mock mode
+    def thread_fun(self):
+        self.prev = 0
+        self.hz = self.operation_parameters['sinus']['hz']
+        self.sinus_step = self.operation_parameters['sinus']['step']
+        while self.info['enabled']:
+            if self.operation == "sinus":
+                time.sleep(1.0 / self.hz)
+                self.pan = self.pan_dc + self.pan_range / 2.0 * math.sin(self.prev)
+                self.prev += self.sinus_step
+
+            self.data_publisher.publish({
+                'pan': self.pan,
+                'tilt': self.tilt
+            })
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
 
@@ -116,6 +144,10 @@ class EnvPanTiltController(BaseThing):
         self.disable_rpc_server.run()
         self.get_rpc_server.run()
         self.set_subscriber.run()
+
+        if self.mode == "mock":
+            self.data_thread = threading.Thread(target = self.thread_fun)
+            self.data_thread.start()
 
         return {"enabled": True}
 
@@ -143,6 +175,11 @@ class EnvPanTiltController(BaseThing):
         self.disable_rpc_server.run()
         self.get_rpc_server.run()
         self.set_subscriber.run()
+
+        if self.mode == "mock":
+            if self.info['enabled']:
+                self.data_thread = threading.Thread(target = self.thread_fun)
+                self.data_thread.start()
 
     def stop(self):
         self.info["enabled"] = False

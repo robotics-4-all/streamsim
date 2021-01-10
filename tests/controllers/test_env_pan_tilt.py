@@ -47,13 +47,15 @@ class Test(unittest.TestCase):
                     )
 
                     # Set constant
-                    print("Setting 1, 0.4")
+                    print("Setting 0, 0.4")
                     set_rpc.publish({
-                        'pan': 1,
+                        'pan': 0,
                         'tilt': 0.4
                     })
                     print("Getting state")
-                    print(get_rpc.call({}))
+                    print("Res: ", get_rpc.call({}))
+
+                    time.sleep(5)
 
         except:
             traceback.print_exc(file=sys.stdout)
