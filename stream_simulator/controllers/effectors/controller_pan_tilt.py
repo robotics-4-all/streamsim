@@ -95,6 +95,9 @@ class PanTiltController(BaseThing):
             callback = self.disable_callback,
             rpc_name = info["base_topic"] + ".disable"
         )
+        self.data_publisher = CommlibFactory.getPublisher(
+            topic = info["base_topic"] + ".data"
+        )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -150,6 +153,11 @@ class PanTiltController(BaseThing):
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
                 self.pan_tilt.write(self.yaw_channel, self._yaw, degrees=True)
                 self.pan_tilt.write(self.pitch_channel, self._pitch, degrees=True)
+
+            self.data_publisher.publish({
+                'pan': self.pan,
+                'tilt': self.tilt
+            })
 
             self.logger.info("{}: New pan tilt command: {}, {}".format(self.name, self._yaw, self._pitch))
         except Exception as e:

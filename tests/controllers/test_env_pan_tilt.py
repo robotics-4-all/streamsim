@@ -36,6 +36,11 @@ class Test(unittest.TestCase):
                         broker = "redis",
                         topic = s["base_topic"] + ".set"
                     )
+                    sub = CommlibFactory.getSubscriber(
+                        topic = s["base_topic"] + ".data",
+                        callback = self.callback
+                    )
+                    sub.run()
                     get_rpc = CommlibFactory.getRPCClient(
                         broker = "redis",
                         rpc_name = s["base_topic"] + ".get"
@@ -56,6 +61,9 @@ class Test(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def callback(self, message, meta):
+        print(f"Sub: {message}")
 
 if __name__ == '__main__':
     unittest.main()

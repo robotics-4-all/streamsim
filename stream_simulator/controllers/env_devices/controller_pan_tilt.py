@@ -53,6 +53,7 @@ class EnvPanTiltController(BaseThing):
         self.place = info["conf"]["place"]
         self.pan = 0
         self.tilt = 0
+        self.limits = info['conf']['limits']
 
         # tf handling
         tf_package = {
@@ -89,6 +90,9 @@ class EnvPanTiltController(BaseThing):
             broker = "redis",
             callback = self.set_callback,
             topic = info["base_topic"] + ".set"
+        )
+        self.data_publisher = CommlibFactory.getPublisher(
+            topic = info["base_topic"] + ".data"
         )
         self.get_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -128,6 +132,10 @@ class EnvPanTiltController(BaseThing):
     def set_callback(self, message, meta):
         self.pan = message['pan']
         self.tilt = message['tilt']
+        self.data_publisher.publish({
+            'pan': self.pan,
+            'tilt': self.tilt
+        })
         return {}
 
     def start(self):
