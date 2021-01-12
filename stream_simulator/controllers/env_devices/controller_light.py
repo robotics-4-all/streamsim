@@ -29,7 +29,7 @@ class EnvLightController(BaseThing):
         info = {
             "type": "LIGHTS",
             "brand": "bosch",
-            "base_topic": package["base"] + conf["place"] + ".effector.visual.light.d" + str(id),
+            "base_topic": package["base"] + conf["place"] + ".effector.visual." + _name + ".d" + str(id),
             "name": "light_" + str(id),
             "place": conf["place"],
             "enabled": True,

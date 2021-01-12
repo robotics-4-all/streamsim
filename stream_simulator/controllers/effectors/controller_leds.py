@@ -31,7 +31,7 @@ class LedsController(BaseThing):
         info = {
             "type": "LED",
             "brand": "neopx",
-            "base_topic": package["name"] + ".actuator.visual.leds.neopx." + str(id),
+            "base_topic": package["name"] + ".actuator.visual.leds." + str(id),
             "name": name,
             "place": conf["place"],
             "id": id,

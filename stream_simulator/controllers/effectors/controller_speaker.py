@@ -32,7 +32,7 @@ class SpeakerController(BaseThing):
         info = {
             "type": "SPEAKERS",
             "brand": "usb_speaker",
-            "base_topic": package["name"] + ".actuator.audio.speaker.usb_speaker." + str(id),
+            "base_topic": package["name"] + ".actuator.audio.speaker." + str(id),
             "name": name,
             "place": conf["place"],
             "id": id,

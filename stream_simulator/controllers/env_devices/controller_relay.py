@@ -27,7 +27,7 @@ class EnvRelayController(BaseThing):
         info = {
             "type": "RELAY",
             "brand": "relay",
-            "base_topic": package["base"] + conf["place"] + ".effector.mechanical.relay.d" + str(id),
+            "base_topic": package["base"] + conf["place"] + ".effector.mechanical." + _name + ".d" + str(id),
             "name": "relay_" + str(id),
             "place": conf["place"],
             "enabled": True,

@@ -29,7 +29,7 @@ class EnvPanTiltController(BaseThing):
         info = {
             "type": "PAN_TILT",
             "brand": "bosch",
-            "base_topic": package["base"] + conf["place"] + ".effector.motors.pan_tilt.d" + str(id),
+            "base_topic": package["base"] + conf["place"] + ".effector.motors." + _name + ".d" + str(id),
             "name": "pan_tilt_" + str(id),
             "place": conf["place"],
             "enabled": True,

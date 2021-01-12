@@ -29,7 +29,7 @@ class EnvThermostatController(BaseThing):
         info = {
             "type": "THERMOSTATS",
             "brand": "bosch",
-            "base_topic": package["base"] + conf["place"] + ".effector.thermal.thermostat.d" + str(id),
+            "base_topic": package["base"] + conf["place"] + ".effector.thermal." + _name + ".d" + str(id),
             "name": "thermostat_" + str(id),
             "place": conf["place"],
             "enabled": True,

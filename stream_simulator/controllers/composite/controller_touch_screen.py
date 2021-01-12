@@ -31,7 +31,7 @@ class TouchScreenController(BaseThing):
         info = {
             "type": "TOUCH_SCREEN",
             "brand": "touch_screen",
-            "base_topic": package["name"] + ".actuator.visual.screen.touch_screen." + str(id),
+            "base_topic": package["name"] + ".actuator.visual.screen." + str(id),
             "name": name,
             "place": conf["place"],
             "id": id,
