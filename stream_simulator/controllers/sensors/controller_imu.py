@@ -69,10 +69,10 @@ class ImuController(BaseThing):
 
         if self.info["mode"] == "real":
             from pidevices import ICM_20948
-            from .imu_calibration import IMUCalibration
+            #from .imu_calibration import IMUCalibration
 
             self._sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
-            self._imu_calibrator = IMUCalibration(calib_time=5, buf_size=5)
+            #self._imu_calibrator = IMUCalibration(calib_time=5, buf_size=5)
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = CommlibFactory.getSubscriber(
                 broker = "redis",
@@ -148,9 +148,9 @@ class ImuController(BaseThing):
             else: # The real deal
                 data = self._sensor.read()
 
-                self._imu_calibrator.update(data)
+                #self._imu_calibrator.update(data)
 
-                val = self._imu_calibrator.getCalibData()
+                val = data #self._imu_calibrator.getCalibData()
 
             # Publish data to sensor stream
             self.publisher.publish({
@@ -199,7 +199,8 @@ class ImuController(BaseThing):
 
             if self.info["mode"] == "real":
                 # it the mode is real enable the calibration
-                self._imu_calibrator.start()
+                #self._imu_calibrator.start()
+                pass
 
     def stop(self):
         self.info["enabled"] = False

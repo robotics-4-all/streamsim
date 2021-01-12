@@ -67,9 +67,9 @@ class MotionController(BaseThing):
         package["tf_declare"].call(tf_package)
 
         if self.info["mode"] == "real":
-            from pidevices import DfrobotMotorControllerRPiGPIO
+            from pidevices import DfrobotMotorControllerPiGPIO
 
-            self.motor_driver = DfrobotMotorControllerRPiGPIO(E1=self.conf["E1"], M1=self.conf["M1"], E2=self.conf["E2"], M2=self.conf["M2"])
+            self.motor_driver = DfrobotMotorControllerPiGPIO(E1=self.conf["E1"], M1=self.conf["M1"], E2=self.conf["E2"], M2=self.conf["M2"])
 
             self.wheel_separation = self.conf["wheel_separation"]
             self.wheel_radius = self.conf["wheel_radius"]
@@ -135,7 +135,6 @@ class MotionController(BaseThing):
 
             self._linear = response['linear']
             self._angular = response['angular']
-            self._raw = response['raw']
 
             # Storing value:
             r = CommlibFactory.derp_client.lset(
@@ -144,7 +143,6 @@ class MotionController(BaseThing):
                     "data": {
                         "linear": self._linear,
                         "angular": self._angular,
-                        "raw": self._raw
                     },
                     "timestamp": time.time()
                 }]
@@ -155,11 +153,9 @@ class MotionController(BaseThing):
             elif self.info["mode"] == "simulation":
                 pass
             else: # The real deal
-                if self._raw == True:
-                    self.motor_driver.write(self._linear, self._angular)        # write pwm values
-                else:
-                    self.motor_driver.setSpeed(self._linear, self._angular)     # write speed values
-
+                # write pwm values to the motor driver
+                self.motor_driver.write(self._linear, self._angular)        
+            
             self.logger.debug("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
         except Exception as e:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))

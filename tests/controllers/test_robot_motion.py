@@ -39,20 +39,20 @@ class Test(unittest.TestCase):
                         )
 
                         # Set constant
-                        print("Setting 1, 0.4")
+                        print("Setting 0.1, 0.1")
                         set_rpc.publish({
-                            'linear': 1,
-                            'angular': 0.4,
-                            'raw': 0
+                            'linear': 0.2,
+                            'angular': 0.2,
                         })
 
                         time.sleep(2)
                         print("Stopping")
                         set_rpc.publish({
-                            'linear': 0,
-                            'angular': 0,
-                            'raw': 0
+                            'linear': 0.0,
+                            'angular': 0.0,
                         })
+
+                        time.sleep(1)
 
         except:
             traceback.print_exc(file=sys.stdout)

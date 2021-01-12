@@ -61,8 +61,8 @@ class EncoderController(BaseThing):
         if self.info["mode"] == "real":
             from pidevices import DfRobotWheelEncoderPiGPIO
 
-            self.sensor = DfRobotWheelEncoderPiGPIO(gpio=self.conf["pin"],
-                                                      pulses_per_rev = 10,
+            self.sensor = DfRobotWheelEncoderPiGPIO(pin=self.conf["pin"],
+                                                      resolution = 10,
                                                       name=self.name,
                                                       max_data_length=self.conf["max_data_length"])
 
@@ -87,7 +87,7 @@ class EncoderController(BaseThing):
             elif self.info["mode"] == "simulation":
                 self.data = float(random.uniform(1000,2000))
             else: # The real deal
-                self.data = self.sensor.read_rpm()
+                self.data = self.sensor.read()["rps"]
 
             time.sleep(period)
 

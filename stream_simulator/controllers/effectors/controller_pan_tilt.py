@@ -70,8 +70,9 @@ class PanTiltController(BaseThing):
             self.pan_tilt = PCA9685(bus=self.conf["bus"],
                                     frequency=self.conf["frequency"],
                                     max_data_length=self.conf["max_data_length"])
-            self.yaw_channel = 0
-            self.pitch_channel = 1
+
+            self.yaw_channel = self.conf["yaw_channel"]
+            self.pitch_channel = self.conf["pitch_channel"]
 
         self.pan_tilt_set_sub = CommlibFactory.getSubscriber(
             broker = "redis",

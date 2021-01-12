@@ -338,6 +338,7 @@ class Robot:
            "speaker": getattr(str_contro, "SpeakerController"),
            "leds": getattr(str_contro, "LedsController"),
            "pan_tilt": getattr(str_contro, "PanTiltController"),
+           "servo": getattr(str_contro, "ServoController"),
            "touch_screen": getattr(str_contro, "TouchScreenController"),
            "encoder": getattr(str_contro, "EncoderController"),
            "gstreamer_server": getattr(str_contro, "GstreamerServerController"),
