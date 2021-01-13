@@ -69,10 +69,18 @@ class ImuController(BaseThing):
 
         if self.info["mode"] == "real":
             from pidevices import ICM_20948
-            #from .imu_calibration import IMUCalibration
+            from motion_calibration import IMUCalibrator
+            from motion_calibration.exception import CalibrationFileInvalid, CalibrationFileNotFound 
 
-            self._sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
-            #self._imu_calibrator = IMUCalibration(calib_time=5, buf_size=5)
+            path = "../stream_simulator/settings/imu_settings.json"
+            
+            try:
+                self._calibrator = IMUCalibrator(path_to_settings=path)
+            except CalibrationFileNotFound as err:
+                self.logger.error(err)
+
+            self._sensor = ICM_20948(self.conf["bus"])
+            
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = CommlibFactory.getSubscriber(
                 broker = "redis",
@@ -148,9 +156,11 @@ class ImuController(BaseThing):
             else: # The real deal
                 data = self._sensor.read()
 
-                #self._imu_calibrator.update(data)
-
-                val = data #self._imu_calibrator.getCalibData()
+                try:
+                    val = self._calibrator.convert(data=data)
+                except CalibrationFileNotFound as err:
+                    self.logger.warning(err)
+                    val = data
 
             # Publish data to sensor stream
             self.publisher.publish({
@@ -198,9 +208,7 @@ class ImuController(BaseThing):
             self.logger.info("IMU {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
             if self.info["mode"] == "real":
-                # it the mode is real enable the calibration
-                #self._imu_calibrator.start()
-                pass
+                self._sensor.start()
 
     def stop(self):
         self.info["enabled"] = False
@@ -208,3 +216,5 @@ class ImuController(BaseThing):
         self.disable_rpc_server.stop()
         if self.info["mode"] == "simulation":
             self.robot_pose_sub.stop()
+        elif self.info["mode"] == 'real':
+            self._sensor.stop()
