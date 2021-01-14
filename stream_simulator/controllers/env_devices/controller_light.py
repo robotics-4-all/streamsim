@@ -25,8 +25,8 @@ class EnvLightController(BaseThing):
 
         _type = "LIGHTS"
         _category = "actuator"
-        _class = "light"
-        _subclass = "led"
+        _class = "visual"
+        _subclass = "light"
         _endpoints = {
             "enable": "rpc",
             "disable": "rpc",
