@@ -46,6 +46,13 @@ class TfController:
     def get_declarations_callback(self, message, meta):
         return {"declarations": self.declarations}
 
+    def setup(self):
+        self.hosts = {}
+
+        for d in self.declarations:
+            if d['host'] not in self.hosts:
+                self.hosts[d['host']] = d['host_type']
+
     # {
     #     type: robot/env/actor
     #     subtype:

@@ -67,6 +67,9 @@ class Simulator:
                 )
                 self.robot_names.append(r["name"])
 
+        # Checks and structures creation
+        self.tf.setup()
+
         self.devices_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.devices_callback,
