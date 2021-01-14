@@ -23,15 +23,18 @@ class ImuController(BaseThing):
 
         super(self.__class__, self).__init__()
         id = "d_" + str(BaseThing.id)
-        name = "imu_" + str(id)
+        name = id
         if 'name' in conf:
             name = conf['name']
-            id = name
+        _category = "sensor"
+        _class = "imu"
+        _subclass = "accel_gyro_magne_temp"
+        _pack = package["name"]
 
         info = {
             "type": "IMU",
             "brand": "icm_20948",
-            "base_topic": package["name"] + ".sensor.imu.accel_gyro_magne_temp." + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
             "name": name,
             "place": conf["place"],
             "id": id,

@@ -24,15 +24,18 @@ class MicrophoneController(BaseThing):
 
         super(self.__class__, self).__init__()
         id = "d_" + str(BaseThing.id)
-        name = "camera_" + str(id)
+        name = id
         if 'name' in conf:
             name = conf['name']
-            id = name
+        _category = "sensor"
+        _class = "audio"
+        _subclass = "microphone"
+        _pack = package["name"]
 
         info = {
             "type": "MICROPHONE",
             "brand": "usb_mic",
-            "base_topic": package["name"] + ".sensor.audio.microphone." + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
             "name": "microphone_" + str(id),
             "place": conf["place"],
             "id": "id_" + str(id),

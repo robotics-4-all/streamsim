@@ -28,9 +28,9 @@ class EnvDistanceController(BaseThing):
         super(self.__class__, self).__init__()
 
         _type = "DISTANCE"
-        _category = "distance"
-        _brand = "dist"
-        _name_suffix = "distance_"
+        _category = "sensor"
+        _class = "distance"
+        _subclass = "sonar"
         _endpoints = {
             "enable": "rpc",
             "disable": "rpc",
@@ -38,15 +38,13 @@ class EnvDistanceController(BaseThing):
             "get_mode": "rpc",
             "data": "pub"
         }
-
         _name = conf["name"]
-
-        id = BaseThing.id
+        _pack = package["base"]
+        id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "brand": _brand,
-            "base_topic": package["base"] + conf["place"] + f".sensor.{_category}.{_name}.d" + str(id),
-            "name": _name_suffix + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{_name}.{id}",
+            "name": _name,
             "place": conf["place"],
             "enabled": True,
             "mode": conf["mode"],

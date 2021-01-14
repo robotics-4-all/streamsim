@@ -7,9 +7,6 @@ import math
 import logging
 import threading
 import random
-import os
-import cv2
-import base64
 
 from colorama import Fore, Style
 
@@ -17,12 +14,8 @@ from commlib.logger import Logger
 from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
-class EnvCameraController(BaseThing):
-    def __init__(self,
-                 conf = None,
-                 package = None
-                 ):
-
+class EnvHumidifierController(BaseThing):
+    def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = Logger(conf["name"])
         else:
@@ -30,19 +23,19 @@ class EnvCameraController(BaseThing):
 
         super(self.__class__, self).__init__()
 
-        _type = "CAMERA"
-        _category = "sensor"
-        _class = "visual"
-        _subclass = "camera"
+        _type = "HUMIDIFIER"
+        _category = "actuator"
+        _class = "env"
+        _subclass = "humidifier"
         _endpoints = {
             "enable": "rpc",
             "disable": "rpc",
-            "data": "pub"
+            "set": "rpc",
+            "get": "rpc"
         }
         _name = conf["name"]
         _pack = package["base"]
         id = "d_" + str(BaseThing.id)
-
         info = {
             "type": _type,
             "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{_name}.{id}",
@@ -55,18 +48,16 @@ class EnvCameraController(BaseThing):
         }
 
         self.info = info
-        self.width = conf['width']
-        self.height = conf['height']
+        self.pose = info["conf"]["pose"]
         self.name = info["name"]
         self.base_topic = info["base_topic"]
-        self.hz = info['conf']['hz']
-        self.mode = info["mode"]
         self.place = info["conf"]["place"]
-        self.pose = info["conf"]["pose"]
+        self.humidity = info['conf']['humidity']
 
+        # tf handling
         tf_package = {
-            "type": "env",
-            "subtype": "camera",
+            "type": _class,
+            "subtype": _subclass,
             "pose": self.pose,
             "base_topic": self.base_topic,
             "name": self.name
@@ -81,60 +72,34 @@ class EnvCameraController(BaseThing):
 
         package["tf_declare"].call(tf_package)
 
-        # Communication
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self.base_topic + ".data"
-        )
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
+            rpc_name = info["base_topic"] + ".enable"
         )
         self.disable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
+            rpc_name = info["base_topic"] + ".disable"
         )
-
-    def sensor_read(self):
-        self.logger.info(f"Sensor {self.name} read thread started")
-        width = self.width
-        height = self.height
-
-        while self.info["enabled"]:
-            time.sleep(1.0 / self.hz)
-
-            data = None
-            if self.mode == "mock":
-                dirname = os.path.dirname(__file__) + "/../.."
-                im = cv2.imread(dirname + '/resources/all.png')
-                im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-                image = cv2.resize(im, dsize=(width, height))
-                data = [int(d) for row in image for c in row for d in c]
-                data = base64.b64encode(bytes(data)).decode("ascii")
-
-            # Publishing value:
-            self.publisher.publish({
-                "value": {
-                    "timestamp": time.time(),
-                    "format": "RGB",
-                    "per_rows": True,
-                    "width": width,
-                    "height": height,
-                    "image": data
-                },
-                "timestamp": time.time()
-            })
+        self.set_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.set_callback,
+            rpc_name = info["base_topic"] + ".set"
+        )
+        self.get_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.get_callback,
+            rpc_name = info["base_topic"] + ".get"
+        )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
 
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
+        self.get_rpc_server.run()
+        self.set_rpc_server.run()
 
         return {"enabled": True}
 
@@ -142,15 +107,22 @@ class EnvCameraController(BaseThing):
         self.info["enabled"] = False
         return {"enabled": False}
 
+    def get_callback(self, message, meta):
+        return {"humidity": self.humidity}
+
+    def set_callback(self, message, meta):
+        self.humidity = message["humidity"]
+        return {}
+
     def start(self):
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
-
-        if self.info["enabled"]:
-            self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-            self.sensor_read_thread.start()
+        self.get_rpc_server.run()
+        self.set_rpc_server.run()
 
     def stop(self):
         self.info["enabled"] = False
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+        self.get_rpc_server.stop()
+        self.set_rpc_server.stop()

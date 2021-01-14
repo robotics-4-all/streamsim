@@ -28,9 +28,9 @@ class EnvAmbientLightController(BaseThing):
         super(self.__class__, self).__init__()
 
         _type = "AMBIENT_LIGHT"
-        _category = "visual"
-        _brand = "light"
-        _name_suffix = "ambient_light_"
+        _category = "sensor"
+        _class = "visual"
+        _subclass = "light"
         _endpoints = {
             "enable": "rpc",
             "disable": "rpc",
@@ -40,13 +40,13 @@ class EnvAmbientLightController(BaseThing):
         }
 
         _name = conf["name"]
+        _pack = package["base"]
 
-        id = BaseThing.id
+        id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "brand": _brand,
-            "base_topic": package["base"] + conf["place"] + f".sensor.{_category}.{_name}.d" + str(id),
-            "name": _name_suffix + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{_name}.{id}",
+            "name": _name,
             "place": conf["place"],
             "enabled": True,
             "mode": conf["mode"],

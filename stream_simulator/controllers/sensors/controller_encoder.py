@@ -21,15 +21,18 @@ class EncoderController(BaseThing):
 
         super(self.__class__, self).__init__()
         id = "d_" + str(BaseThing.id)
-        name = "encoder_" + str(id)
+        name = id
         if 'name' in conf:
             name = conf['name']
-            id = name
+        _category = "sensor"
+        _class = "encoder"
+        _subclass = "absolute"
+        _pack = package["name"]
 
         info = {
             "type": "ENCODER",
             "brand": "simple",
-            "base_topic": package["name"] + ".sensor.encoder." + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
             "name": name,
             "place": conf["place"],
             "id": id,

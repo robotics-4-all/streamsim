@@ -23,15 +23,18 @@ class RfidReaderController(BaseThing):
 
         super(self.__class__, self).__init__()
         id = "d_" + str(BaseThing.id)
-        name = "rfid_reader_" + str(id)
+        name = id
         if 'name' in conf:
             name = conf['name']
-            id = name
+        _category = "sensor"
+        _class = "rf"
+        _subclass = "rfid_reader"
+        _pack = package["name"]
 
         info = {
             "type": "RFID_READER",
             "brand": "unknown",
-            "base_topic": package["name"] + ".sensor.rf.rfid_reader." + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
             "name": name,
             "place": conf["place"],
             "id": id,

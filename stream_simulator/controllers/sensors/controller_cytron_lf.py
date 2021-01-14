@@ -23,15 +23,18 @@ class CytronLFController(BaseThing):
         super(self.__class__, self).__init__()
 
         id = "d_" + str(BaseThing.id)
-        name = "cytron_lf_" + str(id)
+        name = id
         if 'name' in conf:
             name = conf['name']
-            id = name
+        _category = "sensor"
+        _class = "line_follow"
+        _subclass = "cytron_lf"
+        _pack = package["name"]
 
         info = {
             "type": "LINE_FOLLOWER",
             "brand": "line_follower",
-            "base_topic": package["name"] + ".sensor.line_follow.cytron_lf." + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
             "name": name,
             "place": conf["place"],
             "id": id,

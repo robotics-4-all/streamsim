@@ -94,6 +94,9 @@ devices:
   cytron_lf:
     -
       source: "tektrain/cytron_lf"
+  rfid_reader:
+    -
+      source: "sfhmmy/rfid_reader"
 starting_pose:
   x: 100 # in pixels
   y: 100 # in pixels

@@ -9,9 +9,9 @@ class EnvTemperatureSensorController(BasicSensor):
             conf = conf,
             package = package,
             _type = "TEMPERATURE",
-            _category = "environmental",
-            _brand = "temp",
-            _name_suffix = "thermal_",
+            _category = "sensor",
+            _class = "thermal",
+            _subclass = "temperature",
             _endpoints = {
                 "enable": "rpc",
                 "disable": "rpc",

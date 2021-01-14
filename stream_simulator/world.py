@@ -107,7 +107,7 @@ class World:
 
     def device_lookup(self):
         p = {
-            "base": "world.",
+            "base": "world",
             "logger": None,
             'tf_declare': self.tf_declare_rpc
         }
@@ -129,6 +129,7 @@ class World:
            "lights": getattr(str_contro, "EnvLightController"),
            "thermostats": getattr(str_contro, "EnvThermostatController"),
            "microphones": getattr(str_contro, "EnvMicrophoneController"),
+           "humidifiers": getattr(str_contro, "EnvHumidifierController"),
         }
         for d in self.env_devices:
             devices = self.env_devices[d]
@@ -156,6 +157,7 @@ class World:
            "texts": getattr(str_contro, "TextActor"),
            "rfid_tags": getattr(str_contro, "RfidTagActor"),
            "fires": getattr(str_contro, "FireActor"),
+           "waters": getattr(str_contro, "WaterActor"),
         }
         for type in self.actors:
             actors = self.actors[type]

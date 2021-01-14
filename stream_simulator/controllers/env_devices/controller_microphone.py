@@ -30,24 +30,22 @@ class EnvMicrophoneController(BaseThing):
 
         super(self.__class__, self).__init__()
 
-        _name = conf["name"]
-
-        _type = "MICROPHONES"
-        _category = "audio"
-        _brand = "logitech"
-        _name_suffix = "microphone_"
+        _type = "MICROPHONE"
+        _category = "sensor"
+        _class = "audio"
+        _subclass = "microphone"
         _endpoints = {
             "enable": "rpc",
             "disable": "rpc",
             "record": "action"
         }
-
-        id = BaseThing.id
+        _name = conf["name"]
+        _pack = package["base"]
+        id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "brand": _brand,
-            "base_topic": package["base"] + conf["place"] + f".sensor.{_category}.{_name}.d" + str(id),
-            "name": _name_suffix + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{_name}.{id}",
+            "name": _name,
             "place": conf["place"],
             "enabled": True,
             "mode": conf["mode"],

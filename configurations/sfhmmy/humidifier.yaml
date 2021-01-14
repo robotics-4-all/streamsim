@@ -1,0 +1,5 @@
+pose: {x: 100, y: 100, theta: 0}
+name: hum_X
+mode: mock # mock, simulation, real
+place: "office" # or "gym.bathroom" for nested
+humidity: 24

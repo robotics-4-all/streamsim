@@ -23,24 +23,28 @@ class EnvLightController(BaseThing):
 
         super(self.__class__, self).__init__()
 
+        _type = "LIGHTS"
+        _category = "actuator"
+        _class = "light"
+        _subclass = "led"
+        _endpoints = {
+            "enable": "rpc",
+            "disable": "rpc",
+            "set": "rpc",
+            "get": "rpc"
+        }
         _name = conf["name"]
-
-        id = BaseThing.id
+        _pack = package["base"]
+        id = "d_" + str(BaseThing.id)
         info = {
-            "type": "LIGHTS",
-            "brand": "bosch",
-            "base_topic": package["base"] + conf["place"] + ".effector.visual." + _name + ".d" + str(id),
-            "name": "light_" + str(id),
+            "type": _type,
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{_name}.{id}",
+            "name": _name,
             "place": conf["place"],
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "set": "rpc",
-                "get": "rpc"
-            }
+            "endpoints": _endpoints
         }
 
         self.info = info

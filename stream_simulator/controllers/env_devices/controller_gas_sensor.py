@@ -9,9 +9,9 @@ class EnvGasSensorController(BasicSensor):
             conf = conf,
             package = package,
             _type = "GAS_SENSOR",
-            _category = "chemical",
-            _brand = "co2",
-            _name_suffix = "gas_",
+            _category = "sensor",
+            _class = "env",
+            _subclass = "gas",
             _endpoints = {
                 "enable": "rpc",
                 "disable": "rpc",

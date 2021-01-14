@@ -42,7 +42,8 @@ from .env_devices import \
     EnvSpeakerController, \
     EnvLightController, \
     EnvThermostatController, \
-    EnvMicrophoneController
+    EnvMicrophoneController, \
+    EnvHumidifierController
 
 from .env_actors import \
     HumanActor, \
@@ -53,4 +54,5 @@ from .env_actors import \
     ColorActor, \
     TextActor, \
     RfidTagActor, \
-    FireActor
+    FireActor, \
+    WaterActor

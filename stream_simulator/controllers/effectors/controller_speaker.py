@@ -24,15 +24,18 @@ class SpeakerController(BaseThing):
 
         super(self.__class__, self).__init__()
         id = "d_" + str(BaseThing.id)
-        name = "speaker_" + str(id)
+        name = id
         if 'name' in conf:
             name = conf['name']
-            id = name
+        _category = "actuator"
+        _class = "audio"
+        _subclass = "speaker"
+        _pack = package["name"]
 
         info = {
             "type": "SPEAKERS",
             "brand": "usb_speaker",
-            "base_topic": package["name"] + ".actuator.audio.speaker." + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
             "name": name,
             "place": conf["place"],
             "id": id,

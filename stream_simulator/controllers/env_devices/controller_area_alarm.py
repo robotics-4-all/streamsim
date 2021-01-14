@@ -28,9 +28,9 @@ class EnvAreaAlarmController(BaseThing):
         super(self.__class__, self).__init__()
 
         _type = "AREA_ALARM"
-        _category = "alarm"
-        _brand = "secur"
-        _name_suffix = "alarm_area_"
+        _category = "sensor"
+        _class = "alarm"
+        _subclass = "area"
         _endpoints = {
             "enable": "rpc",
             "disable": "rpc",
@@ -38,13 +38,12 @@ class EnvAreaAlarmController(BaseThing):
             "triggers": "pub",
         }
         _name = conf["name"]
-
-        id = BaseThing.id
+        _pack = package["base"]
+        id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "brand": _brand,
-            "base_topic": package["base"] + conf["place"] + f".sensor.{_category}.{_name}.d" + str(id),
-            "name": _name_suffix + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{_name}.{id}",
+            "name": _name,
             "place": conf["place"],
             "enabled": True,
             "mode": conf["mode"],

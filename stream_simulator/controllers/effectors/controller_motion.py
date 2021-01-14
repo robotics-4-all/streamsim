@@ -23,15 +23,18 @@ class MotionController(BaseThing):
 
         super(self.__class__, self).__init__()
         id = "d_" + str(BaseThing.id)
-        name = "skid_steer_" + str(id)
+        name = id
         if 'name' in conf:
             name = conf['name']
-            id = name
+        _category = "actuator"
+        _class = "motion"
+        _subclass = "twist"
+        _pack = package["name"]
 
         info = {
             "type": "SKID_STEER",
             "brand": "twist",
-            "base_topic": package["name"] + ".actuator.motion.twist." + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
             "name": name,
             "place": conf["place"],
             "id": id,

@@ -12,3 +12,4 @@ from .color import ColorActor
 from .text import TextActor
 from .rfid_tag import RfidTagActor
 from .fire import FireActor
+from .water import WaterActor

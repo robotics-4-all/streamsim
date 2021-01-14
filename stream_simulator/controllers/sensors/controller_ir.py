@@ -21,15 +21,18 @@ class IrController(BaseThing):
 
         super(self.__class__, self).__init__()
         id = "d_" + str(BaseThing.id)
-        name = "ir_" + str(id)
+        name = id
         if 'name' in conf:
             name = conf['name']
-            id = name
+        _category = "sensor"
+        _class = "distance"
+        _subclass = "ir"
+        _pack = package["name"]
 
         info = {
             "type": "IR",
             "brand": "ir",
-            "base_topic": package["name"] + ".sensor.distance.ir." + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
             "name": name,
             "place": conf["place"],
             "id": "id_" + str(id),

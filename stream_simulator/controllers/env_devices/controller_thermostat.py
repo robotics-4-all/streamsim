@@ -23,24 +23,28 @@ class EnvThermostatController(BaseThing):
 
         super(self.__class__, self).__init__()
 
+        _type = "THERMOSTAT"
+        _category = "actuator"
+        _class = "thermal"
+        _subclass = "thermostat"
+        _endpoints = {
+            "enable": "rpc",
+            "disable": "rpc",
+            "set": "rpc",
+            "get": "rpc"
+        }
         _name = conf["name"]
-
-        id = BaseThing.id
+        _pack = package["base"]
+        id = "d_" + str(BaseThing.id)
         info = {
-            "type": "THERMOSTATS",
-            "brand": "bosch",
-            "base_topic": package["base"] + conf["place"] + ".effector.thermal." + _name + ".d" + str(id),
-            "name": "thermostat_" + str(id),
+            "type": _type,
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{_name}.{id}",
+            "name": _name,
             "place": conf["place"],
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "set": "rpc",
-                "get": "rpc"
-            }
+            "endpoints": _endpoints
         }
 
         self.info = info

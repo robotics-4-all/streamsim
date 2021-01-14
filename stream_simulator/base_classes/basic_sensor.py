@@ -20,8 +20,8 @@ class BasicSensor(BaseThing):
                  package = None,
                  _type = None,
                  _category = None,
-                 _brand = None,
-                 _name_suffix = None,
+                 _class = None,
+                 _subclass = None,
                  _endpoints = None):
 
         if package["logger"] is None:
@@ -32,13 +32,12 @@ class BasicSensor(BaseThing):
         super(BasicSensor, self).__init__()
 
         _name = conf["name"]
-
-        id = BaseThing.id
+        _pack = package["base"]
+        id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "brand": _brand,
-            "base_topic": package["base"] + conf["place"] + f".sensor.{_category}.{_name}.d" + str(id),
-            "name": _name_suffix + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{_name}.{id}",
+            "name": _name,
             "place": conf["place"],
             "enabled": True,
             "mode": conf["mode"],

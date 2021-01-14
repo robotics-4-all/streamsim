@@ -18,3 +18,4 @@ from .controller_speaker import EnvSpeakerController
 from .controller_light import EnvLightController
 from .controller_thermostat import EnvThermostatController
 from .controller_microphone import EnvMicrophoneController
+from .controller_humidifier import EnvHumidifierController

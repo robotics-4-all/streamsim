@@ -9,9 +9,9 @@ class EnvPhSensorController(BasicSensor):
             conf = conf,
             package = package,
             _type = "PH_SENSOR",
-            _category = "chemical",
-            _brand = "phmeter",
-            _name_suffix = "ph_sensor_",
+            _category = "sensor",
+            _class = "chemical",
+            _subclass = "ph",
             _endpoints = {
                 "enable": "rpc",
                 "disable": "rpc",

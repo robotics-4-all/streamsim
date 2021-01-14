@@ -25,10 +25,16 @@ class ButtonArrayController(BaseThing):
         super(self.__class__, self).__init__()
         id = "d_" + str(BaseThing.id)
 
+        name = id
+        _category = "sensor"
+        _class = "button_array"
+        _subclass = "tactile"
+        _pack = package["name"]
+
         info = {
             "type": "BUTTON_ARRAY",
             "brand": "simple",
-            "base_topic": package["name"] + ".sensor.button_array." + str(id),
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
             "name": "button_array_" + str(id),
             "place": "UNKNOWN",
             "id": id,

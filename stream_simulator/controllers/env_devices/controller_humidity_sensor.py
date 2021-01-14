@@ -9,9 +9,9 @@ class EnvHumiditySensorController(BasicSensor):
             conf = conf,
             package = package,
             _type = "HUMIDITY",
-            _category = "humidity",
-            _brand = "hum",
-            _name_suffix = "humidity_",
+            _category = "sensor",
+            _class = "env",
+            _subclass = "humidity",
             _endpoints = {
                 "enable": "rpc",
                 "disable": "rpc",

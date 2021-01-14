@@ -23,25 +23,29 @@ class EnvPanTiltController(BaseThing):
 
         super(self.__class__, self).__init__()
 
+        _type = "PAN_TILT"
+        _category = "actuator"
+        _class = "servo_motor"
+        _subclass = "pan_tilt"
+        _endpoints = {
+            "enable": "rpc",
+            "disable": "rpc",
+            "set": "pub",
+            "get": "rpc",
+            "set_mode": "rpc"
+        }
         _name = conf["name"]
-
-        id = BaseThing.id
+        _pack = package["base"]
+        id = "d_" + str(BaseThing.id)
         info = {
-            "type": "PAN_TILT",
-            "brand": "bosch",
-            "base_topic": package["base"] + conf["place"] + ".effector.motors." + _name + ".d" + str(id),
-            "name": "pan_tilt_" + str(id),
+            "type": _type,
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{_name}.{id}",
+            "name": _name,
             "place": conf["place"],
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "set": "pub",
-                "get": "rpc",
-                "set_mode": "rpc"
-            }
+            "endpoints": _endpoints
         }
 
         self.pose = info["conf"]["pose"]

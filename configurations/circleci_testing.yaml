@@ -64,6 +64,9 @@ env_devices:
   microphones:
     -
       source: "sfhmmy/microphone"
+  humidifiers:
+    -
+      source: "sfhmmy/humidifier"
 
 actors:
   humans:
@@ -83,4 +86,6 @@ actors:
   rfid_tags:
     - {id: 10, x: 320, y: 100, message: test}
   fires:
+    - {id: 10, x: 320, y: 100}
+  waters:
     - {id: 10, x: 320, y: 100}
