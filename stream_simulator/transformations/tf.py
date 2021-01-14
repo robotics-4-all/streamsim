@@ -47,11 +47,33 @@ class TfController:
         return {"declarations": self.declarations}
 
     def setup(self):
-        self.hosts = {}
+        self.hosts = []
+        self.subs = {}
+        self.places = {}
+        self.tree = {}
 
+        # Gather pan-tilts
+
+        # Get all devices and check pan-tilts exist
+
+        # Gather robots and create subscribers
+
+        # Old one
         for d in self.declarations:
             if d['host'] not in self.hosts:
-                self.hosts[d['host']] = d['host_type']
+                self.hosts.append(d['host'])
+                if d['host_type'] == "robot":
+                    topic = d['host_type'] + "." + d["host"] + ".pose"
+                    self.subs[d['host']] = CommlibFactory.getSubscriber(
+                        topic = topic,
+                        callback = self.robot_pose_callback
+                    )
+
+    def robot_pose_callback(self, message, meta):
+        print(message, meta)
+
+    def pan_tilt_callback(self, message, meta):
+        print(message, meta)
 
     # {
     #     type: robot/env/actor
