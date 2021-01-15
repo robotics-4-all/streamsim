@@ -62,6 +62,7 @@ class EnvDistanceController(BaseThing):
         self.operation_parameters = info['conf']['operation_parameters']
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         # tf handling
         tf_package = {
@@ -182,6 +183,15 @@ class EnvDistanceController(BaseThing):
                 "value": val,
                 "timestamp": time.time()
             })
+
+            # Storing value:
+            r = CommlibFactory.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "value": val,
+                    "timestamp": time.time()
+                }]
+            )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

@@ -66,6 +66,7 @@ class EnvCameraController(BaseThing):
         self.mode = info["mode"]
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         tf_package = {
             "type": "env",
@@ -129,6 +130,22 @@ class EnvCameraController(BaseThing):
                 },
                 "timestamp": time.time()
             })
+
+            # Storing value:
+            r = CommlibFactory.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "value": {
+                        "timestamp": time.time(),
+                        "format": "RGB",
+                        "per_rows": True,
+                        "width": width,
+                        "height": height,
+                        "image": data
+                    },
+                    "timestamp": time.time()
+                }]
+            )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

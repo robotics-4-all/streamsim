@@ -61,6 +61,7 @@ class EnvLinearAlarmController(BaseThing):
         self.mode = info["mode"]
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         # tf handling
         tf_package = {
@@ -116,6 +117,14 @@ class EnvLinearAlarmController(BaseThing):
                 "value": val,
                 "timestamp": time.time()
             })
+            # Storing value:
+            r = CommlibFactory.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "value": val,
+                    "timestamp": time.time()
+                }]
+            )
 
             if prev == 0 and val == 1:
                 triggers += 1

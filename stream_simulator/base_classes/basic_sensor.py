@@ -61,6 +61,7 @@ class BasicSensor(BaseThing):
         self.operation_parameters = info['conf']['operation_parameters']
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
+        self.derp_data_key = info["base_topic"] + ".raw"
 
         # Communication
         self.publisher = CommlibFactory.getPublisher(
@@ -171,6 +172,15 @@ class BasicSensor(BaseThing):
                 "value": val,
                 "timestamp": time.time()
             })
+
+            # Storing value:
+            r = CommlibFactory.derp_client.lset(
+                self.derp_data_key,
+                [{
+                    "value": val,
+                    "timestamp": time.time()
+                }]
+            )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
