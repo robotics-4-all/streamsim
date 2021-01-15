@@ -11,14 +11,7 @@ class EnvGasSensorController(BasicSensor):
             _type = "GAS_SENSOR",
             _category = "sensor",
             _class = "env",
-            _subclass = "gas",
-            _endpoints = {
-                "enable": "rpc",
-                "disable": "rpc",
-                "set_mode": "rpc",
-                "get_mode": "rpc",
-                "data": "pub"
-            }
+            _subclass = "gas"
         )
 
         # tf handling

@@ -47,19 +47,13 @@ class ImuController(BaseThing):
             "namespace": package["namespace"],
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "data": "publisher"
-            },
-            "data_models": {
-                "data": {
-                    "data":{
-                        "accel": ["x", "y", "z"],
-                        "gyro": ["yaw", "pitch", "roll"],
-                        "magne": ["yaw", "pitch", "roll"],
-                    }
-                }
+            "categorization": {
+                "host_type": "robot",
+                "place": _pack.split(".")[-1],
+                "category": _category,
+                "class": _class,
+                "subclass": ['acceleration', 'gyroscope', 'magnetometer'],
+                "name": name
             }
         }
 

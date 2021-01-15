@@ -25,15 +25,9 @@ class EnvPanTiltController(BaseThing):
 
         _type = "PAN_TILT"
         _category = "actuator"
-        _class = "servo_motor"
+        _class = "motion"
         _subclass = "pan_tilt"
-        _endpoints = {
-            "enable": "rpc",
-            "disable": "rpc",
-            "set": "pub",
-            "get": "rpc",
-            "set_mode": "rpc"
-        }
+
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
@@ -46,7 +40,14 @@ class EnvPanTiltController(BaseThing):
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints": _endpoints
+            "categorization": {
+                "host_type": _pack,
+                "place": _place,
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": _name
+            }
         }
 
         self.pose = info["conf"]["pose"]

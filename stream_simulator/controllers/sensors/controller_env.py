@@ -50,15 +50,13 @@ class EnvController(BaseThing):
             "humidity": conf["sim_humidity"],
             "gas": conf["sim_air_quality"],
             "pressure": conf["sim_pressure"],
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "data": "publisher"
-            },
-            "data_models": {
-                "data": {
-                    "data": ["temperature", "pressure", "humidity", "gas"]
-                }
+            "categorization": {
+                "host_type": "robot",
+                "place": _pack.split(".")[-1],
+                "category": _category,
+                "class": _class,
+                "subclass": ['temperature', 'humidity', 'pressure', 'gas'],
+                "name": name
             }
         }
 

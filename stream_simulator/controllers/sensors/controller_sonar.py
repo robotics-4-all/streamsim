@@ -48,13 +48,13 @@ class SonarController(BaseThing):
             "sensor_configuration": conf["sensor_configuration"],
             "max_range": conf["max_range"],
             "device_name": package["device_name"],
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "data": "publisher"
-            },
-            "data_models": {
-                "data": ["distance"]
+            "categorization": {
+                "host_type": "robot",
+                "place": _pack.split(".")[-1],
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": name
             }
         }
 

@@ -31,12 +31,7 @@ class EnvLinearAlarmController(BaseThing):
         _category = "sensor"
         _class = "alarm"
         _subclass = "linear"
-        _endpoints = {
-            "enable": "rpc",
-            "disable": "rpc",
-            "data": "pub",
-            "triggers": "pub",
-        }
+
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
@@ -49,7 +44,14 @@ class EnvLinearAlarmController(BaseThing):
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints": _endpoints
+            "categorization": {
+                "host_type": _pack,
+                "place": _place,
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": _name
+            }
         }
 
         self.info = info

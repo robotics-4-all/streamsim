@@ -27,7 +27,7 @@ class PanTiltController(BaseThing):
         if 'name' in conf:
             name = conf['name']
         _category = "actuator"
-        _class = "servo_motor"
+        _class = "motion"
         _subclass = "pan_tilt"
         _pack = package["name"]
 
@@ -45,12 +45,14 @@ class PanTiltController(BaseThing):
             "namespace": package["namespace"],
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "set": "subscriber"
-            },
-            "data_models": []
+            "categorization": {
+                "host_type": "robot",
+                "place": _pack.split(".")[-1],
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": name
+            }
         }
 
         self.info = info

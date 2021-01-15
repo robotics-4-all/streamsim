@@ -25,12 +25,7 @@ class EnvRelayController(BaseThing):
         _category = "actuator"
         _class = "switch"
         _subclass = "relay"
-        _endpoints = {
-            "enable": "rpc",
-            "disable": "rpc",
-            "set": "rpc",
-            "get": "rpc"
-        }
+
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
@@ -43,7 +38,14 @@ class EnvRelayController(BaseThing):
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints": _endpoints
+            "categorization": {
+                "host_type": _pack,
+                "place": _place,
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": _name
+            }
         }
 
         self.pose = info["conf"]["pose"]

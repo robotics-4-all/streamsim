@@ -25,14 +25,9 @@ class EnvThermostatController(BaseThing):
 
         _type = "THERMOSTAT"
         _category = "actuator"
-        _class = "thermal"
+        _class = "env"
         _subclass = "thermostat"
-        _endpoints = {
-            "enable": "rpc",
-            "disable": "rpc",
-            "set": "rpc",
-            "get": "rpc"
-        }
+
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
@@ -45,7 +40,14 @@ class EnvThermostatController(BaseThing):
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints": _endpoints
+            "categorization": {
+                "host_type": _pack,
+                "place": _place,
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": _name
+            }
         }
 
         self.info = info

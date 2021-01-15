@@ -10,15 +10,8 @@ class EnvPhSensorController(BasicSensor):
             package = package,
             _type = "PH_SENSOR",
             _category = "sensor",
-            _class = "chemical",
-            _subclass = "ph",
-            _endpoints = {
-                "enable": "rpc",
-                "disable": "rpc",
-                "set_mode": "rpc",
-                "get_mode": "rpc",
-                "data": "pub"
-            }
+            _class = "env",
+            _subclass = "ph"
         )
 
         # tf handling

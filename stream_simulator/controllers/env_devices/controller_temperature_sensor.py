@@ -10,15 +10,8 @@ class EnvTemperatureSensorController(BasicSensor):
             package = package,
             _type = "TEMPERATURE",
             _category = "sensor",
-            _class = "thermal",
-            _subclass = "temperature",
-            _endpoints = {
-                "enable": "rpc",
-                "disable": "rpc",
-                "set_mode": "rpc",
-                "get_mode": "rpc",
-                "data": "pub"
-            }
+            _class = "env",
+            _subclass = "temperature"
         )
 
         # tf handling

@@ -48,13 +48,13 @@ class MicrophoneController(BaseThing):
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
             "actors": package["actors"],
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "record": "action"
-            },
-            "data_models": {
-                "record": ["record"]
+            "categorization": {
+                "host_type": "robot",
+                "place": _pack.split(".")[-1],
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": name
             }
         }
 

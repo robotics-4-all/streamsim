@@ -28,7 +28,7 @@ class CytronLFController(BaseThing):
             name = conf['name']
         _category = "sensor"
         _class = "line_follow"
-        _subclass = "cytron_lf"
+        _subclass = "none"
         _pack = package["name"]
 
         info = {
@@ -47,13 +47,13 @@ class CytronLFController(BaseThing):
             "namespace": package["namespace"],
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "data": "publisher"
-            },
-            "data_models": {
-                "data": ["so_1", "so_2", "so_3", "so_4", "so_5"]
+            "categorization": {
+                "host_type": "robot",
+                "place": _pack.split(".")[-1],
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": name
             }
         }
 

@@ -26,13 +26,8 @@ class EnvLightController(BaseThing):
         _type = "LIGHTS"
         _category = "actuator"
         _class = "visual"
-        _subclass = "light"
-        _endpoints = {
-            "enable": "rpc",
-            "disable": "rpc",
-            "set": "rpc",
-            "get": "rpc"
-        }
+        _subclass = "leds"
+
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
@@ -45,7 +40,14 @@ class EnvLightController(BaseThing):
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints": _endpoints
+            "categorization": {
+                "host_type": _pack,
+                "place": _place,
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": _name
+            }
         }
 
         self.info = info

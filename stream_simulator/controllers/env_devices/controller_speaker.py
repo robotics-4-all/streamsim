@@ -34,12 +34,7 @@ class EnvSpeakerController(BaseThing):
         _category = "actuator"
         _class = "audio"
         _subclass = "speaker"
-        _endpoints = {
-            "enable": "rpc",
-            "disable": "rpc",
-            "play": "action",
-            "speak": "action"
-        }
+
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
@@ -52,7 +47,14 @@ class EnvSpeakerController(BaseThing):
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints": _endpoints
+            "categorization": {
+                "host_type": _pack,
+                "place": _place,
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": _name
+            }
         }
 
         self.info = info

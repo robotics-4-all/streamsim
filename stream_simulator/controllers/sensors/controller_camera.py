@@ -51,15 +51,13 @@ class CameraController(BaseThing):
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
             "actors": package["actors"],
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "data": "publisher"
-            },
-            "data_models": {
-                "data": {"data":
-                    ["format", "per_rows", "width", "height", "image"]
-                }
+            "categorization": {
+                "host_type": "robot",
+                "place": _pack.split(".")[-1],
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": name
             }
         }
 

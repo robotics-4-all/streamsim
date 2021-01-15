@@ -31,13 +31,6 @@ class EnvAmbientLightController(BaseThing):
         _category = "sensor"
         _class = "visual"
         _subclass = "light"
-        _endpoints = {
-            "enable": "rpc",
-            "disable": "rpc",
-            "set_mode": "rpc",
-            "get_mode": "rpc",
-            "data": "pub"
-        }
 
         _name = conf["name"]
         _pack = package["base"]
@@ -52,7 +45,14 @@ class EnvAmbientLightController(BaseThing):
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints": _endpoints
+            "categorization": {
+                "host_type": _pack,
+                "place": _place,
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": _name
+            }
         }
 
         self.info = info

@@ -21,8 +21,7 @@ class BasicSensor(BaseThing):
                  _type = None,
                  _category = None,
                  _class = None,
-                 _subclass = None,
-                 _endpoints = None):
+                 _subclass = None):
 
         if package["logger"] is None:
             self.logger = Logger(conf["name"])
@@ -43,7 +42,14 @@ class BasicSensor(BaseThing):
             "enabled": True,
             "mode": conf["mode"],
             "conf": conf,
-            "endpoints": _endpoints
+            "categorization": {
+                "host_type": _pack,
+                "place": _place,
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": _name
+            }
         }
 
         self.info = info

@@ -22,11 +22,15 @@ class TouchScreenController(BaseThing):
             self.logger = package["logger"]
 
         super(self.__class__, self).__init__()
+
         id = "d_" + str(BaseThing.id)
-        name = "touch_screen_" + str(id)
+        name = id
         if 'name' in conf:
             name = conf['name']
-            id = name
+        _category = "actuator"
+        _class = "visual"
+        _subclass = "screen"
+        _pack = package["name"]
 
         info = {
             "type": "TOUCH_SCREEN",
@@ -42,12 +46,14 @@ class TouchScreenController(BaseThing):
             "namespace": package["namespace"],
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc",
-                "show_image": "rpc"
-            },
-            "data_models": {}
+            "categorization": {
+                "host_type": "robot",
+                "place": _pack.split(".")[-1],
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": name
+            }
         }
 
         self.info = info

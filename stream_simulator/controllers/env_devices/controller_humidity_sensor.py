@@ -11,14 +11,7 @@ class EnvHumiditySensorController(BasicSensor):
             _type = "HUMIDITY",
             _category = "sensor",
             _class = "env",
-            _subclass = "humidity",
-            _endpoints = {
-                "enable": "rpc",
-                "disable": "rpc",
-                "set_mode": "rpc",
-                "get_mode": "rpc",
-                "data": "pub"
-            }
+            _subclass = "humidity"
         )
 
         # tf handling
