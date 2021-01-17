@@ -1,7 +1,6 @@
 pose: {x: 100, y: 100, theta: 0}
 name: ambient_light_X
 place: office
-host: pan_tilt_3
 hz: 3
 mode: mock # mock, simulation, real
 operation: sinus # constant, triangle, random, normal, sinus

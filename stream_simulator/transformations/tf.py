@@ -49,12 +49,23 @@ class TfController:
 
     def setup(self):
         self.logger.info("*************** TF status ***************")
-        self.hosts = []
-        self.subs = {}
+        self.subs = {} # Filled
         self.places = {}
-        self.tree = {}
+        self.tree = {} # filled
+        self.items_hosts_dict = {}
+        self.existing_hosts = []
 
-        # Gather pan-tilts
+        # Fill tree
+        for d in self.declarations:
+            if d['host'] not in self.tree:
+                self.tree[d['host']] = []
+            self.tree[d['host']].append(d['name'])
+            self.items_hosts_dict[d['name']] = d['host']
+
+            self.places[d['name']] = {
+                'relative': d['pose'],
+                'absolute': d['pose']
+            }
 
         # Get all devices and check pan-tilts exist
         self.pantilts = {}
@@ -73,7 +84,6 @@ class TfController:
             rr = cl.call({})
             for d in rr['devices']:
                 if d['type'] == 'PAN_TILT':
-                    # print(d)
                     self.pantilts[d['name']] = {
                         'base_topic': d['base_topic'],
                         'place': d['categorization']['place']
@@ -86,14 +96,16 @@ class TfController:
         rr = cl.call({})
         for d in rr['devices']:
             if d['type'] == 'PAN_TILT':
-                # print(d)
                 self.pantilts[d['name']] = {
                     'base_topic': d['base_topic'],
                     'place': d['categorization']['place']
                 }
+
         self.logger.info("Pan tilts detected:")
         for p in self.pantilts:
             self.logger.info(f"\t{p} on {self.pantilts[p]['place']}")
+
+            self.existing_hosts.append(p)
 
             topic = self.pantilts[p]['base_topic'] + '.data'
             self.subs[p] = CommlibFactory.getSubscriber(
@@ -102,17 +114,29 @@ class TfController:
             )
 
         # Gather robots and create subscribers
-
-        # Old one
         for d in self.declarations:
-            if d['host'] not in self.hosts:
-                self.hosts.append(d['host'])
-                if d['host_type'] == "robot":
+            if d['host_type'] == "robot":
+                if d['host'] not in self.existing_hosts:
+                    self.existing_hosts.append(d['host'])
+
                     topic = d['host_type'] + "." + d["host"] + ".pose"
                     self.subs[d['host']] = CommlibFactory.getSubscriber(
                         topic = topic,
                         callback = self.robot_pose_callback
                     )
+
+        self.logger.info("Hosts detected:")
+        for h in self.tree:
+            self.logger.info(f"\t{h}")
+            if h not in self.existing_hosts and h != None:
+                self.logger.error(f"We have a missing host: {h}")
+                self.logger.error(f"\tAffected devices: {self.tree[h]}")
+
+        self.logger.info(f"Static devices: {self.tree[None]}")
+
+        self.logger.info("Device places:")
+        for d in self.places:
+            self.logger.info(f"\t{d}: {self.places[d]}")
 
         self.logger.info("*****************************************")
 
