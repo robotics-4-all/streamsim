@@ -39,7 +39,7 @@ devices:
       source: "tektrain/tof"
   camera:
     -
-      source: "tektrain/camera"
+      source: "sfhmmy/camera_r2"
   imu:
     -
       source: "tektrain/imu"
@@ -79,7 +79,7 @@ devices:
       source: "tektrain/leds"
   pan_tilt:
     -
-      source: "tektrain/pan_tilt"
+      source: "sfhmmy/pan_tilt_r2"
   touch_screen:
     -
       source: "tektrain/touch_screen"

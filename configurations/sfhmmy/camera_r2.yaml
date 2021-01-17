@@ -1,0 +1,11 @@
+pose: {theta: 0}
+orientation: 0
+place: FRONT
+hz: 0.5
+name: tektrain_camera_2
+host: pt2
+sensor_configuration:
+  framerate: 30
+  width: 640
+  height: 480
+  max_data_length: 2

@@ -140,7 +140,8 @@ class EnvPanTiltController(BaseThing):
 
             self.data_publisher.publish({
                 'pan': self.pan,
-                'tilt': self.tilt
+                'tilt': self.tilt,
+                'name': self.name
             })
 
     def enable_callback(self, message, meta):

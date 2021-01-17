@@ -161,7 +161,8 @@ class PanTiltController(BaseThing):
 
             self.data_publisher.publish({
                 'pan': self.pan,
-                'tilt': self.tilt
+                'tilt': self.tilt,
+                'name': self.name
             })
 
             self.logger.info("{}: New pan tilt command: {}, {}".format(self.name, self._yaw, self._pitch))

@@ -546,7 +546,18 @@ class Robot:
 
         return False
 
+    def dispatch_pose_local(self):
+        # Send initial pose
+        self.internal_pose_pub.publish({
+            "x": self._x,
+            "y": self._y,
+            "theta": self._theta,
+            "resolution": self.resolution,
+            "name": self.name
+        })
+
     def simulation_thread(self):
+        self.dispatch_pose_local()
         while self.stopped is False:
             if self.motion_controller is not None:
                 prev_x = self._x
@@ -579,15 +590,14 @@ class Robot:
                         })
                     self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
 
-                # Send internal pose for distance sensors
-
-                self.internal_pose_pub.publish({
-                    "x": xx,
-                    "y": yy,
-                    "theta": theta2,
-                    "resolution": self.resolution
-                })
-
+                    # Send internal pose for distance sensors
+                    self.internal_pose_pub.publish({
+                        "x": xx,
+                        "y": yy,
+                        "theta": theta2,
+                        "resolution": self.resolution,
+                        "name": self.name
+                    })
 
                 if self.check_ok(self._x, self._y, prev_x, prev_y):
                     self._x = prev_x

@@ -67,9 +67,6 @@ class Simulator:
                 )
                 self.robot_names.append(r["name"])
 
-        # Checks and structures creation
-        self.tf.setup()
-
         self.devices_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.devices_callback,
@@ -138,9 +135,6 @@ class Simulator:
         self.logger.warning("Simulation stopped")
 
     def start(self):
-        # Create environmental devices
-
-
         # Create robots
         for i in range(0, len(self.robots)):
             _robot = self.robots[i]
@@ -178,3 +172,9 @@ class Simulator:
                             texts='Η συσκευή σας είναι έτοιμη προς χρήση!',
                             volume=50
                     )
+
+        self.tf.setup()
+
+        # Just to be informed for pose
+        for i in range(0, len(self.robots)):
+            self.robots[i].dispatch_pose_local()
