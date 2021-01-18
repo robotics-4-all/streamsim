@@ -57,6 +57,8 @@ class Test(unittest.TestCase):
 
                     time.sleep(5)
 
+                    sub.stop()
+
         except:
             traceback.print_exc(file=sys.stdout)
             self.assertTrue(False)
