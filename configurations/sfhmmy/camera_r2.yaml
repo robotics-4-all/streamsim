@@ -1,4 +1,4 @@
-pose: {theta: 0}
+pose: {theta: 90}
 orientation: 0
 place: FRONT
 hz: 0.5

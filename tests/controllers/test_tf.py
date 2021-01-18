@@ -24,6 +24,15 @@ class Test_get_env(unittest.TestCase):
             import pprint
             pprint.pprint(res)
 
+            tf = CommlibFactory.getRPCClient(
+                broker = "redis",
+                rpc_name = f"{sim_name}.tf.get_tf"
+            )
+            for d in res['declarations']:
+                n = d['name']
+                rr = tf.call({"name": n})
+                print(f"tf of {n}: {rr}")
+
         except:
             traceback.print_exc(file=sys.stdout)
             self.assertTrue(False)

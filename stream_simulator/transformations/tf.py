@@ -14,10 +14,11 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class TfController:
-    def __init__(self, base = None, logger = None):
+    def __init__(self, base = None, resolution = None, logger = None):
         self.logger = Logger("tf") if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
+        self.resolution = resolution
 
         self.declare_rpc_server = CommlibFactory.getRPCService(
             callback = self.declare_callback,
@@ -30,6 +31,12 @@ class TfController:
             rpc_name = self.base_topic + ".get_declarations"
         )
         self.get_declarations_rpc_server.run()
+
+        self.get_tf_rpc_server = CommlibFactory.getRPCService(
+            callback = self.get_tf_callback,
+            rpc_name = self.base_topic + ".get_tf"
+        )
+        self.get_tf_rpc_server.run()
 
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
@@ -46,6 +53,25 @@ class TfController:
 
     def get_declarations_callback(self, message, meta):
         return {"declarations": self.declarations}
+
+    def get_tf_callback(self, message, meta):
+        name = message['name']
+        if name not in self.items_hosts_dict:
+            self.logger.error(f"TF: Requested transformation of missing device: {name}")
+            return {}
+
+        if name in self.robots:
+            return self.places_absolute[name]
+        elif name in self.pantilts:
+            pose = self.places_absolute[name]
+            base_th = 0
+            if self.items_hosts_dict[name] != None:
+                base_th = self.places_absolute[self.items_hosts_dict[name]]['theta']
+            pose['theta'] = self.places_relative[name]['theta'] + \
+                self.pantilts[name]['pan'] + base_th
+            return pose
+        else:
+            return self.places_absolute[name]
 
     def setup(self):
         self.logger.info("*************** TF status ***************")
@@ -68,6 +94,10 @@ class TfController:
 
             self.places_relative[d['name']] = d['pose'].copy()
             self.places_absolute[d['name']] = d['pose'].copy()
+            if 'x' in d['pose']: # The only culprit is linear alarm
+                for i in ['x', 'y']:
+                    self.places_relative[d['name']][i] *= self.resolution
+                    self.places_absolute[d['name']][i] *= self.resolution
 
         # Get all devices and check pan-tilts exist
         get_devices_rpc = CommlibFactory.getRPCClient(
@@ -86,7 +116,8 @@ class TfController:
                 if d['type'] == 'PAN_TILT':
                     self.pantilts[d['name']] = {
                         'base_topic': d['base_topic'],
-                        'place': d['categorization']['place']
+                        'place': d['categorization']['place'],
+                        'pan': 0.0
                     }
 
         # Pan tilts in environment
@@ -98,7 +129,8 @@ class TfController:
             if d['type'] == 'PAN_TILT':
                 self.pantilts[d['name']] = {
                     'base_topic': d['base_topic'],
-                    'place': d['categorization']['place']
+                    'place': d['categorization']['place'],
+                    'pan': 0.0
                 }
 
         self.logger.info("Pan tilts detected:")
@@ -163,31 +195,58 @@ class TfController:
         for s in self.subs:
             self.subs[s].run()
 
-    def update_pan_tilt(self, d):
-        pass
-
-    def update_robot(self, d):
-        pass
-
     def robot_pose_callback(self, message, meta):
-        pass
-        # print(message)
+        nm = message['name'].split(".")[-1]
+        # self.logger.info(f"Updating {nm}: {message}")
+        if nm not in self.places_absolute:
+            self.places_absolute[nm] = {'x': 0, 'y': 0, 'theta': 0}
+        self.places_absolute[nm]['x'] = message['x']
+        self.places_absolute[nm]['y'] = message['y']
+        self.places_absolute[nm]['theta'] = message['theta']
 
-    def pan_tilt_callback(self, message, meta):
-        pt_name = message['name']
+        # Update all thetas of devices
+        for d in self.tree[nm]:
+            if self.places_absolute[d]['theta'] != None and d not in self.pantilts:
+                self.places_absolute[d]['theta'] = \
+                    self.places_absolute[nm]['theta'] + \
+                    self.places_relative[d]['theta']
+                # self.logger.info(f"Updated {d}: {self.places_absolute[d]['theta']}")
 
+            self.places_absolute[d]['x'] = self.places_absolute[nm]['x']
+            self.places_absolute[d]['y'] = self.places_absolute[nm]['y']
+
+            # Just setting devs on pan tilts the robot's pose
+            if d in self.pantilts:
+                pt_devs = self.tree[d]
+                for dev in pt_devs:
+                    self.places_absolute[dev]['x'] = self.places_absolute[nm]['x']
+                    self.places_absolute[dev]['y'] = self.places_absolute[nm]['y']
+                # Updating the angle of objects on pan-tilt
+                # self.logger.info(f"Updating pt {d} on {nm}")
+                pan_now = self.pantilts[d]['pan']
+                # self.logger.info(f"giving {pan_now}")
+                self.update_pan_tilt(d, pan_now)
+
+    def update_pan_tilt(self, pt_name, pan):
         base_th = 0
+        # If we are on a robot take its theta
         if self.items_hosts_dict[pt_name] != None:
             base_th = self.places_absolute[self.items_hosts_dict[pt_name]]['theta']
 
-        self.places_absolute[pt_name]['theta'] = \
-            self.places_relative[pt_name]['theta'] + message['pan']
+        # self.logger.info(f"Updated {pt_name}: {self.places_absolute[pt_name]} / {pan}")
+
+        abs_pt_theta = self.places_relative[pt_name]['theta'] + pan + base_th
         for i in self.tree[pt_name]:
             if self.places_absolute[i]['theta'] != None:
                 self.places_absolute[i]['theta'] = \
                     self.places_relative[i]['theta'] + \
-                    self.places_absolute[pt_name]['theta']
+                    abs_pt_theta
                 # self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
+
+    def pan_tilt_callback(self, message, meta):
+        self.pantilts[message['name']]['pan'] = message['pan']
+        self.update_pan_tilt(message['name'], message['pan'])
+
 
     # {
     #     type: robot/env/actor

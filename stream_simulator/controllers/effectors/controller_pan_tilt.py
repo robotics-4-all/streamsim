@@ -160,8 +160,8 @@ class PanTiltController(BaseThing):
                 self.pan_tilt.write(self.pitch_channel, self._pitch, degrees=True)
 
             self.data_publisher.publish({
-                'pan': self.pan,
-                'tilt': self.tilt,
+                'pan': self._yaw,
+                'tilt': self._pitch,
                 'name': self.name
             })
 
