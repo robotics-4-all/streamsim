@@ -1,4 +1,4 @@
-pose: {x: 100, y: 100, theta: 0}
+pose: {x: 100, y: 100, theta: -45}
 name: pan_tilt_X
 mode: mock # mock, simulation, real
 place: "office" # or "gym.bathroom" for nested

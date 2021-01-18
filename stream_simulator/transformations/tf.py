@@ -50,26 +50,26 @@ class TfController:
     def setup(self):
         self.logger.info("*************** TF status ***************")
         self.subs = {} # Filled
-        self.places = {}
+        self.places_relative = {}
+        self.places_absolute = {}
         self.tree = {} # filled
         self.items_hosts_dict = {}
         self.existing_hosts = []
+        self.pantilts = {}
+        self.robots = []
 
         # Fill tree
         for d in self.declarations:
             if d['host'] not in self.tree:
                 self.tree[d['host']] = []
+
             self.tree[d['host']].append(d['name'])
             self.items_hosts_dict[d['name']] = d['host']
 
-            self.places[d['name']] = {
-                'relative': d['pose'],
-                'absolute': d['pose']
-            }
+            self.places_relative[d['name']] = d['pose'].copy()
+            self.places_absolute[d['name']] = d['pose'].copy()
 
         # Get all devices and check pan-tilts exist
-        self.pantilts = {}
-
         get_devices_rpc = CommlibFactory.getRPCClient(
             rpc_name = self.base + ".get_device_groups"
         )
@@ -117,6 +117,7 @@ class TfController:
         for d in self.declarations:
             if d['host_type'] == "robot":
                 if d['host'] not in self.existing_hosts:
+                    self.robots.append(d['host'])
                     self.existing_hosts.append(d['host'])
 
                     topic = d['host_type'] + "." + d["host"] + ".pose"
@@ -125,18 +126,36 @@ class TfController:
                         callback = self.robot_pose_callback
                     )
 
+        # Check pan tilt poses for None
+        for pt in self.pantilts:
+            for k in ['x', 'y', 'theta']:
+                if self.places_relative[pt][k] == None:
+                    self.logger.error(f"Pan-tilt {pt} has {k} = None. Please fix it in yaml.")
+
         self.logger.info("Hosts detected:")
         for h in self.tree:
-            self.logger.info(f"\t{h}")
             if h not in self.existing_hosts and h != None:
                 self.logger.error(f"We have a missing host: {h}")
                 self.logger.error(f"\tAffected devices: {self.tree[h]}")
+            self.logger.info(f"\t{h}: {self.tree[h]}")
 
-        self.logger.info(f"Static devices: {self.tree[None]}")
+        self.logger.info("")
+        self.logger.info("Setting initial pan-tilt devices poses:")
+        # update poses based on tree for pan-tilts
+        for d in self.pantilts:
+            if d in self.tree:  # We can have a pan-tilt with no devices on it
+                for i in self.tree[d]:
+                    # initial pan is considered 0
+                    pt_abs_pose = self.places_absolute[d]
+                    self.places_absolute[i]['x'] += pt_abs_pose['x']
+                    self.places_absolute[i]['y'] += pt_abs_pose['y']
+                    if self.places_absolute[i]['theta'] != None:
+                        self.places_absolute[i]['theta'] += pt_abs_pose['theta']
 
-        self.logger.info("Device places:")
-        for d in self.places:
-            self.logger.info(f"\t{d}: {self.places[d]}")
+                    self.logger.info(f"{i}@{d}:")
+                    self.logger.info(f"\tPan-tilt: {self.places_absolute[d]}")
+                    self.logger.info(f"\tRelative: {self.places_relative[i]}")
+                    self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
 
         self.logger.info("*****************************************")
 
@@ -144,11 +163,31 @@ class TfController:
         for s in self.subs:
             self.subs[s].run()
 
+    def update_pan_tilt(self, d):
+        pass
+
+    def update_robot(self, d):
+        pass
+
     def robot_pose_callback(self, message, meta):
-        print(message)
+        pass
+        # print(message)
 
     def pan_tilt_callback(self, message, meta):
-        print(message)
+        pt_name = message['name']
+
+        base_th = 0
+        if self.items_hosts_dict[pt_name] != None:
+            base_th = self.places_absolute[self.items_hosts_dict[pt_name]]['theta']
+
+        self.places_absolute[pt_name]['theta'] = \
+            self.places_relative[pt_name]['theta'] + message['pan']
+        for i in self.tree[pt_name]:
+            if self.places_absolute[i]['theta'] != None:
+                self.places_absolute[i]['theta'] = \
+                    self.places_relative[i]['theta'] + \
+                    self.places_absolute[pt_name]['theta']
+                # self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
 
     # {
     #     type: robot/env/actor
@@ -183,6 +222,10 @@ class TfController:
                 self.logger.error(f"tf: Invalid host type for {message['name']}: {message['host_type']}")
 
         self.logger.info(f"{Style.DIM}{temp['name']}::{temp['type']}::{temp['subtype']} @ {temp['pose']} {host_msg}{Style.RESET_ALL}")
+
+        # Fix thetas if exist:
+        if temp['pose']['theta'] != None:
+            temp['pose']['theta'] *= math.pi/180.0
 
         self.declarations.append(temp)
         return {}

@@ -1,3 +1,4 @@
+pose: {x: 0, y: 0, theta: 0}
 name: pt2
 orientation: 0
 place: UNDER
