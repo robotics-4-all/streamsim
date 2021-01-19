@@ -13,6 +13,10 @@ map:
 world:
   name: "world_sfhmmy"
   places: ["office"]
+  properties:
+    temperature: 22 # celcius
+    humidity: 60 # out of 100
+    luminosity: 80 # out of 100
 
 robots:
   - source: "sfhmmy/robot_1"

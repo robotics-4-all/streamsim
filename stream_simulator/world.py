@@ -26,6 +26,18 @@ class World:
         if "world" in self.configuration:
             self.name = self.configuration["world"]["name"]
 
+            self.env_properties = {
+                'temperature': 20,
+                'humidity': 50,
+                'luminosity': 100
+            }
+
+            if 'properties' in self.configuration['world']:
+                prop = self.configuration['world']['properties']
+                for p in ['temperature', 'humidity', 'luminosity']:
+                    if p in prop:
+                        self.env_properties[p] = prop[p]
+
         self.env_devices = []
         if "env_devices" in self.configuration:
             self.env_devices = self.configuration["env_devices"]
@@ -39,7 +51,6 @@ class World:
         self.controllers = {}
 
         self.devices_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
             callback = self.devices_callback,
             rpc_name = self.name + '.nodes_detector.get_connected_devices'
         )
@@ -109,7 +120,8 @@ class World:
         p = {
             "base": "world",
             "logger": None,
-            'tf_declare': self.tf_declare_rpc
+            'tf_declare': self.tf_declare_rpc,
+            'env': self.env_properties
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")

@@ -309,7 +309,7 @@ class Robot:
             self.motion_controller = c
 
         self.logger.info(\
-            f"{Fore.RED + Style.BRIGHT}{c.name} controller created {Style.RESET_ALL}")
+            f"{Fore.WHITE + Style.BRIGHT}{c.name} controller created {Style.RESET_ALL}")
 
     def device_lookup(self):
         actors = {}

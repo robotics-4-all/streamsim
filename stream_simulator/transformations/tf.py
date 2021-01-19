@@ -52,6 +52,22 @@ class TfController:
         self.declarations = []
         self.declarations_info = {}
 
+        self.per_type = {
+            'robot': {
+                'sensor': {},
+                'actuator': {}
+            },
+            'env': {
+                'sensor': {},
+                'actuator': {
+                    'thermostat': []
+                }
+            },
+            'actor': {
+
+            }
+        }
+
     def start(self):
         self.declare_rpc_server.run()
 
@@ -90,6 +106,10 @@ class TfController:
         self.existing_hosts = []
         self.pantilts = {}
         self.robots = []
+
+        # Categorization
+        self.logger.info('Per type tf storage:')
+        pprint.pprint(self.per_type)
 
         # Fill tree
         for d in self.declarations:
@@ -289,15 +309,23 @@ class TfController:
         self.declarations_info[temp['name']] = temp
 
         # Per type storage
-        self.per_type_storage()
+        self.per_type_storage(temp)
         return {}
 
     # https://jsonformatter.org/yaml-formatter/a56cff
-    def per_type_storage(self):
-        self.per_type = {
-            'robot': {},
-            'env': {}
-        }
+    def per_type_storage(self, d):
+        pass
+        type = d['type']
+        sub = d['subtype']
+        print(type, sub)
+
+        # Todo
+        if type == 'actor':
+            return
+
+        # Thermostats
+        if sub['class'] == 'env' and sub['subclass'][0] == 'thermostat':
+            self.per_type['env']['actuator']['thermostat'].append(d)
 
     def get_affections_callback(self, message, meta):
         return self.check_affectability(message['name'])
