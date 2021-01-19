@@ -45,7 +45,7 @@ class ButtonController(BaseThing):
                 "place": _pack.split(".")[-1],
                 "category": _category,
                 "class": _class,
-                "subclasses": [_subclass],
+                "subclass": [_subclass],
                 "name": name
             }
         }
@@ -56,11 +56,7 @@ class ButtonController(BaseThing):
         # tf handling
         tf_package = {
             "type": "robot",
-            "subtype": {
-                "category": _category,
-                "class": _class,
-                "subclass": [_subclass]
-            },
+            "subtype": "button",
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
             "name": self.name

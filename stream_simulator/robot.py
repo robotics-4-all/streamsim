@@ -296,7 +296,10 @@ class Robot:
         if c.name in self.controllers:
             self.logger.error(f"Device {c.name} declared twice")
         else:
-            self.devices.append(c.info)
+            # Do not put button array in devices
+            if c.info["type"] != "BUTTON_ARRAY":
+                self.devices.append(c.info)
+
             if c.info["type"] == "BUTTON":
                 # Do not put in controllers
                 return
