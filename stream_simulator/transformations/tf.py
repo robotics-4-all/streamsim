@@ -38,6 +38,12 @@ class TfController:
         )
         self.get_tf_rpc_server.run()
 
+        self.get_affectability_rpc_server = CommlibFactory.getRPCService(
+            callback = self.get_affections_callback,
+            rpc_name = self.base_topic + ".get_affections"
+        )
+        self.get_affectability_rpc_server.run()
+
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
             'host', 'host_type'
@@ -281,7 +287,29 @@ class TfController:
 
         self.declarations.append(temp)
         self.declarations_info[temp['name']] = temp
+
+        # Per type storage
+        self.per_type_storage()
         return {}
 
+    # https://jsonformatter.org/yaml-formatter/a56cff
+    def per_type_storage(self):
+        self.per_type = {
+            'robot': {},
+            'env': {}
+        }
+
+    def get_affections_callback(self, message, meta):
+        return self.check_affectability(message['name'])
+
     def check_affectability(self, name):
-        pass
+        subt = self.declarations_info[name]['subtype']
+        if subt['class'] == "env":
+            if 'temperature' in subt['subclass']:
+                # sensor env temperature
+                # Affections:
+                # - env actuator thermostat
+                # - env actor fire
+                self.logger.info("Got sensor env temperature")
+
+        return {}
