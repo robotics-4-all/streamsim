@@ -5,19 +5,29 @@ from stream_simulator.base_classes import BasicSensor
 
 class EnvPhSensorController(BasicSensor):
     def __init__(self, conf = None, package = None):
+
+        _type = "PH_SENSOR"
+        _category = "sensor"
+        _class = "env"
+        _subclass = "ph"
+
         super(self.__class__, self).__init__(
             conf = conf,
             package = package,
-            _type = "PH_SENSOR",
-            _category = "sensor",
-            _class = "env",
-            _subclass = "ph"
+            _type = _type,
+            _category = _category,
+            _class = _class,
+            _subclass = _subclass
         )
 
         # tf handling
         tf_package = {
             "type": "env",
-            "subtype": "ph",
+            "subtype": {
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass]
+            },
             "pose": self.pose,
             "base_topic": self.base_topic,
             "name": self.name

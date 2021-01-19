@@ -5,19 +5,29 @@ from stream_simulator.base_classes import BasicSensor
 
 class EnvGasSensorController(BasicSensor):
     def __init__(self, conf = None, package = None):
+
+        _type = "GAS_SENSOR"
+        _category = "sensor"
+        _class = "env"
+        _subclass = "gas"
+
         super(self.__class__, self).__init__(
             conf = conf,
             package = package,
-            _type = "GAS_SENSOR",
-            _category = "sensor",
-            _class = "env",
-            _subclass = "gas"
+            _type = _type,
+            _category = _category,
+            _class = _class,
+            _subclass = _subclass
         )
 
         # tf handling
         tf_package = {
             "type": "env",
-            "subtype": "gas",
+            "subtype": {
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass]
+            },
             "pose": self.pose,
             "base_topic": self.base_topic,
             "name": self.name

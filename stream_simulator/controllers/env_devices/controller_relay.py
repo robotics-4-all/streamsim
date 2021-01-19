@@ -61,7 +61,11 @@ class EnvRelayController(BaseThing):
         # tf handling
         tf_package = {
             "type": "env",
-            "subtype": "relay",
+            "subtype": {
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass]
+            },
             "pose": self.pose,
             "base_topic": self.base_topic,
             "name": self.name

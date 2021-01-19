@@ -65,7 +65,11 @@ class RfidReaderController(BaseThing):
         # tf handling
         tf_package = {
             "type": "robot",
-            "subtype": "rfid_reader",
+            "subtype": {
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass]
+            },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
             "name": self.name

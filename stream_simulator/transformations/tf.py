@@ -44,6 +44,7 @@ class TfController:
         ]
 
         self.declarations = []
+        self.declarations_info = {}
 
     def start(self):
         self.declare_rpc_server.run()
@@ -247,17 +248,9 @@ class TfController:
         self.pantilts[message['name']]['pan'] = message['pan']
         self.update_pan_tilt(message['name'], message['pan'])
 
-
     # {
-    #     type: robot/env/actor
-    #     subtype:
-    #     name:
-    #     pose:
-    #     base_topic:
-    #     range:
-    #     fov:
-    #     host:
-    #     host_type
+    #     'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
+    #      'host', 'host_type'
     # }
     def declare_callback(self, message, meta):
         m = message
@@ -287,4 +280,8 @@ class TfController:
             temp['pose']['theta'] *= math.pi/180.0
 
         self.declarations.append(temp)
+        self.declarations_info[temp['name']] = temp
         return {}
+
+    def check_affectability(self, name):
+        pass

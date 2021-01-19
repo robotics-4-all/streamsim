@@ -66,7 +66,11 @@ class ImuController(BaseThing):
         # tf handling
         tf_package = {
             "type": "robot",
-            "subtype": "imu",
+            "subtype": {
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass]
+            },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
             "name": self.name

@@ -63,7 +63,11 @@ class EncoderController(BaseThing):
         # tf handling
         tf_package = {
             "type": "robot",
-            "subtype": "encoder",
+            "subtype": {
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass]
+            },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
             "name": self.name

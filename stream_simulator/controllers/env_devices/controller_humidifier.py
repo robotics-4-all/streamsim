@@ -60,7 +60,11 @@ class EnvHumidifierController(BaseThing):
         # tf handling
         tf_package = {
             "type": _class,
-            "subtype": _subclass,
+            "subtype": {
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass]
+            },
             "pose": self.pose,
             "base_topic": self.base_topic,
             "name": self.name
