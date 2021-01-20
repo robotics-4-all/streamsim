@@ -54,17 +54,59 @@ class TfController:
 
         self.per_type = {
             'robot': {
-                'sensor': {},
-                'actuator': {}
+                'sensor': {
+                    'microphone': [],
+                    'sonar': [],
+                    'ir': [],
+                    'tof': [],
+                    'camera': [],
+                    'button': [],
+                    'env': [],
+                    'encoder': [],
+                    'line_follow': [],
+                    'rfid_reader': [],
+                },
+                'actuator': {
+                    'speaker': [],
+                    'leds': [],
+                    'pan_tilt': [],
+                    'screen': [],
+                    'motion': [],
+                }
             },
             'env': {
-                'sensor': {},
+                'sensor': {
+                    'ph': [],
+                    'temperature': [],
+                    'humidity': [],
+                    'gas': [],
+                    'camera': [],
+                    'sonar': [],
+                    'linear_alarm': [],
+                    'area_alarm': [],
+                    'ambient_light': [],
+                    'microphone': [],
+                },
                 'actuator': {
-                    'thermostat': []
+                    'thermostat': [],
+                    'relay': [],
+                    'pan_tilt': [],
+                    'speaker': [],
+                    'light': [],
+                    'humidifier': [],
                 }
             },
             'actor': {
-
+                'human': [],
+                'superman': [],
+                'sound_source': [],
+                'qr': [],
+                'barcode': [],
+                'color': [],
+                'text': [],
+                'rfid_tag': [],
+                'fire': [],
+                'water': [],
             }
         }
 
