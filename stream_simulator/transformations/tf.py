@@ -325,7 +325,7 @@ class TfController:
 
         # Thermostats
         if sub['class'] == 'env' and sub['subclass'][0] == 'thermostat':
-            self.per_type['env']['actuator']['thermostat'].append(d)
+            self.per_type['env']['actuator']['thermostat'].append(d['name'])
 
     def get_affections_callback(self, message, meta):
         return self.check_affectability(message['name'])

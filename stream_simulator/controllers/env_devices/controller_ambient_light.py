@@ -30,7 +30,7 @@ class EnvAmbientLightController(BaseThing):
         _type = "AMBIENT_LIGHT"
         _category = "sensor"
         _class = "visual"
-        _subclass = "light"
+        _subclass = "light_sensor"
 
         _name = conf["name"]
         _pack = package["base"]

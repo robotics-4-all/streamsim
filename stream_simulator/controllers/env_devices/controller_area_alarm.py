@@ -30,7 +30,7 @@ class EnvAreaAlarmController(BaseThing):
         _type = "AREA_ALARM"
         _category = "sensor"
         _class = "alarm"
-        _subclass = "area"
+        _subclass = "area_alarm"
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]

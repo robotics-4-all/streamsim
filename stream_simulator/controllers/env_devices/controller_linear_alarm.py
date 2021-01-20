@@ -30,7 +30,7 @@ class EnvLinearAlarmController(BaseThing):
         _type = "LINEAR_ALARM"
         _category = "sensor"
         _class = "alarm"
-        _subclass = "linear"
+        _subclass = "linear_alarm"
 
         _name = conf["name"]
         _pack = package["base"]
