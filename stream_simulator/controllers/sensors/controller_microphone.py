@@ -103,6 +103,10 @@ class MicrophoneController(BaseThing):
             callback = self.on_goal,
             action_name = info["base_topic"] + ".record"
         )
+        self.listen_action_server = CommlibFactory.getActionServer(
+            callback = self.on_goal_listen,
+            action_name = info["base_topic"] + ".listen"
+        )
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.enable_callback,
@@ -287,6 +291,64 @@ class MicrophoneController(BaseThing):
         self.blocked = False
         return ret
 
+    def on_goal_listen(self, goalh):
+        self.logger.info("{} listening started".format(self.name))
+        if self.info["enabled"] == False:
+            return {}
+
+        # ELSA stuff
+        import os
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
+
+        # Concurrent speaker calls handling
+        while self.blocked:
+            time.sleep(0.1)
+        self.logger.info("Microphone unlocked")
+        self.blocked = True
+
+        try:
+            duration = goalh.data["duration"]
+            language = goalh.data["language"]
+        except Exception as e:
+            self.logger.error("{} goal had no duration and language as parameter".format(self.name))
+
+        if self.info["mode"] == "real": # The real deal
+            self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
+            now = time.time()
+            while time.time() - now < duration + 0.2:
+                if goalh.cancel_event.is_set():
+                    self.logger.info("Cancel got")
+                    self.blocked = False
+                    return ret
+                time.sleep(0.1)
+
+            rec = base64.b64encode(self.sensor.record).decode("ascii")
+            rec = base64.b64decode(rec)
+
+            from google.cloud import speech
+            from google.cloud.speech import enums
+            from google.cloud.speech import types
+            self.client = speech.SpeechClient()
+            speech_config = types.RecognitionConfig(
+                encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
+                sample_rate_hertz=44100,
+                language_code='el-GR'
+            )
+
+            text = self.client.recognize(
+                config = speech_config,
+                audio = types.RecognitionAudio(content = rec)
+            )
+            self.logger.info(f"Results: {text}")
+            if len(text.results):
+                text = text.results[0].alternatives[0].transcript
+            else:
+                text = ''
+
+        self.logger.info("Listening finished: " + str(text))
+        self.blocked = False
+        return {'text': text}
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
         return {"enabled": True}
@@ -297,6 +359,7 @@ class MicrophoneController(BaseThing):
 
     def start(self):
         self.record_action_server.run()
+        self.listen_action_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -304,5 +367,8 @@ class MicrophoneController(BaseThing):
         self.record_action_server._goal_rpc.stop()
         self.record_action_server._cancel_rpc.stop()
         self.record_action_server._result_rpc.stop()
+        self.listen_action_server._goal_rpc.stop()
+        self.listen_action_server._cancel_rpc.stop()
+        self.listen_action_server._result_rpc.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()

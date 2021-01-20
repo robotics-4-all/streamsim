@@ -217,9 +217,10 @@ class SpeakerController(BaseThing):
 
                 self.speaker.volume = volume
                 self.speaker.async_write(response.audio_content, file_flag=False)
+                self.logger.info("Speaking...")
                 while self.speaker.playing:
-                    print("Speaking...")
                     time.sleep(0.1)
+                self.logger.info("Speaking done")
 
         self.logger.info("{} Speak finished".format(self.name))
         self.blocked = False
@@ -236,9 +237,10 @@ class SpeakerController(BaseThing):
 
         self.speaker.volume = volume
         self.speaker.async_write(response.audio_content, file_flag=False)
+        self.logger.info("Speaking...")
         while self.speaker.playing:
-            print("Speaking...")
             time.sleep(0.1)
+        self.logger.info("Speaking done")
 
     def on_goal_play(self, goalh):
         self.logger.info("{} play started".format(self.name))
