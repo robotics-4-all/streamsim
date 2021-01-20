@@ -317,7 +317,7 @@ class SpeakerController(BaseThing):
 
         try:
             #Write global volume to persistent storage
-            self.derp_client.set(
+            CommlibFactory.derp_client.set(
                 "device.global_volume.persistent",
                 self.global_volume,
                 persistent = True

@@ -23,14 +23,14 @@ class World:
         )
 
         self.name = "world"
+        self.env_properties = {
+            'temperature': 20,
+            'humidity': 50,
+            'luminosity': 100
+        }
+
         if "world" in self.configuration:
             self.name = self.configuration["world"]["name"]
-
-            self.env_properties = {
-                'temperature': 20,
-                'humidity': 50,
-                'luminosity': 100
-            }
 
             if 'properties' in self.configuration['world']:
                 prop = self.configuration['world']['properties']

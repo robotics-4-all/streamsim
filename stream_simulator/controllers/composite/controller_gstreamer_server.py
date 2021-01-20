@@ -43,11 +43,13 @@ class GstreamerServerController(BaseThing):
             "namespace": package["namespace"],
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
-            "endpoints":{
-                "enable": "rpc",
-                "disable": "rpc"
-            },
-            "data_models": {}
+            "categorization": {
+                "host_type": "robot",
+                "category": "server",
+                "class": "streamer",
+                "subclass": ['gstreamer'],
+                "name": name
+            }
         }
 
         self.info = info

@@ -82,6 +82,8 @@ class Robot:
 
         self.common_logging = False
 
+        self.motion_controller = None
+
         try: # Get config for remote logging and heartbeat
             cfg_file = os.path.expanduser("~/.config/streamsim/config")
             if not os.path.isfile(cfg_file):

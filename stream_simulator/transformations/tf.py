@@ -150,8 +150,8 @@ class TfController:
         self.robots = []
 
         # Categorization
-        self.logger.info('Per type tf storage:')
-        pprint.pprint(self.per_type)
+        # self.logger.info('Per type tf storage:')
+        # pprint.pprint(self.per_type)
 
         # Fill tree
         for d in self.declarations:
@@ -359,7 +359,7 @@ class TfController:
         pass
         type = d['type']
         sub = d['subtype']
-        print(type, sub)
+        # print(type, sub)
 
         # Todo
         if type == 'actor':

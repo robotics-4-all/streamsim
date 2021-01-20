@@ -43,9 +43,13 @@ class Simulator:
             self.name = "streamsim"
 
         # Declaring tf controller and setting basetopic
+        resolution = 0.2
+        if 'map' in self.configuration and 'resolution' in self.configuration['map']:
+            resolution = self.configuration['map']['resolution']
+
         self.tf = TfController(
             base = self.name,
-            resolution = self.configuration['map']['resolution']
+            resolution = resolution
         )
         self.configuration['tf_base'] = self.tf.base_topic
         time.sleep(0.5)
@@ -165,7 +169,7 @@ class Simulator:
                 # Get the speaker
                 sp_con = None
                 for c in _robot.controllers:
-                    if "speaker" in c:
+                    if _robot.controllers[c].info['categorization']['subclass'][0] == "speaker":
                         sp_con = _robot.controllers[c]
                         break
 

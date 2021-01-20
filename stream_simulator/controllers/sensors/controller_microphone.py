@@ -36,7 +36,7 @@ class MicrophoneController(BaseThing):
             "type": "MICROPHONE",
             "brand": "usb_mic",
             "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
-            "name": "microphone_" + str(id),
+            "name": name,
             "place": conf["place"],
             "id": "id_" + str(id),
             "enabled": True,
