@@ -51,6 +51,7 @@ class TfController:
 
         self.declarations = []
         self.declarations_info = {}
+        self.names = []
 
         self.per_type = {
             'robot': {
@@ -59,6 +60,7 @@ class TfController:
                     'sonar': [],
                     'ir': [],
                     'tof': [],
+                    'imu': [],
                     'camera': [],
                     'button': [],
                     'env': [],
@@ -71,7 +73,7 @@ class TfController:
                     'leds': [],
                     'pan_tilt': [],
                     'screen': [],
-                    'motion': [],
+                    'twist': [],
                 }
             },
             'env': {
@@ -84,7 +86,7 @@ class TfController:
                     'sonar': [],
                     'linear_alarm': [],
                     'area_alarm': [],
-                    'ambient_light': [],
+                    'light_sensor': [],
                     'microphone': [],
                 },
                 'actuator': {
@@ -92,7 +94,7 @@ class TfController:
                     'relay': [],
                     'pan_tilt': [],
                     'speaker': [],
-                    'light': [],
+                    'leds': [],
                     'humidifier': [],
                 }
             },
@@ -233,15 +235,15 @@ class TfController:
                 if self.places_relative[pt][k] == None:
                     self.logger.error(f"Pan-tilt {pt} has {k} = None. Please fix it in yaml.")
 
-        self.logger.info("Hosts detected:")
+        # self.logger.info("Hosts detected:")
         for h in self.tree:
             if h not in self.existing_hosts and h != None:
                 self.logger.error(f"We have a missing host: {h}")
                 self.logger.error(f"\tAffected devices: {self.tree[h]}")
-            self.logger.info(f"\t{h}: {self.tree[h]}")
+            # self.logger.info(f"\t{h}: {self.tree[h]}")
 
-        self.logger.info("")
-        self.logger.info("Setting initial pan-tilt devices poses:")
+        # self.logger.info("")
+        # self.logger.info("Setting initial pan-tilt devices poses:")
         # update poses based on tree for pan-tilts
         for d in self.pantilts:
             if d in self.tree:  # We can have a pan-tilt with no devices on it
@@ -253,10 +255,10 @@ class TfController:
                     if self.places_absolute[i]['theta'] != None:
                         self.places_absolute[i]['theta'] += pt_abs_pose['theta']
 
-                    self.logger.info(f"{i}@{d}:")
-                    self.logger.info(f"\tPan-tilt: {self.places_absolute[d]}")
-                    self.logger.info(f"\tRelative: {self.places_relative[i]}")
-                    self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
+                    # self.logger.info(f"{i}@{d}:")
+                    # self.logger.info(f"\tPan-tilt: {self.places_absolute[d]}")
+                    # self.logger.info(f"\tRelative: {self.places_relative[i]}")
+                    # self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
 
         self.logger.info("*****************************************")
 
@@ -356,18 +358,28 @@ class TfController:
 
     # https://jsonformatter.org/yaml-formatter/a56cff
     def per_type_storage(self, d):
-        pass
         type = d['type']
         sub = d['subtype']
-        # print(type, sub)
 
-        # Todo
+        if d['name'] in self.names:
+            self.logger.error(f"Name {d['name']} already exists. {d['base_topic']}")
+        else:
+            self.names.append(d['name'])
+
         if type == 'actor':
-            return
-
-        # Thermostats
-        if sub['class'] == 'env' and sub['subclass'][0] == 'thermostat':
-            self.per_type['env']['actuator']['thermostat'].append(d['name'])
+            self.per_type[type][sub].append(d['name'])
+        elif type == "env":
+            subclass = sub['subclass'][0]
+            category = sub['category']
+            self.per_type[type][category][subclass].append(d['name'])
+        elif type == "robot":
+            subclass = sub['subclass'][0]
+            category = sub['category']
+            cls = sub['class']
+            if cls in ["imu", "button", "env", "encoder", "twist", "line_follow"]:
+                self.per_type[type][category][cls].append(d['name'])
+            else:
+                self.per_type[type][category][subclass].append(d['name'])
 
     def get_affections_callback(self, message, meta):
         return self.check_affectability(message['name'])

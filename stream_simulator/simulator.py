@@ -36,6 +36,10 @@ class Simulator:
         self.tick = tick
         self.logger = Logger("simulator")
 
+        logging.getLogger("pika").setLevel(logging.WARNING)
+        logging.getLogger("Adafruit_I2C").setLevel(logging.INFO)
+        logging.getLogger().setLevel(logging.WARNING)
+
         self.configuration = self.parseConfiguration(conf_file, configuration)
         if "simulation" in self.configuration:
             self.name = self.configuration["simulation"]["name"]

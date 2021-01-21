@@ -63,10 +63,6 @@ class Robot:
 
         self.configuration = configuration
         self.logger = Logger(self.configuration["name"])
-        logging.getLogger("pika").setLevel(logging.WARNING)
-        logging.getLogger("Adafruit_I2C").setLevel(logging.INFO)
-        logging.getLogger("RPCClient").setLevel(logging.WARNING)
-        logging.getLogger("RPCService").setLevel(logging.WARNING)
 
         self.tf_base = world['tf_base']
         self.tf_declare_rpc = CommlibFactory.getRPCClient(
