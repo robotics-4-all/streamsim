@@ -1,0 +1,12 @@
+pose: {theta: 90}
+orientation: 90
+place: L
+hz: 1
+sensor_configuration:
+  bus: 1
+  address: 0x20
+  pin_num: "B_4"
+  direction: "down"
+  edge: "both"
+  bounce: 70
+  max_data_length: 10

@@ -1,0 +1,7 @@
+pose: {x: 0, y: 0, theta: 0}
+orientation: 0
+place: FRONT
+hz: 1
+sensor_configuration:
+  fov: 360
+  range: 3

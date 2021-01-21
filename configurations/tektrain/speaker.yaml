@@ -1,0 +1,5 @@
+orientation: 0
+place: FRONT
+sensor_configuration:
+  dev_name: "Speaker"
+  max_data_length: 10

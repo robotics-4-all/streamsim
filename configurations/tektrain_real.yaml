@@ -159,95 +159,23 @@ robots:
       #       max_data_length: 10
       camera:
         -
-          orientation: 0
-          place: FRONT
-          hz: 0.5
-          sensor_configuration:
-            framerate: 30
-            width: 640
-            height: 480
-            max_data_length: 2
+          source: "tektrain/camera"
       imu:
         -
-          orientation: 1
-          place: CENTER
-          hz: 50
-          sensor_configuration:
-            bus: 1
-            max_data_length: 10
+          source: "tektrain/imu_real"
       button:
         -
-          orientation: 0
-          place: F
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_0"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_F"
         -
-          orientation: -45
-          place: FR
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_1"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_FR"
         -
-          orientation: 45
-          place: FL
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_2"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_FL"
         -
-          orientation: -90
-          place: R
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_3"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_R"
         -
-          orientation: 90
-          place: L
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_4"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_L"
         -
-          orientation: 180
-          place: B
-          hz: 1
-          sensor_configuration:
-            bus: 1
-            address: 0x20
-            pin_num: "B_5"
-            direction: "down"
-            edge: "both"
-            bounce: 70
-            max_data_length: 10
+          source: "tektrain/buttons/button_B"
       # -
       #   orientation: -135
       #   place: BR
@@ -346,24 +274,10 @@ robots:
       #       max_data_length: 10
       leds:
         -
-          orientation: 0
-          place: FRONT
-          sensor_configuration:
-            led_count: 19
-            led_pin: 18
-            led_freq_hz: 700000
-            led_brightness: 255
-            led_invert: 0
-            led_channel: 0
-            max_data_length: 10
+          source: "tektrain/leds"
       pan_tilt:
         -
-          orientation: 0
-          place: UNDER
-          sensor_configuration:
-            bus: 1
-            frequency: 50
-            max_data_length: 1
+          source: "tektrain/pan_tilt"
       # touch_screen:
       #   -
       #     orientation: 0
@@ -373,50 +287,15 @@ robots:
       #       max_data_length: 10
       encoder:
       -
-        orientation: 90
-        place: BL
-        hz: 5
-        sensor_configuration:
-          pin: 23
-          name: "Left Enc"
-          max_data_length: 10
+        source: "tektrain/encoders/encoder_BL_real"
       -
-        orientation: -90
-        place: BR
-        hz: 5
-        sensor_configuration:
-          pin: 24
-          name: "Right Enc"
-          max_data_length: 10
+        source: "tektrain/encoders/encoder_BR_real"
       skid_steer:
       -
-        orientation: 0
-        place: UNDER
-        sensor_configuration:
-          bus: 1
-          E1: 20
-          M1: 21
-          E2: 12
-          M2: 16
-          max_data_length: 10
-          wheel_separation: 0.147
-          wheel_radius: 0.022
+        source: "tektrain/skid_steer"
       cytron_lf:
         -
-          orientation: 0
-          place: UNDER
-          hz: 50
-          sensor_configuration:
-            bus: 1
-            address: 0x22
-            mode: "dark"
-            so_1: "A_2"
-            so_2: "A_3"
-            so_3: "A_4"
-            so_4: "A_5"
-            so_5: "A_6"
-            cal:  "A_7"
-            max_data_length: 10
+          source: "tektrain/cytron_lf_real"
     starting_pose:
       x: 100 # in pixels
       y: 100 # in pixels

@@ -1,0 +1,91 @@
+simulation:
+  name: "streamsim"
+
+map:
+  width: 1000
+  height: 800
+  resolution: 0.02
+  obstacles:
+    lines:
+      - {x1: 100, y1: 250, x2: 400, y2: 250}
+      #- {x1: 5, y1: 4, x2: 8, y2: 4}
+
+world:
+  name: "world_sfhmmy"
+  places: ["office"]
+
+robots:
+  - source: "circleci/circleci_robot_1"
+  - source: "circleci/circleci_robot_2"
+
+env_devices:
+  relays:
+    -
+      source: "sfhmmy/relay"
+  ph_sensors:
+    -
+      source: "sfhmmy/ph_sensor"
+  temperature_sensors:
+    -
+      source: "sfhmmy/temperature"
+  humidity_sensors:
+    -
+      source: "sfhmmy/humidity"
+  gas_sensors:
+    -
+      source: "sfhmmy/gas"
+  camera_sensors:
+    -
+      source: "sfhmmy/camera"
+  distance_sensors:
+    -
+      source: "sfhmmy/distance_sensor"
+  alarms_linear:
+    -
+      source: "sfhmmy/alarm_linear"
+  alarms_area:
+    -
+      source: "sfhmmy/alarm_area"
+  ambient_light_sensor:
+    -
+      source: "sfhmmy/ambient_light_sensor"
+  pan_tilt:
+    -
+      source: "sfhmmy/pan_tilt"
+  speakers:
+    -
+      source: "sfhmmy/speaker"
+  lights:
+    -
+      source: "sfhmmy/light"
+  thermostats:
+    -
+      source: "sfhmmy/thermostat"
+  microphones:
+    -
+      source: "sfhmmy/microphone"
+  humidifiers:
+    -
+      source: "sfhmmy/humidifier"
+
+actors:
+  humans:
+    - {id: 0, x: 120, y: 150, move: 0, sound: 1, lang: EN}
+  superman:
+    - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
+  sound_sources:
+    - {id: 4, x: 120, y: 100, lang: EN} # lang for language detection | EL or EN
+  qrs:
+    - {id: 5, x: 320, y: 100, message: test}
+  barcodes:
+    - {id: 6, x: 420, y: 100, message: EL3341}
+  colors:
+    - {id: 7, x: 410, y: 100, r: 0, g: 255, b: 0} # for dominant color
+  texts:
+    - {id: 8, x: 420, y: 100, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
+  rfid_tags:
+    - {id: 10, x: 320, y: 100, message: test}
+  fires:
+    - {id: 10, x: 320, y: 100}
+  waters:
+    - {id: 10, x: 320, y: 100}

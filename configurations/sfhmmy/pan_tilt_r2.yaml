@@ -1,0 +1,8 @@
+pose: {x: 0, y: 0, theta: -180}
+name: pt2
+orientation: 0
+place: UNDER
+sensor_configuration:
+  bus: 1
+  frequency: 50
+  max_data_length: 1

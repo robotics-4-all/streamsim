@@ -1,0 +1,16 @@
+pose: {x: 100, y: 100, theta: -45}
+name: pan_tilt_X
+mode: mock # mock, simulation, real
+place: "office" # or "gym.bathroom" for nested
+limits:
+  pan:
+    min: -90
+    max: 90
+  tilt:
+    min: -100
+    max: 100
+operation: sinus
+operation_parameters:
+  sinus:
+    step: 0.05
+    hz: 3

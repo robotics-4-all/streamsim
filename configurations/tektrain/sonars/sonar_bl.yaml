@@ -1,5 +1,7 @@
+pose: {theta: 135}
 orientation: 135
 place: BL
+name: sonar_bl
 hz: 1
 max_range: 2
 sensor_configuration:

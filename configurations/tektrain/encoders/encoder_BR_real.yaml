@@ -1,0 +1,7 @@
+orientation: -90
+place: BR
+hz: 5
+sensor_configuration:
+  pin: 24
+  name: "Right Enc"
+  max_data_length: 10
