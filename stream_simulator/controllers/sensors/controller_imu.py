@@ -127,17 +127,17 @@ class ImuController(BaseThing):
 
             if self.info["mode"] == "mock":
                 val = {
-                    "accel": {
+                    "acceleration": {
                         "x": 1,
                         "y": 1,
                         "z": 1
                     },
-                    "gyro": {
+                    "gyroscope": {
                         "yaw": random.uniform(0.3, -0.3),
                         "pitch": random.uniform(0.3, -0.3),
                         "roll": random.uniform(0.3, -0.3)
                     },
-                    "magne": {
+                    "magnetometer": {
                         "yaw": random.uniform(0.3, -0.3),
                         "pitch": random.uniform(0.3, -0.3),
                         "roll": random.uniform(0.3, -0.3)
@@ -147,17 +147,17 @@ class ImuController(BaseThing):
             elif self.info["mode"] == "simulation":
                 try:
                     val = {
-                        "accel": {
+                        "acceleration": {
                             "x": random.uniform(0.3, -0.3),
                             "y": random.uniform(0.3, -0.3),
                             "z": random.uniform(0.3, -0.3)
                         },
-                        "gyro": {
+                        "gyroscope": {
                             "yaw": random.uniform(0.3, -0.3),
                             "pitch": random.uniform(0.3, -0.3),
                             "roll": random.uniform(0.3, -0.3)
                         },
-                        "magne": {
+                        "magnetometer": {
                             "yaw": self.robot_pose["theta"] + random.uniform(0.3, -0.3),
                             "pitch": random.uniform(0.3, -0.3),
                             "roll": random.uniform(0.3, -0.3)
