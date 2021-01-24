@@ -23,6 +23,7 @@ class CommlibFactory:
     }
     reset = Style.RESET_ALL
     derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
+    notify = None
 
     @staticmethod
     def inform(broker, topic, type):

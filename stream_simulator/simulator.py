@@ -58,6 +58,12 @@ class Simulator:
         self.configuration['tf_base'] = self.tf.base_topic
         time.sleep(0.5)
 
+        # Setup notification channel
+        CommlibFactory.notify = CommlibFactory.getPublisher(
+            broker = 'amqp',
+            topic = f"{self.name}.notifications"
+        )
+
         # Initializing world
         self.world = World()
         self.world.load_environment(configuration = self.configuration)
