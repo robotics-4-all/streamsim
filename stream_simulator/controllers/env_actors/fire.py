@@ -32,7 +32,6 @@ class FireActor(BaseThing):
 
         self.temperature = 150 if 'temperature' not in conf else conf['temperature']
         self.range = 100 if 'range' not in conf else conf['range']
-        self.range = 100
 
         # tf handling
         tf_package = {

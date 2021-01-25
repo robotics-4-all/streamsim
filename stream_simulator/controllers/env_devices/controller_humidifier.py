@@ -56,6 +56,7 @@ class EnvHumidifierController(BaseThing):
         self.base_topic = info["base_topic"]
         self.place = info["conf"]["place"]
         self.humidity = info['conf']['humidity']
+        self.range = info['conf']['range']
 
         # tf handling
         tf_package = {
@@ -67,7 +68,8 @@ class EnvHumidifierController(BaseThing):
             },
             "pose": self.pose,
             "base_topic": self.base_topic,
-            "name": self.name
+            "name": self.name,
+            "range": self.range
         }
 
         self.host = None

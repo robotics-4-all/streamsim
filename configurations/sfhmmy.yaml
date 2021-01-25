@@ -90,6 +90,6 @@ actors:
   rfid_tags:
     - {id: 10, x: 320, y: 100, message: test}
   fires:
-    - {id: 10, x: 100, y: 100, temperature: 140, range: 100}
+    - {id: 11, x: 100, y: 100, temperature: 140, range: 100}
   waters:
-    - {id: 10, x: 320, y: 100}
+    - {id: 12, x: 100, y: 100, range: 100}

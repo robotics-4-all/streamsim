@@ -29,13 +29,19 @@ class WaterActor(BaseThing):
             'y': conf['y'],
             'theta': None
         }
+        self.range = 100 if 'range' not in conf else conf['range']
+        self.humidity = 100
 
         # tf handling
         tf_package = {
             "type": "actor",
             "subtype": "water",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "range": self.range,
+            "properties": {
+                "humidity": self.humidity
+            }
         }
 
         self.host = None
