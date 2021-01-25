@@ -55,5 +55,4 @@ class EnvGasSensorController(BasicSensor):
         for a in res:
             vals.append(res[a])
 
-        print(vals)
         return 0.5
