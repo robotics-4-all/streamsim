@@ -8,28 +8,17 @@ import os
 
 from stream_simulator.connectivity import CommlibFactory
 
-class Test(unittest.TestCase):
-    def setUp(self):
-        pass
+try:
+    # Get simulation actors
+    sim_name = "streamsim"
+    cl = CommlibFactory.getRPCClient(
+        broker = "redis",
+        rpc_name = f"{sim_name}.tf.get_affections"
+    )
+    print(cl.call({
+        'name': sys.argv[1]
+    }))
 
-    def test_get(self):
-        try:
-            # Get simulation actors
-            sim_name = "streamsim"
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
-                rpc_name = f"{sim_name}.tf.get_affections"
-            )
-            print(cl.call({
-                'name': 'temperature_X' 
-            }))
-
-        except:
-            traceback.print_exc(file=sys.stdout)
-            self.assertTrue(False)
-
-    def tearDown(self):
-        pass
-
-if __name__ == '__main__':
-    unittest.main()
+except:
+    traceback.print_exc(file=sys.stdout)
+    self.assertTrue(False)

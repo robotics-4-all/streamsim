@@ -25,6 +25,25 @@ class CommlibFactory:
     derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
     notify = None
 
+    stats = {
+        'amqp': {
+            'publishers': 0,
+            'subscribers': 0,
+            'rpc servers': 0,
+            'rpc clients': 0,
+            'action servers': 0,
+            'action clients': 0
+        },
+        'redis': {
+            'publishers': 0,
+            'subscribers': 0,
+            'rpc servers': 0,
+            'rpc clients': 0,
+            'action servers': 0,
+            'action clients': 0
+        }
+    }
+
     @staticmethod
     def inform(broker, topic, type):
         col = CommlibFactory.colors[broker]
@@ -45,6 +64,7 @@ class CommlibFactory:
             topic = topic
         )
         CommlibFactory.inform(broker, topic, "Publisher")
+        CommlibFactory.stats[broker]['publishers'] += 1
         return ret
 
     @staticmethod
@@ -59,6 +79,7 @@ class CommlibFactory:
             on_message = callback
         )
         CommlibFactory.inform(broker, topic, "Subscriber")
+        CommlibFactory.stats[broker]['subscribers'] += 1
         return ret
 
     @staticmethod
@@ -73,6 +94,7 @@ class CommlibFactory:
             rpc_name = rpc_name
         )
         CommlibFactory.inform(broker, rpc_name, "RPCService")
+        CommlibFactory.stats[broker]['rpc servers'] += 1
         return ret
 
     @staticmethod
@@ -86,6 +108,7 @@ class CommlibFactory:
             rpc_name = rpc_name
         )
         CommlibFactory.inform(broker, rpc_name, "RPCClient")
+        CommlibFactory.stats[broker]['rpc clients'] += 1
         return ret
 
     @staticmethod
@@ -100,6 +123,7 @@ class CommlibFactory:
             action_name = action_name
         )
         CommlibFactory.inform(broker, action_name, "ActionServer")
+        CommlibFactory.stats[broker]['action servers'] += 1
         return ret
 
     @staticmethod
@@ -113,4 +137,5 @@ class CommlibFactory:
             action_name = action_name
         )
         CommlibFactory.inform(broker, action_name, "ActionClient")
+        CommlibFactory.stats[broker]['action clients'] += 1
         return ret

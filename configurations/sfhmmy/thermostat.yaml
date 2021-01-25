@@ -1,5 +1,6 @@
-pose: {x: 100, y: 100, theta: 0}
+pose: {x: 120, y: 120, theta: 0}
 name: thermostat_X
 mode: mock # mock, simulation, real
 place: "office" # or "gym.bathroom" for nested
 temperature: 24
+range: 50

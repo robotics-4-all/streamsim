@@ -30,12 +30,20 @@ class FireActor(BaseThing):
             'theta': None
         }
 
+        self.temperature = 150 if 'temperature' not in conf else conf['temperature']
+        self.range = 100 if 'range' not in conf else conf['range']
+        self.range = 100
+
         # tf handling
         tf_package = {
             "type": "actor",
             "subtype": "fire",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "range": self.range,
+            "properties": {
+                "temperature": self.temperature
+            }
         }
 
         self.host = None

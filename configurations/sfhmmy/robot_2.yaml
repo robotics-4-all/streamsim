@@ -2,7 +2,7 @@ name: robot_2
 mode: simulation # [simulation, mock, real]
 speak_mode: espeak # [google, espeak] - in case of real mode
 wait_for: [] #[rhasspy] # in case of real mode
-amqp_inform: true
+amqp_inform: false
 step_by_step_execution: false
 devices:
   microphone:
@@ -98,6 +98,6 @@ devices:
     -
       source: "sfhmmy/rfid_reader"
 starting_pose:
-  x: 300 # in pixels
+  x: 120 # in pixels
   y: 100 # in pixels
-  theta: 45 # in degrees
+  theta: 0 # in degrees

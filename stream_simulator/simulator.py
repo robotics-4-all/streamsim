@@ -192,6 +192,18 @@ class Simulator:
 
         self.tf.setup()
 
+        # Communications report
+        self.logger.info("Communications report:")
+        total = 0
+        for t in CommlibFactory.stats:
+            for k in CommlibFactory.stats[t]:
+                n = CommlibFactory.stats[t][k]
+                total += n
+                if n == 0:
+                    continue
+                self.logger.info(f"\t{t} {k}: {n}")
+        self.logger.info(f"Total connections: {total}")
+
         # Just to be informed for pose
         for i in range(0, len(self.robots)):
             self.robots[i].dispatch_pose_local()

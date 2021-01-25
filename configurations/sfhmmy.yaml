@@ -4,7 +4,7 @@ simulation:
 map:
   width: 1000
   height: 800
-  resolution: 0.02
+  resolution: 0.05
   obstacles:
     lines:
       - {x1: 100, y1: 250, x2: 400, y2: 250}
@@ -90,6 +90,6 @@ actors:
   rfid_tags:
     - {id: 10, x: 320, y: 100, message: test}
   fires:
-    - {id: 10, x: 320, y: 100}
+    - {id: 10, x: 100, y: 100, temperature: 140, range: 100}
   waters:
     - {id: 10, x: 320, y: 100}

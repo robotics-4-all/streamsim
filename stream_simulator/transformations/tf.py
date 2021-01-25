@@ -46,7 +46,7 @@ class TfController:
 
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
-            'host', 'host_type'
+            'host', 'host_type', 'properties'
         ]
 
         self.declarations = []
@@ -151,10 +151,6 @@ class TfController:
         self.pantilts = {}
         self.robots = []
 
-        # Categorization
-        # self.logger.info('Per type tf storage:')
-        # pprint.pprint(self.per_type)
-
         # Fill tree
         for d in self.declarations:
             if d['host'] not in self.tree:
@@ -169,6 +165,9 @@ class TfController:
                 for i in ['x', 'y']:
                     self.places_relative[d['name']][i] *= self.resolution
                     self.places_absolute[d['name']][i] *= self.resolution
+
+            if d['range'] != None:
+                d['range'] *= self.resolution
 
         # Get all devices and check pan-tilts exist
         get_devices_rpc = CommlibFactory.getRPCClient(
@@ -235,15 +234,11 @@ class TfController:
                 if self.places_relative[pt][k] == None:
                     self.logger.error(f"Pan-tilt {pt} has {k} = None. Please fix it in yaml.")
 
-        # self.logger.info("Hosts detected:")
         for h in self.tree:
             if h not in self.existing_hosts and h != None:
                 self.logger.error(f"We have a missing host: {h}")
                 self.logger.error(f"\tAffected devices: {self.tree[h]}")
-            # self.logger.info(f"\t{h}: {self.tree[h]}")
 
-        # self.logger.info("")
-        # self.logger.info("Setting initial pan-tilt devices poses:")
         # update poses based on tree for pan-tilts
         for d in self.pantilts:
             if d in self.tree:  # We can have a pan-tilt with no devices on it
@@ -261,6 +256,8 @@ class TfController:
                     # self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
 
         self.logger.info("*****************************************")
+
+        # pprint.pprint(self.per_type)
 
         # starting subs
         for s in self.subs:
@@ -382,16 +379,54 @@ class TfController:
                 self.per_type[type][category][subclass].append(d['name'])
 
     def get_affections_callback(self, message, meta):
-        return self.check_affectability(message['name'])
+        try:
+            return self.check_affectability(message['name'])
+        except Exception as e:
+            self.logger.error(f"Error in get affections callback: {str(e)}")
+            return {}
+
+    def check_distance(self, xy, aff):
+        pl_aff = self.places_absolute[aff]
+        xyt = [pl_aff['x'], pl_aff['y']]
+        d = math.sqrt((xy[0] - xyt[0])**2 + (xy[1] - xyt[1])**2)
+        return {
+            'distance': d,
+            'properties': self.declarations_info[aff]["properties"]
+        }
+
+    def handle_affection_ranged(self, xy, f, type):
+        dd = self.check_distance(xy, f)
+        d = dd['distance']
+        # print(self.declarations_info[f])
+        if d < self.declarations_info[f]['range']: # range is fire's
+            return {
+                'type': type,
+                'info': self.declarations_info[f]["properties"],
+                'distance': d
+            }
+        return None
 
     def check_affectability(self, name):
-        subt = self.declarations_info[name]['subtype']
-        if subt['class'] == "env":
-            if 'temperature' in subt['subclass']:
-                # sensor env temperature
-                # Affections:
-                # - env actuator thermostat
-                # - env actor fire
-                self.logger.info("Got sensor env temperature")
+        try:
+            subt = self.declarations_info[name]['subtype']
+        except Exception as e:
+            raise Exception(f"{name} not in devices")
 
-        return {}
+        ret = {}
+        pl = self.places_absolute[name]
+        x_y = [pl['x'], pl['y']]
+
+        if subt['class'] == "env":
+            if 'temperature' in subt['subclass']: # sensor env temperature
+                # - env actuator thermostat
+                for f in self.per_type['env']['actuator']['thermostat']:
+                    r = self.handle_affection_ranged(x_y, f, 'thermostat')
+                    if r != None:
+                        ret[f] = r
+                # - env actor fire
+                for f in self.per_type['actor']['fire']:
+                    r = self.handle_affection_ranged(x_y, f, 'fire')
+                    if r != None:
+                        ret[f] = r
+
+        return ret
