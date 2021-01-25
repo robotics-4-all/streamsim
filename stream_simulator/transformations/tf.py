@@ -53,6 +53,8 @@ class TfController:
         self.declarations_info = {}
         self.names = []
 
+        self.effectors_get_rpcs = {}
+
         self.per_type = {
             'robot': {
                 'sensor': {
@@ -369,6 +371,11 @@ class TfController:
             subclass = sub['subclass'][0]
             category = sub['category']
             self.per_type[type][category][subclass].append(d['name'])
+
+            if subclass == "thermostat":
+                self.effectors_get_rpcs[d['name']] = CommlibFactory.getRPCClient(
+                    rpc_name = d['base_topic'] + ".get"
+                )
         elif type == "robot":
             subclass = sub['subclass'][0]
             category = sub['category']
@@ -399,10 +406,13 @@ class TfController:
         d = dd['distance']
         # print(self.declarations_info[f])
         if d < self.declarations_info[f]['range']: # range is fire's
+            if self.declarations_info[f]["properties"] == None:
+                self.declarations_info[f]["properties"] = {}
             return {
                 'type': type,
                 'info': self.declarations_info[f]["properties"],
-                'distance': d
+                'distance': d,
+                'range': self.declarations_info[f]['range']
             }
         return None
 
@@ -416,6 +426,9 @@ class TfController:
             for f in self.per_type['env']['actuator']['thermostat']:
                 r = self.handle_affection_ranged(x_y, f, 'thermostat')
                 if r != None:
+                    # Get thermostat's temperature
+                    th_t = self.effectors_get_rpcs[f].call({})
+                    r['info']['temperature'] = th_t['temperature']
                     ret[f] = r
             # - env actor fire
             for f in self.per_type['actor']['fire']:

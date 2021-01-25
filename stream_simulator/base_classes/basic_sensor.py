@@ -7,6 +7,7 @@ import math
 import logging
 import threading
 import random
+import abc
 
 from colorama import Fore, Style
 
@@ -121,6 +122,10 @@ class BasicSensor(BaseThing):
         return {}
 
     def sensor_read(self):
+        # Wait till commlib_factory is up
+        while CommlibFactory.get_tf_affection == None:
+            time.sleep(0.1)
+
         self.logger.info(f"Sensor {self.name} read thread started")
         # Operation parameters
 
@@ -167,6 +172,9 @@ class BasicSensor(BaseThing):
                 else:
                     self.logger.warning(f"Unsupported operation: {self.operation}")
 
+            elif self.mode == "simulation":
+                val = self.get_simulation_value()
+
             # Publishing value:
             self.publisher.publish({
                 "value": val,
@@ -181,6 +189,10 @@ class BasicSensor(BaseThing):
                     "timestamp": time.time()
                 }]
             )
+
+    @abc.abstractmethod
+    def get_simulation_value(self):
+        return None
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

@@ -24,6 +24,7 @@ class CommlibFactory:
     reset = Style.RESET_ALL
     derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
     notify = None
+    get_tf_affection = None
 
     stats = {
         'amqp': {

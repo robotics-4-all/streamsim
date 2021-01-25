@@ -55,7 +55,7 @@ class EnvThermostatController(BaseThing):
         self.name = info["name"]
         self.base_topic = info["base_topic"]
         self.place = info["conf"]["place"]
-        self.temperarure = info['conf']['temperature']
+        self.temperature = info['conf']['temperature']
         self.range = info['conf']['range']
 
         # tf handling
