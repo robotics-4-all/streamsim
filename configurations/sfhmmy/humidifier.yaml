@@ -2,5 +2,5 @@ pose: {x: 120, y: 120, theta: 0}
 name: hum_X
 mode: mock # mock, simulation, real
 place: "office" # or "gym.bathroom" for nested
-humidity: 24
+humidity: 50
 range: 100

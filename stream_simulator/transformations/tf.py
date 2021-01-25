@@ -372,10 +372,11 @@ class TfController:
             category = sub['category']
             self.per_type[type][category][subclass].append(d['name'])
 
-            if subclass == "thermostat":
+            if subclass in ["thermostat", "humidifier"]:
                 self.effectors_get_rpcs[d['name']] = CommlibFactory.getRPCClient(
                     rpc_name = d['base_topic'] + ".get"
                 )
+
         elif type == "robot":
             subclass = sub['subclass'][0]
             category = sub['category']
@@ -451,6 +452,8 @@ class TfController:
             for f in self.per_type['env']['actuator']['humidifier']:
                 r = self.handle_affection_ranged(x_y, f, 'humidifier')
                 if r != None:
+                    th_t = self.effectors_get_rpcs[f].call({})
+                    r['info']['humidity'] = th_t['humidity']
                     ret[f] = r
             # - env actor fire
             for f in self.per_type['actor']['water']:

@@ -20,7 +20,7 @@ world:
 
 robots:
   - source: "sfhmmy/robot_1"
-  - source: "sfhmmy/robot_2"
+  #- source: "sfhmmy/robot_2"
 
 env_devices:
   relays:
