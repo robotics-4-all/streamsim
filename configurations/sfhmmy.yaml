@@ -74,7 +74,7 @@ env_devices:
 
 actors:
   humans:
-    - {id: 0, x: 120, y: 150, move: 0, sound: 1, lang: EN}
+    - {id: 0, x: 120, y: 150, move: 0, sound: 1, lang: EN, range: 80}
   superman:
     - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
   sound_sources:

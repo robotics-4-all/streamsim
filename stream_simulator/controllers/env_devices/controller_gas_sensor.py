@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from stream_simulator.base_classes import BasicSensor
+from stream_simulator.connectivity import CommlibFactory
+import statistics
 
 class EnvGasSensorController(BasicSensor):
     def __init__(self, conf = None, package = None):
@@ -19,6 +21,8 @@ class EnvGasSensorController(BasicSensor):
             _class = _class,
             _subclass = _subclass
         )
+
+        self.env_properties = package['env']
 
         # tf handling
         tf_package = {
@@ -41,3 +45,15 @@ class EnvGasSensorController(BasicSensor):
             tf_package['host_type'] = 'pan_tilt'
 
         package["tf_declare"].call(tf_package)
+
+    def get_simulation_value(self):
+        res = CommlibFactory.get_tf_affection.call({
+            'name': self.name
+        })
+        # Logic
+        vals = []
+        for a in res:
+            vals.append(res[a])
+
+        print(vals)
+        return 0.5

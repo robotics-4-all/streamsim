@@ -417,21 +417,19 @@ class TfController:
             }
         return None
 
+    # Affected by thermostats and fires
     def handle_env_sensor_temperature(self, name):
         try:
             ret = {}
             pl = self.places_absolute[name]
             x_y = [pl['x'], pl['y']]
 
-            # - env actuator thermostat
             for f in self.per_type['env']['actuator']['thermostat']:
                 r = self.handle_affection_ranged(x_y, f, 'thermostat')
                 if r != None:
-                    # Get thermostat's temperature
                     th_t = self.effectors_get_rpcs[f].call({})
                     r['info']['temperature'] = th_t['temperature']
                     ret[f] = r
-            # - env actor fire
             for f in self.per_type['actor']['fire']:
                 r = self.handle_affection_ranged(x_y, f, 'fire')
                 if r != None:
@@ -442,22 +440,44 @@ class TfController:
 
         return ret
 
+    # Affected by humidifiers and water sources
     def handle_env_sensor_humidity(self, name):
         try:
             ret = {}
             pl = self.places_absolute[name]
             x_y = [pl['x'], pl['y']]
 
-            # - env actuator thermostat
             for f in self.per_type['env']['actuator']['humidifier']:
                 r = self.handle_affection_ranged(x_y, f, 'humidifier')
                 if r != None:
                     th_t = self.effectors_get_rpcs[f].call({})
                     r['info']['humidity'] = th_t['humidity']
                     ret[f] = r
-            # - env actor fire
             for f in self.per_type['actor']['water']:
                 r = self.handle_affection_ranged(x_y, f, 'water')
+                if r != None:
+                    ret[f] = r
+        except Exception as e:
+            self.logger.error(str(e))
+            raise Exception(str(e))
+
+        return ret
+
+    # Affected by humans, fire
+    def handle_env_sensor_gas(self, name):
+        try:
+            ret = {}
+            pl = self.places_absolute[name]
+            x_y = [pl['x'], pl['y']]
+
+            # - env actuator thermostat
+            for f in self.per_type['actor']['human']:
+                r = self.handle_affection_ranged(x_y, f, 'human')
+                if r != None:
+                    ret[f] = r
+            # - env actor fire
+            for f in self.per_type['actor']['fire']:
+                r = self.handle_affection_ranged(x_y, f, 'fire')
                 if r != None:
                     ret[f] = r
         except Exception as e:
@@ -479,6 +499,8 @@ class TfController:
                     ret = self.handle_env_sensor_temperature(name)
                 if 'humidity' in subt['subclass']:
                     ret = self.handle_env_sensor_humidity(name)
+                if 'gas' in subt['subclass']:
+                    ret = self.handle_env_sensor_gas(name)
         except Exception as e:
             raise Exception(f"Error in device handling: {str(e)}")
 

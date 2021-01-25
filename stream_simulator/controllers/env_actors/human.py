@@ -32,14 +32,20 @@ class HumanActor(BaseThing):
         self.motion = conf['move']
         self.sound = conf['sound']
         self.language = conf['lang']
-        self.name = info['name']
+        self.range = 80 if 'range' not in conf else conf['range']
 
         # tf handling
         tf_package = {
             "type": "actor",
             "subtype": "human",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "range": self.range,
+            "properties": {
+                'motion': self.motion,
+                'sound': self.sound,
+                'language': self.language
+            }
         }
 
         self.host = None
