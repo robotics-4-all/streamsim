@@ -7,7 +7,7 @@ map:
   resolution: 0.05
   obstacles:
     lines:
-      - {x1: 100, y1: 250, x2: 400, y2: 250}
+      - {x1: 50, y1: 0, x2: 50, y2: 100}
       #- {x1: 5, y1: 4, x2: 8, y2: 4}
 
 world:
@@ -78,7 +78,7 @@ actors:
   superman:
     - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
   sound_sources:
-    - {id: 4, x: 120, y: 100, lang: EN} # lang for language detection | EL or EN
+    - {id: 4, x: 100, y: 100, lang: EN, range: 100} # lang for language detection | EL or EN
   qrs:
     - {id: 5, x: 320, y: 100, message: test}
   barcodes:

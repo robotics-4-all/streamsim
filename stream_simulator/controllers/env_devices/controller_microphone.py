@@ -166,6 +166,68 @@ class EnvMicrophoneController(BaseThing):
             ret["record"] = base64.b64encode(b'0x55').decode("ascii")
             ret["volume"] = 100
 
+        elif self.info["mode"] == "simulation":
+            time.sleep(duration)
+            # Ask tf for proximity sound sources or humans
+            res = CommlibFactory.get_tf_affection.call({
+                'name': self.name
+            })
+            # Get the closest:
+            clos = None
+            clos_d = 100000.0
+            for x in res:
+                if res[x]['distance'] < clos_d:
+                    clos = x
+                    clos_d = res[x]['distance']
+
+            wav = "Silent.wav"
+            if res[clos]['type'] == 'sound_source':
+                if res[clos]['info']['language'] == 'EL':
+                    wav = "greek_sentence.wav"
+                else:
+                    wav = "english_sentence.wav"
+            elif res[clos]['type'] == "human":
+                if res[clos]['info']["sound"] == 1:
+                    if res[clos]['info']["language"] == "EL":
+                        wav = "greek_sentence.wav"
+                    else:
+                        wav = "english_sentence.wav"
+
+            now = time.time()
+            self.logger.info(f"Recording... {res[clos]['type']}, {res[clos]['info']}")
+            while time.time() - now < duration:
+                if goalh.cancel_event.is_set():
+                    self.logger.info("Cancel got")
+                    self.blocked = False
+                    return ret
+                time.sleep(0.1)
+            self.logger.info("Recording done")
+
+            ret["record"] = self.load_wav(wav)
+            ret["volume"] = 100
+
         self.logger.info("{} recording finished".format(self.name))
         self.blocked = False
         return ret
+
+    def load_wav(self, path):
+        # Read from file
+        import wave
+        import os
+        dirname = os.path.dirname(__file__)
+
+        fil = dirname + '/../../resources/' + path
+        self.logger.info("Reading sound from " + fil)
+        f = wave.open(fil, 'rb')
+        channels = f.getnchannels()
+        framerate = f.getframerate()
+        sample_width = f.getsampwidth()
+        data = bytearray()
+        sample = f.readframes(256)
+        while sample:
+            for s in sample:
+                data.append(s)
+            sample = f.readframes(256)
+        f.close()
+        source = base64.b64encode(data).decode("ascii")
+        return source

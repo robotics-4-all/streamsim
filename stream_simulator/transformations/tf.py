@@ -486,21 +486,51 @@ class TfController:
 
         return ret
 
+    # Affected by humans with sound, sound sources, speakers (when playing smth),
+    # robots (when moving)
+    def handle_sensor_microphone(self, name):
+        try:
+            ret = {}
+            pl = self.places_absolute[name]
+            x_y = [pl['x'], pl['y']]
+
+            # - actor human
+            for f in self.per_type['actor']['human']:
+                if self.declarations_info[f]['properties']['sound'] == 1:
+                    r = self.handle_affection_ranged(x_y, f, 'human')
+                    if r != None:
+                        ret[f] = r
+            # - actor sound sources
+            for f in self.per_type['actor']['sound_source']:
+                r = self.handle_affection_ranged(x_y, f, 'sound_source')
+                if r != None:
+                    ret[f] = r
+        except Exception as e:
+            self.logger.error(str(e))
+            raise Exception(str(e))
+
+        return ret
+
     def check_affectability(self, name):
         try:
+            type = self.declarations_info[name]['type']
             subt = self.declarations_info[name]['subtype']
         except Exception as e:
             raise Exception(f"{name} not in devices")
 
         try:
             ret = {}
-            if subt['class'] == "env":
+            if type == "env":
                 if 'temperature' in subt['subclass']:
                     ret = self.handle_env_sensor_temperature(name)
                 if 'humidity' in subt['subclass']:
                     ret = self.handle_env_sensor_humidity(name)
                 if 'gas' in subt['subclass']:
                     ret = self.handle_env_sensor_gas(name)
+                if 'microphone' in subt['subclass']:
+                    ret = self.handle_sensor_microphone(name)
+            elif subt['class'] == "robot":
+                pass
         except Exception as e:
             raise Exception(f"Error in device handling: {str(e)}")
 

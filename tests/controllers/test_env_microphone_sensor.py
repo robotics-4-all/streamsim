@@ -31,7 +31,8 @@ class Test(unittest.TestCase):
 
             # Get ph sensors
             for s in res["devices"]:
-                if s["type"] == "MICROPHONES":
+                if s["type"] == "MICROPHONE":
+
                     # Speak
                     action = CommlibFactory.getActionClient(
                         broker = "redis",
@@ -44,7 +45,7 @@ class Test(unittest.TestCase):
                     while action.get_result(goal_id)["status"] == 1:
                         time.sleep(0.1)
                     final_res = action.get_result(goal_id)
-                    print(final_res)
+                    print(f"Bytes of recording: {len(final_res['result']['record'])}")
         except:
             traceback.print_exc(file=sys.stdout)
             self.assertTrue(False)

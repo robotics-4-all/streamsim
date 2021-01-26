@@ -30,13 +30,18 @@ class SoundSourceActor(BaseThing):
             'theta': None
         }
         self.language = conf['lang']
+        self.range = 100 if 'range' not in conf else conf['range']
 
         # tf handling
         tf_package = {
             "type": "actor",
             "subtype": "sound_source",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "range": self.range,
+            "properties": {
+                'language': self.language
+            }
         }
 
         self.host = None

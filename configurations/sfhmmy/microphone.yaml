@@ -1,4 +1,4 @@
-pose: {x: 100, y: 100, theta: 0}
+pose: {x: 110, y: 100, theta: 0}
 name: microphone_X
 place: office
-mode: mock # mock, simulation, real
+mode: simulation # mock, simulation, real
