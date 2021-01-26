@@ -66,6 +66,8 @@ class CameraController(BaseThing):
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
+        self.range = 80 if 'range' not in conf else conf['range']
+        self.fov = 60 if 'fov' not in conf else conf['fov']
 
         # tf handling
         tf_package = {
@@ -77,7 +79,11 @@ class CameraController(BaseThing):
             },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
-            "name": self.name
+            "name": self.name,
+            "range": self.range,
+            "properties": {
+                "fov": self.fov
+            }
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'

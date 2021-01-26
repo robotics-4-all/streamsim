@@ -67,6 +67,8 @@ class EnvCameraController(BaseThing):
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
+        self.range = 80 if 'range' not in conf else conf['range']
+        self.fov = 60 if 'fov' not in conf else conf['fov']
 
         tf_package = {
             "type": "env",
@@ -77,7 +79,11 @@ class EnvCameraController(BaseThing):
             },
             "pose": self.pose,
             "base_topic": self.base_topic,
-            "name": self.name
+            "name": self.name,
+            "range": self.range,
+            "properties": {
+                "fov": self.fov
+            }
         }
 
         self.host = None
@@ -88,6 +94,17 @@ class EnvCameraController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
 
         package["tf_declare"].call(tf_package)
+
+        # The images
+        self.images = {
+            "barcodes": "barcode.jpg",
+            "humans": "faces.jpg",
+            "qrs": "qr_code.png",
+            "texts": "testocr.png",
+            "colors": "dog.jpg",
+            "empty": "empty.png",
+            "superman": "all.png"
+        }
 
         # Communication
         self.publisher = CommlibFactory.getPublisher(
@@ -121,6 +138,8 @@ class EnvCameraController(BaseThing):
                 image = cv2.resize(im, dsize=(width, height))
                 data = [int(d) for row in image for c in row for d in c]
                 data = base64.b64encode(bytes(data)).decode("ascii")
+            elif self.mode == "simulation":
+                pass
 
             # Publishing value:
             self.publisher.publish({

@@ -312,12 +312,13 @@ class TfController:
         # self.logger.info(f"Updated {pt_name}: {self.places_absolute[pt_name]} / {pan}")
 
         abs_pt_theta = self.places_relative[pt_name]['theta'] + pan + base_th
-        for i in self.tree[pt_name]:
-            if self.places_absolute[i]['theta'] != None:
-                self.places_absolute[i]['theta'] = \
-                    self.places_relative[i]['theta'] + \
-                    abs_pt_theta
-                # self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
+        if pt_name in self.tree: # if pan-tilt has anything on it
+            for i in self.tree[pt_name]:
+                if self.places_absolute[i]['theta'] != None:
+                    self.places_absolute[i]['theta'] = \
+                        self.places_relative[i]['theta'] + \
+                        abs_pt_theta
+                    # self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
 
     def pan_tilt_callback(self, message, meta):
         self.pantilts[message['name']]['pan'] = message['pan']
@@ -423,6 +424,42 @@ class TfController:
             }
         return None
 
+    def handle_affection_arced(self, name, f, type):
+        p_d = self.places_absolute[name]
+        p_f = self.places_absolute[f]
+        d = math.sqrt((p_d['x'] - p_f['x'])**2 + (p_d['y'] - p_f['y'])**2)
+        # print(p_d, p_f, d)
+        if d < self.declarations_info[name]['range']: # range of arced sensor
+            # Check if in specific arc
+            fov = self.declarations_info[name]["properties"]["fov"] / 180.0 * math.pi
+            min_a = p_d['theta'] - fov / 2
+            max_a = p_d['theta'] + fov / 2
+            f_ang = math.atan2(p_f['y'] - p_d['y'], p_f['x'] - p_d['x'])
+            # print(min_a, max_a, f_ang)
+            ok = False
+            ang = None
+            if min_a < f_ang and f_ang < max_a:
+                ok = True
+                ang = f_ang
+            elif min_a < (f_ang + 2 * math.pi) and (f_ang + 2 * math.pi) < max_a:
+                ok = True
+                ang = f_ang + 2 * math.pi
+            elif min_a < (f_ang - 2 * math.pi) and (f_ang - 2 * math.pi) < max_a:
+                ok = True
+                ang = f_ang + 2 * math.pi
+
+            if ok:
+                return {
+                    'type': type,
+                    'info': self.declarations_info[f]["properties"],
+                    'distance': d,
+                    'min_sensor_ang': min_a,
+                    'max_sensor_ang': max_a,
+                    'actor_ang': ang,
+                }
+
+        return None
+
     # Affected by thermostats and fires
     def handle_env_sensor_temperature(self, name):
         try:
@@ -517,6 +554,46 @@ class TfController:
 
         return ret
 
+    # Affected by barcode, color, human, qr, text
+    def handle_sensor_camera(self, name):
+        try:
+            ret = {}
+            pl = self.places_absolute[name]
+            x_y = [pl['x'], pl['y']]
+            th = pl['theta']
+
+            # - actor human
+            for f in self.per_type['actor']['human']:
+                r = self.handle_affection_arced(name, f, 'human')
+                if r != None:
+                    ret[f] = r
+            # - actor qr
+            for f in self.per_type['actor']['qr']:
+                r = self.handle_affection_arced(name, f, 'qr')
+                if r != None:
+                    ret[f] = r
+            # - actor barcode
+            for f in self.per_type['actor']['barcode']:
+                r = self.handle_affection_arced(name, f, 'barcode')
+                if r != None:
+                    ret[f] = r
+            # - actor color
+            for f in self.per_type['actor']['color']:
+                r = self.handle_affection_arced(name, f, 'color')
+                if r != None:
+                    ret[f] = r
+            # - actor text
+            for f in self.per_type['actor']['text']:
+                r = self.handle_affection_arced(name, f, 'text')
+                if r != None:
+                    ret[f] = r
+
+        except Exception as e:
+            self.logger.error(str(e))
+            raise Exception(str(e))
+
+        return ret
+
     def check_affectability(self, name):
         try:
             type = self.declarations_info[name]['type']
@@ -535,6 +612,8 @@ class TfController:
                     ret = self.handle_env_sensor_gas(name)
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)
+                if 'camera' in subt['subclass']:
+                    ret = self.handle_sensor_camera(name)
             elif type == "robot":
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)

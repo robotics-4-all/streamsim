@@ -80,13 +80,13 @@ actors:
   sound_sources:
     - {id: 4, x: 100, y: 100, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
   qrs:
-    - {id: 5, x: 320, y: 100, message: test}
+    - {id: 5, x: 100, y: 150, message: test}
   barcodes:
-    - {id: 6, x: 420, y: 100, message: EL3341}
+    - {id: 6, x: 80, y: 150, message: EL3341}
   colors:
-    - {id: 7, x: 410, y: 100, r: 0, g: 255, b: 0} # for dominant color
+    - {id: 7, x: 60, y: 130, r: 0, g: 255, b: 0} # for dominant color
   texts:
-    - {id: 8, x: 420, y: 100, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
+    - {id: 8, x: 140, y: 130, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
   rfid_tags:
     - {id: 10, x: 320, y: 100, message: test}
   fires:

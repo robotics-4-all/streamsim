@@ -15,7 +15,8 @@ try:
         broker = "redis",
         rpc_name = f"{sim_name}.tf.get_affections"
     )
-    print(cl.call({
+    import pprint
+    pprint.pprint(cl.call({
         'name': sys.argv[1]
     }))
 

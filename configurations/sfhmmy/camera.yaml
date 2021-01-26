@@ -2,7 +2,9 @@ pose: {x: 0, y: 0, theta: 90}
 place: office
 name: env_camera_1
 host: pan_tilt_X
-hz: 1
+hz: 0.5
 mode: mock # mock, simulation, real
 width: 640
 height: 480
+range: 80 # Optional - Default is 100
+fov: 60 # Degrees - optional - default is 60
