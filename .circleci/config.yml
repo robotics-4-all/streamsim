@@ -60,7 +60,7 @@ jobs:
           command: |
             sleep 2
             cd ./stream-sim-backend/bin/
-            sudo python3 main.py circleci_testing
+            sudo python3 main.py sfhmmy
           background: true
       - run:
           name: Setup results directories
