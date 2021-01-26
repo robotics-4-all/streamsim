@@ -167,7 +167,6 @@ class EnvMicrophoneController(BaseThing):
             ret["volume"] = 100
 
         elif self.info["mode"] == "simulation":
-            time.sleep(duration)
             # Ask tf for proximity sound sources or humans
             res = CommlibFactory.get_tf_affection.call({
                 'name': self.name

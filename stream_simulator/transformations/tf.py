@@ -529,8 +529,9 @@ class TfController:
                     ret = self.handle_env_sensor_gas(name)
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)
-            elif subt['class'] == "robot":
-                pass
+            elif type == "robot":
+                if 'microphone' in subt['subclass']:
+                    ret = self.handle_sensor_microphone(name)
         except Exception as e:
             raise Exception(f"Error in device handling: {str(e)}")
 
