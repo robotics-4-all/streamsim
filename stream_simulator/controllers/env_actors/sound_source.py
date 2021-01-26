@@ -30,6 +30,8 @@ class SoundSourceActor(BaseThing):
             'theta': None
         }
         self.language = conf['lang']
+        self.speech = conf['speech']
+        self.emotion = conf['emotion']
         self.range = 100 if 'range' not in conf else conf['range']
 
         # tf handling
@@ -40,7 +42,9 @@ class SoundSourceActor(BaseThing):
             "name": self.name,
             "range": self.range,
             "properties": {
-                'language': self.language
+                'language': self.language,
+                'speech': self.speech,
+                'emotion': self.emotion
             }
         }
 

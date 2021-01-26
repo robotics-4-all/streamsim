@@ -44,6 +44,12 @@ class TfController:
         )
         self.get_affectability_rpc_server.run()
 
+        self.get_sim_detection_rpc_server = CommlibFactory.getRPCService(
+            callback = self.get_sim_detection_callback,
+            rpc_name = self.base_topic + ".simulated_detection"
+        )
+        self.get_sim_detection_rpc_server.run()
+
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
             'host', 'host_type', 'properties'
@@ -536,3 +542,57 @@ class TfController:
             raise Exception(f"Error in device handling: {str(e)}")
 
         return ret
+
+    def get_sim_detection_callback(self, message, meta):
+        try:
+            name = message['name']
+            type = message['type']
+            decl = self.declarations_info[name]
+        except Exception as e:
+            raise Exception(f"{name} not in devices")
+
+        if decl['subtype']['subclass'][0] not in ['camera', 'microphone']:
+            return {
+                "result": False,
+                "info": "Wrong detection device. Not microphone nor camera."
+            }
+
+        decision = False
+        info = None
+        frm = None
+
+        if decl['subtype']['subclass'][0] == "microphone":
+            # possible types: sound, language, emotion, speech2text
+            ret = self.check_affectability(name)
+            if type == "sound":
+                decision = True
+                info = None
+                frm = ret
+            elif type == "language":
+                decision = True
+                for x in ret:
+                    info = ret[x]['info']['language'] # gets the last one
+                    frm = ret[x]
+            elif type == "emotion":
+                decision = True
+                for x in ret:
+                    info = ret[x]['info']['emotion'] # gets the last one
+                    frm = ret[x]
+            elif type == "speech2text":
+                decision = True
+                for x in ret:
+                    info = ret[x]['info']['speech'] # gets the last one
+                    frm = ret[x]
+                if info == "":
+                    decision = False
+            else:
+                self.logger.error(f"Wrong detection type: {type}")
+
+        else: # possible types: face, qr, barcode, gender, age, color, motion, emotion
+            pass
+
+        return {
+            "result": decision,
+            "info": info,
+            "frm": frm
+        }

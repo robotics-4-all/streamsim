@@ -74,11 +74,11 @@ env_devices:
 
 actors:
   humans:
-    - {id: 0, x: 120, y: 150, move: 0, sound: 1, lang: EN, range: 80}
+    - {id: 0, x: 120, y: 150, move: 0, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry}
   superman:
     - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
   sound_sources:
-    - {id: 4, x: 100, y: 100, lang: EN, range: 100} # lang for language detection | EL or EN
+    - {id: 4, x: 100, y: 100, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
   qrs:
     - {id: 5, x: 320, y: 100, message: test}
   barcodes:
