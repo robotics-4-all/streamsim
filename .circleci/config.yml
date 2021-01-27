@@ -77,8 +77,8 @@ jobs:
           name: Test tf
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v test_tf.py
-            rm ~/new_infrastructure/stream-sim-backend/tests/controllers/test_tf.py
+            pytest *tf* --junitxml=~/new_infrastructure/test-reports/junit.xml
+            rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*tf*
       - run:
           name: Test microphone
           command: |
