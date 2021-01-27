@@ -124,11 +124,8 @@ class MicrophoneController(BaseThing):
         import os
         from pathlib import Path
         dirname = Path(__file__).resolve().parent
-        print(dirname, os.listdir(dirname))
-
-        fil = str(dirname) + '/../../'
-        print(fil, os.listdir(fil))
-        self.logger.info("Reading sound from " + fil + path)
+        fil = str(dirname) + '/../../' + path
+        self.logger.info("Reading sound from " + fil)
         f = wave.open(fil, 'rb')
         channels = f.getnchannels()
         framerate = f.getframerate()

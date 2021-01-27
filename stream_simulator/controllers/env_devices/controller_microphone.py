@@ -215,8 +215,8 @@ class EnvMicrophoneController(BaseThing):
         import os
         from pathlib import Path
         dirname = Path(__file__).resolve().parent
-        fil = str(dirname) + '/../../'
-        self.logger.info("Reading sound from " + fil + path)
+        fil = str(dirname) + '/../../' + path
+        self.logger.info("Reading sound from " + fil)
         f = wave.open(fil, 'rb')
         channels = f.getnchannels()
         framerate = f.getframerate()
