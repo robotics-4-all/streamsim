@@ -123,6 +123,7 @@ class MicrophoneController(BaseThing):
         import wave
         import os
         dirname = os.path.dirname(__file__)
+        print(os.listdir())
 
         fil = dirname + '/../../resources/' + path
         self.logger.info("Reading sound from " + fil)
