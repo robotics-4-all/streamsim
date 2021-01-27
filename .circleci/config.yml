@@ -83,163 +83,163 @@ jobs:
           name: Test microphone
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *microphone*
+            pytest *microphone* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*microphone*
       - run:
           name: Test alarms
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *alarm*
+            pytest *alarm* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*alarm*
       - run:
           name: Test cameras
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *camera*
+            pytest *camera* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*camera*
       - run:
           name: Test ambient light
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *amb_light*
+            pytest *amb_light* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*amb_light*
       - run:
           name: Test distance
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *distance*
+            pytest *distance* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*distance*
       - run:
           name: Test gas
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *gas_sensor*
+            pytest *gas_sensor* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*gas_sensor*
       - run:
           name: Test humidity
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *humidity_sensor*
+            pytest *humidity_sensor* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*humidity_sensor*
       - run:
           name: Test humidifier
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *humidifier*
+            pytest *humidifier* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*humidifier*
       - run:
           name: Test light
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *light*
+            pytest *light* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*light*
       - run:
           name: Test pan-tilt
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *pan_tilt*
+            pytest *pan_tilt* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*pan_tilt*
       - run:
           name: Test pH
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *ph_sensor*
+            pytest *ph_sensor* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*ph_sensor*
       - run:
           name: Test relay
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *relay*
+            pytest *relay* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*relay*
       - run:
           name: Test speaker
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *speaker*
+            pytest *speaker* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*speaker*
       - run:
           name: Test temperature
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *temperature*
+            pytest *temperature* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*temperature*
       - run:
           name: Test thermostat
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *thermostat*
+            pytest *thermostat* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*thermostat*
       - run:
           name: Test button
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *button*
+            pytest *button* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*button*
       - run:
           name: Test encoder
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *encoder*
+            pytest *encoder* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*encoder*
       - run:
           name: Test env sensor
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *env_sensor*
+            pytest *env_sensor* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*env_sensor*
       - run:
           name: Test imu
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *imu*
+            pytest *imu* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*imu*
       - run:
           name: Test IR
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *ir_sensor*
+            pytest *ir_sensor* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*ir_sensor*
       - run:
           name: Test leds
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *leds*
+            pytest *leds* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*leds*
       - run:
           name: Test line follower
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *line_follower*
+            pytest *line_follower* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*line_follower*
       - run:
           name: Test motion
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *motion*
+            pytest *motion* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*motion*
       - run:
           name: Test sonar
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *sonar*
+            pytest *sonar* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*sonar*
       - run:
           name: Test tof
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *tof*
+            pytest *tof* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*tof*
       - run:
           name: Test touch screen
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *touch_screen*
+            pytest *touch_screen* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*touch_screen*
       - run:
           name: Test the reset if exist
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v
+            pytest --junitxml=~/new_infrastructure/test-reports/junit.xml
       - store_test_results:
           path: ~/new_infrastructure/test-reports/
       - store_artifacts:
