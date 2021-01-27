@@ -80,6 +80,12 @@ jobs:
             python3 -m unittest -v test_tf.py
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/test_tf.py
       - run:
+          name: Test microphone
+          command: |
+            cd ~/new_infrastructure/stream-sim-backend/tests/controllers
+            python3 -m unittest -v *microphone*
+            rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*microphone*
+      - run:
           name: Test alarms
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
@@ -121,12 +127,6 @@ jobs:
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
             python3 -m unittest -v *humidifier*
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*humidifier*
-      - run:
-          name: Test microphone
-          command: |
-            cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *microphone*
-            rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*microphone*
       - run:
           name: Test light
           command: |
