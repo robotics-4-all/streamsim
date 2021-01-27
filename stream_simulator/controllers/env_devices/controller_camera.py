@@ -102,8 +102,7 @@ class EnvCameraController(BaseThing):
             "qrs": "qr_code.png",
             "texts": "testocr.png",
             "colors": "dog.jpg",
-            "empty": "empty.png",
-            "superman": "all.png"
+            "empty": "empty.png"
         }
 
         # Communication
@@ -139,7 +138,23 @@ class EnvCameraController(BaseThing):
                 data = [int(d) for row in image for c in row for d in c]
                 data = base64.b64encode(bytes(data)).decode("ascii")
             elif self.mode == "simulation":
-                pass
+                # Ask tf for proximity sound sources or humans
+                res = CommlibFactory.get_tf_affection.call({
+                    'name': self.name
+                })
+                import pprint
+                pprint.pprint(res)
+                print('\n')
+
+                # Get the closest:
+                clos = None
+                clos_d = 100000.0
+                for x in res:
+                    if res[x]['distance'] < clos_d:
+                        clos = x
+                        clos_d = res[x]['distance']
+
+                print("cols", clos)
 
             # Publishing value:
             self.publisher.publish({
