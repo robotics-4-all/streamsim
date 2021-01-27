@@ -71,7 +71,7 @@ jobs:
           name: Test envs and devices
           command: |
             cd ~/new_infrastructure/stream-sim-backend/tests/controllers
-            python3 -m unittest -v *envs_and_devices*
+            pytest *envs_and_devices* --junitxml=~/new_infrastructure/test-reports/junit.xml
             rm ~/new_infrastructure/stream-sim-backend/tests/controllers/*envs_and_devices*
       - run:
           name: Test tf

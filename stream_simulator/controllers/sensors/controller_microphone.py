@@ -126,7 +126,7 @@ class MicrophoneController(BaseThing):
         dirname = Path(__file__).resolve().parent
         print(dirname, os.listdir(dirname))
 
-        fil = dirname + '/../../resources/'
+        fil = str(dirname) + '/../../resources/'
         print(fil, os.listdir(fil))
         self.logger.info("Reading sound from " + fil + path)
         f = wave.open(fil, 'rb')
