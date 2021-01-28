@@ -83,6 +83,7 @@ actors:
     - {id: 5, x: 100, y: 150, message: test}
   barcodes:
     - {id: 6, x: 80, y: 150, message: EL3341}
+    - {id: 60, x: 80, y: 60, message: EL3DD341}
   colors:
     - {id: 7, x: 60, y: 130, r: 0, g: 255, b: 0} # for dominant color
   texts:

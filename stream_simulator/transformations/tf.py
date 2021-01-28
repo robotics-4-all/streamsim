@@ -428,7 +428,7 @@ class TfController:
         p_d = self.places_absolute[name]
         p_f = self.places_absolute[f]
         d = math.sqrt((p_d['x'] - p_f['x'])**2 + (p_d['y'] - p_f['y'])**2)
-        # print(p_d, p_f, d)
+        # print(name, p_d, p_f, d)
         if d < self.declarations_info[name]['range']: # range of arced sensor
             # Check if in specific arc
             fov = self.declarations_info[name]["properties"]["fov"] / 180.0 * math.pi
@@ -617,6 +617,8 @@ class TfController:
             elif type == "robot":
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)
+                if 'camera' in subt['subclass']:
+                    ret = self.handle_sensor_camera(name)
         except Exception as e:
             raise Exception(f"Error in device handling: {str(e)}")
 

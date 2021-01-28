@@ -38,7 +38,12 @@ class ColorActor(BaseThing):
             "type": "actor",
             "subtype": "color",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "properties": {
+                'r': self.r,
+                'g': self.g,
+                'b': self.b
+            }
         }
 
         self.host = None

@@ -36,7 +36,10 @@ class QrActor(BaseThing):
             "type": "actor",
             "subtype": "qr",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "properties": {
+                "message": self.message
+            }
         }
 
         self.host = None

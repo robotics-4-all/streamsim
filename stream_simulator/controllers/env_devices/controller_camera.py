@@ -128,10 +128,10 @@ class EnvCameraController(BaseThing):
 
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
-
+            dirname = os.path.dirname(__file__) + "/../.."
             data = None
+
             if self.mode == "mock":
-                dirname = os.path.dirname(__file__) + "/../.."
                 im = cv2.imread(dirname + '/resources/all.png')
                 im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
                 image = cv2.resize(im, dsize=(width, height))
@@ -142,9 +142,9 @@ class EnvCameraController(BaseThing):
                 res = CommlibFactory.get_tf_affection.call({
                     'name': self.name
                 })
-                import pprint
-                pprint.pprint(res)
-                print('\n')
+                # import pprint
+                # pprint.pprint(res)
+                # print('\n')
 
                 # Get the closest:
                 clos = None
@@ -154,7 +154,67 @@ class EnvCameraController(BaseThing):
                         clos = x
                         clos_d = res[x]['distance']
 
-                print("cols", clos)
+                if clos == None:
+                    cl_type = None
+                else:
+                    cl_type = res[clos]['type']
+
+                if cl_type == None:
+                    img = "all.png"
+                elif cl_type == "human":
+                    img = random.choice(["face.jpg", "face_inverted.jpg"])
+
+                elif cl_type == "qr":
+                    import qrcode
+                    try:
+                        im = qrcode.make(res[clos]["info"]["message"])
+                    except Exception as e:
+                        self.logger.error(f"QR creator could not produce string: {res[clos]['info']['message']} or qrcode library is not installed: {str(e)}")
+                    im.save(dirname + "/resources/qr_tmp.png")
+                    img = "qr_tmp.png"
+
+                elif cl_type == "barcode":
+                    img = "barcode.jpg"
+
+                elif cl_type == 'color':
+                    import numpy as np
+                    img = 'col_tmp.png'
+                    tmp = np.zeros((height, width, 3), np.uint8)
+                    tmp[:] = (
+                        res[clos]['info']["b"],
+                        res[clos]['info']["g"],
+                        res[clos]['info']["r"]
+                    )
+                    cv2.imwrite(dirname + "/resources/" + img, tmp)
+
+                elif cl_type == "text":
+                    import numpy as np
+                    img = 'txt_temp.png'
+                    try:
+                        from PIL import Image, ImageDraw, ImageFont, ImageFilter
+                        im  =  Image.new ( "RGB", (width,height), (255, 255, 255) )
+                        draw  =  ImageDraw.Draw ( im )
+                        final_text = res[clos]['info']["text"]
+                        final_text = [final_text[i:i+30] for i in range(0, len(final_text), 30)]
+
+                        start_coord = 30
+                        for i in final_text:
+                            draw.text (
+                                (10, start_coord),
+                                i,
+                                font=ImageFont.truetype("DejaVuSans.ttf", 36),
+                                fill=(0,0,0)
+                            )
+                            start_coord += 40
+                        im.save(dirname + "/resources/" + img)
+                    except Exception as e:
+                        self.logger.error(f"CameraController: Error with text image generation: {str(e)}")
+
+                im = cv2.imread(dirname + '/resources/' + img)
+                im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+                image = cv2.resize(im, dsize=(width, height))
+                data = [int(d) for row in image for c in row for d in c]
+                data = base64.b64encode(bytes(data)).decode("ascii")
 
             # Publishing value:
             self.publisher.publish({

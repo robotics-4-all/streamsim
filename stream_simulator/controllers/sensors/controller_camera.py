@@ -279,119 +279,75 @@ class CameraController(BaseThing):
             self.logger.error("{}: Malformed message for image get: {} - {}".format(self.name, str(e.__class__), str(e)))
             return {}
 
+        dirname = os.path.dirname(__file__) + "/../.."
+
         if self.info["mode"] == "mock":
-            dirname = os.path.dirname(__file__) + "/../.."
             im = cv2.imread(dirname + '/resources/all.png')
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             image = cv2.resize(im, dsize=(width, height))
             data = [int(d) for row in image for c in row for d in c]
             data = base64.b64encode(bytes(data)).decode("ascii")
+
         elif self.info["mode"] == "simulation":
-            # Find actors in camera's view
-            x = self.robot_pose["x"]
-            y = self.robot_pose["y"]
-            th = self.robot_pose["theta"]
-            reso = self.robot_pose["resolution"]
+            # Ask tf for proximity sound sources or humans
+            res = CommlibFactory.get_tf_affection.call({
+                'name': self.name
+            })
+            # import pprint
+            # pprint.pprint(res)
+            # print('\n')
 
-            findings = {
-                "humans": [],
-                "qrs": [],
-                "barcodes": [],
-                "colors": [],
-                "texts": [],
-                "superman": []
-            }
-            closest = "empty"
-            closest_dist = 1000000000000
-            closest_full = None
+            # Get the closest:
+            clos = None
+            clos_d = 100000.0
+            for x in res:
+                if res[x]['distance'] < clos_d:
+                    clos = x
+                    clos_d = res[x]['distance']
 
-            for h in self.actors:
-                if h["type"] not in ["humans", "superman", "qrs", "barcodes", "colors", "texts"]:
-                    continue
+            if clos == None:
+                cl_type = None
+            else:
+                cl_type = res[clos]['type']
 
-                xx = h["x"] * reso
-                yy = h["y"] * reso
-                d = math.hypot(xx - x, yy - y)
-                self.logger.debug("dist to {}: {}".format(h["id"], d))
-                if d <= 2.0:
-                    # In range - check if in the same semi-plane
-                    xt = x + math.cos(th) * d
-                    yt = y + math.sin(th) * d
-                    thres = d * 1.4142
-                    self.logger.debug("\tThres to {}: {} / {}".format(h["id"], math.hypot(xt - xx, yt - yy), thres))
-                    if math.hypot(xt - xx, yt - yy) < thres:
-                        # We got a winner!
-                        findings[h["type"]].append(h)
-                        if d < closest_dist:
-                            closest = h["type"]
-                            closest_full = h
+            # print(self.name, cl_type)
 
-            for i in findings:
-                for j in findings[i]:
-                    self.logger.debug("Camera detected: " + str(j))
-            self.logger.debug("Closest detection: {}".format(closest))
-
-            img = self.images[closest]
-
-            dirname = os.path.dirname(__file__) + "/../.."
-
-            cl_f = closest_full
-            if closest == "empty":
-                cl_f = "empty"
-            CommlibFactory.derp_client.lset(
-                self.info["namespace"] + "." + self.info["device_name"] + ".detect.source",
-                [cl_f]
-            )
-            self.logger.debug(f"Derp me updated with {cl_f}")
-
-            # Special handle for humans
-            if closest == "humans":
-                if closest_full["move"] == 0:
-                    img = "face.jpg"
-                else:
-                    img = random.choice(["face.jpg", "face_inverted.jpg"])
-
-            # Special handle for superman
-            if closest == "superman":
+            if cl_type == None:
                 img = "all.png"
+            elif cl_type == "human":
+                img = random.choice(["face.jpg", "face_inverted.jpg"])
 
-            # Special handle for barcodes
-            if closest == "barcodes":
+            elif cl_type == "qr":
+                import qrcode
+                try:
+                    im = qrcode.make(res[clos]["info"]["message"])
+                except Exception as e:
+                    self.logger.error(f"QR creator could not produce string: {res[clos]['info']['message']} or qrcode library is not installed: {str(e)}")
+                im.save(dirname + "/resources/qr_tmp.png")
+                img = "qr_tmp.png"
+
+            elif cl_type == "barcode":
                 img = "barcode.jpg"
 
-            # Special handle for color
-            if closest == "colors":
+            elif cl_type == 'color':
                 import numpy as np
-                img = 'temp.png'
+                img = 'col_tmp.png'
                 tmp = np.zeros((height, width, 3), np.uint8)
                 tmp[:] = (
-                    closest_full["b"],
-                    closest_full["g"],
-                    closest_full["r"]
+                    res[clos]['info']["b"],
+                    res[clos]['info']["g"],
+                    res[clos]['info']["r"]
                 )
                 cv2.imwrite(dirname + "/resources/" + img, tmp)
 
-            # Special handle for qrs
-            if closest == "qrs":
-                import qrcode
-                try:
-                    im = qrcode.make(closest_full["message"])
-                    im.save(dirname + "/resources/temp.png")
-                    img = "temp.png"
-                except:
-                    self.logger.error(f"QR creator could not produce string: {closest_full['message']} or qrcode library is not installed")
-                    img = self.images[closest]
-
-            # Special handle for texts
-            if closest == "texts":
+            elif cl_type == "text":
                 import numpy as np
-                img = 'temp.png'
+                img = 'txt_temp.png'
                 try:
                     from PIL import Image, ImageDraw, ImageFont, ImageFilter
                     im  =  Image.new ( "RGB", (width,height), (255, 255, 255) )
                     draw  =  ImageDraw.Draw ( im )
-
-                    final_text = closest_full["text"]
+                    final_text = res[clos]['info']["text"]
                     final_text = [final_text[i:i+30] for i in range(0, len(final_text), 30)]
 
                     start_coord = 30
@@ -405,14 +361,14 @@ class CameraController(BaseThing):
                         start_coord += 40
                     im.save(dirname + "/resources/" + img)
                 except Exception as e:
-                    self.logger.error("CameraController: Error with text image generation")
-                    print(e)
+                    self.logger.error(f"CameraController: Error with text image generation: {str(e)}")
 
             im = cv2.imread(dirname + '/resources/' + img)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             image = cv2.resize(im, dsize=(width, height))
             data = [int(d) for row in image for c in row for d in c]
             data = base64.b64encode(bytes(data)).decode("ascii")
+
         else: # The real deal
             self.sensor.start()
             img = self.sensor.read(image_dims=(width, height))[-1].frame

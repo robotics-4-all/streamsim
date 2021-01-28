@@ -36,7 +36,10 @@ class TextActor(BaseThing):
             "type": "actor",
             "subtype": "text",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "properties": {
+                "text": self.text
+            }
         }
 
         self.host = None
