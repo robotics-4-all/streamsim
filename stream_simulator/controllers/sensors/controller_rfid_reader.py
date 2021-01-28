@@ -124,7 +124,6 @@ class RfidReaderController(BaseThing):
                         "message": res[t]['info']['message'],
                     })
 
-                print(tags)
             else: # The real deal
                 pass
 

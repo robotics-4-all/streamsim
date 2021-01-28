@@ -594,7 +594,7 @@ class TfController:
 
         return ret
 
-    # Affected by barcode, color, human, qr, text
+    # Affected by rfid_tags
     def handle_sensor_rfid_reader(self, name):
         try:
             ret = {}
@@ -607,6 +607,32 @@ class TfController:
                 r = self.handle_affection_arced(name, f, 'rfid_tag')
                 if r != None:
                     ret[f] = r
+
+        except Exception as e:
+            self.logger.error(str(e))
+            raise Exception(str(e))
+
+        return ret
+
+    # Affected by robots
+    def handle_area_alarm(self, name):
+        try:
+            ret = {}
+            pl = self.places_absolute[name]
+            xy = [pl['x'], pl['y']]
+            th = pl['theta']
+            range = self.declarations_info[name]['range']
+
+            # Check all robots if in there
+            for r in self.robots:
+                pl_aff = self.places_absolute[r]
+                xyt = [pl_aff['x'], pl_aff['y']]
+                d = math.sqrt((xy[0] - xyt[0])**2 + (xy[1] - xyt[1])**2)
+                if d < range:
+                    ret[r] = {
+                        "distance": d,
+                        "range": range
+                    }
 
         except Exception as e:
             self.logger.error(str(e))
@@ -634,6 +660,8 @@ class TfController:
                     ret = self.handle_sensor_microphone(name)
                 if 'camera' in subt['subclass']:
                     ret = self.handle_sensor_camera(name)
+                if 'area_alarm' in subt['subclass']:
+                    ret = self.handle_area_alarm(name)
             elif type == "robot":
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)

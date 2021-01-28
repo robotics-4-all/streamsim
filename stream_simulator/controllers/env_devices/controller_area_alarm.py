@@ -60,7 +60,7 @@ class EnvAreaAlarmController(BaseThing):
         self.mode = info["mode"]
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
-        self.radius = info["conf"]["radius"]
+        self.range = info["conf"]["range"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
         # tf handling
@@ -73,7 +73,8 @@ class EnvAreaAlarmController(BaseThing):
             },
             "pose": self.pose,
             "base_topic": self.base_topic,
-            "name": self.name
+            "name": self.name,
+            "range": self.range
         }
 
         self.host = None
@@ -107,14 +108,19 @@ class EnvAreaAlarmController(BaseThing):
 
     def sensor_read(self):
         self.logger.info(f"Sensor {self.name} read thread started")
-        prev = 0
+        prev = None
         triggers = 0
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
 
             val = None
             if self.mode == "mock":
-                val = random.randint(0, 1)
+                val = random.choice(None, ["robot_1"])
+            elif self.mode == "simulation":
+                res = CommlibFactory.get_tf_affection.call({
+                    'name': self.name
+                })
+                val = [x for x in res]
 
             # Publishing value:
             self.publisher.publish({
@@ -131,12 +137,13 @@ class EnvAreaAlarmController(BaseThing):
                 }]
             )
 
-            if prev == 0 and val == 1:
+            if prev == None and val != None:
                 triggers += 1
                 self.publisher_triggers.publish({
                     "value": triggers,
                     "timestamp": time.time()
                 })
+
             prev = val
 
     def enable_callback(self, message, meta):
