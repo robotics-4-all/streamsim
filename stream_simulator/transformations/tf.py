@@ -669,6 +669,61 @@ class TfController:
             else:
                 self.logger.error(f"Wrong detection type: {type}")
 
+        elif decl['subtype']['subclass'][0] == "camera":
+            # possible types: face, qr, barcode, gender, age, motion, color, emotion
+            ret = self.check_affectability(name)
+            print(ret)
+            if type == "face":
+                for x in ret:
+                    if ret[x]['type'] == 'human': # gets the last one
+                        decision = True
+                        info = "" # no info, just a face
+                        frm = ret[x]
+            elif type == "gender":
+                for x in ret:
+                    if ret[x]['type'] == 'human' and ret[x]['info']['gender'] != "none": # gets the last one
+                        decision = True
+                        info = ret[x]['info']['gender']
+                        frm = ret[x]
+            elif type == "age":
+                for x in ret:
+                    if ret[x]['type'] == 'human' and ret[x]['info']['age'] != -1: # gets the last one
+                        decision = True
+                        info = ret[x]['info']['age']
+                        frm = ret[x]
+            elif type == "emotion":
+                for x in ret:
+                    if ret[x]['type'] == 'human': # gets the last one
+                        decision = True
+                        info = ret[x]['info']['emotion']
+                        frm = ret[x]
+            elif type == "motion":
+                for x in ret:
+                    if ret[x]['type'] == 'human' and ret[x]['info']['motion'] == 1: # gets the last one
+                        decision = True
+                        info = ""
+                        frm = ret[x]
+            elif type == "qr":
+                for x in ret:
+                    if ret[x]['type'] == 'qr':
+                        decision = True
+                        info = ret[x]['info']['message']
+                        frm = ret[x]
+            elif type == "barcode":
+                for x in ret:
+                    if ret[x]['type'] == 'barcode':
+                        decision = True
+                        info = ret[x]['info']['message']
+                        frm = ret[x]
+            elif type == "color":
+                for x in ret:
+                    if ret[x]['type'] == 'color':
+                        decision = True
+                        info = ret[x]['info']
+                        frm = ret[x]
+            else:
+                self.logger.error(f"Wrong detection type: {type}")
+
         else: # possible types: face, qr, barcode, gender, age, color, motion, emotion
             pass
 

@@ -36,7 +36,10 @@ class BarcodeActor(BaseThing):
             "type": "actor",
             "subtype": "barcode",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "properties": {
+                "message": self.message
+            }
         }
 
         self.host = None

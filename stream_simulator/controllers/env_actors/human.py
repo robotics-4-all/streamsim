@@ -35,6 +35,8 @@ class HumanActor(BaseThing):
         self.range = 80 if 'range' not in conf else conf['range']
         self.speech = "" if 'speech' not in conf else conf['speech']
         self.emotion = "neutral" if 'emotion' not in conf else conf['emotion']
+        self.gender = "none" if 'gender' not in conf else conf['gender']
+        self.age = "-1" if 'age' not in conf else conf['age']
 
         # tf handling
         tf_package = {
@@ -48,7 +50,9 @@ class HumanActor(BaseThing):
                 'sound': self.sound,
                 'language': self.language,
                 'speech': self.speech,
-                'emotion': self.emotion
+                'emotion': self.emotion,
+                'gender': self.gender,
+                'age': self.age
             }
         }
 

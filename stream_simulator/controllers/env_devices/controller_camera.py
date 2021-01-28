@@ -159,6 +159,7 @@ class EnvCameraController(BaseThing):
                 else:
                     cl_type = res[clos]['type']
 
+                # types: qr, barcode, color, text, human
                 if cl_type == None:
                     img = "all.png"
                 elif cl_type == "human":
