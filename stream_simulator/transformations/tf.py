@@ -594,6 +594,26 @@ class TfController:
 
         return ret
 
+    # Affected by barcode, color, human, qr, text
+    def handle_sensor_rfid_reader(self, name):
+        try:
+            ret = {}
+            pl = self.places_absolute[name]
+            x_y = [pl['x'], pl['y']]
+            th = pl['theta']
+
+            # - actor human
+            for f in self.per_type['actor']['rfid_tag']:
+                r = self.handle_affection_arced(name, f, 'rfid_tag')
+                if r != None:
+                    ret[f] = r
+
+        except Exception as e:
+            self.logger.error(str(e))
+            raise Exception(str(e))
+
+        return ret
+
     def check_affectability(self, name):
         try:
             type = self.declarations_info[name]['type']
@@ -619,6 +639,8 @@ class TfController:
                     ret = self.handle_sensor_microphone(name)
                 if 'camera' in subt['subclass']:
                     ret = self.handle_sensor_camera(name)
+                if 'rfid_reader' in subt['subclass']:
+                    ret = self.handle_sensor_rfid_reader(name)
         except Exception as e:
             raise Exception(f"Error in device handling: {str(e)}")
 

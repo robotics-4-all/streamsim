@@ -44,7 +44,6 @@ class RfidReaderController(BaseThing):
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
-            "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
             "categorization": {
                 "host_type": "robot",
@@ -58,9 +57,10 @@ class RfidReaderController(BaseThing):
 
         self.info = info
         self.name = info["name"]
-        self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
+        self.range = 150 if 'range' not in conf else conf['range']
+        self.fov = 180 if 'fov' not in conf else conf['fov']
 
         # tf handling
         tf_package = {
@@ -72,7 +72,11 @@ class RfidReaderController(BaseThing):
             },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
-            "name": self.name
+            "name": self.name,
+            "range": self.range,
+            "properties": {
+                "fov": self.fov
+            }
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
@@ -107,14 +111,20 @@ class RfidReaderController(BaseThing):
                 if random.uniform(0, 10) < 3:
                     tags.append({
                         "id": "RF432423",
-                        "msg": "dsadada"
+                        "message": "lorem_ipsum"
                     })
             elif self.info["mode"] == "simulation":
-                if random.uniform(0, 10) < 3:
+                # Ask tf for proximity sound sources or humans
+                res = CommlibFactory.get_tf_affection.call({
+                    'name': self.name
+                })
+                for t in res:
                     tags.append({
-                        "id": "RF432423",
-                        "msg": "dsadada"
+                        "id": res[t]['info']['id'],
+                        "message": res[t]['info']['message'],
                     })
+
+                print(tags)
             else: # The real deal
                 pass
 

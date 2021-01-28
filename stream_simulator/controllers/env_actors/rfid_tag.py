@@ -30,13 +30,18 @@ class RfidTagActor(BaseThing):
             'theta': None
         }
         self.message = conf['message']
+        self.id = conf["id"]
 
         # tf handling
         tf_package = {
             "type": "actor",
             "subtype": "rfid_tag",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "properties": {
+                "message": self.message,
+                "id": self.id
+            }
         }
 
         self.host = None

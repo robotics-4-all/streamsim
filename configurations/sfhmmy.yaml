@@ -89,7 +89,8 @@ actors:
   texts:
     - {id: 8, x: 140, y: 130, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
   rfid_tags:
-    - {id: 10, x: 320, y: 100, message: test}
+    - {id: RF432423, x: 100, y: 100, message: test}
+    - {id: RF432425, x: 80, y: 100, message: test_2}
   fires:
     - {id: 11, x: 100, y: 100, temperature: 140, range: 100}
   waters:
