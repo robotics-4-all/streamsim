@@ -106,6 +106,10 @@ class EnvLinearAlarmController(BaseThing):
         )
 
     def sensor_read(self):
+        # wait for tf
+        while CommlibFactory.get_tf_affection == None:
+            time.sleep(0.1)
+
         self.logger.info(f"Sensor {self.name} read thread started")
         prev = 0
         triggers = 0
@@ -115,6 +119,8 @@ class EnvLinearAlarmController(BaseThing):
             val = None
             if self.mode == "mock":
                 val = random.randint(0, 1)
+            elif self.mode == "simulation":
+                print(self.pose)
 
             # Publishing value:
             self.publisher.publish({
