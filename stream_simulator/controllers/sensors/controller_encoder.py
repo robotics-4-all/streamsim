@@ -59,6 +59,13 @@ class EncoderController(BaseThing):
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
+        self.robot = _pack.split(".")[-1]
+        self.place = conf["place"]
+        self.motion_derpme_topic = None
+
+        self.wheel_radius = 0.02
+        self.linear_coeff = 1.0 / (2 * math.pi * self.wheel_radius)
+        self.angular_coeff = 3.0 # this should change
 
         # tf handling
         tf_package = {
@@ -108,7 +115,84 @@ class EncoderController(BaseThing):
             if self.info["mode"] == "mock":
                 self.data = float(random.uniform(1000,2000))
             elif self.info["mode"] == "simulation":
-                self.data = float(random.uniform(1000,2000))
+                time.sleep(1)
+                if self.motion_derpme_topic == None:
+                    rpc_cl = CommlibFactory.getRPCClient(
+                        rpc_name = f"robot.{self.robot}.nodes_detector.get_connected_devices"
+                    )
+                    res = None
+                    while res == None: # if server is unready
+                        res = rpc_cl.call({})
+                    for d in res['devices']:
+                        if d['type'] == "SKID_STEER":
+                            self.motion_derpme_topic = d['base_topic'] + '.raw'
+
+                # get the two last velocities
+                rl = CommlibFactory.derp_client.lget(
+                    self.motion_derpme_topic, 0, -1
+                )
+                self.data = 0
+                if len(rl['val']) == 0:
+                    pass
+                elif len(rl['val']) == 1:
+                    t = 0
+                    data = rl['val'][0]['data']
+                    # check timestamps:
+                    if rl['val'][0]['timestamp'] < time.time() - period:
+                        # the whole period had the velocity
+                        t = period
+                        # print("vel was", rl['val'][0]['data'], "for", period, "sec")
+                    else:
+                        t = time.time() - rl['val'][0]['timestamp']
+
+                    lin_factor = self.linear_coeff * t * data['linear']
+                    if "L" in self.place:
+                        rot_factor = - self.angular_coeff * t * data['angular']
+                    else:
+                        rot_factor = self.angular_coeff * t * data['angular']
+
+                    self.data = lin_factor + rot_factor
+                    # print("Case 1", t, lin_factor, rot_factor, self.data, self.name)
+
+                else:
+                    # check timestamps:
+                    if rl['val'][0]['timestamp'] < time.time() - period:
+                        # the whole period had the velocity
+                        t = period
+                        data = rl['val'][0]['data']
+                        lin_factor = self.linear_coeff * t * data['linear']
+                        if "L" in self.place:
+                            rot_factor = - self.angular_coeff * t * data['angular']
+                        else:
+                            rot_factor = self.angular_coeff * t * data['angular']
+                        self.data = lin_factor + rot_factor
+
+                        # print("Case 1", t, lin_factor, rot_factor, self.data, self.name)
+                    else:
+                        t = time.time() - rl['val'][0]['timestamp']
+                        data = rl['val'][0]['data']
+                        lin_factor = self.linear_coeff * t * data['linear']
+                        if "L" in self.place:
+                            rot_factor = - self.angular_coeff * t * data['angular']
+                        else:
+                            rot_factor = self.angular_coeff * t * data['angular']
+                        self.data = lin_factor + rot_factor
+                        # print("Case 3", t, lin_factor, rot_factor, self.data, self.name)
+
+                        # we must take the prev as well
+                        t_p = time.time() - rl['val'][1]['timestamp']
+                        if t_p > period:
+                            t_p = period - t
+                            data = rl['val'][1]['data']
+                            lin_factor = self.linear_coeff * t_p * data['linear']
+                            if "L" in self.place:
+                                rot_factor = - self.angular_coeff * t_p * data['angular']
+                            else:
+                                rot_factor = self.angular_coeff * t_p * data['angular']
+                            self.data += lin_factor + rot_factor
+
+                            # print("Case 3.2", t_p, lin_factor, rot_factor, self.data, self.name)
+
             else: # The real deal
                 self.data = self.sensor.read_rpm()
 
@@ -119,6 +203,7 @@ class EncoderController(BaseThing):
                 "rpm": self.data,
                 "timestamp": time.time()
             })
+            # print("storing", self.data, self.place)
 
             # Storing value:
             r = CommlibFactory.derp_client.lset(
