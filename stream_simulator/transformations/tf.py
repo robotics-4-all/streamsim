@@ -507,7 +507,7 @@ class TfController:
         return ret
 
     # Affected by humans, fire
-    def handle_env_sensor_gas(self, name):
+    def handle_env_sensor_gas(self, name, robot = None):
         try:
             ret = {}
             pl = self.places_absolute[name]
@@ -669,6 +669,15 @@ class TfController:
                     ret = self.handle_sensor_camera(name)
                 if 'rfid_reader' in subt['subclass']:
                     ret = self.handle_sensor_rfid_reader(name)
+                if 'temp_hum_pressure_gas' in subt['subclass']:
+                    ret1 = self.handle_env_sensor_temperature(name)
+                    ret2 = self.handle_env_sensor_humidity(name)
+                    ret3 = self.handle_env_sensor_gas(name)
+                    ret = {
+                        'temperature': ret1,
+                        'humidity': ret2,
+                        'gas': ret3
+                    }
         except Exception as e:
             raise Exception(f"Error in device handling: {str(e)}")
 

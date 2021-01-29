@@ -77,7 +77,7 @@ class Simulator:
                 self.robots.append(
                     Robot(
                         configuration = r,
-                        world = self.world.configuration,
+                        world = self.world,
                         map = self.world.map,
                         tick = self.tick
                     )

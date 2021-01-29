@@ -46,10 +46,6 @@ class EnvController(BaseThing):
             "namespace": package["namespace"],
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
-            "temperature": conf["sim_temperature"],
-            "humidity": conf["sim_humidity"],
-            "gas": conf["sim_air_quality"],
-            "pressure": conf["sim_pressure"],
             "categorization": {
                 "host_type": "robot",
                 "place": _pack.split(".")[-1],
@@ -65,6 +61,7 @@ class EnvController(BaseThing):
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
+        self.env_properties = package["env_properties"]
 
         # tf handling
         tf_package = {
@@ -116,6 +113,9 @@ class EnvController(BaseThing):
         )
 
     def sensor_read(self):
+        while CommlibFactory.get_tf_affection == None:
+            time.sleep(0.1)
+
         self.logger.info("Env {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
@@ -133,11 +133,17 @@ class EnvController(BaseThing):
                 val["gas"] = float(random.uniform(30, 10))
 
             elif self.info["mode"] == "simulation":
-                val["temperature"] = self.info["temperature"] + \
+                res = CommlibFactory.get_tf_affection.call({
+                    'name': self.name
+                })
+                # import pprint
+                # pprint.pprint(res)
+
+                val["temperature"] = self.env_properties["temperature"] + \
                     random.uniform(-3, 3)
-                val["pressure"] = self.info["pressure"] + random.uniform(-3, 3)
-                val["humidity"] = self.info["humidity"] + random.uniform(-3, 3)
-                val["gas"] = self.info["gas"] + random.uniform(-3, 3)
+                val["pressure"] = 27.3 + random.uniform(-3, 3)
+                val["humidity"] = self.env_properties["humidity"] + random.uniform(-3, 3)
+                val["gas"] = 3.6 + random.uniform(-3, 3)
             else: # The real deal
                 data = self.sensor.read()
 

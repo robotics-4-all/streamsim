@@ -110,6 +110,11 @@ class EnvAreaAlarmController(BaseThing):
         self.logger.info(f"Sensor {self.name} read thread started")
         prev = None
         triggers = 0
+
+        # wait for tf
+        while CommlibFactory.get_tf_affection == None:
+            time.sleep(0.1)
+
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
 

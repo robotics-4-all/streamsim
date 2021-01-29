@@ -61,6 +61,9 @@ class Robot:
                  map = None,
                  tick = 0.25):
 
+        self.env_properties = world.env_properties
+        world = world.configuration
+
         self.configuration = configuration
         self.logger = Logger(self.configuration["name"])
 
@@ -322,7 +325,8 @@ class Robot:
             "logger": self.logger,
             "map": self.map,
             "actors": actors,
-            'tf_declare': self.tf_declare_rpc
+            'tf_declare': self.tf_declare_rpc,
+            "env_properties": self.env_properties
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
