@@ -118,9 +118,12 @@ class EnvLinearAlarmController(BaseThing):
 
             val = None
             if self.mode == "mock":
-                val = random.randint(0, 1)
+                val = random.choice(None, "robot_1")
             elif self.mode == "simulation":
-                print(self.pose)
+                res = CommlibFactory.get_tf_affection.call({
+                    'name': self.name
+                })
+                val = [x for x in res]
 
             # Publishing value:
             self.publisher.publish({
@@ -136,7 +139,7 @@ class EnvLinearAlarmController(BaseThing):
                 }]
             )
 
-            if prev == 0 and val == 1:
+            if prev == False and val == True:
                 triggers += 1
                 self.publisher_triggers.publish({
                     "value": triggers,

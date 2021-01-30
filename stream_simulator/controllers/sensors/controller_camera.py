@@ -289,6 +289,8 @@ class CameraController(BaseThing):
             data = base64.b64encode(bytes(data)).decode("ascii")
 
         elif self.info["mode"] == "simulation":
+            while CommlibFactory.get_tf_affection == None:
+                time.sleep(0.1)
             # Ask tf for proximity sound sources or humans
             res = CommlibFactory.get_tf_affection.call({
                 'name': self.name

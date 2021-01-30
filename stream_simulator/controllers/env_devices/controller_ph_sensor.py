@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from stream_simulator.base_classes import BasicSensor
+from stream_simulator.connectivity import CommlibFactory
+import statistics
+import time
 
 class EnvPhSensorController(BasicSensor):
     def __init__(self, conf = None, package = None):
@@ -41,3 +44,6 @@ class EnvPhSensorController(BasicSensor):
             tf_package['host_type'] = 'pan_tilt'
 
         package["tf_declare"].call(tf_package)
+        # 
+        # while CommlibFactory.get_tf_affection == None:
+        #     time.sleep(0.1)

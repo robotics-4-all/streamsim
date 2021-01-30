@@ -133,6 +133,8 @@ class EnvController(BaseThing):
                 val["gas"] = float(random.uniform(30, 10))
 
             elif self.info["mode"] == "simulation":
+                while CommlibFactory.get_tf_affection == None:
+                    time.sleep(0.1)
                 res = CommlibFactory.get_tf_affection.call({
                     'name': self.name
                 })

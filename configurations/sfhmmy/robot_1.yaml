@@ -98,6 +98,6 @@ devices:
     -
       source: "sfhmmy/rfid_reader"
 starting_pose:
-  x: 60 # in pixels
-  y: 40 # in pixels
+  x: 50 # in pixels
+  y: 50 # in pixels
   theta: 45 # in degrees

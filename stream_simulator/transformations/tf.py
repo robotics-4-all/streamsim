@@ -19,6 +19,7 @@ class TfController:
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
         self.resolution = resolution
+        self.lin_alarms_robots = {}
 
         self.declare_rpc_server = CommlibFactory.getRPCService(
             callback = self.declare_callback,
@@ -400,10 +401,59 @@ class TfController:
             self.logger.error(f"Error in get affections callback: {str(e)}")
             return {}
 
+    def check_lines_orientation(self, p, q, r):
+        val = (float(q[1] - p[1]) * (r[0] - q[0])) - \
+            (float(q[0] - p[0]) * (r[1] - q[1]))
+        if (val > 0):
+            # Clockwise orientation
+            return 1
+        elif (val < 0):
+            # Counterclockwise orientation
+            return 2
+        else:
+            # Colinear orientation
+            return 0
+
+    def check_lines_on_segment(self, p, q, r):
+        if ( (q[0] <= max(p[0], r[0])) and (q[0] >= min(p[0], r[0])) and
+               (q[1] <= max(p[1], r[1])) and (q[1] >= min(p[1], r[1]))):
+            return True
+        return False
+
+    def check_lines_intersection(self, p1, q1, p2, q2):
+        # Find the 4 orientations required for
+        # the general and special cases
+        o1 = self.check_lines_orientation(p1, q1, p2)
+        o2 = self.check_lines_orientation(p1, q1, q2)
+        o3 = self.check_lines_orientation(p2, q2, p1)
+        o4 = self.check_lines_orientation(p2, q2, q1)
+        # General case
+        if ((o1 != o2) and (o3 != o4)):
+            return True
+        # Special Cases
+        # p1 , q1 and p2 are colinear and p2 lies on segment p1q1
+        if ((o1 == 0) and self.check_lines_on_segment(p1, p2, q1)):
+            return True
+        # p1 , q1 and q2 are colinear and q2 lies on segment p1q1
+        if ((o2 == 0) and self.check_lines_on_segment(p1, q2, q1)):
+            return True
+        # p2 , q2 and p1 are colinear and p1 lies on segment p2q2
+        if ((o3 == 0) and self.check_lines_on_segment(p2, p1, q2)):
+            return True
+        # p2 , q2 and q1 are colinear and q1 lies on segment p2q2
+        if ((o4 == 0) and self.check_lines_on_segment(p2, q1, q2)):
+            return True
+        # If none of the cases
+        return False
+
+    def calc_distance(self, p1, p2):
+        return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+
     def check_distance(self, xy, aff):
         pl_aff = self.places_absolute[aff]
         xyt = [pl_aff['x'], pl_aff['y']]
-        d = math.sqrt((xy[0] - xyt[0])**2 + (xy[1] - xyt[1])**2)
+        d = self.calc_distance(xy, xyt)
+        # d = math.sqrt((xy[0] - xyt[0])**2 + (xy[1] - xyt[1])**2)
         return {
             'distance': d,
             'properties': self.declarations_info[aff]["properties"]
@@ -640,6 +690,54 @@ class TfController:
 
         return ret
 
+    # Affected by robots
+    def handle_linear_alarm(self, name):
+        try:
+            lin_start = self.declarations_info[name]['pose']['start']
+            lin_end = self.declarations_info[name]['pose']['end']
+            sta = [
+                lin_start['x'] * self.resolution,
+                lin_start['y'] * self.resolution
+            ]
+            end = [
+                lin_end['x'] * self.resolution,
+                lin_end['y'] * self.resolution
+            ]
+            inter = self.calc_distance(sta, end)
+            ret = {}
+
+            # Check all robots
+            for r in self.robots:
+                pl_aff = self.places_absolute[r]
+                xyt = [pl_aff['x'], pl_aff['y']]
+
+                if r not in self.lin_alarms_robots:
+                    self.lin_alarms_robots[r] = {
+                        "prev": xyt,
+                        "curr": xyt
+                    }
+
+                self.lin_alarms_robots[r]["prev"] = \
+                    self.lin_alarms_robots[r]["curr"]
+
+                self.lin_alarms_robots[r]["curr"] = xyt
+
+                intersection = self.check_lines_intersection(sta, end, \
+                    self.lin_alarms_robots[r]["curr"],
+                    self.lin_alarms_robots[r]["prev"]
+                )
+                # print(sta, end, "||", self.lin_alarms_robots[r]["curr"], \
+                #     self.lin_alarms_robots[r]["prev"], "||", intersection)
+
+                if intersection == True:
+                    ret[r] = intersection
+
+        except Exception as e:
+            self.logger.error(str(e))
+            raise Exception(str(e))
+
+        return ret
+
     def check_affectability(self, name):
         try:
             type = self.declarations_info[name]['type']
@@ -662,6 +760,8 @@ class TfController:
                     ret = self.handle_sensor_camera(name)
                 if 'area_alarm' in subt['subclass']:
                     ret = self.handle_area_alarm(name)
+                if 'linear_alarm' in subt['subclass']:
+                    ret = self.handle_linear_alarm(name)
             elif type == "robot":
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)

@@ -107,6 +107,9 @@ class EnvAreaAlarmController(BaseThing):
         )
 
     def sensor_read(self):
+        while CommlibFactory.get_tf_affection == None:
+            time.sleep(0.1)
+
         self.logger.info(f"Sensor {self.name} read thread started")
         prev = None
         triggers = 0
@@ -126,7 +129,7 @@ class EnvAreaAlarmController(BaseThing):
                     'name': self.name
                 })
                 val = [x for x in res]
-
+                
             # Publishing value:
             self.publisher.publish({
                 "value": val,

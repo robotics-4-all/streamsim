@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import time
 from stream_simulator.base_classes import BasicSensor
 from stream_simulator.connectivity import CommlibFactory
 import statistics
@@ -47,6 +48,8 @@ class EnvTemperatureSensorController(BasicSensor):
         package["tf_declare"].call(tf_package)
 
     def get_simulation_value(self):
+        while CommlibFactory.get_tf_affection == None:
+            time.sleep(0.1)
         res = CommlibFactory.get_tf_affection.call({
             'name': self.name
         })
