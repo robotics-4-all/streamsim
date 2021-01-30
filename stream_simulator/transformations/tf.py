@@ -691,6 +691,33 @@ class TfController:
         return ret
 
     # Affected by robots
+    def handle_env_distance(self, name):
+        try:
+            ret = {}
+
+            pl = self.places_absolute[name]
+            xy = [pl['x'], pl['y']]
+            th = pl['theta']
+            range = self.declarations_info[name]['range']
+
+            # Check all robots if in there
+            for r in self.robots:
+                pl_aff = self.places_absolute[r]
+                xyt = [pl_aff['x'], pl_aff['y']]
+                d = math.sqrt((xy[0] - xyt[0])**2 + (xy[1] - xyt[1])**2)
+                if d < range:
+                    ret[r] = {
+                        "distance": d,
+                        "range": range
+                    }
+
+        except Exception as e:
+            self.logger.error(str(e))
+            raise Exception(str(e))
+
+        return ret
+
+    # Affected by robots
     def handle_linear_alarm(self, name):
         try:
             lin_start = self.declarations_info[name]['pose']['start']
@@ -762,6 +789,8 @@ class TfController:
                     ret = self.handle_area_alarm(name)
                 if 'linear_alarm' in subt['subclass']:
                     ret = self.handle_linear_alarm(name)
+                if 'sonar' in subt['subclass']:
+                    ret = self.handle_env_distance(name)
             elif type == "robot":
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)
@@ -770,13 +799,10 @@ class TfController:
                 if 'rfid_reader' in subt['subclass']:
                     ret = self.handle_sensor_rfid_reader(name)
                 if 'temp_hum_pressure_gas' in subt['subclass']:
-                    ret1 = self.handle_env_sensor_temperature(name)
-                    ret2 = self.handle_env_sensor_humidity(name)
-                    ret3 = self.handle_env_sensor_gas(name)
                     ret = {
-                        'temperature': ret1,
-                        'humidity': ret2,
-                        'gas': ret3
+                        'temperature': self.handle_env_sensor_temperature(name),
+                        'humidity': self.handle_env_sensor_humidity(name),
+                        'gas': self.handle_env_sensor_gas(name)
                     }
         except Exception as e:
             raise Exception(f"Error in device handling: {str(e)}")
