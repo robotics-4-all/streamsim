@@ -32,7 +32,7 @@ class IrController(BaseThing):
         info = {
             "type": "IR",
             "brand": "ir",
-            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
             "id": "id_" + str(id),

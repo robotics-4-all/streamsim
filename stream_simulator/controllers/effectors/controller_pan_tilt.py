@@ -34,7 +34,7 @@ class PanTiltController(BaseThing):
         info = {
             "type": "PAN_TILT",
             "brand": "pca9685",
-            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
             "id": id,

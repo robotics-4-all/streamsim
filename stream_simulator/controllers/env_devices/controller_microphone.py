@@ -41,7 +41,7 @@ class EnvMicrophoneController(BaseThing):
         id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}.{id}",
+            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
             "name": _name,
             "place": conf["place"],
             "enabled": True,
@@ -169,7 +169,7 @@ class EnvMicrophoneController(BaseThing):
         elif self.info["mode"] == "simulation":
             while CommlibFactory.get_tf_affection == None:
                 time.sleep(0.1)
-                
+
             # Ask tf for proximity sound sources or humans
             res = CommlibFactory.get_tf_affection.call({
                 'name': self.name

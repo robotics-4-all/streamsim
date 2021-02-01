@@ -34,7 +34,7 @@ class CytronLFController(BaseThing):
         info = {
             "type": "LINE_FOLLOWER",
             "brand": "line_follower",
-            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
             "id": id,

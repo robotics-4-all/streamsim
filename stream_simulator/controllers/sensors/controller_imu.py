@@ -34,7 +34,7 @@ class ImuController(BaseThing):
         info = {
             "type": "IMU",
             "brand": "icm_20948",
-            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
             "id": id,

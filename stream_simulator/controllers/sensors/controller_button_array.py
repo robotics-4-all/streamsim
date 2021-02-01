@@ -34,7 +34,7 @@ class ButtonArrayController(BaseThing):
         info = {
             "type": "BUTTON_ARRAY",
             "brand": "simple",
-            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": "button_array_" + str(id),
             "place": "UNKNOWN",
             "id": id,

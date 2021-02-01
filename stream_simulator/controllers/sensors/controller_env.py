@@ -34,7 +34,7 @@ class EnvController(BaseThing):
         info = {
             "type": "ENV",
             "brand": "bme680",
-            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
             "id": id,

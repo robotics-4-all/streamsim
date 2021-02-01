@@ -34,7 +34,7 @@ class TofController(BaseThing):
         info = {
             "type": "TOF",
             "brand": "vl53l1x",
-            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}.{id}",
+            "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": "tof_" + str(id),
             "place": conf["place"],
             "id": id,
