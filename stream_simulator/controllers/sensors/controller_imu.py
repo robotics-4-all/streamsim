@@ -62,6 +62,8 @@ class ImuController(BaseThing):
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
+        self.robot = _pack.split(".")[-1]
+        self.prev_robot_pose = None
 
         # tf handling
         tf_package = {
@@ -118,7 +120,14 @@ class ImuController(BaseThing):
         )
 
     def robot_pose_update(self, message, meta):
+        if self.prev_robot_pose == None:
+            self.prev_robot_pose = message
+            self.prev_robot_pose['timestamp'] = time.time()
+        else:
+            self.prev_robot_pose = self.robot_pose
+
         self.robot_pose = message
+        self.robot_pose['timestamp'] = time.time()
 
     def sensor_read(self):
         self.logger.info("IMU {} sensor read thread started".format(self.info["id"]))
@@ -145,24 +154,32 @@ class ImuController(BaseThing):
                 }
 
             elif self.info["mode"] == "simulation":
+                moving = 0
+                if time.time() - self.robot_pose['timestamp'] < 1.5:
+                    # this means the pose is old and the robot has stopped
+                    # print("moving")
+                    moving = 1
                 try:
                     val = {
                         "acceleration": {
-                            "x": random.uniform(0.3, -0.3),
-                            "y": random.uniform(0.3, -0.3),
-                            "z": random.uniform(0.3, -0.3)
+                            "x": random.uniform(0.03, -0.03) + moving * 0.1,
+                            "y": random.uniform(0.03, -0.03),
+                            "z": random.uniform(0.03, -0.03)
                         },
                         "gyroscope": {
-                            "yaw": random.uniform(0.3, -0.3),
-                            "pitch": random.uniform(0.3, -0.3),
-                            "roll": random.uniform(0.3, -0.3)
+                            "yaw": random.uniform(0.03, -0.03),
+                            "pitch": random.uniform(0.03, -0.03),
+                            "roll": random.uniform(0.03, -0.03)
                         },
                         "magnetometer": {
-                            "yaw": self.robot_pose["theta"] + random.uniform(0.3, -0.3),
-                            "pitch": random.uniform(0.3, -0.3),
-                            "roll": random.uniform(0.3, -0.3)
+                            "yaw": self.robot_pose["theta"] + random.uniform(0.03, -0.03),
+                            "pitch": random.uniform(0.03, -0.03),
+                            "roll": random.uniform(0.03, -0.03)
                         }
                     }
+                    # import pprint
+                    # pprint.pprint(val)
+                    # print("")
                 except:
                     self.logger.warning("Pose not got yet..")
             else: # The real deal
@@ -212,7 +229,6 @@ class ImuController(BaseThing):
             self.robot_pose_sub.run()
 
         if self.info["enabled"]:
-            self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("IMU {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
