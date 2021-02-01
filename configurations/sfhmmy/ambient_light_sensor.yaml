@@ -1,8 +1,8 @@
-pose: {x: 100, y: 100, theta: 0}
+pose: {x: 100, y: 150, theta: 0}
 name: ambient_light_X
 place: office
-hz: 3
-mode: mock # mock, simulation, real
+hz: 0.5
+mode: simulation # mock, simulation, real
 operation: sinus # constant, triangle, random, normal, sinus
 operation_parameters:
   constant:

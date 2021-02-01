@@ -380,7 +380,7 @@ class TfController:
             category = sub['category']
             self.per_type[type][category][subclass].append(d['name'])
 
-            if subclass in ["thermostat", "humidifier"]:
+            if subclass in ["thermostat", "humidifier", "leds"]:
                 self.effectors_get_rpcs[d['name']] = CommlibFactory.getRPCClient(
                     rpc_name = d['base_topic'] + ".get"
                 )
@@ -604,6 +604,30 @@ class TfController:
 
         return ret
 
+    # Affected by light, fire
+    def handle_env_light_sensor(self, name):
+        try:
+            ret = {}
+            pl = self.places_absolute[name]
+            x_y = [pl['x'], pl['y']]
+
+            # - env light
+            for f in self.per_type['env']['actuator']['leds']:
+                r = self.handle_affection_ranged(x_y, f, 'light')
+                if r != None:
+                    th_t = self.effectors_get_rpcs[f].call({})
+                    ret[f] = r
+            # - actor fire
+            for f in self.per_type['actor']['fire']:
+                r = self.handle_affection_ranged(x_y, f, 'fire')
+                if r != None:
+                    ret[f] = r
+        except Exception as e:
+            self.logger.error(str(e))
+            raise Exception(str(e))
+
+        return ret
+
     # Affected by barcode, color, human, qr, text
     def handle_sensor_camera(self, name):
         try:
@@ -791,6 +815,8 @@ class TfController:
                     ret = self.handle_linear_alarm(name)
                 if 'sonar' in subt['subclass']:
                     ret = self.handle_env_distance(name)
+                if 'light_sensor' in subt['subclass']:
+                    ret = self.handle_env_light_sensor(name)
             elif type == "robot":
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)

@@ -65,6 +65,7 @@ class EnvAmbientLightController(BaseThing):
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
+        self.env_properties = package["env"]
 
         tf_package = {
             "type": "env",
@@ -185,6 +186,13 @@ class EnvAmbientLightController(BaseThing):
                     self.prev += self.sinus_step
                 else:
                     self.logger.warning(f"Unsupported operation: {self.operation}")
+
+            elif self.mode == "simulation":
+                res = CommlibFactory.get_tf_affection.call({
+                    'name': self.name
+                })
+                # print(res)
+                env_lum = self.env_properties['luminosity']
 
             # Publishing value:
             self.publisher.publish({

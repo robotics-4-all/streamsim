@@ -94,6 +94,6 @@ actors:
     - {id: RF432423, x: 100, y: 100, message: test}
     - {id: RF432425, x: 80, y: 100, message: test_2}
   fires:
-    - {id: 11, x: 100, y: 100, temperature: 140, range: 100}
+    - {id: 11, x: 110, y: 100, temperature: 140, range: 100}
   waters:
     - {id: 12, x: 100, y: 100, range: 100}

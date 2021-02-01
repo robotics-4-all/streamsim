@@ -61,6 +61,7 @@ class EnvLightController(BaseThing):
             'b': 0,
             'a': 0
         }
+        self.range = info["conf"]["range"]
 
         # tf handling
         tf_package = {
@@ -72,7 +73,9 @@ class EnvLightController(BaseThing):
             },
             "pose": self.pose,
             "base_topic": self.base_topic,
-            "name": self.name
+            "name": self.name,
+            "range": self.range,
+            "properties": self.color
         }
 
         self.host = None
