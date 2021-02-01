@@ -64,6 +64,8 @@ class EnvDistanceController(BaseThing):
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
         self.map = package["map"]
+        self.resolution = package["resolution"]
+        self.max_range = info['conf']['max_range']
 
         # tf handling
         tf_package = {
@@ -121,6 +123,16 @@ class EnvDistanceController(BaseThing):
         else:
             self.prev = None
 
+    def robot_pose_callback(self, message, meta):
+        nm = message['name'].split(".")[-1]
+        if nm not in self.robots_poses:
+            self.robots_poses[nm] = {
+                'x': 0,
+                'y': 0
+            }
+        self.robots_poses[nm]['x'] = message['x'] / self.resolution
+        self.robots_poses[nm]['y'] = message['y'] / self.resolution
+
     def get_mode_callback(self, message, meta):
         return {
                 "mode": self.operation,
@@ -140,6 +152,25 @@ class EnvDistanceController(BaseThing):
         return {}
 
     def sensor_read(self):
+        while CommlibFactory.get_tf == None:
+            time.sleep(0.1)
+
+        # Get all devices and check pan-tilts exist
+        get_devices_rpc = CommlibFactory.getRPCClient(
+            rpc_name = "streamsim.get_device_groups"
+        )
+        res = get_devices_rpc.call({})
+        # create subscribers
+        self.robots_subscribers = {}
+        for r in res['robots']:
+            self.robots_subscribers[r] = CommlibFactory.getSubscriber(
+                topic = f"robot.{r}.pose", # get poses from all robots
+                callback = self.robot_pose_callback
+            )
+            self.robots_subscribers[r].run()
+
+        self.robots_poses = {}
+
         self.logger.info(f"Sensor {self.name} read thread started")
 
         # Operation parameters
@@ -184,22 +215,42 @@ class EnvDistanceController(BaseThing):
                     self.logger.warning(f"Unsupported operation: {self.operation}")
 
             elif self.mode == "simulation":
+
+
                 # Get pose of the sensor (in case it is on a pan-tilt)
-                pass
+                pp = CommlibFactory.get_tf.call({
+                    "name": self.name
+                })
+                xx = pp['x'] / self.resolution
+                yy = pp['y'] / self.resolution
+                th = pp['theta']
 
-                # ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
-                # d = 1
-                # originx = self.robot_pose["x"] / self.robot_pose["resolution"]
-                # originy = self.robot_pose["y"] / self.robot_pose["resolution"]
-                # tmpx = originx
-                # tmpy = originy
-                # limit = self.info["max_range"] / self.robot_pose["resolution"]
-                # while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
-                #     d += 1
-                #     tmpx = originx + d * math.cos(ths)
-                #     tmpy = originx + d * math.cos(ths)
-                # val = d * self.robot_pose["resolution"]
 
+
+                d = 1
+                tmpx = int(xx)
+                tmpy = int(yy)
+                limit = self.max_range / self.resolution
+                robot = False
+                while self.map[int(tmpx), int(tmpy)] == 0 and d < limit and robot == False:
+                    d += 1
+                    tmpx = xx + d * math.cos(th)
+                    tmpy = yy + d * math.sin(th)
+
+                    # Check robots atan2
+                    for r in self.robots_poses:
+                        dd = math.sqrt(
+                            math.pow(tmpy - self.robots_poses[r]['y'], 2) + \
+                            math.pow(tmpx - self.robots_poses[r]['x'], 2)
+                        )
+                        # print(dd, 0.5 / self.resolution)
+                        if dd < (0.5 / self.resolution):
+                            print(d * self.resolution)
+                            robot = True
+
+                val = d * self.resolution
+
+                # print(self.name, val)
             # Publishing value:
             self.publisher.publish({
                 "value": val,

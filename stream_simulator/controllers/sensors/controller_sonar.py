@@ -131,7 +131,7 @@ class SonarController(BaseThing):
                     while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
                         d += 1
                         tmpx = originx + d * math.cos(ths)
-                        tmpy = originx + d * math.cos(ths)
+                        tmpy = originy + d * math.sin(ths)
                     val = d * self.robot_pose["resolution"]
                 except:
                     self.logger.warning("Pose not got yet..")

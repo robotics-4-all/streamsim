@@ -1,8 +1,10 @@
-pose: {x: 100, y: 100, theta: 0}
+pose: {x: 0, y: 0, theta: 0}
 name: dist_X
 place: office
-hz: 3
-mode: mock # mock, simulation, real
+host: pan_tilt_dist_X
+hz: 1
+max_range: 10
+mode: simulation # mock, simulation, real
 operation: sinus # constant, triangle, random, normal, sinus
 operation_parameters:
   constant:

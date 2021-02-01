@@ -25,6 +25,7 @@ class CommlibFactory:
     derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
     notify = None
     get_tf_affection = None
+    get_tf = None
 
     stats = {
         'amqp': {

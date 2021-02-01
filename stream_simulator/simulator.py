@@ -196,6 +196,10 @@ class Simulator:
         CommlibFactory.get_tf_affection = CommlibFactory.getRPCClient(
             rpc_name = f"{self.name}.tf.get_affections"
         )
+        # Setup tf channel
+        CommlibFactory.get_tf = CommlibFactory.getRPCClient(
+            rpc_name = f"{self.name}.tf.get_tf"
+        )
 
         # Communications report
         self.logger.info("Communications report:")
