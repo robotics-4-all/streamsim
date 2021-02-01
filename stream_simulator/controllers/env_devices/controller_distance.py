@@ -63,6 +63,7 @@ class EnvDistanceController(BaseThing):
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
+        self.map = package["map"]
 
         # tf handling
         tf_package = {
@@ -181,6 +182,23 @@ class EnvDistanceController(BaseThing):
                     self.prev += self.sinus_step
                 else:
                     self.logger.warning(f"Unsupported operation: {self.operation}")
+
+            elif self.mode == "simulation":
+                # Get pose of the sensor (in case it is on a pan-tilt)
+                pass
+
+                # ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
+                # d = 1
+                # originx = self.robot_pose["x"] / self.robot_pose["resolution"]
+                # originy = self.robot_pose["y"] / self.robot_pose["resolution"]
+                # tmpx = originx
+                # tmpy = originy
+                # limit = self.info["max_range"] / self.robot_pose["resolution"]
+                # while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
+                #     d += 1
+                #     tmpx = originx + d * math.cos(ths)
+                #     tmpy = originx + d * math.cos(ths)
+                # val = d * self.robot_pose["resolution"]
 
             # Publishing value:
             self.publisher.publish({

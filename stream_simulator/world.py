@@ -121,7 +121,8 @@ class World:
             "base": "world",
             "logger": None,
             'tf_declare': self.tf_declare_rpc,
-            'env': self.env_properties
+            'env': self.env_properties,
+            "map": self.map
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
