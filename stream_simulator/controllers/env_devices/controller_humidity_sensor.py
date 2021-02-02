@@ -54,6 +54,13 @@ class EnvHumiditySensorController(BasicSensor):
         res = CommlibFactory.get_tf_affection.call({
             'name': self.name
         })
+        print(res)
+
+        # W>A:
+        #  H>W: H-
+        #  H<W: W-
+        # W<A:
+
         # Logic
         vals = [self.env_properties['humidity']]
         for a in res:
