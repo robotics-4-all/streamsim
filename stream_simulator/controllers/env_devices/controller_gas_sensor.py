@@ -53,9 +53,18 @@ class EnvGasSensorController(BasicSensor):
         res = CommlibFactory.get_tf_affection.call({
             'name': self.name
         })
-        # Logic
-        vals = []
-        for a in res:
-            vals.append(res[a])
 
-        return 0.5
+        # humans max: 1000 ppm each
+        # fires max: 5000 ppm
+
+        ppm = 400 # typical environmental
+
+        # Logic
+        for a in res:
+            rel_range = res[a]['distance'] / res[a]['range']
+            if res[a]['type'] == 'human':
+                ppm += 1000.0 * rel_range
+            elif res[a]['type'] == 'fire':
+                ppm += 5000.0 * rel_range
+
+        return ppm
