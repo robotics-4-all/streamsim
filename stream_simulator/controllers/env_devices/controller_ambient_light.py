@@ -191,12 +191,31 @@ class EnvAmbientLightController(BaseThing):
                 res = CommlibFactory.get_tf_affection.call({
                     'name': self.name
                 })
+                # import pprint
+                # pprint.pprint(res)
+                # print("\n")
                 # print(res)
-                env_lum = self.env_properties['luminosity']
+                lum = self.env_properties['luminosity']
+                add_lum = 0
+                for a in res:
+                    rel_range = res[a]['distance'] / res[a]['range']
+                    if res[a]['type'] == 'fire':
+                        # assumed 100% luminosity there
+                        add_lum += 100 * rel_range
+                    elif res[a]['type'] == "light":
+                        add_lum += rel_range * res[a]['info']['luminosity']
+
+                if add_lum < lum:
+                    lum = add_lum * 0.1 + lum
+                else:
+                    lum = lum * 0.1 + add_lum
+
+                if lum > 100:
+                    lum = 100
 
             # Publishing value:
             self.publisher.publish({
-                "value": val,
+                "value": lum,
                 "timestamp": time.time()
             })
 

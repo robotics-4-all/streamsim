@@ -55,11 +55,12 @@ class EnvLightController(BaseThing):
         self.name = info["name"]
         self.base_topic = info["base_topic"]
         self.place = info["conf"]["place"]
+        self.luminosity = info['conf']['luminosity']
         self.color = {
-            'r': 0,
-            'g': 0,
-            'b': 0,
-            'a': 0
+            'r': 255,
+            'g': 255,
+            'b': 255,
+            'a': self.luminosity * 255.0 / 100
         }
         self.range = info["conf"]["range"]
 
@@ -75,7 +76,10 @@ class EnvLightController(BaseThing):
             "base_topic": self.base_topic,
             "name": self.name,
             "range": self.range,
-            "properties": self.color
+            "properties": {
+                "color": self.color,
+                "luminosity": self.luminosity
+            }
         }
 
         self.host = None
@@ -123,13 +127,22 @@ class EnvLightController(BaseThing):
         return {"enabled": False}
 
     def get_callback(self, message, meta):
-        return {"color": self.color}
+        return {
+            "color": self.color,
+            "luminosity": self.luminosity
+        }
 
     def set_callback(self, message, meta):
-        self.color['r'] = message["r"]
-        self.color['g'] = message["g"]
-        self.color['b'] = message["b"]
-        self.color['a'] = message["a"]
+        if "r" in message:
+            self.color['r'] = message["r"]
+        if "g" in message:
+            self.color['g'] = message["g"]
+        if "b" in message:
+            self.color['b'] = message["b"]
+        if "luminosity" in message:
+            self.luminosity = message["luminosity"]
+            self.color['a'] = self.luminosity * 255.0 / 100.0
+
         return {}
 
     def start(self):
