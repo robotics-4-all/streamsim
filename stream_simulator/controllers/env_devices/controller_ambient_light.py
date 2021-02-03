@@ -198,7 +198,7 @@ class EnvAmbientLightController(BaseThing):
                 lum = self.env_properties['luminosity']
                 add_lum = 0
                 for a in res:
-                    rel_range = res[a]['distance'] / res[a]['range']
+                    rel_range = (1 - res[a]['distance'] / res[a]['range'])
                     if res[a]['type'] == 'fire':
                         # assumed 100% luminosity there
                         add_lum += 100 * rel_range

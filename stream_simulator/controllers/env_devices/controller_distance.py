@@ -53,6 +53,8 @@ class EnvDistanceController(BaseThing):
             }
         }
 
+        self.robots_poses = {}
+
         self.info = info
         self.name = info["name"]
         self.base_topic = info["base_topic"]
@@ -168,8 +170,6 @@ class EnvDistanceController(BaseThing):
                 callback = self.robot_pose_callback
             )
             self.robots_subscribers[r].run()
-
-        self.robots_poses = {}
 
         self.logger.info(f"Sensor {self.name} read thread started")
 

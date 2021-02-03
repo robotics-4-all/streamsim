@@ -138,7 +138,7 @@ class EnvController(BaseThing):
                 res = CommlibFactory.get_tf_affection.call({
                     'name': self.name
                 })
-                
+
                 import statistics
                 gas_aff = res["gas"]
                 hum_aff = res["humidity"]
@@ -150,20 +150,23 @@ class EnvController(BaseThing):
                 for a in tem_aff:
                     r = (1 - tem_aff[a]['distance'] / tem_aff[a]['range']) * tem_aff[a]['info']['temperature']
                     temps.append(r)
-                val["temperature"] = amb + statistics.mean(temps)
+                val["temperature"] = amb
+                if len(temps) != 0:
+                    val["temperature"] = amb + statistics.mean(temps)
 
                 # humidity
                 ambient = self.env_properties['humidity']
                 if len(hum_aff) == 0:
-                    val["humidity"] = ambient + random.randrange(-0.5, 0.5)
+                    val["humidity"] = ambient + random.uniform(-0.5, 0.5)
                 vs = []
                 for a in hum_aff:
                     vs.append((1 - hum_aff[a]['distance'] / hum_aff[a]['range']) * hum_aff[a]['info']['humidity'])
-                affections = statistics.mean(vs)
-                if ambient > affections:
-                    ambient += affections * 0.1
-                else:
-                    ambient = affections - (affections - ambient) * 0.1
+                if len(vs) > 0:
+                    affections = statistics.mean(vs)
+                    if ambient > affections:
+                        ambient += affections * 0.1
+                    else:
+                        ambient = affections - (affections - ambient) * 0.1
                 val["humidity"] = ambient
 
                 # gas

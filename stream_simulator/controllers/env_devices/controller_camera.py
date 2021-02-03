@@ -69,6 +69,7 @@ class EnvCameraController(BaseThing):
         self.derp_data_key = info["base_topic"] + ".raw"
         self.range = 80 if 'range' not in conf else conf['range']
         self.fov = 60 if 'fov' not in conf else conf['fov']
+        self.env_properties = package['env']
 
         tf_package = {
             "type": "env",
@@ -82,7 +83,8 @@ class EnvCameraController(BaseThing):
             "name": self.name,
             "range": self.range,
             "properties": {
-                "fov": self.fov
+                "fov": self.fov,
+                'ambient_luminosity': self.env_properties['luminosity']
             }
         }
 

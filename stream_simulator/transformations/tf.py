@@ -898,6 +898,31 @@ class TfController:
         elif decl['subtype']['subclass'][0] == "camera":
             # possible types: face, qr, barcode, gender, age, motion, color, emotion
             ret = self.check_affectability(name)
+
+            # experimental
+            amb_luminosity = self.declarations_info[name]['properties']['ambient_luminosity']
+            res = self.handle_env_light_sensor(name) # just to get the sources
+
+            lum = amb_luminosity
+            add_lum = 0
+            for a in res:
+                rel_range = (1 - res[a]['distance'] / res[a]['range'])
+                if res[a]['type'] == 'fire':
+                    # assumed 100% luminosity there
+                    add_lum += 100 * rel_range
+                elif res[a]['type'] == "light":
+                    add_lum += rel_range * res[a]['info']['luminosity']
+
+            if add_lum < lum:
+                lum = add_lum * 0.1 + lum
+            else:
+                lum = lum * 0.1 + add_lum
+
+            if lum > 100:
+                lum = 100
+
+            lum = lum / 100.0
+
             if type == "face":
                 for x in ret:
                     if ret[x]['type'] == 'human': # gets the last one
@@ -948,6 +973,13 @@ class TfController:
                         frm = ret[x]
             else:
                 self.logger.error(f"Wrong detection type: {type}")
+
+
+            if decision == True:
+                roulette = random.uniform(0, 1)
+                if math.pow(roulette, 2) > lum:
+                    self.logger.warning("Camera detection: too dark")
+                    decision = False
 
         else: # possible types: face, qr, barcode, gender, age, color, motion, emotion
             pass
