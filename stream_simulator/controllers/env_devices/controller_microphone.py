@@ -105,6 +105,10 @@ class EnvMicrophoneController(BaseThing):
             rpc_name = self.base_topic + ".disable"
         )
 
+        self.record_pub = CommlibFactory.getPublisher(
+            topic = self.base_topic + ".record.notify"
+        )
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
 
@@ -149,6 +153,10 @@ class EnvMicrophoneController(BaseThing):
             duration = goalh.data["duration"]
         except Exception as e:
             self.logger.error("{} goal had no duration as parameter".format(self.name))
+
+        self.record_pub.publish({
+            "duration": duration
+        })
 
         ret = {
             'timestamp': time.time()

@@ -118,6 +118,10 @@ class MicrophoneController(BaseThing):
             rpc_name = info["base_topic"] + ".disable"
         )
 
+        self.record_pub = CommlibFactory.getPublisher(
+            topic = info["base_topic"] + ".record.notify"
+        )
+
     def load_wav(self, path):
         # Read from file
         import wave
@@ -155,6 +159,10 @@ class MicrophoneController(BaseThing):
             duration = goalh.data["duration"]
         except Exception as e:
             self.logger.error("{} goal had no duration as parameter".format(self.name))
+
+        self.record_pub.publish({
+            "duration": duration
+        })
 
         timestamp = time.time()
         secs = int(timestamp)
