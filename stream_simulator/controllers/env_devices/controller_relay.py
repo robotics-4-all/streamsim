@@ -101,6 +101,11 @@ class EnvRelayController(BaseThing):
             rpc_name = info["base_topic"] + ".get"
         )
 
+        self.publisher = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = info["base_topic"] + ".data"
+        )
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
 
@@ -123,6 +128,7 @@ class EnvRelayController(BaseThing):
         if state not in self.allowed_states:
             raise Exception(f"Relay {self.name} does not allow {state} state")
 
+        self.publisher.publish(message)
         self.state = state
         return {"state": self.state}
 

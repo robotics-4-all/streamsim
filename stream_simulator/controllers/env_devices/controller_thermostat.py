@@ -102,6 +102,11 @@ class EnvThermostatController(BaseThing):
             rpc_name = info["base_topic"] + ".get"
         )
 
+        self.publisher = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = info["base_topic"] + ".data"
+        )
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
 
@@ -121,6 +126,7 @@ class EnvThermostatController(BaseThing):
 
     def set_callback(self, message, meta):
         self.temperature = message["temperature"]
+        self.publisher.publish(message)
         return {}
 
     def start(self):

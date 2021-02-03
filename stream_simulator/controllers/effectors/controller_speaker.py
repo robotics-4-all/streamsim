@@ -130,6 +130,13 @@ class SpeakerController(BaseThing):
             rpc_name = info["base_topic"] + ".disable"
         )
 
+        self.play_pub = CommlibFactory.getPublisher(
+            topic = info["base_topic"] + ".play.notify"
+        )
+        self.speak_pub = CommlibFactory.getPublisher(
+            topic = info["base_topic"] + ".speak.notify"
+        )
+
         # Try to get global volume:
         res = CommlibFactory.derp_client.get(
             "device.global_volume.persistent",
@@ -159,6 +166,12 @@ class SpeakerController(BaseThing):
             language = goalh.data["language"]
         except Exception as e:
             self.logger.error("{} wrong parameters: {}".format(self.name, ))
+
+        self.speak_pub.publish({
+            "text": texts,
+            "volume": volume,
+            "language": language
+        })
 
         timestamp = time.time()
         secs = int(timestamp)
@@ -261,6 +274,11 @@ class SpeakerController(BaseThing):
                 self.logger.info(f"{Fore.MAGENTA}Volume forced to {self.global_volume}{Style.RESET_ALL}")
         except Exception as e:
             self.logger.error("{} wrong parameters: {}".format(self.name, ))
+
+        self.play_pub.publish({
+            "text": string,
+            "volume": volume
+        })
 
         timestamp = time.time()
         secs = int(timestamp)

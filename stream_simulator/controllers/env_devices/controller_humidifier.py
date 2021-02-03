@@ -102,6 +102,11 @@ class EnvHumidifierController(BaseThing):
             rpc_name = info["base_topic"] + ".get"
         )
 
+        self.publisher = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = info["base_topic"] + ".data"
+        )
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
 
@@ -121,6 +126,9 @@ class EnvHumidifierController(BaseThing):
 
     def set_callback(self, message, meta):
         self.humidity = message["humidity"]
+        self.publisher.publish({
+            "humidity": self.humidity
+        })
         return {}
 
     def start(self):

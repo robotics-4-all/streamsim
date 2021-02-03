@@ -110,6 +110,12 @@ class EnvSpeakerController(BaseThing):
             rpc_name = self.base_topic + ".disable"
         )
 
+        self.play_pub = CommlibFactory.getPublisher(
+            topic = info["base_topic"] + ".play.notify"
+        )
+        self.speak_pub = CommlibFactory.getPublisher(
+            topic = info["base_topic"] + ".speak.notify"
+        )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -162,6 +168,11 @@ class EnvSpeakerController(BaseThing):
         except Exception as e:
             self.logger.error("{} wrong parameters: {}".format(self.name, ))
 
+        self.play_pub.publish({
+            "text": string,
+            "volume": volume
+        })
+
         if self.info["mode"] in ["mock", "simulation"]:
             now = time.time()
             self.logger.info("Playing...")
@@ -196,6 +207,12 @@ class EnvSpeakerController(BaseThing):
             language = goalh.data["language"]
         except Exception as e:
             self.logger.error("{} wrong parameters: {}".format(self.name, ))
+
+        self.speak_pub.publish({
+            "text": texts,
+            "volume": volume,
+            "language": language
+        })
 
         if self.info["mode"] in ["mock", "simulation"]:
             now = time.time()

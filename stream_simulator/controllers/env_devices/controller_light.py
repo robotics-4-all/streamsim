@@ -112,6 +112,11 @@ class EnvLightController(BaseThing):
             rpc_name = info["base_topic"] + ".get"
         )
 
+        self.publisher = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = info["base_topic"] + ".data"
+        )
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
 
@@ -142,6 +147,8 @@ class EnvLightController(BaseThing):
         if "luminosity" in message:
             self.luminosity = message["luminosity"]
             self.color['a'] = self.luminosity * 255.0 / 100.0
+
+        self.publisher.publish(message)
 
         return {}
 

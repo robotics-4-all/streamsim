@@ -96,7 +96,7 @@ class LedsController(BaseThing):
         )
         self.leds_wipe_pub = CommlibFactory.getPublisher(
             broker = "redis",
-            topic = self.info['device_name'] + ".leds.wipe"
+            topic = self.base_topic + ".wipe"
         )
         #############################################
 
@@ -194,7 +194,13 @@ class LedsController(BaseThing):
             else: # The real deal
                 self.led_strip.write([self._color], wipe=True)
 
-            self.leds_wipe_pub.publish({"r": r, "g": g, "b": b})
+            self.leds_wipe_pub.publish({
+                "r": r,
+                "g": g,
+                "b": b,
+                "intensity": intensity,
+                "ms": ms
+            })
 
             # Storing value:
             r = CommlibFactory.derp_client.lset(
