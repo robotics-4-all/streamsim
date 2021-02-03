@@ -96,4 +96,4 @@ actors:
   fires:
     - {id: 11, x: 110, y: 100, temperature: 140, range: 100}
   waters:
-    - {id: 12, x: 100, y: 100, range: 100}
+    - {id: 12, x: 160, y: 100, range: 100}

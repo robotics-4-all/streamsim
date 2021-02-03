@@ -54,17 +54,19 @@ class EnvHumiditySensorController(BasicSensor):
         res = CommlibFactory.get_tf_affection.call({
             'name': self.name
         })
-        print(res)
 
-        # W>A:
-        #  H>W: H-
-        #  H<W: W-
-        # W<A:
+        ambient = self.env_properties['humidity']
+        if len(res) == 0:
+            return ambient + random.randrange(-0.5, 0.5)
 
-        # Logic
-        vals = [self.env_properties['humidity']]
+        vs = []
         for a in res:
-            r = res[a]['distance'] / res[a]['range'] * res[a]['info']['humidity']
-            vals.append(r)
+            vs.append((1 - res[a]['distance'] / res[a]['range']) * res[a]['info']['humidity'])
+        affections = statistics.mean(vs)
 
-        return statistics.mean(vals)
+        if ambient > affections:
+            ambient += affections * 0.1
+        else:
+            ambient = affections - (affections - ambient) * 0.1
+
+        return ambient

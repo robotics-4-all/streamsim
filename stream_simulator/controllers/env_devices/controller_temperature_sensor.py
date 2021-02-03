@@ -54,9 +54,11 @@ class EnvTemperatureSensorController(BasicSensor):
             'name': self.name
         })
         # Logic
-        temps = [self.env_properties['temperature']]
+        amb = self.env_properties['temperature']
+        temps = []
         for a in res:
-            r = res[a]['distance'] / res[a]['range'] * res[a]['info']['temperature']
+            r = (1 - res[a]['distance'] / res[a]['range']) * res[a]['info']['temperature']
             temps.append(r)
 
-        return statistics.mean(temps)
+        final = amb + statistics.mean(temps)
+        return final

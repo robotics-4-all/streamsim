@@ -138,14 +138,46 @@ class EnvController(BaseThing):
                 res = CommlibFactory.get_tf_affection.call({
                     'name': self.name
                 })
-                # import pprint
-                # pprint.pprint(res)
+                
+                import statistics
+                gas_aff = res["gas"]
+                hum_aff = res["humidity"]
+                tem_aff = res["temperature"]
 
-                val["temperature"] = self.env_properties["temperature"] + \
-                    random.uniform(-3, 3)
+                # temperature
+                amb = self.env_properties['temperature']
+                temps = []
+                for a in tem_aff:
+                    r = (1 - tem_aff[a]['distance'] / tem_aff[a]['range']) * tem_aff[a]['info']['temperature']
+                    temps.append(r)
+                val["temperature"] = amb + statistics.mean(temps)
+
+                # humidity
+                ambient = self.env_properties['humidity']
+                if len(hum_aff) == 0:
+                    val["humidity"] = ambient + random.randrange(-0.5, 0.5)
+                vs = []
+                for a in hum_aff:
+                    vs.append((1 - hum_aff[a]['distance'] / hum_aff[a]['range']) * hum_aff[a]['info']['humidity'])
+                affections = statistics.mean(vs)
+                if ambient > affections:
+                    ambient += affections * 0.1
+                else:
+                    ambient = affections - (affections - ambient) * 0.1
+                val["humidity"] = ambient
+
+                # gas
+                ppm = 400 # typical environmental
+                for a in gas_aff:
+                    rel_range = (1 - gas_aff[a]['distance'] / gas_aff[a]['range'])
+                    if gas_aff[a]['type'] == 'human':
+                        ppm += 1000.0 * rel_range
+                    elif gas_aff[a]['type'] == 'fire':
+                        ppm += 5000.0 * rel_range
+                val["gas"] = ppm
+
+                # pressure
                 val["pressure"] = 27.3 + random.uniform(-3, 3)
-                val["humidity"] = self.env_properties["humidity"] + random.uniform(-3, 3)
-                val["gas"] = 3.6 + random.uniform(-3, 3)
             else: # The real deal
                 data = self.sensor.read()
 
