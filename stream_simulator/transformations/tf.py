@@ -481,7 +481,9 @@ class TfController:
     def handle_affection_arced(self, name, f, type):
         p_d = self.places_absolute[name]
         p_f = self.places_absolute[f]
+
         d = math.sqrt((p_d['x'] - p_f['x'])**2 + (p_d['y'] - p_f['y'])**2)
+
         # print(name, p_d, p_f, d)
         if d < self.declarations_info[name]['range']: # range of arced sensor
             # Check if in specific arc
@@ -503,9 +505,14 @@ class TfController:
                 ang = f_ang + 2 * math.pi
 
             if ok:
+                props = None
+                if type == "robot":
+                    props = f
+                else:
+                    props = self.declarations_info[f]["properties"]
                 return {
                     'type': type,
-                    'info': self.declarations_info[f]["properties"],
+                    'info': props,
                     'distance': d,
                     'min_sensor_ang': min_a,
                     'max_sensor_ang': max_a,
@@ -633,7 +640,7 @@ class TfController:
         return ret
 
     # Affected by barcode, color, human, qr, text
-    def handle_sensor_camera(self, name):
+    def handle_sensor_camera(self, name, with_robots = False):
         try:
             ret = {}
             pl = self.places_absolute[name]
@@ -666,8 +673,15 @@ class TfController:
                 if r != None:
                     ret[f] = r
 
+            # check all robots
+            if with_robots:
+                for rob in self.robots:
+                    r = self.handle_affection_arced(name, rob, 'robot')
+                    if r != None:
+                        ret[rob] = r
+
         except Exception as e:
-            self.logger.error(str(e))
+            self.logger.error("handle_sensor_camera:" + str(e))
             raise Exception(str(e))
 
         return ret
@@ -897,7 +911,7 @@ class TfController:
 
         elif decl['subtype']['subclass'][0] == "camera":
             # possible types: face, qr, barcode, gender, age, motion, color, emotion
-            ret = self.check_affectability(name)
+            ret = self.handle_sensor_camera(name, with_robots = True)
 
             # experimental
             amb_luminosity = self.declarations_info[name]['properties']['ambient_luminosity']
@@ -968,6 +982,12 @@ class TfController:
             elif type == "color":
                 for x in ret:
                     if ret[x]['type'] == 'color':
+                        decision = True
+                        info = ret[x]['info']
+                        frm = ret[x]
+            elif type == "robot":
+                for x in ret:
+                    if ret[x]['type'] == 'robot':
                         decision = True
                         info = ret[x]['info']
                         frm = ret[x]
