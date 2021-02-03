@@ -105,14 +105,11 @@ class RfidReaderController(BaseThing):
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
-            val = {'tags': []}
-            tags = []
+            val = {'tags': {}}
+            tags = {}
             if self.info["mode"] == "mock":
                 if random.uniform(0, 10) < 3:
-                    tags.append({
-                        "id": "RF432423",
-                        "message": "lorem_ipsum"
-                    })
+                    tags["RF432423"] = "lorem_ipsum"
             elif self.info["mode"] == "simulation":
                 while CommlibFactory.get_tf_affection == None:
                     time.sleep(0.1)
@@ -121,10 +118,7 @@ class RfidReaderController(BaseThing):
                     'name': self.name
                 })
                 for t in res:
-                    tags.append({
-                        "id": res[t]['info']['id'],
-                        "message": res[t]['info']['message'],
-                    })
+                    tags[res[t]['info']['id']] = res[t]['info']['message']
 
             else: # The real deal
                 pass
