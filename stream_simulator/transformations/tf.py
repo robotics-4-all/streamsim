@@ -51,6 +51,10 @@ class TfController:
         )
         self.get_sim_detection_rpc_server.run()
 
+        self.detections_publisher = CommlibFactory.getPublisher(
+            topic = self.base_topic + ".detections.notify"
+        )
+
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
             'host', 'host_type', 'properties'
@@ -849,6 +853,17 @@ class TfController:
                 "info": "Wrong detection device. Not microphone nor camera."
             }
 
+        import string
+        id = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 6))
+        self.detections_publisher.publish({
+            "name": name,
+            "device_type": decl['subtype']['subclass'][0],
+            "type": type,
+            "id": id,
+            "state": "start",
+            "result": None
+        })
+
         decision = False
         info = None
         frm = None
@@ -883,7 +898,6 @@ class TfController:
         elif decl['subtype']['subclass'][0] == "camera":
             # possible types: face, qr, barcode, gender, age, motion, color, emotion
             ret = self.check_affectability(name)
-            print(ret)
             if type == "face":
                 for x in ret:
                     if ret[x]['type'] == 'human': # gets the last one
@@ -937,6 +951,15 @@ class TfController:
 
         else: # possible types: face, qr, barcode, gender, age, color, motion, emotion
             pass
+
+        self.detections_publisher.publish({
+            "name": name,
+            "device_type": decl['subtype']['subclass'][0],
+            "type": type,
+            "id": id,
+            "state": "end",
+            "result": decision
+        })
 
         return {
             "result": decision,
