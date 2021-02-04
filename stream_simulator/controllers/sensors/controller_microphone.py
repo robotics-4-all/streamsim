@@ -122,6 +122,18 @@ class MicrophoneController(BaseThing):
             topic = info["base_topic"] + ".record.notify"
         )
 
+        self.detect_speech_sub = CommlibFactory.getSubscriber(
+            topic = info["base_topic"] + ".speech_detected",
+            callback = self.speech_detected
+        )
+        self.detect_speech_sub.run()
+
+    def speech_detected(self, message, meta):
+        source = message["speaker"]
+        text = message["text"]
+        language = message["language"]
+        self.logger.info(f"Speech detected from {source} [{language}]: {text}")
+
     def load_wav(self, path):
         # Read from file
         import wave

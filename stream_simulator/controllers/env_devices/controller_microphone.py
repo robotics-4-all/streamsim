@@ -109,6 +109,18 @@ class EnvMicrophoneController(BaseThing):
             topic = self.base_topic + ".record.notify"
         )
 
+        self.detect_speech_sub = CommlibFactory.getSubscriber(
+            topic = self.base_topic + ".speech_detected",
+            callback = self.speech_detected
+        )
+        self.detect_speech_sub.run()
+
+    def speech_detected(self, message, meta):
+        source = message["speaker"]
+        text = message["text"]
+        language = message["language"]
+        self.logger.info(f"Speech detected from {source} [{language}]: {text}")
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
 

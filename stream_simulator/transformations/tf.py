@@ -66,6 +66,18 @@ class TfController:
 
         self.effectors_get_rpcs = {}
 
+        self.subs = {} # Filled
+        self.places_relative = {}
+        self.places_absolute = {}
+        self.tree = {} # filled
+        self.items_hosts_dict = {}
+        self.existing_hosts = []
+        self.pantilts = {}
+        self.robots = []
+
+        self.speaker_subs = {}
+        self.microphone_pubs = {}
+
         self.per_type = {
             'robot': {
                 'sensor': {
@@ -155,14 +167,6 @@ class TfController:
 
     def setup(self):
         self.logger.info("*************** TF status ***************")
-        self.subs = {} # Filled
-        self.places_relative = {}
-        self.places_absolute = {}
-        self.tree = {} # filled
-        self.items_hosts_dict = {}
-        self.existing_hosts = []
-        self.pantilts = {}
-        self.robots = []
 
         # Fill tree
         for d in self.declarations:
@@ -268,13 +272,57 @@ class TfController:
                     # self.logger.info(f"\tRelative: {self.places_relative[i]}")
                     # self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
 
-        self.logger.info("*****************************************")
 
-        # pprint.pprint(self.per_type)
+
+        for n in self.declarations_info:
+            d_i = self.declarations_info[n]
+            if d_i["type"] == "actor":
+                continue
+
+            # subscribers for speakers
+            if "speaker" in d_i['subtype']['subclass']:
+                self.speaker_subs[d_i['name']] = CommlibFactory.getSubscriber(
+                    topic = d_i["base_topic"] + ".speak.notify",
+                    callback = self.speak_callback
+                )
+                self.speaker_subs[d_i['name']].run()
+            # publishers for microphones
+            if "microphone" in d_i['subtype']['subclass']:
+                self.microphone_pubs[d_i['name']] = CommlibFactory.getPublisher(
+                    topic = d_i["base_topic"] + ".speech_detected"
+                )
+        self.logger.info("*****************************************")
 
         # starting subs
         for s in self.subs:
             self.subs[s].run()
+
+    def speak_callback(self, message, meta):
+        # {'text': 'This is an example', 'volume': 100, 'language': 'el', 'speaker': 'speaker_X'}
+        name = message['speaker']
+        pose = self.places_absolute[name]
+
+        # search all microphones:
+        for n in self.declarations_info:
+            if self.declarations_info[n]['type'] == "actor":
+                continue
+            if "microphone" in self.declarations_info[n]['subtype']['subclass']:
+                # check distance
+                m_name = n
+                m_pose = self.places_absolute[m_name]
+
+                xy = [pose['x'], pose['y']]
+                m_xy = [m_pose['x'], m_pose['y']]
+                d = self.calc_distance(xy, m_xy)
+                # print(d)
+
+                # lets say 4 meters
+                if d < 4.0:
+                    self.microphone_pubs[m_name].publish({
+                        'speaker': name,
+                        'text': message['text'],
+                        'language': message['language']
+                    })
 
     def robot_pose_callback(self, message, meta):
         nm = message['name'].split(".")[-1]

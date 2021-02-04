@@ -170,7 +170,8 @@ class SpeakerController(BaseThing):
         self.speak_pub.publish({
             "text": texts,
             "volume": volume,
-            "language": language
+            "language": language,
+            "speaker": self.name
         })
 
         timestamp = time.time()
