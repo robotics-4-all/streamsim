@@ -36,6 +36,7 @@ jobs:
           command: |
             git clone --branch v0.3.1 git@github.com:robotics-4-all/commlib-py.git
             cd commlib-py
+            sed -i '/Removing message queue/d' commlib/transports/redis.py
             sudo python3 setup.py install
       - run:
           name: Build & Install derp-me
