@@ -223,7 +223,7 @@ class EnvAmbientLightController(BaseThing):
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
-                    "value": val,
+                    "value": lum,
                     "timestamp": time.time()
                 }]
             )
