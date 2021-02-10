@@ -1028,6 +1028,11 @@ class TfController:
                         info = ret[x]['info']['message']
                         frm = ret[x]
             elif type == "color":
+                # {'result': True, 'info': {'r': 0, 'g': 255, 'b': 0}, 'frm': {'type': 'color', 'info': {'r': 0, 'g': 255, 'b': 0}, 'distance': 2.5, 'min_sensor_ang': 1.4613539971898075, 'max_sensor_ang': 2.5085515483864054, 'actor_ang': 2.498091544796509}}
+
+                if len(ret) == 0:
+                    info = {'r': 0, 'g': 0, 'b': 0}
+                    frm = None
                 for x in ret:
                     if ret[x]['type'] == 'color':
                         decision = True
