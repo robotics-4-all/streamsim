@@ -47,9 +47,9 @@ class Test(unittest.TestCase):
                     )
 
                     # Set constant
-                    print("Setting 0, 0.4")
+                    print("Setting 0.2, 0.4")
                     set_rpc.publish({
-                        'pan': 0,
+                        'pan': 0.2,
                         'tilt': 0.4
                     })
                     print("Getting state")

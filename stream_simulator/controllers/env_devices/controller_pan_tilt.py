@@ -177,7 +177,8 @@ class EnvPanTiltController(BaseThing):
         self.tilt = message['tilt']
         self.data_publisher.publish({
             'pan': self.pan,
-            'tilt': self.tilt
+            'tilt': self.tilt,
+            'name': self.name
         })
         return {}
 
