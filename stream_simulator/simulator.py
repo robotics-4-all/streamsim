@@ -156,6 +156,13 @@ class Simulator:
         for i in range(0, len(self.robots)):
             _robot = self.robots[i]
             _robot.start()
+            CommlibFactory.notify.publish({
+                "type": "new_message",
+                "data": {
+                    "type": "logs",
+                    "message": f"Robot {_robot.name} launched"
+                }
+            })
             self.logger.warning("Simulation started")
             if _robot.world['robots'][i]['mode'] == 'real' and _robot.world['robots'][i]['speak_mode'] == "google":
                 # Wait for rhasspy
@@ -216,3 +223,11 @@ class Simulator:
         # Just to be informed for pose
         for i in range(0, len(self.robots)):
             self.robots[i].dispatch_pose_local()
+
+        CommlibFactory.notify.publish({
+            "type": "new_message",
+            "data": {
+                "type": "logs",
+                "message": f"Simulator started"
+            }
+        })

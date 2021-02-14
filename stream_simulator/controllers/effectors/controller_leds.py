@@ -151,6 +151,14 @@ class LedsController(BaseThing):
             intensity = response["intensity"]
             self._color = [r, g, b, intensity]
 
+            CommlibFactory.notify.publish({
+                'type': 'effector_command',
+                'data': {
+                    "name": self.name,
+                    "value": self._color
+                }
+            })
+
             if self.info["mode"] == "mock":
                 pass
             elif self.info["mode"] == "simulation":

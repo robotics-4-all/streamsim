@@ -127,6 +127,15 @@ class EnvThermostatController(BaseThing):
     def set_callback(self, message, meta):
         self.temperature = message["temperature"]
         self.publisher.publish(message)
+
+        CommlibFactory.notify.publish({
+            'type': 'effector_command',
+            'data': {
+                "name": self.name,
+                "value": message["temperature"]
+            }
+        })
+
         return {}
 
     def start(self):

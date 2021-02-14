@@ -152,6 +152,14 @@ class EnvAreaAlarmController(BaseThing):
                     "timestamp": time.time()
                 })
 
+                CommlibFactory.notify.publish({
+                    'type': 'alarm',
+                    'data': {
+                        "name": self.name,
+                        "triggers": triggers
+                    }
+                })
+
             prev = val
 
     def enable_callback(self, message, meta):

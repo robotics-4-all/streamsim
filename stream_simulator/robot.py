@@ -593,17 +593,6 @@ class Robot:
                             "theta": theta2,
                             "resolution": self.resolution
                         })
-                        print(CommlibFactory.notify)
-                        CommlibFactory.notify.publish({
-                            'type': 'robot_pose',
-                            'data': {
-                                "name": self.name,
-                                "x": xx,
-                                "y": yy,
-                                "theta": theta2,
-                                "resolution": self.resolution
-                            }
-                        })
                     self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
 
                     # Send internal pose for distance sensors

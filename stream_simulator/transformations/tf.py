@@ -333,6 +333,17 @@ class TfController:
         self.places_absolute[nm]['y'] = message['y']
         self.places_absolute[nm]['theta'] = message['theta']
 
+        CommlibFactory.notify.publish({
+            'type': 'robot_pose',
+            'data': {
+                "name": nm,
+                "x": message['x'],
+                "y": message['y'],
+                "theta": message['theta']
+            }
+        })
+        
+
         # Update all thetas of devices
         for d in self.tree[nm]:
             if self.places_absolute[d]['theta'] != None and d not in self.pantilts:
@@ -371,6 +382,16 @@ class TfController:
                     self.places_absolute[i]['theta'] = \
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
+
+                    CommlibFactory.notify.publish({
+                        'type': 'sensor_pose',
+                        'data': {
+                            "name": i,
+                            "x": self.places_absolute[i]['x'],
+                            "y": self.places_absolute[i]['y'],
+                            "theta": self.places_absolute[i]['theta']
+                        }
+                    })
                     # self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
 
     def pan_tilt_callback(self, message, meta):
@@ -1064,6 +1085,20 @@ class TfController:
             "id": id,
             "state": "end",
             "result": decision
+        })
+
+        CommlibFactory.notify.publish({
+            "type": "detection",
+            "data": {
+                "name": name,
+                "device_type": decl['subtype']['subclass'][0],
+                "type": type,
+                "id": id,
+                "state": "end",
+                "result": decision,
+                "info": info,
+                "frm": frm
+            }
         })
 
         return {

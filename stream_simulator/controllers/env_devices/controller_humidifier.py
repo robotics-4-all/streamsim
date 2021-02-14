@@ -129,6 +129,14 @@ class EnvHumidifierController(BaseThing):
         self.publisher.publish({
             "humidity": self.humidity
         })
+
+        CommlibFactory.notify.publish({
+            'type': 'effector_command',
+            'data': {
+                "name": self.name,
+                "value": self.humidity
+            }
+        })
         return {}
 
     def start(self):

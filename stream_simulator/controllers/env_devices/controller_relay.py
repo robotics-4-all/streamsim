@@ -128,6 +128,14 @@ class EnvRelayController(BaseThing):
         if state not in self.allowed_states:
             raise Exception(f"Relay {self.name} does not allow {state} state")
 
+        CommlibFactory.notify.publish({
+            'type': 'effector_command',
+            'data': {
+                "name": self.name,
+                "value": message["state"]
+            }
+        })
+
         self.publisher.publish(message)
         self.state = state
         return {"state": self.state}
