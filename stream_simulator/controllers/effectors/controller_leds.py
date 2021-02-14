@@ -148,7 +148,7 @@ class LedsController(BaseThing):
             r = response["r"]
             g = response["g"]
             b = response["b"]
-            intensity = response["intensity"]
+            intensity = response["luminosity"]
             self._color = [r, g, b, intensity]
 
             CommlibFactory.notify.publish({
@@ -172,7 +172,7 @@ class LedsController(BaseThing):
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
-                    "data": {"r": r, "g": g, "b": b, "intensity": intensity},
+                    "data": {"r": r, "g": g, "b": b, "luminosity": intensity},
                     "type": "simple",
                     "timestamp": time.time()
                 }]
@@ -191,7 +191,7 @@ class LedsController(BaseThing):
             r = response["r"]
             g = response["g"]
             b = response["b"]
-            intensity = response["brightness"]
+            intensity = response["luminosity"]
             ms = response["wait_ms"]
             self._color = [r, g, b, intensity]
 
@@ -206,7 +206,7 @@ class LedsController(BaseThing):
                 "r": r,
                 "g": g,
                 "b": b,
-                "intensity": intensity,
+                "luminosity": intensity,
                 "ms": ms
             })
 
@@ -214,7 +214,7 @@ class LedsController(BaseThing):
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
-                    "data": {"r": r, "g": g, "b": b, "intensity": intensity},
+                    "data": {"r": r, "g": g, "b": b, "luminosity": intensity},
                     "type": "wipe",
                     "timestamp": time.time()
                 }]

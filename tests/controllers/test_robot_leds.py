@@ -49,7 +49,7 @@ class Test(unittest.TestCase):
                             "r": 0,
                             "g": 30,
                             "b": 10,
-                            "intensity": 100
+                            "luminosity": 100
                         })
 
                         print("Wiping")
@@ -57,7 +57,7 @@ class Test(unittest.TestCase):
                             "r": 0,
                             "g": 30,
                             "b": 10,
-                            "brightness": 100,
+                            "luminosity": 100,
                             "wait_ms": 4
                         })
                         print(ret)
