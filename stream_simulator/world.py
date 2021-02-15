@@ -89,10 +89,10 @@ class World:
             # Add obstacles information in map
             self.obstacles = self.configuration['map']['obstacles']['lines']
             for obst in self.obstacles:
-                x1 = obst['x1']
-                x2 = obst['x2']
-                y1 = obst['y1']
-                y2 = obst['y2']
+                x1 = int(obst['x1'])
+                x2 = int(obst['x2'])
+                y1 = int(obst['y1'])
+                y2 = int(obst['y2'])
                 if x1 == x2:
                     if y1 > y2:
                         tmp = y2

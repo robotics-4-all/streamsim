@@ -123,7 +123,7 @@ class EnvAreaAlarmController(BaseThing):
 
             val = None
             if self.mode == "mock":
-                val = random.choice(None, ["robot_1"])
+                val = random.choice([None, "gn_robot_1"])
             elif self.mode == "simulation":
                 res = CommlibFactory.get_tf_affection.call({
                     'name': self.name
