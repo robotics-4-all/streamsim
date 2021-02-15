@@ -145,20 +145,20 @@ class EnvAreaAlarmController(BaseThing):
                 }]
             )
 
-            if prev == None and val != None:
+            if prev == None and val not in [None, []]:
                 triggers += 1
                 self.publisher_triggers.publish({
                     "value": triggers,
                     "timestamp": time.time()
                 })
 
-                CommlibFactory.notify.publish({
-                    'type': 'alarm',
-                    'data': {
+                CommlibFactory.notify_ui(
+                    type = "alarm",
+                    data = {
                         "name": self.name,
                         "triggers": triggers
                     }
-                })
+                )
 
             prev = val
 

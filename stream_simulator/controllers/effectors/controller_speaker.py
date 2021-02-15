@@ -157,13 +157,13 @@ class SpeakerController(BaseThing):
         self.logger.info("Speaker unlocked")
         self.blocked = True
 
-        CommlibFactory.notify.publish({
-            'type': 'effector_command',
-            'data': {
+        CommlibFactory.notify_ui(
+            type = "effector_command",
+            data = {
                 "name": self.name,
                 "value": goalh.data["text"]
             }
-        })
+        )
 
         try:
             texts = goalh.data["text"]

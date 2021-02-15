@@ -151,13 +151,13 @@ class LedsController(BaseThing):
             intensity = response["luminosity"]
             self._color = [r, g, b, intensity]
 
-            CommlibFactory.notify.publish({
-                'type': 'effector_command',
-                'data': {
+            CommlibFactory.notify_ui(
+                type = "effector_command",
+                data = {
                     "name": self.name,
                     "value": self._color
                 }
-            })
+            )
 
             if self.info["mode"] == "mock":
                 pass
@@ -194,6 +194,14 @@ class LedsController(BaseThing):
             intensity = response["luminosity"]
             ms = response["wait_ms"]
             self._color = [r, g, b, intensity]
+
+            CommlibFactory.notify_ui(
+                type = "effector_command",
+                data = {
+                    "name": self.name,
+                    "value": self._color
+                }
+            )
 
             if self.info["mode"] == "mock":
                 pass

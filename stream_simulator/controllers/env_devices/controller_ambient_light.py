@@ -156,7 +156,7 @@ class EnvAmbientLightController(BaseThing):
         self.normal_std = self.operation_parameters["normal"]['std']
         self.normal_mean = self.operation_parameters["normal"]['mean']
         self.sinus_dc = self.operation_parameters["sinus"]['dc']
-        self.sinus_amp = self.operation_parameters["sinus"]['amplitute']
+        self.sinus_amp = self.operation_parameters["sinus"]['amplitude']
         self.sinus_step = self.operation_parameters["sinus"]['step']
 
         while self.info["enabled"]:
@@ -186,6 +186,8 @@ class EnvAmbientLightController(BaseThing):
                     self.prev += self.sinus_step
                 else:
                     self.logger.warning(f"Unsupported operation: {self.operation}")
+
+                lum = val
 
             elif self.mode == "simulation":
                 res = CommlibFactory.get_tf_affection.call({

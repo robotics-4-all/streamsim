@@ -139,7 +139,7 @@ class BasicSensor(BaseThing):
             self.normal_std = self.operation_parameters["normal"]['std']
             self.normal_mean = self.operation_parameters["normal"]['mean']
             self.sinus_dc = self.operation_parameters["sinus"]['dc']
-            self.sinus_amp = self.operation_parameters["sinus"]['amplitute']
+            self.sinus_amp = self.operation_parameters["sinus"]['amplitude']
             self.sinus_step = self.operation_parameters["sinus"]['step']
         except Exception as e:
             self.logger.warning(f"Missing operation parameters for {self.name}: {str(e)}. Change operation with caution!")

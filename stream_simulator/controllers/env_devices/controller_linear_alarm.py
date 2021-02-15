@@ -145,13 +145,15 @@ class EnvLinearAlarmController(BaseThing):
                     "value": triggers,
                     "timestamp": time.time()
                 })
-                CommlibFactory.notify.publish({
-                    'type': 'alarm',
-                    'data': {
+
+                CommlibFactory.notify_ui(
+                    type = "alarm",
+                    data = {
                         "name": self.name,
                         "triggers": triggers
                     }
-                })
+                )
+
             prev = val
 
     def enable_callback(self, message, meta):

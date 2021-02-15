@@ -1,0 +1,976 @@
+simulation:
+  name: streamsim
+map:
+  width: 853
+  height: 568
+  resolution: 0.22066666666666668
+  obstacles:
+    lines:
+      - x1: 653.9666666666666
+        y1: 204.1513333333333
+        x2: 771.112
+        y2: 204.15133333333335
+      - x1: 29.37981244106555
+        y1: 473.8930781471004
+        x2: 29.37981244106554
+        y2: 538.3391183404055
+      - x1: 29.37981244106554
+        y1: 538.3391183404055
+        x2: 94.77358851956625
+        y2: 538.3391183404055
+      - x1: 94.77358851956625
+        y1: 539.286854225601
+        x2: 189.5471770391325
+        y2: 539.286854225601
+      - x1: 189.5471770391325
+        y1: 539.286854225601
+        x2: 284.3207655586987
+        y2: 539.286854225601
+      - x1: 313.71314577439887
+        y1: 473.8930781471004
+        x2: 313.71314577439887
+        y2: 538.3391183404055
+      - x1: 313.71314577439887
+        y1: 538.3391183404055
+        x2: 379.1069218528996
+        y2: 538.3391183404055
+      - x1: 379.1069218528996
+        y1: 539.286854225601
+        x2: 473.88051037246584
+        y2: 539.286854225601
+      - x1: 503.2603228135314
+        y1: 473.8930781471004
+        x2: 503.2603228135314
+        y2: 538.3391183404055
+      - x1: 503.2603228135314
+        y1: 538.3391183404055
+        x2: 568.654098892032
+        y2: 538.3391183404055
+      - x1: 568.6666666666665
+        y1: 539.286854225601
+        x2: 663.4402551862329
+        y2: 539.286854225601
+      - x1: 663.4402551862329
+        y1: 539.286854225601
+        x2: 758.2138437057991
+        y2: 539.286854225601
+      - x1: 758.2138437057991
+        y1: 539.286854225601
+        x2: 822.6598838991042
+        y2: 539.286854225601
+      - x1: 822.6598838991042
+        y1: 539.286854225601
+        x2: 822.6598838991042
+        y2: 473.8930781471004
+      - x1: 29.37981244106555
+        y1: 379.11948962753416
+        x2: 29.379812441065525
+        y2: 473.8930781471004
+      - x1: 276.7388784771334
+        y1: 471.04987049151356
+        x2: 276.7388784771334
+        y2: 383.85816905351254
+      - x1: 276.7388784771334
+        y1: 383.85816905351254
+        x2: 236.9339712989156
+        y2: 383.85816905351254
+      - x1: 236.9339712989156
+        y1: 383.85816905351254
+        x2: 236.9339712989156
+        y2: 471.04987049151356
+      - x1: 236.9339712989156
+        y1: 471.04987049151356
+        x2: 276.7388784771334
+        y2: 471.04987049151356
+      - x1: 313.71314577439887
+        y1: 379.11948962753416
+        x2: 313.71314577439887
+        y2: 473.8930781471004
+      - x1: 473.88051037246584
+        y1: 444.5132657060349
+        x2: 538.3265505657708
+        y2: 444.5132657060349
+      - x1: 538.3265505657708
+        y1: 444.5132657060349
+        x2: 538.3265505657708
+        y2: 379.11948962753416
+      - x1: 576.248553748232
+        y1: 428.4017556577086
+        x2: 576.248553748232
+        y2: 466.311191065535
+      - x1: 576.248553748232
+        y1: 466.311191065535
+        x2: 618.8966685820368
+        y2: 466.311191065535
+      - x1: 618.8966685820368
+        y1: 466.311191065535
+        x2: 618.8966685820368
+        y2: 428.4017556577086
+      - x1: 618.8966685820368
+        y1: 428.4017556577086
+        x2: 576.248553748232
+        y2: 428.4017556577086
+      - x1: 637.85138628595
+        y1: 384.8059049387081
+        x2: 637.85138628595
+        y2: 403.76062264262134
+      - x1: 637.85138628595
+        y1: 403.76062264262134
+        x2: 657.7538398750589
+        y2: 403.76062264262134
+      - x1: 657.7538398750589
+        y1: 403.76062264262134
+        x2: 657.7538398750589
+        y2: 384.8059049387081
+      - x1: 657.7538398750589
+        y1: 384.8059049387081
+        x2: 637.85138628595
+        y2: 384.8059049387081
+      - x1: 823.6076197842997
+        y1: 473.8930781471004
+        x2: 823.6076197842997
+        y2: 379.11948962753416
+      - x1: 30.327548326261194
+        y1: 284.3459011079679
+        x2: 30.327548326261194
+        y2: 313.72571354903346
+      - x1: 30.327548326261194
+        y1: 313.72571354903346
+        x2: 0
+        y2: 313.72571354903346
+      - x1: 0
+        y1: 349.7396771864686
+        x2: 30.327548326261194
+        y2: 349.7396771864686
+      - x1: 30.327548326261194
+        y1: 349.7396771864686
+        x2: 30.327548326261194
+        y2: 379.11948962753416
+      - x1: 314.6608816595945
+        y1: 284.3459011079679
+        x2: 314.6608816595945
+        y2: 349.7396771864686
+      - x1: 314.6608816595945
+        y1: 349.7396771864686
+        x2: 379.1069218528996
+        y2: 349.7396771864686
+      - x1: 379.1069218528996
+        y1: 313.72571354903346
+        x2: 348.7793735266384
+        y2: 313.72571354903346
+      - x1: 348.7793735266384
+        y1: 313.72571354903346
+        x2: 348.7793735266384
+        y2: 284.3459011079679
+      - x1: 443.5529620462046
+        y1: 379.11948962753416
+        x2: 443.5529620462046
+        y2: 349.7396771864686
+      - x1: 443.5529620462046
+        y1: 349.7396771864686
+        x2: 473.88051037246584
+        y2: 349.7396771864686
+      - x1: 473.88051037246584
+        y1: 313.72571354903346
+        x2: 379.1069218528996
+        y2: 313.72571354903346
+      - x1: 379.1069218528996
+        y1: 349.7396771864686
+        x2: 409.4344701791608
+        y2: 349.7396771864686
+      - x1: 409.4344701791608
+        y1: 349.7396771864686
+        x2: 409.4344701791608
+        y2: 379.11948962753416
+      - x1: 473.88051037246584
+        y1: 313.72571354903346
+        x2: 568.654098892032
+        y2: 313.72571354903346
+      - x1: 473.88051037246584
+        y1: 349.7396771864686
+        x2: 568.654098892032
+        y2: 349.7396771864686
+      - x1: 568.6666666666665
+        y1: 349.7396771864686
+        x2: 633.1127068599717
+        y2: 349.7396771864686
+      - x1: 633.1127068599717
+        y1: 349.7396771864686
+        x2: 633.1127068599717
+        y2: 284.3459011079679
+      - x1: 823.6076197842997
+        y1: 379.11948962753416
+        x2: 823.6076197842997
+        y2: 284.3459011079679
+      - x1: 94.77358851956625
+        y1: 218.9395572548326
+        x2: 30.327548326261194
+        y2: 218.9395572548326
+      - x1: 30.327548326261194
+        y1: 218.9395572548326
+        x2: 30.327548326261184
+        y2: 284.3333333333333
+      - x1: 189.5471770391325
+        y1: 218.9395572548326
+        x2: 94.77358851956625
+        y2: 218.9395572548326
+      - x1: 314.6608816595945
+        y1: 189.55974481376708
+        x2: 314.6608816595945
+        y2: 218.9395572548326
+      - x1: 314.6608816595945
+        y1: 218.9395572548326
+        x2: 284.33333333333326
+        y2: 218.9395572548326
+      - x1: 284.33333333333326
+        y1: 254.9535208922678
+        x2: 314.6608816595945
+        y2: 254.9535208922678
+      - x1: 314.6608816595945
+        y1: 254.9535208922678
+        x2: 314.6608816595945
+        y2: 284.3333333333333
+      - x1: 348.7793735266384
+        y1: 284.3333333333333
+        x2: 348.7793735266384
+        y2: 254.9535208922678
+      - x1: 348.7793735266384
+        y1: 254.9535208922678
+        x2: 379.1069218528996
+        y2: 254.9535208922678
+      - x1: 379.1069218528996
+        y1: 218.9395572548326
+        x2: 348.7793735266384
+        y2: 218.9395572548326
+      - x1: 348.7793735266384
+        y1: 218.9395572548326
+        x2: 348.7793735266384
+        y2: 189.55974481376708
+      - x1: 379.1069218528996
+        y1: 218.9395572548326
+        x2: 473.88051037246584
+        y2: 218.9395572548326
+      - x1: 379.1069218528996
+        y1: 254.9535208922678
+        x2: 473.88051037246584
+        y2: 254.9535208922678
+      - x1: 504.2080586987271
+        y1: 189.55974481376708
+        x2: 504.2080586987271
+        y2: 218.9395572548326
+      - x1: 504.2080586987271
+        y1: 218.9395572548326
+        x2: 473.88051037246584
+        y2: 218.9395572548326
+      - x1: 473.88051037246584
+        y1: 254.9535208922678
+        x2: 568.654098892032
+        y2: 254.9535208922678
+      - x1: 568.654098892032
+        y1: 218.9395572548326
+        x2: 538.3265505657708
+        y2: 218.9395572548326
+      - x1: 538.3265505657708
+        y1: 218.9395572548326
+        x2: 538.3265505657708
+        y2: 189.55974481376708
+      - x1: 568.6666666666665
+        y1: 218.9395572548326
+        x2: 663.4402551862329
+        y2: 218.9395572548326
+      - x1: 568.6666666666665
+        y1: 254.9535208922678
+        x2: 663.4402551862329
+        y2: 254.9535208922678
+      - x1: 823.6076197842997
+        y1: 284.3333333333333
+        x2: 823.6076197842997
+        y2: 189.55974481376708
+      - x1: 29.37981244106555
+        y1: 94.78615629420085
+        x2: 29.379812441065525
+        y2: 189.55974481376708
+      - x1: 160.16736459806697
+        y1: 189.55974481376708
+        x2: 160.16736459806697
+        y2: 94.78615629420085
+      - x1: 313.71314577439887
+        y1: 94.78615629420085
+        x2: 313.71314577439887
+        y2: 189.55974481376708
+      - x1: 408.48673429396507
+        y1: 94.78615629420085
+        x2: 408.48673429396507
+        y2: 159.23219648750586
+      - x1: 408.48673429396507
+        y1: 159.23219648750586
+        x2: 473.88051037246584
+        y2: 159.23219648750595
+      - x1: 598.046479107732
+        y1: 94.78615629420085
+        x2: 598.046479107732
+        y2: 159.23219648750586
+      - x1: 598.046479107732
+        y1: 159.23219648750586
+        x2: 663.4402551862329
+        y2: 159.23219648750595
+      - x1: 671.0221422677981
+        y1: 97.62936394978786
+        x2: 671.0221422677981
+        y2: 184.82106538778868
+      - x1: 671.0221422677981
+        y1: 184.82106538778868
+        x2: 710.8270494460161
+        y2: 184.82106538778868
+      - x1: 710.8270494460161
+        y1: 184.82106538778868
+        x2: 710.8270494460161
+        y2: 97.62936394978786
+      - x1: 710.8270494460161
+        y1: 97.62936394978786
+        x2: 671.0221422677981
+        y2: 97.62936394978786
+      - x1: 823.6076197842997
+        y1: 189.55974481376708
+        x2: 823.6076197842997
+        y2: 94.78615629420085
+      - x1: 94.77358851956625
+        y1: 29.392380215700133
+        x2: 30.327548326261194
+        y2: 29.392380215700133
+      - x1: 30.327548326261194
+        y1: 29.392380215700133
+        x2: 30.327548326261184
+        y2: 94.78615629420085
+      - x1: 189.5471770391325
+        y1: 29.392380215700133
+        x2: 94.77358851956625
+        y2: 29.392380215700133
+      - x1: 284.3207655586987
+        y1: 29.392380215700133
+        x2: 189.5471770391325
+        y2: 29.392380215700133
+      - x1: 379.1069218528996
+        y1: 29.392380215700133
+        x2: 314.6608816595945
+        y2: 29.392380215700133
+      - x1: 314.6608816595945
+        y1: 29.392380215700133
+        x2: 314.6608816595945
+        y2: 94.78615629420085
+      - x1: 473.88051037246584
+        y1: 29.392380215700133
+        x2: 409.4344701791608
+        y2: 29.392380215700133
+      - x1: 409.4344701791608
+        y1: 29.392380215700133
+        x2: 409.4344701791608
+        y2: 94.78615629420085
+      - x1: 568.654098892032
+        y1: 29.392380215700133
+        x2: 473.88051037246584
+        y2: 29.392380215700133
+      - x1: 663.4402551862329
+        y1: 29.392380215700133
+        x2: 598.9942149929279
+        y2: 29.392380215700133
+      - x1: 598.9942149929279
+        y1: 29.392380215700133
+        x2: 598.9942149929279
+        y2: 94.78615629420085
+      - x1: 758.2138437057991
+        y1: 29.392380215700133
+        x2: 663.4402551862329
+        y2: 29.392380215700133
+      - x1: 823.6076197842997
+        y1: 94.78615629420085
+        x2: 823.6076197842997
+        y2: 30.34011610089583
+      - x1: 823.6076197842997
+        y1: 30.34011610089583
+        x2: 758.2138437057991
+        y2: 30.34011610089583
+world:
+  name: World
+  places:
+    - Control room
+    - Exhibit 1 room
+    - Exhibit 2 room
+    - Rest room
+    - Guard room
+    - Special exhibit room
+  properties:
+    temperature: 22
+    humidity: 60
+    luminosity: 80
+robots:
+  - name: gn_robot_1
+    mode: simulation
+    speak_mode: espeak
+    wait_for: []
+    amqp_inform: true
+    step_by_step_execution: false
+    starting_pose:
+      x: 20.193679758308154
+      'y': 335.80367975830814
+      theta: 0
+    devices:
+      skid_steer:
+        - orientation: 0
+          place: UNDER
+          name: skid_steer_gn_robot_1
+          sensor_configuration:
+            bus: 1
+            E1: 20
+            M1: 21
+            E2: 12
+            M2: 16
+            max_data_length: 10
+            wheel_separation: 0.147
+            wheel_radius: 0.022
+      microphone:
+        - orientation: 0
+          place: FRONT
+          name: microphone_front_gn_robot_1
+          sensor_configuration:
+            alsa_device: '1'
+            hosts:
+              - 127.0.0.1
+              - 127.0.0.1
+            ports:
+              - '12333'
+              - '12334'
+            host_port: '12334'
+            dev_name: dsnoop:CARD=Mic,DEV=0
+            channels: 6
+            framerate: 44100
+            max_data_length: 10
+      sonar:
+        - pose:
+            theta: 135
+          orientation: 135
+          place: BL
+          hz: 1
+          max_range: 2
+          name: sonar_bl_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: -135
+          orientation: -135
+          place: BR
+          hz: 1
+          max_range: 2
+          name: sonar_br_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: 45
+          orientation: 45
+          place: FL
+          hz: 1
+          max_range: 2
+          name: sonar_fl_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: -45
+          orientation: -45
+          place: FR
+          hz: 1
+          max_range: 2
+          name: sonar_fr_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: 90
+          orientation: 90
+          place: L
+          hz: 1
+          max_range: 2
+          name: sonar_l_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: -90
+          orientation: -90
+          place: R
+          hz: 1
+          max_range: 2
+          name: sonar_r_gn_robot_1
+          sensor_configuration:
+            sim: 1
+      ir:
+        - pose:
+            theta: 135
+          orientation: 135
+          place: BL
+          hz: 1
+          max_range: 2
+          name: ir_bl_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: -135
+          orientation: -135
+          place: BR
+          hz: 1
+          max_range: 2
+          name: ir_br_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: 45
+          orientation: 45
+          place: FL
+          hz: 1
+          max_range: 2
+          name: ir_fl_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: -45
+          orientation: -45
+          place: FR
+          hz: 1
+          max_range: 2
+          name: ir_fr_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: 90
+          orientation: 90
+          place: L
+          hz: 1
+          max_range: 2
+          name: ir_l_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - pose:
+            theta: -90
+          orientation: -90
+          place: R
+          hz: 1
+          max_range: 2
+          name: ir_r_gn_robot_1
+          sensor_configuration:
+            sim: 1
+      tof:
+        - orientation: 0
+          place: F
+          hz: 1
+          pose:
+            theta: 0
+          max_range: 2
+          name: tof_front_gn_robot_1
+          sensor_configuration:
+            sim: 1
+      camera:
+        - pose:
+            theta: 0
+          orientation: 0
+          place: FRONT
+          hz: 0.5
+          name: tektrain_camera_gn_robot_1
+          host: pan_tilt_gn_robot_1
+          range: 100
+          fov: 60
+          width: 640
+          height: 480
+          sensor_configuration:
+            sim: 1
+      pan_tilt:
+        - pose:
+            x: 0
+            'y': 0
+            theta: 0
+          orientation: 0
+          place: UNDER
+          name: pan_tilt_gn_robot_1
+          sensor_configuration:
+            sim: 1
+      imu:
+        - orientation: 1
+          place: CENTER
+          hz: 1
+          name: imu_gn_robot_1
+          sensor_configuration:
+            sim: 1
+      env:
+        - orientation: 0
+          place: FRONT
+          hz: 1
+          name: env_gn_robot_1
+          sensor_configuration:
+            sim: 1
+      speaker:
+        - orientation: 0
+          place: FRONT
+          name: speaker_front_gn_robot_1
+          sensor_configuration:
+            sim: 1
+      leds:
+        - orientation: 0
+          place: FRONT
+          name: leds_front_gn_robot_1
+          sensor_configuration:
+            sim: 1
+      encoder:
+        - orientation: 90
+          place: BL
+          hz: 1
+          name: encoder_bl_gn_robot_1
+          sensor_configuration:
+            sim: 1
+        - orientation: -90
+          place: BR
+          hz: 1
+          name: encoder_br_gn_robot_1
+          sensor_configuration:
+            sim: 1
+      rfid_reader:
+        - pose:
+            x: 0
+            'y': 0
+            theta: 0
+          orientation: 0
+          place: FRONT
+          hz: 1
+          range: 120
+          fov: 180
+          name: rfid_reader_gn_robot_1
+          sensor_configuration:
+            sim: 1
+env_devices:
+  pan_tilt:
+    - pose:
+        x: 806.3693333333333
+        'y': 44.92466666666667
+        theta: 132
+      name: pan_tilt_1
+      mode: mock
+      place: world_Special exhibit room
+      limits:
+        pan:
+          min: -45
+          max: 45
+        tilt:
+          min: -90
+          max: 90
+      operation: sinus
+      operation_parameters:
+        sinus:
+          hz: 3
+          step: 0.01
+  ph_sensors:
+    - name: sn_ph_22
+      mode: mock
+      place: world_Exhibit 2 room
+      pose:
+        x: 347.0412890231622
+        'y': 403.73615307150044
+        theta: 0
+      hz: 3
+      operation: sinus
+      operation_parameters:
+        constant:
+          value: 0.3
+        random:
+          min: 0
+          max: 1
+        triangle:
+          min: 0
+          max: 1
+          step: 0.01
+        normal:
+          mean: 0.5
+          std: 0.05
+        sinus:
+          dc: 0.5
+          amplitude: 0.5
+          step: 0.02
+  temperature_sensors:
+    - name: sn_temperature_23
+      mode: simulation
+      place: world
+      pose:
+        x: 221.62537764350452
+        'y': 307.52668680765356
+        theta: 0
+      hz: 3
+      operation: sinus
+      operation_parameters:
+        constant:
+          value: 0.3
+        random:
+          min: 0
+          max: 1
+        triangle:
+          min: 0
+          max: 1
+          step: 0.01
+        normal:
+          mean: 0.5
+          std: 0.05
+        sinus:
+          dc: 0.5
+          amplitude: 0.5
+          step: 0.02
+  humidity_sensors:
+    - name: sn_humidity_20
+      mode: mock
+      place: world
+      pose:
+        x: 190.70090634441087
+        'y': 511.11278952668675
+        theta: 0
+      hz: 3
+      operation: sinus
+      operation_parameters:
+        constant:
+          value: 0.3
+        random:
+          min: 0
+          max: 1
+        triangle:
+          min: 0
+          max: 1
+          step: 0.01
+        normal:
+          mean: 0.5
+          std: 0.05
+        sinus:
+          dc: 0.5
+          amplitude: 0.5
+          step: 0.02
+  gas_sensors:
+    - name: sn_gas_19
+      mode: mock
+      place: world_Rest room
+      pose:
+        x: 718.9939577039274
+        'y': 413.18529707955685
+        theta: 0
+      hz: 3
+      operation: sinus
+      operation_parameters:
+        constant:
+          value: 0.3
+        random:
+          min: 0
+          max: 1
+        triangle:
+          min: 0
+          max: 1
+          step: 0.01
+        normal:
+          mean: 0.5
+          std: 0.05
+        sinus:
+          dc: 0.5
+          amplitude: 0.5
+          step: 0.02
+  camera_sensors:
+    - name: sn_camera_5
+      mode: mock
+      place: world_Special exhibit room
+      pose:
+        x: 0
+        'y': 0
+        theta: 0
+      hz: 1
+      fov: 30
+      range: 2
+      width: 640
+      height: 480
+      host: pan_tilt_1
+  distance_sensors:
+    - name: sn_distance_18
+      mode: simulation
+      place: world_Guard room
+      pose:
+        x: 547.1913393756295
+        'y': 332.4380664652568
+        theta: 180
+      hz: 3
+      operation: sinus
+      operation_parameters:
+        constant:
+          value: 0.3
+        random:
+          min: 0
+          max: 1
+        triangle:
+          min: 0
+          max: 1
+          step: 0.01
+        normal:
+          mean: 0.5
+          std: 0.05
+        sinus:
+          dc: 0.5
+          amplitude: 0.5
+          step: 0.02
+      max_range: 2
+  alarms_linear:
+    - name: sn_linearAlarm_4
+      mode: mock
+      place: world
+      pose:
+        start:
+          x: 20.533333333333335
+          'y': 35.099999999999994
+        end:
+          x: 35.6
+          'y': 35.699999999999996
+      hz: 1
+  alarms_area:
+    - name: sn_areaAlarm_6
+      mode: simulation
+      place: world_Special exhibit room
+      pose:
+        x: 730.168
+        'y': 149.55933333333334
+        theta: 0
+      range: 100
+      hz: 1
+  ambient_light_sensor:
+    - name: sn_ambientLight_17
+      mode: mock
+      place: world
+      pose:
+        x: 347.9003021148036
+        'y': 139.16012084592143
+        theta: 0
+      hz: 3
+      operation: random
+      operation_parameters:
+        constant:
+          value: 0.3
+        random:
+          min: 0
+          max: 1
+        triangle:
+          min: 0
+          max: 1
+          step: 0.01
+        normal:
+          mean: 0.5
+          std: 0.05
+        sinus:
+          dc: 0.5
+          amplitude: 0.5
+          step: 0.02
+  microphones:
+    - name: sn_microphone_21
+      mode: mock
+      place: world_Exhibit 1 room
+      pose:
+        x: 540.3192346424975
+        'y': 73.87512588116817
+        theta: 0
+  relays:
+    - name: ef_relay_2
+      mode: mock
+      place: world_Control room
+      pose:
+        x: 56.86666666666667
+        'y': 162.06999999999996
+        theta: 0
+      states:
+        - '0'
+        - '1'
+      initial_state: '0'
+  speakers:
+    - name: ef_speaker_25
+      mode: mock
+      place: world_Exhibit 2 room
+      pose:
+        x: 438.9556898288016
+        'y': 491.3554884189325
+        theta: 0
+  lights:
+    - name: ef_light_24
+      mode: mock
+      place: world_Special exhibit room
+      pose:
+        x: 725.0070493454178
+        'y': 100.5045317220544
+        theta: 0
+      luminosity: 70
+      range: 100
+  thermostats:
+    - name: ef_thermostat_3
+      mode: mock
+      place: world_Control room
+      pose:
+        x: 56.86666666666667
+        'y': 58.572666666666656
+        theta: 0
+      temperature: 24
+      range: 50
+  humidifiers:
+    - name: ef_humidifier_8
+      mode: mock
+      place: world_Rest room
+      pose:
+        x: 791.5840000000002
+        'y': 507.8193333333333
+        theta: 0
+      humidity: 70
+      range: 50
+actors:
+  humans:
+    - id: 12
+      x: 597.0999999999999
+      'y': 317.8846666666667
+      move: 1
+      sound: 1
+      lang: EN
+      range: 80
+      speech: Alt
+      emotion: angry
+      gender: male
+      age: 30
+  sound_sources:
+    - id: 9
+      x: 534.5466666666667
+      'y': 510.094
+      lang: EL
+      range: 100
+      speech: ''
+      emotion: neutral
+  qrs:
+    - id: 10
+      x: 509.5253333333334
+      'y': 408.8713333333332
+      message: Exhibit 2
+  barcodes:
+    - id: 11
+      x: 424.22533333333337
+      'y': 56.298
+      message: Exhibit 1
+  colors:
+    - id: 7
+      x: 632.3573333333333
+      'y': 77.90733333333334
+      r: 0
+      g: 255
+      b: 255
+  texts:
+    - id: 16
+      x: 333.29707955689827
+      'y': 77.31117824773413
+      text: You can drink water
+  rfid_tags: []
+  fires:
+    - id: 14
+      x: 335.0151057401813
+      'y': 522.279959718026
+      range: 100
+      temperature: 150
+  waters:
+    - id: 15
+      x: 356.4904330312185
+      'y': 60.13091641490431
+      range: 100

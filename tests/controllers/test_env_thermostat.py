@@ -31,7 +31,7 @@ class Test(unittest.TestCase):
 
             # Get ph sensors
             for s in res["devices"]:
-                if s["type"] == "THERMOSTATS":
+                if s["type"] == "THERMOSTAT":
                     set_rpc = CommlibFactory.getRPCClient(
                         rpc_name = s["base_topic"] + ".set"
                     )

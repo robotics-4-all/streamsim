@@ -183,7 +183,7 @@ class EnvDistanceController(BaseThing):
         self.normal_std = self.operation_parameters["normal"]['std']
         self.normal_mean = self.operation_parameters["normal"]['mean']
         self.sinus_dc = self.operation_parameters["sinus"]['dc']
-        self.sinus_amp = self.operation_parameters["sinus"]['amplitute']
+        self.sinus_amp = self.operation_parameters["sinus"]['amplitude']
         self.sinus_step = self.operation_parameters["sinus"]['step']
 
         while self.info["enabled"]:

@@ -60,5 +60,8 @@ class EnvTemperatureSensorController(BasicSensor):
             r = (1 - res[a]['distance'] / res[a]['range']) * res[a]['info']['temperature']
             temps.append(r)
 
-        final = amb + statistics.mean(temps)
+        mms = 0
+        if len(temps) > 0:
+            mms = statistics.mean(temps)
+        final = amb + mms
         return final
