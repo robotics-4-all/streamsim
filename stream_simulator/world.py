@@ -80,8 +80,8 @@ class World:
         self.resolution = 0
         self.obstacles = []
         if 'map' in self.configuration:
-            self.width = self.configuration['map']['width']
-            self.height = self.configuration['map']['height']
+            self.width = int(self.configuration['map']['width'])
+            self.height = int(self.configuration['map']['height'])
 
             self.map = numpy.zeros((self.width, self.height))
             self.resolution = self.configuration['map']['resolution']
