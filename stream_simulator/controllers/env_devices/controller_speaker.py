@@ -205,7 +205,9 @@ class EnvSpeakerController(BaseThing):
             type = "effector_command",
             data = {
                 "name": self.name,
-                "value": goalh.data["text"]
+                "value": {
+                    "text": goalh.data["text"]
+                }
             }
         )
 

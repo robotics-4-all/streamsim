@@ -134,7 +134,9 @@ class EnvHumidifierController(BaseThing):
             type = "effector_command",
             data = {
                 "name": self.name,
-                "value": self.humidity
+                "value": {
+                    "humidity": self.humidity
+                }
             }
         )
         return {}

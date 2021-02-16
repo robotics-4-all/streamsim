@@ -152,7 +152,9 @@ class EnvLightController(BaseThing):
             type = "effector_command",
             data = {
                 "name": self.name,
-                "value": message
+                "value": {
+                    "color": message
+                }
             }
         )
 

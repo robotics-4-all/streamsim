@@ -132,7 +132,9 @@ class EnvThermostatController(BaseThing):
             type = "effector_command",
             data = {
                 "name": self.name,
-                "value": message["temperature"]
+                "value": {
+                    "temperature": message["temperature"]
+                }
             }
         )
 

@@ -132,7 +132,9 @@ class EnvRelayController(BaseThing):
             type = "effector_command",
             data = {
                 "name": self.name,
-                "value": message["state"]
+                "value": {
+                    "state": message["state"]
+                }
             }
         )
 

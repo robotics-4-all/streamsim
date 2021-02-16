@@ -155,7 +155,9 @@ class LedsController(BaseThing):
                 type = "effector_command",
                 data = {
                     "name": self.name,
-                    "value": self._color
+                    "value": {
+                        "color": self._color
+                    }
                 }
             )
 
@@ -199,7 +201,9 @@ class LedsController(BaseThing):
                 type = "effector_command",
                 data = {
                     "name": self.name,
-                    "value": self._color
+                    "value": {
+                        "color": self._color
+                    }
                 }
             )
 
