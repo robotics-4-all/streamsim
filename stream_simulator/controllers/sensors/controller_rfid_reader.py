@@ -130,6 +130,17 @@ class RfidReaderController(BaseThing):
                 "timestamp": time.time()
             })
 
+            if len(tags) > 0:
+                CommlibFactory.notify_ui(
+                    type = "rfid_tags",
+                    data = {
+                        "name": self.name,
+                        "value": {
+                            "tags": tags
+                        }
+                    }
+                )
+
             # Storing value:
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,

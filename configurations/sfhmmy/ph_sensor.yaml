@@ -19,5 +19,5 @@ operation_parameters:
     std: 0.3
   sinus:
     dc: 7
-    amplitute: 2
+    amplitude: 2
     step: 0.1
