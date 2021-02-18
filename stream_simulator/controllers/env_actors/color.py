@@ -22,6 +22,8 @@ class ColorActor(BaseThing):
             "name": "color_" + str(conf["id"])
         }
 
+        self.id = conf["id"]
+
         self.info = info
         self.name = info['name']
         self.pose = {
@@ -39,6 +41,7 @@ class ColorActor(BaseThing):
             "subtype": "color",
             "pose": self.pose,
             "name": self.name,
+            "id": self.id,
             "properties": {
                 'r': self.r,
                 'g': self.g,

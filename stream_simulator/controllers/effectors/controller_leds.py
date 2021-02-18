@@ -150,14 +150,18 @@ class LedsController(BaseThing):
             b = response["b"]
             intensity = response["luminosity"]
             self._color = [r, g, b, intensity]
+            _color = {
+                'r': r,
+                'g': g,
+                'b': b,
+                'luminosity': intensity
+            }
 
             CommlibFactory.notify_ui(
                 type = "effector_command",
                 data = {
                     "name": self.name,
-                    "value": {
-                        "color": self._color
-                    }
+                    "value": _color
                 }
             )
 
@@ -168,7 +172,7 @@ class LedsController(BaseThing):
             else: # The real deal
                 self.led_strip.write([self._color], wipe = False)
 
-            self.leds_pub.publish({"r": r, "g": g, "b": b})
+            # self.leds_pub.publish({"r": r, "g": g, "b": b})
 
             # Storing value:
             r = CommlibFactory.derp_client.lset(
@@ -202,7 +206,10 @@ class LedsController(BaseThing):
                 data = {
                     "name": self.name,
                     "value": {
-                        "color": self._color
+                        'r': r,
+                        'g': g,
+                        'b': b,
+                        'luminosity': intensity
                     }
                 }
             )
@@ -213,14 +220,14 @@ class LedsController(BaseThing):
                 pass
             else: # The real deal
                 self.led_strip.write([self._color], wipe=True)
-
-            self.leds_wipe_pub.publish({
-                "r": r,
-                "g": g,
-                "b": b,
-                "luminosity": intensity,
-                "ms": ms
-            })
+            #
+            # self.leds_wipe_pub.publish({
+            #     "r": r,
+            #     "g": g,
+            #     "b": b,
+            #     "luminosity": intensity,
+            #     "ms": ms
+            # })
 
             # Storing value:
             r = CommlibFactory.derp_client.lset(

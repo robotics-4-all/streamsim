@@ -31,6 +31,7 @@ class SoundSourceActor(BaseThing):
         }
         self.language = conf['lang']
         self.speech = conf['speech']
+        self.id = conf["id"]
         self.emotion = conf['emotion']
         self.range = 100 if 'range' not in conf else conf['range']
 
@@ -41,6 +42,7 @@ class SoundSourceActor(BaseThing):
             "pose": self.pose,
             "name": self.name,
             "range": self.range,
+            "id": self.id,
             "properties": {
                 'language': self.language,
                 'speech': self.speech,

@@ -30,6 +30,7 @@ class BarcodeActor(BaseThing):
             'theta': None
         }
         self.message = conf['message']
+        self.id = conf["id"]
 
         # tf handling
         tf_package = {
@@ -37,6 +38,7 @@ class BarcodeActor(BaseThing):
             "subtype": "barcode",
             "pose": self.pose,
             "name": self.name,
+            "id": self.id,
             "properties": {
                 "message": self.message
             }

@@ -57,6 +57,16 @@ class Test(unittest.TestCase):
                     print("Getting state")
                     print(get_rpc.call({}))
 
+                    print("Setting state '0'")
+                    set_rpc.call({"state": '0'})
+                    print("Getting state")
+                    print(get_rpc.call({}))
+
+                    print("Setting state '1'")
+                    set_rpc.call({"state": '1'})
+                    print("Getting state")
+                    print(get_rpc.call({}))
+
         except:
             traceback.print_exc(file=sys.stdout)
             self.assertTrue(False)

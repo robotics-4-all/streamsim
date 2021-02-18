@@ -5,6 +5,7 @@ from stream_simulator.base_classes import BasicSensor
 from stream_simulator.connectivity import CommlibFactory
 import statistics
 import time
+import random
 
 class EnvHumiditySensorController(BasicSensor):
     def __init__(self, conf = None, package = None):
@@ -57,7 +58,7 @@ class EnvHumiditySensorController(BasicSensor):
 
         ambient = self.env_properties['humidity']
         if len(res) == 0:
-            return ambient + random.randrange(-0.5, 0.5)
+            return ambient + random.uniform(-0.5, 0.5)
 
         vs = []
         for a in res:

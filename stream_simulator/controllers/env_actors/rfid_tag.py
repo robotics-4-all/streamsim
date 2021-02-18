@@ -38,6 +38,7 @@ class RfidTagActor(BaseThing):
             "subtype": "rfid_tag",
             "pose": self.pose,
             "name": self.name,
+            "id": self.id,
             "properties": {
                 "message": self.message,
                 "id": self.id

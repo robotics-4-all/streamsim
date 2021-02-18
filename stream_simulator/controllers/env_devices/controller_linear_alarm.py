@@ -139,7 +139,7 @@ class EnvLinearAlarmController(BaseThing):
                 }]
             )
 
-            if prev == False and val == True:
+            if prev == None and val not in [None, []]:
                 triggers += 1
                 self.publisher_triggers.publish({
                     "value": triggers,

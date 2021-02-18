@@ -37,6 +37,7 @@ class HumanActor(BaseThing):
         self.emotion = "neutral" if 'emotion' not in conf else conf['emotion']
         self.gender = "none" if 'gender' not in conf else conf['gender']
         self.age = "-1" if 'age' not in conf else conf['age']
+        self.id = conf["id"]
 
         # tf handling
         tf_package = {
@@ -45,6 +46,7 @@ class HumanActor(BaseThing):
             "pose": self.pose,
             "name": self.name,
             "range": self.range,
+            "id": self.id,
             "properties": {
                 'motion': self.motion,
                 'sound': self.sound,

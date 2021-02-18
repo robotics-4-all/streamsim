@@ -30,6 +30,7 @@ class TextActor(BaseThing):
             'theta': None
         }
         self.text = conf['text']
+        self.id = conf["id"]
 
         # tf handling
         tf_package = {
@@ -37,6 +38,7 @@ class TextActor(BaseThing):
             "subtype": "text",
             "pose": self.pose,
             "name": self.name,
+            "id": self.id,
             "properties": {
                 "text": self.text
             }

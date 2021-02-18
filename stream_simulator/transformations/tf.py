@@ -57,7 +57,7 @@ class TfController:
 
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
-            'host', 'host_type', 'properties'
+            'host', 'host_type', 'properties', 'id'
         ]
 
         self.declarations = []
@@ -554,16 +554,14 @@ class TfController:
                 'info': self.declarations_info[f]["properties"],
                 'distance': d,
                 'range': self.declarations_info[f]['range'],
-                'name': self.declarations_info[f]['name']
+                'name': self.declarations_info[f]['name'],
+                'id': self.declarations_info[f]['id']
             }
         return None
 
     def handle_affection_arced(self, name, f, type):
         p_d = self.places_absolute[name]
         p_f = self.places_absolute[f]
-        # 
-        # if type == "robot":
-        #     print(f)
 
         d = math.sqrt((p_d['x'] - p_f['x'])**2 + (p_d['y'] - p_f['y'])**2)
 
@@ -592,9 +590,11 @@ class TfController:
                 if type == "robot":
                     props = f
                     name = f
+                    id = None
                 else:
                     props = self.declarations_info[f]["properties"]
                     name = self.declarations_info[f]['name']
+                    id = self.declarations_info[f]['id']
                 return {
                     'type': type,
                     'info': props,
@@ -602,7 +602,8 @@ class TfController:
                     'min_sensor_ang': min_a,
                     'max_sensor_ang': max_a,
                     'actor_ang': ang,
-                    'name': name
+                    'name': name,
+                    'id': id
                 }
 
         return None
@@ -973,8 +974,11 @@ class TfController:
             ret = self.check_affectability(name)
             if type == "sound":
                 decision = True
-                info = None
+                info = ""
                 frm = ret
+                if ret != None and len(ret) > 1:
+                    for ff in ret:
+                        frm = ret[ff]
             elif type == "language":
                 decision = True
                 for x in ret:
@@ -986,10 +990,12 @@ class TfController:
                     info = ret[x]['info']['emotion'] # gets the last one
                     frm = ret[x]
             elif type == "speech2text":
-                decision = True
+                decision = False
                 for x in ret:
-                    info = ret[x]['info']['speech'] # gets the last one
-                    frm = ret[x]
+                    if ret[x]['type'] == 'human':
+                        decision = True
+                        info = ret[x]['info']['speech']
+                        frm = ret[x]
                 if info == "":
                     decision = False
             else:
@@ -1064,6 +1070,12 @@ class TfController:
                     if ret[x]['type'] == 'barcode':
                         decision = True
                         info = ret[x]['info']['message']
+                        frm = ret[x]
+            elif type == "text":
+                for x in ret:
+                    if ret[x]['type'] == 'text':
+                        decision = True
+                        info = ret[x]['info']['text']
                         frm = ret[x]
             elif type == "color":
                 # {'result': True, 'info': {'r': 0, 'g': 255, 'b': 0}, 'frm': {'type': 'color', 'info': {'r': 0, 'g': 255, 'b': 0}, 'distance': 2.5, 'min_sensor_ang': 1.4613539971898075, 'max_sensor_ang': 2.5085515483864054, 'actor_ang': 2.498091544796509}}

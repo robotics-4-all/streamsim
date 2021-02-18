@@ -34,13 +34,15 @@ class SupermanActor(BaseThing):
         self.message = conf['message']
         self.text = conf['text']
         self.name = info['name']
+        self.id = conf["id"]
 
         # tf handling
         tf_package = {
             "type": "actor",
             "subtype": "superman",
             "pose": self.pose,
-            "name": self.name
+            "name": self.name,
+            "id": self.id
         }
 
         self.host = None

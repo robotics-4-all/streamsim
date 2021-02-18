@@ -31,6 +31,7 @@ class WaterActor(BaseThing):
         }
         self.range = 100 if 'range' not in conf else conf['range']
         self.humidity = 100
+        self.id = conf["id"]
 
         # tf handling
         tf_package = {
@@ -39,6 +40,7 @@ class WaterActor(BaseThing):
             "pose": self.pose,
             "name": self.name,
             "range": self.range,
+            "id": self.id,
             "properties": {
                 "humidity": self.humidity
             }

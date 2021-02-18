@@ -29,6 +29,7 @@ class FireActor(BaseThing):
             'y': conf['y'],
             'theta': None
         }
+        self.id = conf["id"]
 
         self.temperature = 150 if 'temperature' not in conf else conf['temperature']
         self.range = 100 if 'range' not in conf else conf['range']
@@ -40,6 +41,7 @@ class FireActor(BaseThing):
             "pose": self.pose,
             "name": self.name,
             "range": self.range,
+            "id": self.id,
             "properties": {
                 "temperature": self.temperature
             }

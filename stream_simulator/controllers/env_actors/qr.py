@@ -29,6 +29,7 @@ class QrActor(BaseThing):
             'y': conf['y'],
             'theta': None
         }
+        self.id = conf["id"]
         self.message = conf['message']
 
         # tf handling
@@ -37,6 +38,7 @@ class QrActor(BaseThing):
             "subtype": "qr",
             "pose": self.pose,
             "name": self.name,
+            "id": self.id,
             "properties": {
                 "message": self.message
             }
