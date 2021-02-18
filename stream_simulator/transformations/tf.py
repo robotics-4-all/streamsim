@@ -553,13 +553,17 @@ class TfController:
                 'type': type,
                 'info': self.declarations_info[f]["properties"],
                 'distance': d,
-                'range': self.declarations_info[f]['range']
+                'range': self.declarations_info[f]['range'],
+                'name': self.declarations_info[f]['name']
             }
         return None
 
     def handle_affection_arced(self, name, f, type):
         p_d = self.places_absolute[name]
         p_f = self.places_absolute[f]
+        # 
+        # if type == "robot":
+        #     print(f)
 
         d = math.sqrt((p_d['x'] - p_f['x'])**2 + (p_d['y'] - p_f['y'])**2)
 
@@ -587,8 +591,10 @@ class TfController:
                 props = None
                 if type == "robot":
                     props = f
+                    name = f
                 else:
                     props = self.declarations_info[f]["properties"]
+                    name = self.declarations_info[f]['name']
                 return {
                     'type': type,
                     'info': props,
@@ -596,6 +602,7 @@ class TfController:
                     'min_sensor_ang': min_a,
                     'max_sensor_ang': max_a,
                     'actor_ang': ang,
+                    'name': name
                 }
 
         return None
