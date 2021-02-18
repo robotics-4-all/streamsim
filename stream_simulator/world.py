@@ -6,6 +6,7 @@ import json
 import yaml
 import numpy
 import logging
+import math
 
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
@@ -107,7 +108,18 @@ class World:
                         x1 = tmp
                     for i in range(x1, x2 + 1):
                         self.map[i, y1] = 1
-
+                else: # we have a tilted line
+                    f_ang = math.atan2(y2 - y1, x2 - x1)
+                    dist = math.sqrt(
+                        math.pow(x2 - x1, 2) + math.pow(y2 - y1, 2)
+                    )
+                    dist = int(dist) + 1
+                    d = 0
+                    while d <= dist:
+                        tmpx = int(x1 + d * math.cos(f_ang))
+                        tmpy = int(y1 + d * math.sin(f_ang))
+                        d += 1
+                        self.map[tmpx, tmpy] = 1
 
     def register_controller(self, c):
         if c.name in self.controllers:
