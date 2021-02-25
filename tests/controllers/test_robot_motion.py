@@ -39,14 +39,13 @@ class Test(unittest.TestCase):
                         )
 
                         # Set constant
-                        print("Setting 0.1, 0.1")
                         set_rpc.publish({
-                            'linear': 0.2,
-                            'angular': 0.2,
+                            'linear': 0.1,
+                            'angular': 0.314,
                         })
 
-                        time.sleep(2)
-                        print("Stopping")
+                        time.sleep(5)
+                        
                         set_rpc.publish({
                             'linear': 0.0,
                             'angular': 0.0,

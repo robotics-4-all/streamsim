@@ -42,7 +42,8 @@ class CytronLFController(BaseThing):
             "endpoints":{
                 "enable": "rpc",
                 "disable": "rpc",
-                "data": "publisher"
+                "data": "publisher",
+                "calibrate": "rpc"
             },
             "data_models": {
                 "data": ["so_1", "so_2", "so_3", "so_4", "so_5"]
@@ -60,6 +61,12 @@ class CytronLFController(BaseThing):
             topic = self.base_topic + ".data"
         )
 
+        self.callibration_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.calibrate_callback,
+            rpc_name = self.base_topic + ".calibrate"
+        )
+
         if self.info["mode"] == "real":
             from pidevices import CytronLfLSS05Mcp23017
 
@@ -74,6 +81,7 @@ class CytronLFController(BaseThing):
                                                 cal=self.conf["cal"],
                                                 name=self.name,
                                                 max_data_length=self.conf["max_data_length"])
+            self.lf_sensor.calibrate()
 
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -145,6 +153,10 @@ class CytronLFController(BaseThing):
 
         self.logger.info("Cytron-LF {} sensor read thread stopped".format(self.info["id"]))
 
+    def calibrate_callback(self, message, meta):
+        if self.info["mode"] == "real":
+            self.lf_sensor.calibrate()
+
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
@@ -165,12 +177,13 @@ class CytronLFController(BaseThing):
         self.disable_rpc_server.run()
 
         if self.info["mode"] == "real":
-            self.lf_sensor.calibrate()
+            self.callibration_server.run()
 
         if self.info["enabled"]:
             self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
+            
             self.logger.info("Cytron Line Follower {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
     def stop(self):
@@ -182,4 +195,6 @@ class CytronLFController(BaseThing):
 
         # if we are on "real" mode and the controller has started then Terminate it
         if self.info["mode"] == "real":
+            self.callibration_server.stop()
             self.lf_sensor.stop()
+

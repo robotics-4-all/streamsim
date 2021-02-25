@@ -385,7 +385,7 @@ class CameraController(BaseThing):
             data = base64.b64encode(bytes(data)).decode("ascii")
         else: # The real deal
             self.sensor.start()
-            img = self.sensor.read(image_dims=(width, height))[-1].frame
+            img = self.sensor.read(image_dims=(width, height), image_format='bmp')[-1].frame
             self.sensor.stop()
             data = base64.b64encode(img).decode("ascii")
 
@@ -394,7 +394,7 @@ class CameraController(BaseThing):
         nanosecs = int((timestamp-secs) * 10**(9))
         ret = {
             "timestamp": time.time(),
-            "format": "RGB",
+            "format": "BMP",
             "per_rows": True,
             "width": width,
             "height": height,

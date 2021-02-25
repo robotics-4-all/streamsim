@@ -7,6 +7,7 @@ import math
 import logging
 import threading
 import random
+import base64
 
 from colorama import Fore, Style
 
@@ -60,6 +61,12 @@ class TouchScreenController(BaseThing):
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
         package["tf_declare"].call(tf_package)
+
+        # create object
+        if self.info["mode"] == "real":
+            from pidevices import TouchScreen
+            self.touch_screen = TouchScreen()
+            self.touch_screen.start()
 
         self.show_image_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -142,6 +149,32 @@ class TouchScreenController(BaseThing):
             else:
                 ret["selected"] = ""
         else: # The real deal
-            self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+            #print("============" ,~/test.jpg)
+            print("=======================")
+            #data = base64.b64decode(source).decode("ascii")
+            #reaction_time = self.touch_screen.write(show_color=True, time_enabled=3, color_rgb=(0, 255, 0))
+
+            #print("GOT ", )
+
+            result = self.touch_screen.write(file_path=source,
+                                                time_enabled=time_enabled, 
+                                                touch_enabled=touch_enabled,
+                                                color_rgb=color_rgb,
+                                                options=options,
+                                                multiple_options=multiple_options,
+                                                time_window=time_window,
+                                                text="Image", 
+                                                show_image=True,
+                                                show_color=show_color,
+                                                show_video=show_video,
+                                                show_options=show_options)
+
+            selected = ""
+
+            ret["reaction_time"] = result["reaction_time"]
+            ret["selected"] = selected
+
+            # time_enabled=5, touch_enabled=True)
+            # self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
         return ret

@@ -43,7 +43,7 @@ class EncoderController(BaseThing):
                 "data": "publisher"
             },
             "data_models": {
-                "data": ["rpm"]
+                "data": ["rps"]
             }
         }
 
@@ -93,7 +93,7 @@ class EncoderController(BaseThing):
 
             # Publishing value:
             self.publisher.publish({
-                "rpm": self.data,
+                "rps": self.data,
                 "timestamp": time.time()
             })
 
@@ -101,7 +101,7 @@ class EncoderController(BaseThing):
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
-                    "rpm": self.data,
+                    "rps": self.data,
                     "timestamp": time.time()
                 }]
             )

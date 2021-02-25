@@ -32,6 +32,12 @@ jobs:
             sudo pip3 install qrcode[pil]
             sudo pip3 install colorama
       - run:
+          name: Build & Install Robot-motion
+          command: |
+            git clone --branch streamsim_intergration git@github.com:robotics-4-all/robot_motion.git
+            cd commlib-py
+            sudo python3 setup.py install
+      - run:
           name: Build & Install Commlib
           command: |
             git clone --branch v0.3.1 git@github.com:robotics-4-all/commlib-py.git

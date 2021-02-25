@@ -70,14 +70,17 @@ class SpeakerController(BaseThing):
 
         if self.info["mode"] == "real":
             from pidevices import Speaker
-            self.speaker = Speaker(dev_name = self.conf["dev_name"], name = self.name, max_data_length = self.conf["max_data_length"])
+            self.speaker = Speaker(dev_name = self.conf["dev_name"], 
+                                   card_index=self.conf["card_index"], 
+                                   name = self.name,
+                                   max_data_length = self.conf["max_data_length"])
 
             if self.info["speak_mode"] == "espeak":
                 from espeakng import ESpeakNG
 
                 self.esng = ESpeakNG()
-                #self.esng.pitch = 32
-                #self.esng.speed = 150
+                self.esng.pitch = 50
+                self.esng.speed = 80
 
             elif self.info["speak_mode"] == "google":
                 import os
@@ -180,7 +183,7 @@ class SpeakerController(BaseThing):
 
         else: # The real deal
             if self.info["speak_mode"] == "espeak":
-                path = "/home/pi/tektrain-robot-sw/wav_sounds/file_example_WAV_1MG.wav"
+                path = "../stream_simulator/resources/english_sentence.wav"
                 self.esng.voice = language
                 self.esng._espeak_exe([texts, "-w", path], sync = True)
                 self.speaker.volume = volume

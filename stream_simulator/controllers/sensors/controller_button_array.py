@@ -128,15 +128,14 @@ class ButtonArrayController(BaseThing):
         self.logger.info(f"Button {self.info['id']} sensor read thread stopped")
 
     # Untested!!!
-    def real_button_pressed(self, button):
-        if self.values[button] is False:
-            return
-        self.values[button] = False
-        self.logger.info(f"Button {button} pressed at {current_milli_time()}")
+    def real_button_event(self, gpio_pin, level, button_id):
+        if level == 1:
+            self.logger.info(f"Button {button_id} of the mcp pin {gpio_pin} pressed at {current_milli_time()}")
+        else:
+            self.logger.info(f"Button {button_id} of the mcp pin {gpio_pin} released at {current_milli_time()}")
 
-        self.dispatch_information(1, self.button_places[button])
 
-        self.values[button] = True
+        self.dispatch_information(level, self.button_places[button_id])
 
     def start(self):
         self.enable_rpc_server.run()
@@ -144,7 +143,7 @@ class ButtonArrayController(BaseThing):
 
         if self.info["mode"] == "real":
             for pin_num in range(self.number_of_buttons):
-                self.sensor.when_pressed(pin_num, self.real_button_pressed, pin_num)
+                self.sensor.when_pressed(pin_num, self.real_button_event, pin_num)
 
             buttons = [i for i in range(self.number_of_buttons)]
             self.sensor.enable_pressed(buttons)

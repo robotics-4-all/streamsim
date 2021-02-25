@@ -155,7 +155,7 @@ class ImuController(BaseThing):
                     self.logger.warning("Pose not got yet..")
             else: # The real deal
                 data = self._sensor.read()
-
+                
                 try:
                     val = self._calibrator.convert(data=data)
                 except CalibrationFileNotFound as err:

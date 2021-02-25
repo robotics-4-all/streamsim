@@ -73,7 +73,7 @@ class PanTiltController(BaseThing):
 
             self.yaw_channel = self.conf["yaw_channel"]
             self.pitch_channel = self.conf["pitch_channel"]
-
+        
         self.pan_tilt_set_sub = CommlibFactory.getSubscriber(
             broker = "redis",
             topic = info["base_topic"] + ".set",

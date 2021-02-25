@@ -356,7 +356,7 @@ class Robot:
                 "pin_nums": [],
                 "base_topics": {},
                 "direction": "down",
-                "bounce": 200,
+                "bounce": 100,
         }
         buttons = [x for x in self.devices if x["type"] == "BUTTON"]
         for d in buttons:

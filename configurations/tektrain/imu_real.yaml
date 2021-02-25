@@ -1,7 +1,7 @@
 pose: {x: 0, y: 0, theta: 0}
 orientation: 1
 place: CENTER
-hz: 50
+hz: 30
 sensor_configuration:
   bus: 1
   max_data_length: 10

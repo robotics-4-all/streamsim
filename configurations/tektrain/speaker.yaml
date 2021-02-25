@@ -2,5 +2,6 @@ orientation: 0
 place: FRONT
 pose: {x: 0, y: 0, theta: 0}
 sensor_configuration:
-  dev_name: "Speaker"
+  dev_name: "default"
+  card_index: 2
   max_data_length: 10
