@@ -35,7 +35,7 @@ jobs:
           name: Build & Install Robot-motion
           command: |
             git clone --branch streamsim_intergration git@github.com:robotics-4-all/robot_motion.git
-            cd robot-motion
+            cd robot_motion
             sudo python3 setup.py install
       - run:
           name: Build & Install Commlib
