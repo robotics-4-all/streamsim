@@ -1,7 +1,7 @@
 orientation: 0
 place: FRONT
 hz: 0.5
-pose: {x: 0, y: 0, theta: 0}
+pose: {x: 0, y: 0, theta: 0, resolution: 5}
 sensor_configuration:
   framerate: 30
   width: 640

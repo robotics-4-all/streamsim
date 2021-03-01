@@ -70,21 +70,24 @@ class MotionController(BaseThing):
 
         if self.info["mode"] == "real":
             from pidevices import DfrobotMotorControllerPiGPIO
-            
-            self.motor_driver = DfrobotMotorControllerPiGPIO(E1=self.conf["E1"], M1=self.conf["M1"], E2=self.conf["E2"], M2=self.conf["M2"])
-            self.motor_driver.start()
+            self.motor_driver = DfrobotMotorControllerPiGPIO(E1=self.conf["E1"], 
+                                                             M1=self.conf["M1"], 
+                                                             E2=self.conf["E2"], 
+                                                             M2=self.conf["M2"])
+        else:
+            self.motor_driver = None
 
-            self.wheel_separation = self.conf["wheel_separation"]
-            self.wheel_radius = self.conf["wheel_radius"]
+        self.wheel_separation = self.conf["wheel_separation"]
+        self.wheel_radius = self.conf["wheel_radius"]
 
-            self.device_finder = CommlibFactory.getRPCClient(
-                broker="redis",            
-                rpc_name = f"robot.{self.info['device_name']}.nodes_detector.get_connected_devices"
-            )
+        self.device_finder = CommlibFactory.getRPCClient(
+            broker="redis",            
+            rpc_name = f"robot.{self.info['device_name']}.nodes_detector.get_connected_devices"
+        )
 
-            # this thread will initialize the motion module after delay time
-            init_delay = 7
-            self.initializer = threading.Thread(target=self._init, args=(init_delay,), daemon=True)
+        # this thread will initialize the motion module after delay time
+        init_delay = 7
+        self.initializer = threading.Thread(target=self._init, args=(init_delay,), daemon=True)
             
         self._linear = 0
         self._angular = 0
@@ -232,46 +235,32 @@ class MotionController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.move_action_server.run()
-
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
         
+        self.initializer.start()
+
+        self.motion_calibration_server.run()
+        self.move_action_server.run()
+        self.lf_action_server.run()
+
         if self.info["mode"] == "real":
-            self.motion_calibration_server.run()
-            self.lf_action_server.run()
-            self.initializer.start()
+            self.motor_driver.start()
 
     def stop(self):
-        self.move_action_server.stop()
-
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+
+        self.motion_calibration_server.stop()
+        self.move_action_server.stop()
+        self.lf_action_server.stop()
+
+        self._imu_sub.stop()
+        self._enc_left_sub.stop()
+        self._enc_right_sub.stop()
         
         if self.info["mode"] == "real":
-            self.motion_calibration_server.stop()
-            self.lf_action_server.stop()
-            self._imu_sub.stop()
-            self._enc_left_sub.stop()
-            self._enc_right_sub.stop()
-
-    def cmd_vel(self, goalh):
-        print(goalh.data)
-
-        time.sleep(1)
-        timestamp = time.time()
-        secs = int(timestamp)
-        nanosecs = int((timestamp-secs) * 10**(9))
-        ret = {
-            "header":{
-                "stamp":{
-                    "sec": secs,
-                    "nanosec": nanosecs
-                }
-            }
-        }
-
-        return ret
+            self.motor_driver.stop()
 
     def on_goal_cmd_vel(self, goalh):
         self.logger.info("Robot motion started {}".format(self.name))
@@ -307,6 +296,19 @@ class MotionController(BaseThing):
 
         self._complex_controller.set_next_goal(goal=goalh.data)
 
+        vels = self._complex_controller.get_velocities()
+
+        r = CommlibFactory.derp_client.lset(
+            self.derp_data_key,
+            [{
+                "data": {
+                    "linearVelocity": vels['linear'],
+                    "rotationalVelocity": vels['rotational']
+                },
+                "timestamp": timestamp
+            }]
+        )
+
         while self._complex_controller.is_running():
             if goalh.cancel_event.is_set():
                 self._complex_controller.preempt_goal()
@@ -314,4 +316,5 @@ class MotionController(BaseThing):
 
                 return ret
             time.sleep(0.1)
+
 

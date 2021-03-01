@@ -38,6 +38,7 @@ class CameraController(BaseThing):
             "enabled": True,
             "orientation": conf["orientation"],
             "hz": conf["hz"],
+            "pose": conf["pose"],
             "queue_size": 0,
             "mode": package["mode"],
             "namespace": package["namespace"],
@@ -61,6 +62,8 @@ class CameraController(BaseThing):
         self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
+
+        self.robot_pose = self.info["pose"]
 
         self.publisher = CommlibFactory.getPublisher(
             broker = "redis",
@@ -88,6 +91,7 @@ class CameraController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose",
                 callback = self.robot_pose_update
             )
+
             self.robot_pose_sub.run()
 
         self.video_rpc_server = CommlibFactory.getRPCService(

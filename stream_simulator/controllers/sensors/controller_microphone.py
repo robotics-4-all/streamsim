@@ -145,7 +145,8 @@ class MicrophoneController(BaseThing):
             # Read from file
             import wave
             import os
-            dirname = os.path.dirname(__file__)
+            #dirname = os.path.dirname(__file__)
+            dirname = "../stream_simulator"
 
             x = self.robot_pose["x"]
             y = self.robot_pose["y"]
