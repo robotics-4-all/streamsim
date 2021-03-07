@@ -17,65 +17,64 @@ robots:
     amqp_inform: true
     step_by_step_execution: false
     devices:
-      microphone:
-        -
-          source: "tektrain/microphone"
+      # microphone:
+      #   -
+      #     source: "tektrain/microphone"
       # sonar:
       #   -
-      ir:
-        -
-          source: "tektrain/irs/ir_f"
-        -
-          source: "tektrain/irs/ir_l"
-        -
-          source: "tektrain/irs/ir_b"
-        -
-          source: "tektrain/irs/ir_r"
-      
+      # ir:
+      #   -
+      #     source: "tektrain/irs/ir_f"
+      #   -
+      #     source: "tektrain/irs/ir_l"
+      #   -
+      #     source: "tektrain/irs/ir_b"
+      #   -
+      #     source: "tektrain/irs/ir_r"
       # tof:
       #   -
       #     source: "tektrain/tof"
-      # camera:
-      #   -
-      #     source: "tektrain/camera"
+      camera:
+        -
+          source: "tektrain/camera"
       servo:
         -
           source: "tektrain/servos/servo_1"
       imu:
         -
           source: "tektrain/imu_real"
-      button:
-        -
-          source: "tektrain/buttons/button_F"
-        -
-          source: "tektrain/buttons/button_FR"
-        -
-          source: "tektrain/buttons/button_FL"
-        -
-          source: "tektrain/buttons/button_R"
-        -
-          source: "tektrain/buttons/button_L"
-        -
-          source: "tektrain/buttons/button_B"
-        - 
-          source: "tektrain/buttons/button_G3"
-        -
-          source: "tektrain/buttons/button_G2"
+      # button:
+      #   -
+      #     source: "tektrain/buttons/button_F"
+      #   -
+      #     source: "tektrain/buttons/button_FR"
+      #   -
+      #     source: "tektrain/buttons/button_FL"
+      #   -
+      #     source: "tektrain/buttons/button_R"
+      #   -
+      #     source: "tektrain/buttons/button_L"
+      #   -
+      #     source: "tektrain/buttons/button_B"
+      #   - 
+      #     source: "tektrain/buttons/button_G3"
+      #   -
+      #     source: "tektrain/buttons/button_G2"
       env:
         -
           source: "tektrain/env"
-      # speaker:
-      #   -
-      #     source: "tektrain/speaker"
+      speaker:
+        -
+          source: "tektrain/speaker"
       leds:
         -
           source: "tektrain/leds"
       pan_tilt:
         -
           source: "tektrain/pan_tilt"
-      # touch_screen:
-      #   -
-      #     source: "tektrain/touch_screen"
+      touch_screen:
+        -
+          source: "tektrain/touch_screen"
       encoder:
       -
         source: "tektrain/encoders/encoder_BL_real"

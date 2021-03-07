@@ -81,6 +81,9 @@ class EncoderController(BaseThing):
         self.logger.info("Encoder {} sensor read thread started".format(self.info["id"]))
         period = 1.0 / self.info["hz"]
 
+        counter = 0
+        timer = time.time()
+
         while self.info["enabled"]:
             if self.info["mode"] == "mock":
                 self.data = float(random.uniform(1000,2000))
@@ -88,6 +91,8 @@ class EncoderController(BaseThing):
                 self.data = float(random.uniform(1000,2000))
             else: # The real deal
                 self.data = self.sensor.read()["rps"]
+                counter = counter + 1
+                #print(f"Enc { self.info['id']} freq: {counter / (time.time() - timer)}")
 
             time.sleep(period)
 

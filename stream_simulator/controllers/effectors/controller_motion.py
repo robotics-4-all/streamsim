@@ -70,6 +70,7 @@ class MotionController(BaseThing):
 
         if self.info["mode"] == "real":
             from pidevices import DfrobotMotorControllerPiGPIO
+
             self.motor_driver = DfrobotMotorControllerPiGPIO(E1=self.conf["E1"], 
                                                              M1=self.conf["M1"], 
                                                              E2=self.conf["E2"], 

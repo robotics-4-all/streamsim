@@ -41,17 +41,17 @@ class Test(unittest.TestCase):
                         # Set constant
                         set_rpc.publish({
                             'linear': 0.1,
-                            'angular': 0.314,
-                        })
-
-                        time.sleep(5)
-                        
-                        set_rpc.publish({
-                            'linear': 0.0,
                             'angular': 0.0,
                         })
 
-                        time.sleep(1)
+                        time.sleep(3)
+                        
+                        set_rpc.publish({
+                            'linear': 0.0,
+                            'angular': 0.314,
+                        })
+
+                        time.sleep(2)
 
         except:
             traceback.print_exc(file=sys.stdout)

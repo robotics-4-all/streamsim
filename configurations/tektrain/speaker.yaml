@@ -3,5 +3,5 @@ place: FRONT
 pose: {x: 0, y: 0, theta: 0}
 sensor_configuration:
   dev_name: "default"
-  card_index: 2
+  card_index: 1
   max_data_length: 10

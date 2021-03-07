@@ -6,8 +6,8 @@ After=multi-user.target network.target redis-server.service
 [Service]
 User=pi
 Type=idle
-ExecStart=/usr/bin/python3 -u main.py elsa
-WorkingDirectory=/home/pi/v2/stream-sim-backend/bin
+ExecStart=sudo /usr/bin/python3 -u main.py tektrain_real
+WorkingDirectory=/home/pi/new_infrastructure/stream-sim-backend/bin
 StandardOutput=inherit
 StandardError=inherit
 Restart=always

@@ -142,6 +142,7 @@ class PanTiltController(BaseThing):
                 pass
             else: # The real deal
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                print("Setting channel to: ", self._yaw, self._pitch)
                 self.pan_tilt.write(self.yaw_channel, self._yaw, degrees=True)
                 self.pan_tilt.write(self.pitch_channel, self._pitch, degrees=True)
 

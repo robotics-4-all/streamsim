@@ -1,8 +1,8 @@
 pose: {x: 0, y: 0, theta: 0}
 orientation: -90
 place: BR
-hz: 5
+hz: 8
 sensor_configuration:
   pin: 24
-  name: "Right Enc"
+  name: "EncoderRight"
   max_data_length: 10

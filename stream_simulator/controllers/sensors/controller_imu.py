@@ -110,8 +110,11 @@ class ImuController(BaseThing):
 
     def sensor_read(self):
         self.logger.info("IMU {} sensor read thread started".format(self.info["id"]))
+        counter = 0
+        timer = time.time()
+
         while self.info["enabled"]:
-            time.sleep(1.0 / self.info["hz"])
+            time.sleep(1 / self.info["hz"])
 
             if self.info["mode"] == "mock":
                 val = {
@@ -154,7 +157,10 @@ class ImuController(BaseThing):
                 except:
                     self.logger.warning("Pose not got yet..")
             else: # The real deal
+                counter = counter + 1
                 data = self._sensor.read()
+
+                #print("Imu freq: ", counter / (time.time() - timer))
                 
                 try:
                     val = self._calibrator.convert(data=data)
