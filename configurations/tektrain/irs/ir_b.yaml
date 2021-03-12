@@ -1,10 +1,10 @@
-pose: {theta: -90}
-orientation: -90
-place: R
+pose: {x: 0, y: 0, theta: 180}
+orientation: 180
+place: B
 hz: 10
 max_range: 0.4
 sensor_configuration:
-  channel: 3
+  channel: 2
   v_ref: 3.3
   averages: 10
   max_data_length": 10

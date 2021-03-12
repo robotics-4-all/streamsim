@@ -1,0 +1,9 @@
+orientation: 0
+place: UNDER
+name: drawer
+pose: {x: 0, y: 0, theta: 0}
+sensor_configuration:
+  bus: 1
+  servo_channel: 2
+  frequency: 50
+  max_data_length: 1

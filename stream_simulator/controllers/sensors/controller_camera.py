@@ -45,6 +45,7 @@ class CameraController(BaseThing):
             "enabled": True,
             "orientation": conf["orientation"],
             "hz": conf["hz"],
+            "pose": conf["pose"],
             "queue_size": 0,
             "mode": package["mode"],
             "namespace": package["namespace"],
@@ -94,6 +95,8 @@ class CameraController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
         package["tf_declare"].call(tf_package)
 
+        self.robot_pose = self.info["pose"]
+
         self.publisher = CommlibFactory.getPublisher(
             broker = "redis",
             topic = self.base_topic + ".data"
@@ -120,6 +123,7 @@ class CameraController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose",
                 callback = self.robot_pose_update
             )
+
             self.robot_pose_sub.run()
 
         self.video_rpc_server = CommlibFactory.getRPCService(
@@ -375,7 +379,7 @@ class CameraController(BaseThing):
 
         else: # The real deal
             self.sensor.start()
-            img = self.sensor.read(image_dims=(width, height))[-1].frame
+            img = self.sensor.read(image_dims=(width, height), image_format='bmp')[-1].frame
             self.sensor.stop()
             data = base64.b64encode(img).decode("ascii")
 
@@ -384,7 +388,7 @@ class CameraController(BaseThing):
         nanosecs = int((timestamp-secs) * 10**(9))
         ret = {
             "timestamp": time.time(),
-            "format": "RGB",
+            "format": "BMP",
             "per_rows": True,
             "width": width,
             "height": height,

@@ -39,8 +39,8 @@ class Test(unittest.TestCase):
                             action_name = s["base_topic"] + ".speak"
                         )
                         resp = action.send_goal({
-                            'text': 'This is an example',
-                            'volume': 100,
+                            'text': 'This is an example my friend',
+                            'volume': 50,
                             'language': 'el'
                         })
                         goal_id = resp["goal_id"]
@@ -56,7 +56,7 @@ class Test(unittest.TestCase):
                         )
                         resp = action.send_goal({
                             'string': '...',
-                            'volume': 100
+                            'volume': 50
                         })
                         goal_id = resp["goal_id"]
                         while action.get_result(goal_id)["status"] == 1:

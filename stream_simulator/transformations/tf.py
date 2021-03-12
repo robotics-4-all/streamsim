@@ -272,25 +272,25 @@ class TfController:
                     # self.logger.info(f"\tRelative: {self.places_relative[i]}")
                     # self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
 
-
-
         for n in self.declarations_info:
             d_i = self.declarations_info[n]
             if d_i["type"] == "actor":
                 continue
 
             # subscribers for speakers
-            if "speaker" in d_i['subtype']['subclass']:
-                self.speaker_subs[d_i['name']] = CommlibFactory.getSubscriber(
-                    topic = d_i["base_topic"] + ".speak.notify",
-                    callback = self.speak_callback
-                )
-                self.speaker_subs[d_i['name']].run()
-            # publishers for microphones
-            if "microphone" in d_i['subtype']['subclass']:
-                self.microphone_pubs[d_i['name']] = CommlibFactory.getPublisher(
-                    topic = d_i["base_topic"] + ".speech_detected"
-                )
+            if 'subclass' in d_i['subtype']:  
+                if "speaker" in d_i['subtype']['subclass']:
+                    self.speaker_subs[d_i['name']] = CommlibFactory.getSubscriber(
+                        topic = d_i["base_topic"] + ".speak.notify",
+                        callback = self.speak_callback
+                    )
+                    self.speaker_subs[d_i['name']].run()
+                # publishers for microphones
+                if "microphone" in d_i['subtype']['subclass']:
+                    self.microphone_pubs[d_i['name']] = CommlibFactory.getPublisher(
+                        topic = d_i["base_topic"] + ".speech_detected"
+                    )
+                    
         self.logger.info("*****************************************")
 
         # starting subs

@@ -18,6 +18,7 @@ from commlib.node import TransportType
 import commlib.transports.amqp as acomm
 from stream_simulator.connectivity import CommlibFactory
 
+
 class HeartbeatThread(threading.Thread):
     def __init__(self, topic, _conn_params, interval=10,  *args, **kwargs):
         super(HeartbeatThread, self).__init__(*args, **kwargs)
@@ -206,6 +207,12 @@ class Robot:
             topic = self.name + ".pose"
         )
 
+        # my code here
+        self.motion_state_reset = CommlibFactory.getRPCClient(broker="redis", rpc_name="motion_state.reset")
+        self.motion_reset_timer = time.time()
+
+
+
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['amqp_inform'] is True:
             import commlib
@@ -343,6 +350,7 @@ class Robot:
            "speaker": getattr(str_contro, "SpeakerController"),
            "leds": getattr(str_contro, "LedsController"),
            "pan_tilt": getattr(str_contro, "PanTiltController"),
+           "servo": getattr(str_contro, "ServoController"),
            "touch_screen": getattr(str_contro, "TouchScreenController"),
            "encoder": getattr(str_contro, "EncoderController"),
            "gstreamer_server": getattr(str_contro, "GstreamerServerController"),
@@ -375,7 +383,7 @@ class Robot:
                 "pin_nums": [],
                 "base_topics": {},
                 "direction": "down",
-                "bounce": 200,
+                "bounce": 100,
         }
         buttons = [x for x in self.devices if x["type"] == "BUTTON"]
         for d in buttons:
@@ -492,6 +500,10 @@ class Robot:
         timestamp = time.time()
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
+
+        if (time.time() - self.motion_reset_timer) > 15:
+            self.motion_state_reset.call({})
+
         return {
                 "devices": self.devices,
                 "timestamp": time.time()

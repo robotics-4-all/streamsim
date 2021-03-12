@@ -29,6 +29,7 @@ class SoundSourceActor(BaseThing):
             'y': conf['y'],
             'theta': None
         }
+        
         self.language = conf['lang']
         self.speech = conf['speech']
         self.id = conf["id"]

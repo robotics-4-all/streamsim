@@ -8,5 +8,5 @@ sensor_configuration:
   pin_num: "B_0"
   direction: "down"
   edge: "both"
-  bounce: 70
+  bounce: 20
   max_data_length: 10

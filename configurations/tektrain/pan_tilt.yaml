@@ -4,5 +4,7 @@ orientation: 0
 place: UNDER
 sensor_configuration:
   bus: 1
+  yaw_channel: 0
+  pitch_channel: 1
   frequency: 50
   max_data_length: 1

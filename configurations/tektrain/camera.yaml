@@ -1,4 +1,4 @@
-pose: {theta: 0}
+pose: {x: 0, y: 0, theta: 0, resolution: 5}
 orientation: 0
 place: FRONT
 hz: 0.5

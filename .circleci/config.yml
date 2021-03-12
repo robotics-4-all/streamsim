@@ -1,7 +1,7 @@
 version: 2.1
 
 executors:
-  tektrain_sim:
+  stream_sim_backend:
     docker:
       - image: circleci/python:3.7.4
       - image: circleci/redis:latest
@@ -9,7 +9,7 @@ executors:
 
 jobs:
   build_and_test:
-    executor: tektrain_sim
+    executor: stream_sim_backend
     steps:
       - checkout
       - run:
@@ -32,7 +32,13 @@ jobs:
             sudo pip3 install qrcode[pil]
             sudo pip3 install colorama
       - run:
-          name: Build & Install Commlib
+          name: Build & Install Robot-motion
+          command: |
+            git clone --branch streamsim_intergration git@github.com:robotics-4-all/robot_motion.git
+            cd robot_motion
+            sudo python3 setup.py install
+      - run:
+          name: Build & Install Commlib-py
           command: |
             git clone --branch v0.3.1 git@github.com:robotics-4-all/commlib-py.git
             cd commlib-py
