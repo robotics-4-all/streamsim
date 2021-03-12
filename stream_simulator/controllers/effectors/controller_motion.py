@@ -68,6 +68,8 @@ class MotionController(BaseThing):
         tf_package['host_type'] = 'robot'
         package["tf_declare"].call(tf_package)
 
+        self._motor_driver = None
+
         if self.info["mode"] == "real":
             from pidevices import DfrobotMotorControllerPiGPIO
 
@@ -75,11 +77,12 @@ class MotionController(BaseThing):
                                                              M1=self.conf["M1"], 
                                                              E2=self.conf["E2"], 
                                                              M2=self.conf["M2"])
-        else:
-            self.motor_driver = None
 
         self.wheel_separation = self.conf["wheel_separation"]
         self.wheel_radius = self.conf["wheel_radius"]
+
+        self._linear = 0
+        self._angular = 0
 
         self.device_finder = CommlibFactory.getRPCClient(
             broker="redis",            
@@ -89,9 +92,6 @@ class MotionController(BaseThing):
         # this thread will initialize the motion module after delay time
         init_delay = 7
         self.initializer = threading.Thread(target=self._init, args=(init_delay,), daemon=True)
-            
-        self._linear = 0
-        self._angular = 0
         
         self.move_action_server = CommlibFactory.getActionServer(
             broker = "redis",
@@ -137,6 +137,8 @@ class MotionController(BaseThing):
                     self._enc_right_name = d["sensor_configuration"]["name"]
             elif d['type'] == "LINE_FOLLOWER":
                 self._lf_topic = d['base_topic'] + ".data"
+            elif d['type'] == "SERVO":
+                self._servo_topic = d['base_topic'] + ".set"
 
     def calibrate_motion(self):
         pass
@@ -191,7 +193,18 @@ class MotionController(BaseThing):
         self._complex_controller = ComplexMotion(self.motor_driver, 
                                                  self._speed_controller, 
                                                  self._dirr_controller, 
-                                                 self._lf_controller)        
+                                                 self._lf_controller)   
+
+        self._marker_pub = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = self._servo_topic
+        )
+
+        self._reset_state_rpc = CommlibFactory.getRPCService(
+            broker = "redis", 
+            rpc_name = "motion_state.reset", 
+            callback = self._reset_motion_state
+        )   
 
         # subscribe to imu's topic
         self._imu_sub = CommlibFactory.getSubscriber(
@@ -222,10 +235,16 @@ class MotionController(BaseThing):
         )
 
         # start subscriptions to the recorded topics
+        self._reset_state_rpc.run()
         self._imu_sub.run()
         self._enc_left_sub.run()
         self._enc_right_sub.run()
         self._lf_sub.run()
+
+    def _reset_motion_state(self, message, meta):
+        print("Resseting internal motion state")
+        self._complex_controller._direction_controller.reset()
+        return {}
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -294,6 +313,18 @@ class MotionController(BaseThing):
                 }
             }
         }
+
+        # control marker's position
+        if goalh.data["rotationalVelocity"] != 0.0 and goalh.data["linearVelocity"] == 0.0:
+            self._marker_pub.publish({
+                "angle": 0,
+                "timestamp": time.time()
+            })
+        else:
+            self._marker_pub.publish({
+                "angle": 55,
+                "timestamp": time.time()
+            })
 
         self._complex_controller.set_next_goal(goal=goalh.data)
 

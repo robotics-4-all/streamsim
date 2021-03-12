@@ -60,9 +60,9 @@ robots:
       #     source: "tektrain/buttons/button_G3"
       #   -
       #     source: "tektrain/buttons/button_G2"
-      env:
-        -
-          source: "tektrain/env"
+      # env:
+      #   -
+      #     source: "tektrain/env"
       speaker:
         -
           source: "tektrain/speaker"
@@ -72,9 +72,9 @@ robots:
       pan_tilt:
         -
           source: "tektrain/pan_tilt"
-      touch_screen:
-        -
-          source: "tektrain/touch_screen"
+      # touch_screen:
+      #   -
+      #     source: "tektrain/touch_screen"
       encoder:
       -
         source: "tektrain/encoders/encoder_BL_real"

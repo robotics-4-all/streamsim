@@ -18,6 +18,7 @@ from commlib.node import TransportType
 import commlib.transports.amqp as acomm
 from stream_simulator.connectivity import CommlibFactory
 
+
 class HeartbeatThread(threading.Thread):
     def __init__(self, topic, _conn_params, interval=10,  *args, **kwargs):
         super(HeartbeatThread, self).__init__(*args, **kwargs)
@@ -204,6 +205,12 @@ class Robot:
             broker = "redis",
             topic = self.name + ".pose"
         )
+
+        # my code here
+        self.motion_state_reset = CommlibFactory.getRPCClient(broker="redis", rpc_name="motion_state.reset")
+        self.motion_reset_timer = time.time()
+
+
 
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['amqp_inform'] is True:
@@ -473,6 +480,10 @@ class Robot:
         timestamp = time.time()
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
+
+        if (time.time() - self.motion_reset_timer) > 15:
+            self.motion_state_reset.call({})
+
         return {
                 "devices": self.devices,
                 "timestamp": time.time()
