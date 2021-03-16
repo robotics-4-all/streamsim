@@ -82,7 +82,7 @@ class MotionController(BaseThing):
         if self.info["mode"] == "real":
             from pidevices import DfrobotMotorControllerPiGPIO
 
-            self.motor_driver = DfrobotMotorControllerPiGPIO(E1=self.conf["E1"], 
+            self._motor_driver = DfrobotMotorControllerPiGPIO(E1=self.conf["E1"], 
                                                              M1=self.conf["M1"], 
                                                              E2=self.conf["E2"], 
                                                              M2=self.conf["M2"])
@@ -133,6 +133,14 @@ class MotionController(BaseThing):
         )
 
     def record_devices(self, available_devices):
+        self._imu_topic = None
+        self._enc_left_topic = None
+        self._enc_left_name = None
+        self._enc_right_topic = None
+        self._enc_right_name = None
+        self._lf_topic = None
+        self._servo_topic = None
+
         for d in available_devices['devices']:
             if d['type'] == "IMU":
                 self._imu_topic = d['base_topic'] + ".data"
@@ -199,16 +207,18 @@ class MotionController(BaseThing):
         self._lf_controller = LineFollower(speed=0.35, logger=self.logger)
 
         # initialize the complex motion controller which is an interface for communicate with both the previous two
-        self._complex_controller = ComplexMotion(self.motor_driver, 
+        self._complex_controller = ComplexMotion(self._motor_driver, 
                                                  self._speed_controller, 
                                                  self._dirr_controller, 
                                                  self._lf_controller)   
 
-        self._marker_pub = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self._servo_topic
-        )
+        # if self._servo_topic is not None:
+        #     self._marker_pub = CommlibFactory.getPublisher(
+        #         broker = "redis",
+        #         topic = self._servo_topic
+        #     )
 
+        # rpc client which resets motion controller state for each new application
         self._reset_state_rpc = CommlibFactory.getRPCService(
             broker = "redis", 
             rpc_name = "motion_state.reset", 
@@ -216,39 +226,43 @@ class MotionController(BaseThing):
         )   
 
         # subscribe to imu's topic
-        self._imu_sub = CommlibFactory.getSubscriber(
-            broker = "redis",
-            topic = self._imu_topic,
-            callback = self._imu_callback
-        )
+        if self._imu_topic is not None:
+            self._imu_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = self._imu_topic,
+                callback = self._imu_callback
+            )
+            self._imu_sub.run()
 
         # subscribe to left encoder's topic
-        self._enc_left_sub = CommlibFactory.getSubscriber(
-            broker = "redis",
-            topic = self._enc_left_topic,
-            callback = self._enc_left_callback
-        )
+        if self._enc_left_topic is not None:
+            self._enc_left_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = self._enc_left_topic,
+                callback = self._enc_left_callback
+            )
+            self._enc_left_sub.run()
 
         # subscribe to right encoder's topic
-        self._enc_right_sub = CommlibFactory.getSubscriber(
-            broker = "redis",
-            topic = self._enc_right_topic,
-            callback = self._enc_right_callback
-        )
+        if self._enc_right_topic is not None:
+            self._enc_right_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = self._enc_right_topic,
+                callback = self._enc_right_callback
+            )
+            self._enc_right_sub.run()
 
         #subscribe to line follower's topic
-        self._lf_sub = CommlibFactory.getSubscriber(
-            broker = "redis",
-            topic = self._lf_topic,
-            callback = self._lf_callback
-        )
+        if self._lf_topic is not None:
+            self._lf_sub = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = self._lf_topic,
+                callback = self._lf_callback
+            )
+            self._lf_sub.run()
 
         # start subscriptions to the recorded topics
         self._reset_state_rpc.run()
-        self._imu_sub.run()
-        self._enc_left_sub.run()
-        self._enc_right_sub.run()
-        self._lf_sub.run()
 
     def _reset_motion_state(self, message, meta):
         print("Resseting internal motion state")
@@ -274,7 +288,7 @@ class MotionController(BaseThing):
         self.lf_action_server.run()
 
         if self.info["mode"] == "real":
-            self.motor_driver.start()
+            self._motor_driver.start()
 
     def stop(self):
         self.enable_rpc_server.stop()
@@ -284,12 +298,16 @@ class MotionController(BaseThing):
         self.move_action_server.stop()
         self.lf_action_server.stop()
 
-        self._imu_sub.stop()
-        self._enc_left_sub.stop()
-        self._enc_right_sub.stop()
+        # if these subscribers are initialized, then terminate them
+        if self._imu_sub is not None:
+            self._imu_sub.stop()
+        if self._enc_left_sub is not None:
+            self._enc_left_sub.stop()
+        if self._enc_right_sub is not None:
+            self._enc_right_sub.stop()
         
         if self.info["mode"] == "real":
-            self.motor_driver.stop()
+            self._motor_driver.stop()
 
     def on_goal_cmd_vel(self, goalh):
         self.logger.info("Robot motion started {}".format(self.name))
@@ -324,16 +342,17 @@ class MotionController(BaseThing):
         }
 
         # control marker's position
-        if goalh.data["rotationalVelocity"] != 0.0 and goalh.data["linearVelocity"] == 0.0:
-            self._marker_pub.publish({
-                "angle": 0,
-                "timestamp": time.time()
-            })
-        else:
-            self._marker_pub.publish({
-                "angle": 55,
-                "timestamp": time.time()
-            })
+        # if self._marker_pub is not None:
+        #     if goalh.data["rotationalVelocity"] != 0.0 and goalh.data["linearVelocity"] == 0.0:
+        #         self._marker_pub.publish({
+        #             "angle": 0,
+        #             "timestamp": time.time()
+        #         })
+        #     else:
+        #         self._marker_pub.publish({
+        #             "angle": 55,
+        #             "timestamp": time.time()
+        #         })
 
         self._complex_controller.set_next_goal(goal=goalh.data)
 

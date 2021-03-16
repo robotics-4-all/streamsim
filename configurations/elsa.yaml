@@ -54,5 +54,6 @@ robots:
           place: FRONT
           name: "elsa_speaker"
           sensor_configuration:
-            dev_name: "Speaker"
+            dev_name: "speaker"
+            card_index: 1
             max_data_length: 10
