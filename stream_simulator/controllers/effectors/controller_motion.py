@@ -211,7 +211,7 @@ class MotionController(BaseThing):
                                                  self._speed_controller, 
                                                  self._dirr_controller, 
                                                  self._lf_controller)   
-
+        
         # if self._servo_topic is not None:
         #     self._marker_pub = CommlibFactory.getPublisher(
         #         broker = "redis",
