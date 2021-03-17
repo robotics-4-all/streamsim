@@ -4,7 +4,6 @@ simulation:
 map:
   width: 1000
   height: 800
-  resolution: 0.05
   obstacles:
     lines:
       - {x1: 330, y1: 250, x2: 330, y2: 350}

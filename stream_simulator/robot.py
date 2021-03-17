@@ -155,7 +155,6 @@ class Robot:
         self.map = map
         self.width = self.map.shape[0]
         self.height = self.map.shape[1]
-        self.resolution = self.world["map"]["resolution"]
         self.logger.info("Robot {}: map set".format(self.name))
 
         self._x = 0
@@ -163,8 +162,8 @@ class Robot:
         self._theta = 0
         if "starting_pose" in self.configuration:
             pose = self.configuration['starting_pose']
-            self._init_x = pose['x'] * self.resolution
-            self._init_y = pose['y'] * self.resolution
+            self._init_x = pose['x']
+            self._init_y = pose['y']
             self._init_theta = pose['theta'] / 180.0 * math.pi
             self.logger.info("Robot {} pose set: {}, {}, {}".format(
                 self.name, self._x, self._y, self._theta))
@@ -211,7 +210,7 @@ class Robot:
         self.motion_state_reset = CommlibFactory.getRPCClient(broker="redis", rpc_name="motion_state.reset")
         self.motion_reset_timer = time.time()
 
-
+        
 
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['amqp_inform'] is True:
@@ -524,18 +523,18 @@ class Robot:
         if x < 0 or y < 0:
             self.logger.error("{}: Out of bounds - negative x or y".format(self.name))
             return True
-        if x / self.resolution > self.width or y / self.resolution > self.height:
+        if x > self.width or y > self.height:
             self.logger.error("{}: Out of bounds".format(self.name))
             return True
 
         # Check collision to obstacles
-        x_i = int(x / self.resolution)
-        x_i_p = int(prev_x / self.resolution)
+        x_i = int(x)
+        x_i_p = int(prev_x)
         if x_i > x_i_p:
             x_i, x_i_p = x_i_p, x_i
 
-        y_i = int(y / self.resolution)
-        y_i_p = int(prev_y / self.resolution)
+        y_i = int(y)
+        y_i_p = int(prev_y)
         if y_i > y_i_p:
             y_i, y_i_p = y_i_p, y_i
 
@@ -569,7 +568,6 @@ class Robot:
             "x": self._x,
             "y": self._y,
             "theta": self._theta,
-            "resolution": self.resolution,
             "name": self.name
         })
 
@@ -602,8 +600,7 @@ class Robot:
                         self.pose_pub.publish({
                             "x": xx,
                             "y": yy,
-                            "theta": theta2,
-                            "resolution": self.resolution
+                            "theta": theta2
                         })
                     self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
 
@@ -612,7 +609,6 @@ class Robot:
                         "x": xx,
                         "y": yy,
                         "theta": theta2,
-                        "resolution": self.resolution,
                         "name": self.name
                     })
 

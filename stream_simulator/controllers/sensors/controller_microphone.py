@@ -217,21 +217,27 @@ class MicrophoneController(BaseThing):
                     clos = x
                     clos_d = res[x]['distance']
 
-            wav = "Silent.wav"
-            if res[clos]['type'] == 'sound_source':
-                if res[clos]['info']['language'] == 'EL':
-                    wav = "greek_sentence.wav"
-                else:
-                    wav = "english_sentence.wav"
-            elif res[clos]['type'] == "human":
-                if res[clos]['info']["sound"] == 1:
-                    if res[clos]['info']["language"] == "EL":
+            if clos in res:
+                if res[clos]['type'] == 'sound_source':
+                    if res[clos]['info']['language'] == 'EL':
                         wav = "greek_sentence.wav"
                     else:
                         wav = "english_sentence.wav"
+                elif res[clos]['type'] == "human":
+                    if res[clos]['info']["sound"] == 1:
+                        if res[clos]['info']["language"] == "EL":
+                            wav = "greek_sentence.wav"
+                        else:
+                            wav = "english_sentence.wav"
+
+                self.logger.info(f"Recording... {res[clos]['type']}, {res[clos]['info']}")
+            else:
+                wav = "Silent.wav"
+                
+                self.logger.info(f"Nothing to record... Silence everywhere!")
 
             now = time.time()
-            self.logger.info(f"Recording... {res[clos]['type']}, {res[clos]['info']}")
+            
             while time.time() - now < duration:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")

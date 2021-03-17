@@ -1,7 +1,6 @@
 map:
   width: 1000
   height: 800
-  resolution: 0.02
   obstacles:
     lines:
       - {x1: 100, y1: 250, x2: 400, y2: 250}

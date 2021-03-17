@@ -166,6 +166,7 @@ class MotionController(BaseThing):
             'rps': message['rps'],
             'enc': self._enc_left_name
         })
+        self._update_sim_vel()
 
     def _enc_right_callback(self, message, meta):
         #self.logger.info("Right encoder callback: {}".format(message))
@@ -173,14 +174,22 @@ class MotionController(BaseThing):
             'rps': message['rps'],
             'enc': self._enc_right_name
         })
+        self._update_sim_vel()
 
     def _imu_callback(self, message, meta):
         #self.logger.info("Imu message: {}".format(message))
         self._dirr_controller.update(message['data'])
+        self._update_sim_vel()
 
     def _lf_callback(self, message, meta):
         #self.logger.info("Line follower callback: {}".format(message))
         self._lf_controller.update(list(message.values()))
+        self._update_sim_vel()
+    
+    def _update_sim_vel(self):
+        vel = self._complex_controller.get_velocities()
+        self._linear = vel['linear']
+        self._angular = vel['rotational']
 
     def _init(self, delay):
         # wait for all controller to be initialized
@@ -210,14 +219,8 @@ class MotionController(BaseThing):
         self._complex_controller = ComplexMotion(self._motor_driver, 
                                                  self._speed_controller, 
                                                  self._dirr_controller, 
-                                                 self._lf_controller)   
+                                                 self._lf_controller)
         
-        # if self._servo_topic is not None:
-        #     self._marker_pub = CommlibFactory.getPublisher(
-        #         broker = "redis",
-        #         topic = self._servo_topic
-        #     )
-
         # rpc client which resets motion controller state for each new application
         self._reset_state_rpc = CommlibFactory.getRPCService(
             broker = "redis", 

@@ -78,14 +78,12 @@ class World:
         self.width = 0
         self.height = 0
         self.map = None
-        self.resolution = 0
         self.obstacles = []
         if 'map' in self.configuration:
             self.width = int(self.configuration['map']['width'])
             self.height = int(self.configuration['map']['height'])
 
             self.map = numpy.zeros((self.width, self.height))
-            self.resolution = self.configuration['map']['resolution']
 
             # Add obstacles information in map
             self.obstacles = self.configuration['map']['obstacles']['lines']
@@ -134,8 +132,7 @@ class World:
             "logger": None,
             'tf_declare': self.tf_declare_rpc,
             'env': self.env_properties,
-            "map": self.map,
-            "resolution": self.resolution
+            "map": self.map
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
