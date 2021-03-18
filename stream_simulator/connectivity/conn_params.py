@@ -15,11 +15,6 @@ class ConnParams:
             conn_params.host = 'r4a-platform.ddns.net'
             conn_params.port = 5672
             conn_params.vhost = "sim"
-            #
-            # conn_params.host = 'tektrain-cloud.ddns.net'
-            # conn_params.port = 5672
-            # conn_params.vhost = "sim"
-
             return conn_params
         elif type == "redis":
             from commlib.transports.redis import ConnectionParameters
