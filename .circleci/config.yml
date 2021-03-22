@@ -3,7 +3,7 @@ version: 2.1
 executors:
   stream_sim_backend:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.7.3
       - image: circleci/redis:latest
     working_directory: ~/new_infrastructure
 
@@ -34,7 +34,7 @@ jobs:
       - run:
           name: Build & Install Robot-motion
           command: |
-            git clone --branch streamsim_intergration git@github.com:robotics-4-all/robot_motion.git
+            git clone git@github.com:robotics-4-all/robot_motion.git
             cd robot_motion
             sudo python3 setup.py install
       - run:
@@ -55,19 +55,19 @@ jobs:
           command: |
             git clone --single-branch --branch ${CIRCLE_BRANCH} https://github.com/robotics-4-all/stream-sim-backend.git
             cd stream-sim-backend
-            sudo python3 setup.py develop
+            sudo python3 setup.py install
       - run:
           name: Setup derp-me (background)
           command: |
             cd ./derp-me/bin
-            python3 derpme.py
+            sudo python3 derpme.py
           background: true
       - run:
           name: Setup Stream-sim-backend (background)
           command: |
             sleep 2
             cd ~/new_infrastructure/stream-sim-backend/bin
-            sudo python3 main.py sfhmmy
+            sudo python3 main.py mission_1
           background: true
       - run:
           name: Setup results directories
