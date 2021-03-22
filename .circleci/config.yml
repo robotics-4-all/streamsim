@@ -3,7 +3,7 @@ version: 2.1
 executors:
   stream_sim_backend:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.7.3
       - image: circleci/redis:latest
     working_directory: ~/new_infrastructure
 
