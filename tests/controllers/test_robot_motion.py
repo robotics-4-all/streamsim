@@ -30,28 +30,32 @@ class Test(unittest.TestCase):
                 )
                 res = cl.call({})
 
+                print("found devices in robot")
+
                 # Get ph sensors
                 for s in res["devices"]:
                     if s["type"] == "SKID_STEER":
-                        set_rpc = CommlibFactory.getPublisher(
+                        set_action = CommlibFactory.getActionClient(
                             broker = "redis",
-                            topic = s["base_topic"] + ".set"
+                            action_name = s["base_topic"] + ".set"
                         )
-
+                        
                         # Set constant
-                        set_rpc.publish({
-                            'linear': 0.1,
-                            'angular': 0.0,
+                        resp = set_action.send_goal({
+                            'linearVelocity': 0.1,
+                            'rotationalVelocity': 0.0,
+                            'duration': 3
                         })
+
+                        goal_id_play = resp["goal_id"]
+                        # logger.info("GOAL ID:", self.goal_id_play)
+
+                        while set_action.get_result(goal_id_play)["status"] == 1:
+                            time.sleep(0.1)
+                        
+                        final_res = set_action.get_result(goal_id_play)
 
                         time.sleep(3)
-                        
-                        set_rpc.publish({
-                            'linear': 0.0,
-                            'angular': 0.314,
-                        })
-
-                        time.sleep(2)
 
         except:
             traceback.print_exc(file=sys.stdout)

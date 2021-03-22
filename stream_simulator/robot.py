@@ -207,10 +207,11 @@ class Robot:
         )
 
         # my code here
-        self.motion_state_reset = CommlibFactory.getRPCClient(broker="redis", rpc_name="motion_state.reset")
-        self.motion_reset_timer = time.time()
+        self.motion_state_reset_pub = CommlibFactory.getPublisher(
+            broker = "redis", 
+            topic = "motion_state.reset"
+        )
 
-        
 
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['amqp_inform'] is True:
@@ -500,8 +501,7 @@ class Robot:
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
 
-        if (time.time() - self.motion_reset_timer) > 15:
-            self.motion_state_reset.call({})
+        self.motion_state_reset_pub.publish({})
 
         return {
                 "devices": self.devices,

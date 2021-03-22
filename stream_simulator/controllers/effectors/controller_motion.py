@@ -194,82 +194,89 @@ class MotionController(BaseThing):
     def _init(self, delay):
         # wait for all controller to be initialized
         time.sleep(delay)
+        self.logger.info("=============== Motion controller initialized ===================")
         
-        # record available sensor devices after all controller have been initialized
-        available_devices = self.device_finder.call({})
-        self.record_devices(available_devices=available_devices)
+        if self.info["mode"] == "mock":
+            pass
+        elif self.info["mode"] == "simulation":
+            from robot_motion import ComplexMotionSimulator
 
-        from robot_motion import SpeedController, DirectionController, LineFollower, ComplexMotion
+            self._complex_controller = ComplexMotionSimulator()
+        else: # The real deal
+            # record available sensor devices after all controller have been initialized
+            available_devices = self.device_finder.call({})
+            self.record_devices(available_devices=available_devices)
 
-        # intialize speed controller of the robot
-        path = "../stream_simulator/settings/pwm_to_wheel_rps.json"
-        self._speed_controller = SpeedController(wheel_radius=self.wheel_radius,
-                                                enc_left_name=self._enc_left_name,
-                                                enc_right_name=self._enc_right_name,
-                                                path_to_settings=path)
+            from robot_motion import SpeedController, DirectionController, LineFollower, ComplexMotion
 
-        # initialize the direction controller of the robot
-        path = "../stream_simulator/settings/heading_converter.json"
-        self._dirr_controller = DirectionController(path_to_heading_settings=path)
+            # intialize speed controller of the robot
+            path = "../stream_simulator/settings/pwm_to_wheel_rps.json"
+            self._speed_controller = SpeedController(wheel_radius=self.wheel_radius,
+                                                    enc_left_name=self._enc_left_name,
+                                                    enc_right_name=self._enc_right_name,
+                                                    path_to_settings=path)
 
-        # initialize the line follower controller 
-        self._lf_controller = LineFollower(speed=0.35, logger=self.logger)
+            # initialize the direction controller of the robot
+            path = "../stream_simulator/settings/heading_converter.json"
+            self._dirr_controller = DirectionController(path_to_heading_settings=path)
 
-        # initialize the complex motion controller which is an interface for communicate with both the previous two
-        self._complex_controller = ComplexMotion(self._motor_driver, 
-                                                 self._speed_controller, 
-                                                 self._dirr_controller, 
-                                                 self._lf_controller)
-        
+            # initialize the line follower controller 
+            self._lf_controller = LineFollower(speed=0.35, logger=self.logger)
+
+            # initialize the complex motion controller which is an interface for communicate with both the previous two
+            self._complex_controller = ComplexMotion(self._motor_driver, 
+                                                    self._speed_controller, 
+                                                    self._dirr_controller, 
+                                                    self._lf_controller)
+
+            # subscribe to imu's topic
+            if self._imu_topic is not None:
+                self._imu_sub = CommlibFactory.getSubscriber(
+                    broker = "redis",
+                    topic = self._imu_topic,
+                    callback = self._imu_callback
+                )
+                self._imu_sub.run()
+
+            # subscribe to left encoder's topic
+            if self._enc_left_topic is not None:
+                self._enc_left_sub = CommlibFactory.getSubscriber(
+                    broker = "redis",
+                    topic = self._enc_left_topic,
+                    callback = self._enc_left_callback
+                )
+                self._enc_left_sub.run()
+
+            # subscribe to right encoder's topic
+            if self._enc_right_topic is not None:
+                self._enc_right_sub = CommlibFactory.getSubscriber(
+                    broker = "redis",
+                    topic = self._enc_right_topic,
+                    callback = self._enc_right_callback
+                )
+                self._enc_right_sub.run()
+
+            #subscribe to line follower's topic
+            if self._lf_topic is not None:
+                self._lf_sub = CommlibFactory.getSubscriber(
+                    broker = "redis",
+                    topic = self._lf_topic,
+                    callback = self._lf_callback
+                )
+                self._lf_sub.run()
+
         # rpc client which resets motion controller state for each new application
-        self._reset_state_rpc = CommlibFactory.getRPCService(
+        self._reset_state_sub = CommlibFactory.getSubscriber(
             broker = "redis", 
-            rpc_name = "motion_state.reset", 
+            topic = "motion_state.reset", 
             callback = self._reset_motion_state
         )   
-
-        # subscribe to imu's topic
-        if self._imu_topic is not None:
-            self._imu_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = self._imu_topic,
-                callback = self._imu_callback
-            )
-            self._imu_sub.run()
-
-        # subscribe to left encoder's topic
-        if self._enc_left_topic is not None:
-            self._enc_left_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = self._enc_left_topic,
-                callback = self._enc_left_callback
-            )
-            self._enc_left_sub.run()
-
-        # subscribe to right encoder's topic
-        if self._enc_right_topic is not None:
-            self._enc_right_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = self._enc_right_topic,
-                callback = self._enc_right_callback
-            )
-            self._enc_right_sub.run()
-
-        #subscribe to line follower's topic
-        if self._lf_topic is not None:
-            self._lf_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = self._lf_topic,
-                callback = self._lf_callback
-            )
-            self._lf_sub.run()
-
         # start subscriptions to the recorded topics
-        self._reset_state_rpc.run()
+        self._reset_state_sub.run()
 
     def _reset_motion_state(self, message, meta):
         print("Resseting internal motion state")
-        self._complex_controller._direction_controller.reset()
+        self._complex_controller.reset()
         return {}
 
     def enable_callback(self, message, meta):
