@@ -521,10 +521,12 @@ class Robot:
     def check_ok(self, x, y, prev_x, prev_y):
         # Check out of bounds
         if x < 0 or y < 0:
-            self.logger.error("{}: Out of bounds - negative x or y".format(self.name))
+            self.error_log_msg = "Out of bounds - negative x or y"
+            self.logger.error("{}: {}".format(self.name, self.error_log_msg))
             return True
         if x > self.width or y > self.height:
-            self.logger.error("{}: Out of bounds".format(self.name))
+            self.error_log_msg = "Out of bounds"
+            self.logger.error("{}: {}".format(self.name, self.error_log_msg))
             return True
 
         # Check collision to obstacles
@@ -541,12 +543,14 @@ class Robot:
         if x_i == x_i_p:
             for i in range(y_i, y_i_p):
                 if self.map[x_i, i] == 1:
-                    self.logger.error("{}: Crash #1".format(self.name))
+                    self.error_log_msg = "Crash #1"
+                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
         elif y_i == y_i_p:
             for i in range(x_i, x_i_p):
                 if self.map[i, y_i] == 1:
-                    self.logger.error("{}: Crash #2".format(self.name))
+                    self.error_log_msg = "Crash #2"
+                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
         else: # we have a straight line
             th = math.atan2(y_i_p - y_i, x_i_p - x_i)
@@ -556,7 +560,8 @@ class Robot:
                 xx = x_i + d * math.cos(th)
                 yy = y_i + d * math.sin(th)
                 if self.map[int(xx), int(yy)] == 1:
-                    self.logger.error("{}: Crash #3".format(self.name))
+                    self.error_log_msg = "Crash #3"
+                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
                 d += 1.0
 
@@ -616,5 +621,14 @@ class Robot:
                     self._x = prev_x
                     self._y = prev_y
                     self._theta = prev_th
+
+                    # notify ui about the error in robot's position
+                    CommlibFactory.notify_ui(
+                        type = "new_message",
+                        data = {
+                            "type": "logs",
+                            "message": f"Robot: {self.raw_name} {self.error_log_msg}"
+                        }
+                    )
 
             time.sleep(self.dt)
