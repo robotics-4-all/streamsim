@@ -4,7 +4,7 @@ executors:
   stream_sim_backend:
     docker:
       - image: circleci/python:3.7.3
-      - image: circleci/redis:latest
+      - image: circleci/redis:6.2.0
     working_directory: ~/new_infrastructure
 
 jobs:
@@ -55,7 +55,7 @@ jobs:
           command: |
             git clone --single-branch --branch ${CIRCLE_BRANCH} https://github.com/robotics-4-all/stream-sim-backend.git
             cd stream-sim-backend
-            sudo python3 setup.py develop
+            sudo python3 setup.py install
       - run:
           name: Setup derp-me (background)
           command: |
