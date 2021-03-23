@@ -86,6 +86,9 @@ class MotionController(BaseThing):
                                                              M1=self.conf["M1"], 
                                                              E2=self.conf["E2"], 
                                                              M2=self.conf["M2"])
+            
+            # give some time so all other the controllers are initialized
+            self._init_delay = 7
 
         self.wheel_separation = self.conf["wheel_separation"]
         self.wheel_radius = self.conf["wheel_radius"]
@@ -98,40 +101,54 @@ class MotionController(BaseThing):
             rpc_name = f"robot.{self.info['device_name']}.nodes_detector.get_connected_devices"
         )
 
-        # this thread will initialize the motion module after delay time
-        init_delay = 7
-        self.initializer = threading.Thread(target=self._init, args=(init_delay,), daemon=True)
+        # motion controller depends on other controller (imu, line follower, encoders)
+        # in order to work. So it needs to wait to the other controllers are initialized so 
+        # it can identify at runtime throw their topic
+        self._init_delay = 0
+        self.initializer = threading.Thread(target=self._init, args=(self._init_delay,), daemon=True)
+
+        # publisher that exports robots velocities to other modules across streamsim
+        self.velocities_publisher = CommlibFactory.getPublisher(
+            broker = "redis",
+            topic = info["base_topic"] + ".data"
+        )
         
+        # action service that moves robot (linearly/rotationally)
         self.move_action_server = CommlibFactory.getActionServer(
             broker = "redis",
             callback = self.on_goal_cmd_vel,
             action_name = info["base_topic"] + ".set"
         )
 
+        # rpc service that calibrates motion
         self.motion_calibration_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.calibrate_motion,
             rpc_name = info["base_topic"] + ".calibrate"
         )
         
+        # action service that starts line following
         self.lf_action_server = CommlibFactory.getActionServer(
             broker = "redis",
             callback = self.on_goal_follow_line,
             action_name = info["base_topic"] + ".follow_line"
         )
 
+        # rpc service which starts the motion controller
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.enable_callback,
             rpc_name = info["base_topic"] + ".enable"
         )
-
+        
+        # rpc service which terminates the motion controller
         self.disable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.disable_callback,
             rpc_name = info["base_topic"] + ".disable"
         )
 
+    # records topics and names of IMU, LF and ENCODER robot devices
     def record_devices(self, available_devices):
         self._imu_topic = None
         self._enc_left_topic = None
@@ -166,7 +183,6 @@ class MotionController(BaseThing):
             'rps': message['rps'],
             'enc': self._enc_left_name
         })
-        self._update_sim_vel()
 
     def _enc_right_callback(self, message, meta):
         #self.logger.info("Right encoder callback: {}".format(message))
@@ -174,22 +190,21 @@ class MotionController(BaseThing):
             'rps': message['rps'],
             'enc': self._enc_right_name
         })
-        self._update_sim_vel()
 
     def _imu_callback(self, message, meta):
         #self.logger.info("Imu message: {}".format(message))
-        self._dirr_controller.update(message['data'])
-        self._update_sim_vel()
+        self._dirr_controller.update(message['data'])   
 
     def _lf_callback(self, message, meta):
         #self.logger.info("Line follower callback: {}".format(message))
-        self._lf_controller.update(list(message.values()))
-        self._update_sim_vel()
-    
-    def _update_sim_vel(self):
-        vel = self._complex_controller.get_velocities()
-        self._linear = vel['linear']
-        self._angular = vel['rotational']
+        self._lf_controller.update(list(message.values()))  
+
+    # publish velocities across streamsim in order to be used from robot/simulator
+    def _publish_velocities_cb(self, linear, rotational):
+        self.velocities_publisher.publish({
+            'linear': linear,
+            'rotational': rotational 
+        })
 
     def _init(self, delay):
         # wait for all controller to be initialized
@@ -201,7 +216,7 @@ class MotionController(BaseThing):
         elif self.info["mode"] == "simulation":
             from robot_motion import ComplexMotionSimulator
 
-            self._complex_controller = ComplexMotionSimulator()
+            self._complex_controller = ComplexMotionSimulator(callback=self._publish_velocities_cb)
         else: # The real deal
             # record available sensor devices after all controller have been initialized
             available_devices = self.device_finder.call({})
@@ -224,10 +239,11 @@ class MotionController(BaseThing):
             self._lf_controller = LineFollower(speed=0.35, logger=self.logger)
 
             # initialize the complex motion controller which is an interface for communicate with both the previous two
-            self._complex_controller = ComplexMotion(self._motor_driver, 
-                                                    self._speed_controller, 
-                                                    self._dirr_controller, 
-                                                    self._lf_controller)
+            self._complex_controller = ComplexMotion(motor_driver=self._motor_driver, 
+                                                    speed_controller=self._speed_controller, 
+                                                    direction_controller=self._dirr_controller, 
+                                                    line_follower=self._lf_controller,
+                                                    callback=self._publish_velocities_cb)
 
             # subscribe to imu's topic
             if self._imu_topic is not None:
@@ -336,9 +352,9 @@ class MotionController(BaseThing):
 
         self.logger.info("{} Line following finished".format(self.name))
         return ret
-
     
     def _goal_handler(self, goalh):
+        # prepare response's template
         timestamp = time.time()
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
@@ -351,23 +367,13 @@ class MotionController(BaseThing):
             }
         }
 
-        # control marker's position
-        # if self._marker_pub is not None:
-        #     if goalh.data["rotationalVelocity"] != 0.0 and goalh.data["linearVelocity"] == 0.0:
-        #         self._marker_pub.publish({
-        #             "angle": 0,
-        #             "timestamp": time.time()
-        #         })
-        #     else:
-        #         self._marker_pub.publish({
-        #             "angle": 55,
-        #             "timestamp": time.time()
-        #         })
-
+        # assign to the complex controller the new goal to take care of
         self._complex_controller.set_next_goal(goal=goalh.data)
-
+        
+        # get controller's internal velocities
         vels = self._complex_controller.get_velocities()
 
+        # store velocities in persistant memory
         r = CommlibFactory.derp_client.lset(
             self.derp_data_key,
             [{
@@ -379,6 +385,7 @@ class MotionController(BaseThing):
             }]
         )
 
+        # wait until complex controller finish goal or goal is cancelled
         while self._complex_controller.is_running():
             if goalh.cancel_event.is_set():
                 self._complex_controller.preempt_goal()

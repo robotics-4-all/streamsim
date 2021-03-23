@@ -17,6 +17,7 @@ from commlib.logger import RemoteLogger, Logger
 from commlib.node import TransportType
 import commlib.transports.amqp as acomm
 from stream_simulator.connectivity import CommlibFactory
+import collections
 
 
 class HeartbeatThread(threading.Thread):
@@ -82,8 +83,6 @@ class Robot:
 
         self.common_logging = False
 
-        self.motion_controller = None
-
         try: # Get config for remote logging and heartbeat
             cfg_file = os.path.expanduser("~/.config/streamsim/config")
             if not os.path.isfile(cfg_file):
@@ -135,6 +134,9 @@ class Robot:
         self.raw_name = self.configuration["name"]
         self.name = self.namespace + "." + self.configuration["name"]
         self.dt = tick
+
+        # circular buffer that stores the last 5 published velocities
+        self.circ_buff = collections.deque(maxlen=5)
 
         # intial robot pose - remains remains constant throughout streamsim launch
         self._init_x = 0
@@ -206,12 +208,11 @@ class Robot:
             topic = self.name + ".pose"
         )
 
-        # my code here
+        # publisher that resets robots real state every time a new application is execute
         self.motion_state_reset_pub = CommlibFactory.getPublisher(
             broker = "redis", 
             topic = "motion_state.reset"
         )
-
 
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['amqp_inform'] is True:
@@ -314,10 +315,21 @@ class Robot:
             self.controllers[c.name] = c
 
         if c.info["type"] == "SKID_STEER":
-            self.motion_controller = c
+            motion_controller_topic = c.info["base_topic"]
+
+            self.velocities_subscriber = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = motion_controller_topic + ".data",
+                callback = self.update_velocities
+            )
+            self.velocities_subscriber.run()
 
         self.logger.info(\
             f"{Fore.WHITE + Style.BRIGHT}{c.name} controller created {Style.RESET_ALL}")
+
+    # populate buffer with the new velocities each time we receive them
+    def update_velocities(self, message, meta):
+        self.circ_buff.append(message)
 
     def device_lookup(self):
         actors = {}
@@ -579,21 +591,25 @@ class Robot:
     def simulation_thread(self):
         self.dispatch_pose_local()
         while self.stopped is False:
-            if self.motion_controller is not None:
+            size = len(self.circ_buff)
+            if size != 0:
+                _linear = self.circ_buff[size - 1]['linear']
+                _angular = self.circ_buff[size - 1]['rotational']
+                
                 prev_x = self._x
                 prev_y = self._y
                 prev_th = self._theta
 
-                if self.motion_controller._angular == 0:
-                    self._x += self.motion_controller._linear * self.dt * math.cos(self._theta)
-                    self._y += self.motion_controller._linear * self.dt * math.sin(self._theta)
+                if _angular == 0:
+                    self._x += _linear * self.dt * math.cos(self._theta)
+                    self._y += _linear * self.dt * math.sin(self._theta)
                 else:
-                    arc = self.motion_controller._linear / self.motion_controller._angular
+                    arc = _linear / _angular
                     self._x += - arc * math.sin(self._theta) + \
-                        arc * math.sin(self._theta + self.dt * self.motion_controller._angular)
+                        arc * math.sin(self._theta + self.dt * _angular)
                     self._y -= - arc * math.cos(self._theta) + \
-                        arc * math.cos(self._theta + self.dt * self.motion_controller._angular)
-                self._theta += self.motion_controller._angular * self.dt
+                        arc * math.cos(self._theta + self.dt * _angular)
+                self._theta += _angular * self.dt
 
                 xx = float("{:.2f}".format(self._x))
                 yy = float("{:.2f}".format(self._y))
