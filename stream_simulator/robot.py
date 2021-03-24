@@ -518,6 +518,7 @@ class Robot:
             return True
 
         # Check collision to obstacles
+        print(x,y,prev_x, prev_y)
         x_i = int(x)
         x_i_p = int(prev_x)
         if x_i > x_i_p:
@@ -531,13 +532,13 @@ class Robot:
         if x_i == x_i_p:
             for i in range(y_i, y_i_p):
                 if self.map[x_i, i] == 1:
-                    self.error_log_msg = "Crash #1"
+                    self.error_log_msg = "Crashed on a Wall"
                     self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
         elif y_i == y_i_p:
             for i in range(x_i, x_i_p):
                 if self.map[i, y_i] == 1:
-                    self.error_log_msg = "Crash #2"
+                    self.error_log_msg = "Crashed on a Wall"
                     self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
         else: # we have a straight line
@@ -548,7 +549,7 @@ class Robot:
                 xx = x_i + d * math.cos(th)
                 yy = y_i + d * math.sin(th)
                 if self.map[int(xx), int(yy)] == 1:
-                    self.error_log_msg = "Crash #3"
+                    self.error_log_msg = "Crashed on a Wall"
                     self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
                 d += 1.0
