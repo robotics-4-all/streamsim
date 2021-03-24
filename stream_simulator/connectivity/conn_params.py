@@ -12,9 +12,9 @@ class ConnParams:
             conn_params.credentials.username = 'bot'
             conn_params.credentials.password = 'b0t'
 
-            conn_params.host = 'r4a-platform.ddns.net'
+            conn_params.host = 'localhost'
             conn_params.port = 5672
-            conn_params.vhost = "sim"
+            conn_params.vhost = "/"
             #
             # conn_params.host = 'tektrain-cloud.ddns.net'
             # conn_params.port = 5672
