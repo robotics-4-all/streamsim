@@ -59,7 +59,7 @@ class Robot:
                  configuration = None,
                  world = None,
                  map = None,
-                 tick = 0.25):
+                 tick = 0.1):
 
         self.env_properties = world.env_properties
         world = world.configuration

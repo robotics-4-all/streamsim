@@ -27,7 +27,7 @@ from stream_simulator.controllers import IrController
 
 class Simulator:
     def __init__(self,
-                 tick = 0.25,
+                 tick = 0.1,
                  conf_file = None,
                  configuration = None,
                  device = None
