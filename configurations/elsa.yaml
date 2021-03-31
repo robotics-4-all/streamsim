@@ -24,18 +24,18 @@ robots:
             hosts: ["127.0.0.1", "127.0.0.1"]
             ports: ["12333", "12334"]
             host_port: "12334"
-            dev_name: "dsnoop:CARD=Mic,DEV=0"
+            dev_name: "Mic"
             channels: 6
             framerate: 44100
             max_data_length: 10
-      gstreamer_server:
-        -
-          orientation: 0
-          place: CENTER
-          sensor_configuration:
-            alsa_device: "Mic"
-            hosts: ["127.0.0.1"]
-            ports: ["12333"]
+      # gstreamer_server:
+      #   -
+      #     orientation: 0
+      #     place: CENTER
+      #     sensor_configuration:
+      #       alsa_device: "Mic"
+      #       hosts: ["127.0.0.1"]
+      #       ports: ["12333"]
       camera:
         -
           orientation: 0
@@ -53,6 +53,6 @@ robots:
           place: FRONT
           name: "elsa_speaker"
           sensor_configuration:
-            dev_name: "speaker"
+            dev_name: "Speaker"
             card_index: 1
             max_data_length: 10

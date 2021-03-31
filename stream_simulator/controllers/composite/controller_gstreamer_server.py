@@ -98,7 +98,7 @@ class GstreamerServerController(BaseThing):
             hosts_ports += "{}:{}".format(self.conf["hosts"][-1], self.conf["ports"][-1])
 
             # Create gstreamer stream pipeline
-            Gst.init()
+            Gst.init(None)
             self.stream = Gst.parse_launch("{} ! audioconvert ! audioresample !"
                                            "audio/x-raw, rate=16000, channels=1,"
                                            " format=S16LE !"

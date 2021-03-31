@@ -86,7 +86,6 @@ class SpeakerController(BaseThing):
         if self.info["mode"] == "real":
             from pidevices import Speaker
             self.speaker = Speaker(dev_name = self.conf["dev_name"], 
-                                   card_index=self.conf["card_index"], 
                                    name = self.name,
                                    max_data_length = self.conf["max_data_length"])
 
