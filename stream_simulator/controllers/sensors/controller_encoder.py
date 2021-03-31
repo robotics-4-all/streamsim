@@ -91,8 +91,8 @@ class EncoderController(BaseThing):
         if self.info["mode"] == "real":
             from pidevices import DfRobotWheelEncoderPiGPIO
 
-            self.sensor = DfRobotWheelEncoderPiGPIO(gpio=self.conf["pin"],
-                                                      pulses_per_rev = 10,
+            self.sensor = DfRobotWheelEncoderPiGPIO(pin=self.conf["pin"],
+                                                      resolution = 10,
                                                       name=self.name,
                                                       max_data_length=self.conf["max_data_length"])
 
@@ -112,6 +112,8 @@ class EncoderController(BaseThing):
         period = 1.0 / self.info["hz"]
 
         while self.info["enabled"]:
+            time.sleep(period)
+            
             if self.info["mode"] == "mock":
                 self.data = float(random.uniform(1000,2000))
             elif self.info["mode"] == "simulation":
@@ -194,13 +196,11 @@ class EncoderController(BaseThing):
                             # print("Case 3.2", t_p, lin_factor, rot_factor, self.data, self.name)
 
             else: # The real deal
-                self.data = self.sensor.read_rpm()
-
-            time.sleep(period)
+                self.data = self.sensor.read()["rps"]
 
             # Publishing value:
             self.publisher.publish({
-                "rpm": self.data,
+                "rps": self.data,
                 "timestamp": time.time()
             })
             # print("storing", self.data, self.place)
@@ -209,7 +209,7 @@ class EncoderController(BaseThing):
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
-                    "rpm": self.data,
+                    "rps": self.data,
                     "timestamp": time.time()
                 }]
             )

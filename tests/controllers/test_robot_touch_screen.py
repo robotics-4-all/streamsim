@@ -47,7 +47,7 @@ class Test(unittest.TestCase):
                             "source": None,
                             "time_enabled": 5,
                             "touch_enabled": True,
-                            "color_rgb": [3, 3, 3],
+                            "color_rgb": [3, 255, 3],
                             "options": [],
                             "multiple_options": False,
                             "time_window": 3,

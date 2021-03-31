@@ -86,9 +86,10 @@ class PanTiltController(BaseThing):
             self.pan_tilt = PCA9685(bus=self.conf["bus"],
                                     frequency=self.conf["frequency"],
                                     max_data_length=self.conf["max_data_length"])
-            self.yaw_channel = 0
-            self.pitch_channel = 1
 
+            self.yaw_channel = self.conf["yaw_channel"]
+            self.pitch_channel = self.conf["pitch_channel"]
+        
         self.pan_tilt_set_sub = CommlibFactory.getSubscriber(
             broker = "redis",
             topic = info["base_topic"] + ".set",
@@ -160,6 +161,7 @@ class PanTiltController(BaseThing):
                 pass
             else: # The real deal
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
+                print("Setting channel to: ", self._yaw, self._pitch)
                 self.pan_tilt.write(self.yaw_channel, self._yaw, degrees=True)
                 self.pan_tilt.write(self.pitch_channel, self._pitch, degrees=True)
 

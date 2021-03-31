@@ -17,6 +17,8 @@ from commlib.logger import RemoteLogger, Logger
 from commlib.node import TransportType
 import commlib.transports.amqp as acomm
 from stream_simulator.connectivity import CommlibFactory
+import collections
+
 
 class HeartbeatThread(threading.Thread):
     def __init__(self, topic, _conn_params, interval=10,  *args, **kwargs):
@@ -81,8 +83,6 @@ class Robot:
 
         self.common_logging = False
 
-        self.motion_controller = None
-
         try: # Get config for remote logging and heartbeat
             cfg_file = os.path.expanduser("~/.config/streamsim/config")
             if not os.path.isfile(cfg_file):
@@ -135,6 +135,9 @@ class Robot:
         self.name = self.namespace + "." + self.configuration["name"]
         self.dt = tick
 
+        # circular buffer that stores the last 5 published velocities
+        self.circ_buff = collections.deque(maxlen=5)
+
         # intial robot pose - remains remains constant throughout streamsim launch
         self._init_x = 0
         self._init_y = 0
@@ -154,7 +157,6 @@ class Robot:
         self.map = map
         self.width = self.map.shape[0]
         self.height = self.map.shape[1]
-        self.resolution = self.world["map"]["resolution"]
         self.logger.info("Robot {}: map set".format(self.name))
 
         self._x = 0
@@ -162,8 +164,8 @@ class Robot:
         self._theta = 0
         if "starting_pose" in self.configuration:
             pose = self.configuration['starting_pose']
-            self._init_x = pose['x'] * self.resolution
-            self._init_y = pose['y'] * self.resolution
+            self._init_x = pose['x']
+            self._init_y = pose['y']
             self._init_theta = pose['theta'] / 180.0 * math.pi
             self.logger.info("Robot {} pose set: {}, {}, {}".format(
                 self.name, self._x, self._y, self._theta))
@@ -204,6 +206,12 @@ class Robot:
         self.internal_pose_pub = CommlibFactory.getPublisher(
             broker = "redis",
             topic = self.name + ".pose"
+        )
+
+        # publisher that resets robots real state every time a new application is execute
+        self.motion_state_reset_pub = CommlibFactory.getPublisher(
+            broker = "redis", 
+            topic = "motion_state.reset"
         )
 
         # SIMULATOR ------------------------------------------------------------
@@ -307,10 +315,21 @@ class Robot:
             self.controllers[c.name] = c
 
         if c.info["type"] == "SKID_STEER":
-            self.motion_controller = c
+            motion_controller_topic = c.info["base_topic"]
+
+            self.velocities_subscriber = CommlibFactory.getSubscriber(
+                broker = "redis",
+                topic = motion_controller_topic + ".data",
+                callback = self.update_velocities
+            )
+            self.velocities_subscriber.run()
 
         self.logger.info(\
             f"{Fore.WHITE + Style.BRIGHT}{c.name} controller created {Style.RESET_ALL}")
+
+    # populate buffer with the new velocities each time we receive them
+    def update_velocities(self, message, meta):
+        self.circ_buff.append(message)
 
     def device_lookup(self):
         actors = {}
@@ -343,6 +362,7 @@ class Robot:
            "speaker": getattr(str_contro, "SpeakerController"),
            "leds": getattr(str_contro, "LedsController"),
            "pan_tilt": getattr(str_contro, "PanTiltController"),
+           "servo": getattr(str_contro, "ServoController"),
            "touch_screen": getattr(str_contro, "TouchScreenController"),
            "encoder": getattr(str_contro, "EncoderController"),
            "gstreamer_server": getattr(str_contro, "GstreamerServerController"),
@@ -375,7 +395,7 @@ class Robot:
                 "pin_nums": [],
                 "base_topics": {},
                 "direction": "down",
-                "bounce": 200,
+                "bounce": 100,
         }
         buttons = [x for x in self.devices if x["type"] == "BUTTON"]
         for d in buttons:
@@ -492,6 +512,9 @@ class Robot:
         timestamp = time.time()
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
+
+        self.motion_state_reset_pub.publish({})
+
         return {
                 "devices": self.devices,
                 "timestamp": time.time()
@@ -510,32 +533,36 @@ class Robot:
     def check_ok(self, x, y, prev_x, prev_y):
         # Check out of bounds
         if x < 0 or y < 0:
-            self.logger.error("{}: Out of bounds - negative x or y".format(self.name))
+            self.error_log_msg = "Out of bounds - negative x or y"
+            self.logger.error("{}: {}".format(self.name, self.error_log_msg))
             return True
-        if x / self.resolution > self.width or y / self.resolution > self.height:
-            self.logger.error("{}: Out of bounds".format(self.name))
+        if x > self.width or y > self.height:
+            self.error_log_msg = "Out of bounds"
+            self.logger.error("{}: {}".format(self.name, self.error_log_msg))
             return True
 
         # Check collision to obstacles
-        x_i = int(x / self.resolution)
-        x_i_p = int(prev_x / self.resolution)
+        x_i = int(x)
+        x_i_p = int(prev_x)
         if x_i > x_i_p:
             x_i, x_i_p = x_i_p, x_i
 
-        y_i = int(y / self.resolution)
-        y_i_p = int(prev_y / self.resolution)
+        y_i = int(y)
+        y_i_p = int(prev_y)
         if y_i > y_i_p:
             y_i, y_i_p = y_i_p, y_i
 
         if x_i == x_i_p:
             for i in range(y_i, y_i_p):
                 if self.map[x_i, i] == 1:
-                    self.logger.error("{}: Crash #1".format(self.name))
+                    self.error_log_msg = "Crash #1"
+                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
         elif y_i == y_i_p:
             for i in range(x_i, x_i_p):
                 if self.map[i, y_i] == 1:
-                    self.logger.error("{}: Crash #2".format(self.name))
+                    self.error_log_msg = "Crash #2"
+                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
         else: # we have a straight line
             th = math.atan2(y_i_p - y_i, x_i_p - x_i)
@@ -545,7 +572,8 @@ class Robot:
                 xx = x_i + d * math.cos(th)
                 yy = y_i + d * math.sin(th)
                 if self.map[int(xx), int(yy)] == 1:
-                    self.logger.error("{}: Crash #3".format(self.name))
+                    self.error_log_msg = "Crash #3"
+                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
                 d += 1.0
 
@@ -557,28 +585,31 @@ class Robot:
             "x": self._x,
             "y": self._y,
             "theta": self._theta,
-            "resolution": self.resolution,
             "name": self.name
         })
 
     def simulation_thread(self):
         self.dispatch_pose_local()
         while self.stopped is False:
-            if self.motion_controller is not None:
+            size = len(self.circ_buff)
+            if size != 0:
+                _linear = self.circ_buff[size - 1]['linear']
+                _angular = self.circ_buff[size - 1]['rotational']
+                
                 prev_x = self._x
                 prev_y = self._y
                 prev_th = self._theta
 
-                if self.motion_controller._angular == 0:
-                    self._x += self.motion_controller._linear * self.dt * math.cos(self._theta)
-                    self._y += self.motion_controller._linear * self.dt * math.sin(self._theta)
+                if _angular == 0:
+                    self._x += _linear * self.dt * math.cos(self._theta)
+                    self._y += _linear * self.dt * math.sin(self._theta)
                 else:
-                    arc = self.motion_controller._linear / self.motion_controller._angular
+                    arc = _linear / _angular
                     self._x += - arc * math.sin(self._theta) + \
-                        arc * math.sin(self._theta + self.dt * self.motion_controller._angular)
+                        arc * math.sin(self._theta + self.dt * _angular)
                     self._y -= - arc * math.cos(self._theta) + \
-                        arc * math.cos(self._theta + self.dt * self.motion_controller._angular)
-                self._theta += self.motion_controller._angular * self.dt
+                        arc * math.cos(self._theta + self.dt * _angular)
+                self._theta += _angular * self.dt
 
                 xx = float("{:.2f}".format(self._x))
                 yy = float("{:.2f}".format(self._y))
@@ -590,8 +621,7 @@ class Robot:
                         self.pose_pub.publish({
                             "x": xx,
                             "y": yy,
-                            "theta": theta2,
-                            "resolution": self.resolution
+                            "theta": theta2
                         })
                     self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
 
@@ -600,7 +630,6 @@ class Robot:
                         "x": xx,
                         "y": yy,
                         "theta": theta2,
-                        "resolution": self.resolution,
                         "name": self.name
                     })
 
@@ -608,5 +637,14 @@ class Robot:
                     self._x = prev_x
                     self._y = prev_y
                     self._theta = prev_th
+
+                    # notify ui about the error in robot's position
+                    CommlibFactory.notify_ui(
+                        type = "new_message",
+                        data = {
+                            "type": "logs",
+                            "message": f"Robot: {self.raw_name} {self.error_log_msg}"
+                        }
+                    )
 
             time.sleep(self.dt)

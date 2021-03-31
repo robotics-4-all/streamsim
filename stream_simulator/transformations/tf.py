@@ -14,11 +14,10 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class TfController:
-    def __init__(self, base = None, resolution = None, logger = None):
+    def __init__(self, base = None, logger = None):
         self.logger = Logger("tf") if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
-        self.resolution = resolution
         self.lin_alarms_robots = {}
 
         self.declare_rpc_server = CommlibFactory.getRPCService(
@@ -178,13 +177,13 @@ class TfController:
 
             self.places_relative[d['name']] = d['pose'].copy()
             self.places_absolute[d['name']] = d['pose'].copy()
-            if 'x' in d['pose']: # The only culprit is linear alarm
-                for i in ['x', 'y']:
-                    self.places_relative[d['name']][i] *= self.resolution
-                    self.places_absolute[d['name']][i] *= self.resolution
+            # if 'x' in d['pose']: # The only culprit is linear alarm
+            #     for i in ['x', 'y']:
+            #         self.places_relative[d['name']][i] *= self.resolution
+            #         self.places_absolute[d['name']][i] *= self.resolution
 
-            if d['range'] != None:
-                d['range'] *= self.resolution
+            # if d['range'] != None:
+            #     d['range'] *= self.resolution
 
         # Get all devices and check pan-tilts exist
         get_devices_rpc = CommlibFactory.getRPCClient(
@@ -272,25 +271,25 @@ class TfController:
                     # self.logger.info(f"\tRelative: {self.places_relative[i]}")
                     # self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
 
-
-
         for n in self.declarations_info:
             d_i = self.declarations_info[n]
             if d_i["type"] == "actor":
                 continue
 
             # subscribers for speakers
-            if "speaker" in d_i['subtype']['subclass']:
-                self.speaker_subs[d_i['name']] = CommlibFactory.getSubscriber(
-                    topic = d_i["base_topic"] + ".speak.notify",
-                    callback = self.speak_callback
-                )
-                self.speaker_subs[d_i['name']].run()
-            # publishers for microphones
-            if "microphone" in d_i['subtype']['subclass']:
-                self.microphone_pubs[d_i['name']] = CommlibFactory.getPublisher(
-                    topic = d_i["base_topic"] + ".speech_detected"
-                )
+            if 'subclass' in d_i['subtype']:  
+                if "speaker" in d_i['subtype']['subclass']:
+                    self.speaker_subs[d_i['name']] = CommlibFactory.getSubscriber(
+                        topic = d_i["base_topic"] + ".speak.notify",
+                        callback = self.speak_callback
+                    )
+                    self.speaker_subs[d_i['name']].run()
+                # publishers for microphones
+                if "microphone" in d_i['subtype']['subclass']:
+                    self.microphone_pubs[d_i['name']] = CommlibFactory.getPublisher(
+                        topic = d_i["base_topic"] + ".speech_detected"
+                    )
+                    
         self.logger.info("*****************************************")
 
         # starting subs
@@ -852,12 +851,12 @@ class TfController:
             lin_start = self.declarations_info[name]['pose']['start']
             lin_end = self.declarations_info[name]['pose']['end']
             sta = [
-                lin_start['x'] * self.resolution,
-                lin_start['y'] * self.resolution
+                lin_start['x'],
+                lin_start['y']
             ]
             end = [
-                lin_end['x'] * self.resolution,
-                lin_end['y'] * self.resolution
+                lin_end['x'],
+                lin_end['y']
             ]
             inter = self.calc_distance(sta, end)
             ret = {}

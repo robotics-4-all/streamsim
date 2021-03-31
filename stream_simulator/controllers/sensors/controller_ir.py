@@ -127,16 +127,16 @@ class IrController(BaseThing):
                     ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
                     # Calculate distance
                     d = 1
-                    originx = self.robot_pose["x"] / self.robot_pose["resolution"]
-                    originy = self.robot_pose["y"] / self.robot_pose["resolution"]
+                    originx = self.robot_pose["x"]
+                    originy = self.robot_pose["y"]
                     tmpx = originx
                     tmpy = originy
-                    limit = self.info["max_range"] / self.robot_pose["resolution"]
+                    limit = self.info["max_range"]
                     while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
                         d += 1
                         tmpx = originx + d * math.cos(ths)
                         tmpy = originy + d * math.sin(ths)
-                    val = d * self.robot_pose["resolution"]
+                    val = d
                 except:
                     self.logger.warning("Pose not got yet..")
             else: # The real deal

@@ -1,5 +1,6 @@
 orientation: 0
 place: FRONT
 sensor_configuration:
-  dev_name: "Speaker"
+  dev_name: "default"
+  card_index: 1
   max_data_length: 10

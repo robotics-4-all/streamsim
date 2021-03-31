@@ -3,7 +3,6 @@ simulation:
 map:
   width: 993
   height: 662
-  resolution: 0.1675
   obstacles:
     lines:
       - x1: 776.1600000000001

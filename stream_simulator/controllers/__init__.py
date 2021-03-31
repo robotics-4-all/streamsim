@@ -21,7 +21,8 @@ from .effectors import \
     LedsController, \
     MotionController, \
     PanTiltController, \
-    SpeakerController
+    SpeakerController, \
+    ServoController
 
 from .composite import \
     GstreamerServerController, \

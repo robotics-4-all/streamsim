@@ -1,8 +1,8 @@
+pose: {x: 0, y: 0, theta: 0}
 orientation: 90
 place: BL
-hz: 1
+hz: 8
 sensor_configuration:
-  bus: 1
-  address: 0x22
-  pin: "B_4"
+  pin: 23
+  name: "EncoderLeft"
   max_data_length: 10

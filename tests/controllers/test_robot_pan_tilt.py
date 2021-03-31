@@ -39,11 +39,13 @@ class Test(unittest.TestCase):
                         )
 
                         # Set constant
-                        print("Setting 1, 0.4")
+                        print("Setting 90, 45")
                         set_rpc.publish({
-                            'yaw': 1,
-                            'pitch': 0.4
+                            'yaw': 90,
+                            'pitch': 70
                         })
+
+                        time.sleep(1)
 
         except:
             traceback.print_exc(file=sys.stdout)

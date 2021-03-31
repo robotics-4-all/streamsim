@@ -152,8 +152,14 @@ class EnvMicrophoneController(BaseThing):
 
     def on_goal_record(self, goalh):
         self.logger.info("{} recording started".format(self.name))
+        ret = {
+            'timestamp': time.time(),
+            'record': None,
+            'volume': 0
+        }
+
         if self.info["enabled"] == False:
-            return {}
+            return ret
 
         # Concurrent speaker calls handling
         while self.blocked:
@@ -170,9 +176,7 @@ class EnvMicrophoneController(BaseThing):
             "duration": duration
         })
 
-        ret = {
-            'timestamp': time.time()
-        }
+        
         if self.info["mode"] == "mock":
             now = time.time()
             self.logger.info("Recording...")
