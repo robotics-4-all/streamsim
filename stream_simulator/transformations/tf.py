@@ -972,11 +972,12 @@ class TfController:
             # possible types: sound, language, emotion, speech2text
             ret = self.check_affectability(name)
             if type == "sound":
-                decision = True
+                decision = False
                 info = ""
                 frm = ret
                 if ret != None and len(ret) > 1:
                     for ff in ret:
+                        decision = True
                         frm = ret[ff]
             elif type == "language":
                 decision = True

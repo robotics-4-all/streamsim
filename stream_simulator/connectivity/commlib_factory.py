@@ -29,11 +29,12 @@ class CommlibFactory:
 
     @staticmethod
     def notify_ui(type = None, data = None):
-        CommlibFactory.notify.publish({
-            'type': type,
-            'data': data
-        })
-        CommlibFactory.logger.info(f"{Fore.MAGENTA}AMQP inform {type}: {data}{Style.RESET_ALL}")
+        if CommlibFactory.notify is not None:
+            CommlibFactory.notify.publish({
+                'type': type,
+                'data': data
+            })
+            CommlibFactory.logger.info(f"{Fore.MAGENTA}AMQP inform {type}: {data}{Style.RESET_ALL}")
 
     stats = {
         'amqp': {

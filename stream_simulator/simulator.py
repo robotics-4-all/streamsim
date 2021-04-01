@@ -53,11 +53,23 @@ class Simulator:
         self.configuration['tf_base'] = self.tf.base_topic
         time.sleep(0.5)
 
-        # Setup notification channel
-        CommlibFactory.notify = CommlibFactory.getPublisher(
-            broker = 'amqp',
-            topic = f"{self.name}.notifications"
-        )
+        real_mode_exists = False
+        if "robots" in self.configuration:
+            for robot in self.configuration["robots"]:
+                if "mode" in robot:
+                    if robot["mode"] == "real":
+                        real_mode_exists = True
+                        break
+        
+        if not real_mode_exists:
+            # Setup notification channel
+            self.logger.info(f"Created {self.name}.notifications publisher!")
+            CommlibFactory.notify = CommlibFactory.getPublisher(
+                broker = 'amqp',
+                topic = f"{self.name}.notifications"
+            )
+        else:
+            self.logger.warning("Robot with real mode detected. Skipping notifications publisher!")
 
         # Initializing world
         self.world = World()

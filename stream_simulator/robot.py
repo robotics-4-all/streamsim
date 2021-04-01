@@ -518,6 +518,7 @@ class Robot:
             return True
 
         # Check collision to obstacles
+        
         x_i = int(x)
         x_i_p = int(prev_x)
         if x_i > x_i_p:
