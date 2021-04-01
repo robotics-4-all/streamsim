@@ -137,18 +137,17 @@ class PanTiltController(BaseThing):
 
     def pan_tilt_set_callback(self, message, meta):
         try:
-
             response = message
-            self._yaw = response['yaw']
-            self._pitch = response['pitch']
+            self._yaw = response['pan']
+            self._pitch = response['tilt']
 
             # Storing value:
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
                     "data": {
-                        "yaw": self._yaw,
-                        "pitch": self._pitch
+                        "pan": self._yaw,
+                        "tilt": self._pitch
                     },
                     "timestamp": time.time()
                 }]

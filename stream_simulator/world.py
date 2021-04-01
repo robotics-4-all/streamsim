@@ -74,24 +74,47 @@ class World:
             "timestamp": time.time()
         }
 
+    def check_ok(self, x1, x2, y1, y2):
+        if x1 < 0 or self.width <= x1:
+            return False
+
+        if x2 < 0 or self.width <= x2:
+            return False
+
+        if y1 < 0 or self.height <= y1:
+            return False
+
+        if y2 < 0 or self.height <= y2:
+            return False
+
+        return True
+        
+        
+
     def setup(self):
         self.width = 0
         self.height = 0
         self.map = None
+        self.resolution = 0
         self.obstacles = []
         if 'map' in self.configuration:
-            self.width = int(self.configuration['map']['width'])
-            self.height = int(self.configuration['map']['height'])
-
+            self.resolution = self.configuration['map']['resolution']
+            self.width = int(self.configuration['map']['width'] / self.resolution)
+            self.height = int(self.configuration['map']['height'] / self.resolution)
             self.map = numpy.zeros((self.width, self.height))
+            
 
             # Add obstacles information in map
             self.obstacles = self.configuration['map']['obstacles']['lines']
             for obst in self.obstacles:
-                x1 = int(obst['x1'])
-                x2 = int(obst['x2'])
-                y1 = int(obst['y1'])
-                y2 = int(obst['y2'])
+                x1 = int(obst['x1'] / self.resolution)
+                x2 = int(obst['x2'] / self.resolution)
+                y1 = int(obst['y1'] / self.resolution)
+                y2 = int(obst['y2'] / self.resolution)
+
+                if not self.check_ok(x1, x2, y1, y2):
+                    continue
+
                 if x1 == x2:
                     if y1 > y2:
                         tmp = y2
@@ -133,6 +156,7 @@ class World:
             'tf_declare': self.tf_declare_rpc,
             'env': self.env_properties,
             "map": self.map,
+            "resolution": self.resolution
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")

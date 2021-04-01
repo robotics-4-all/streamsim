@@ -46,9 +46,14 @@ class Simulator:
         else:
             self.name = "streamsim"
 
+        resolution = 0.2
+        if 'map' in self.configuration and 'resolution' in self.configuration['map']:
+            resolution = self.configuration['map']['resolution']
+
         # Declaring tf controller and setting basetopic
         self.tf = TfController(
-            base = self.name
+            base = self.name,
+            resolution = resolution
         )
         self.configuration['tf_base'] = self.tf.base_topic
         time.sleep(0.5)

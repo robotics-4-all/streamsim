@@ -14,10 +14,11 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class TfController:
-    def __init__(self, base = None, logger = None):
+    def __init__(self, base = None, resolution = None, logger = None):
         self.logger = Logger("tf") if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
+        self.resolution = resolution
         self.lin_alarms_robots = {}
 
         self.declare_rpc_server = CommlibFactory.getRPCService(
@@ -177,10 +178,10 @@ class TfController:
 
             self.places_relative[d['name']] = d['pose'].copy()
             self.places_absolute[d['name']] = d['pose'].copy()
-            # if 'x' in d['pose']: # The only culprit is linear alarm
-            #     for i in ['x', 'y']:
-            #         self.places_relative[d['name']][i] *= self.resolution
-            #         self.places_absolute[d['name']][i] *= self.resolution
+            if 'x' in d['pose']: # The only culprit is linear alarm
+                for i in ['x', 'y']:
+                    self.places_relative[d['name']][i] #*= self.resolution
+                    self.places_absolute[d['name']][i] #*= self.resolution
 
             # if d['range'] != None:
             #     d['range'] *= self.resolution
@@ -381,6 +382,8 @@ class TfController:
                     self.places_absolute[i]['theta'] = \
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
+
+                    print(f"=============={i}   {self.places_absolute[i]} ")
 
                     CommlibFactory.notify.publish({
                         'type': 'sensor_pose',
@@ -851,12 +854,12 @@ class TfController:
             lin_start = self.declarations_info[name]['pose']['start']
             lin_end = self.declarations_info[name]['pose']['end']
             sta = [
-                lin_start['x'],
-                lin_start['y']
+                lin_start['x'], #* self.resolution
+                lin_start['y'] #* self.resolution
             ]
             end = [
-                lin_end['x'],
-                lin_end['y']
+                lin_end['x'], #* self.resolution
+                lin_end['y'] #* self.resolution
             ]
             inter = self.calc_distance(sta, end)
             ret = {}
@@ -974,31 +977,33 @@ class TfController:
             decision = False
             info = ""
             frm = ret
+            print(message)
+            print("===============", ret)
 
             if type == "sound":
                 if ret != None:
-                    if len(ret) > 1:
+                    if len(ret) >= 1:
                         for ff in ret:
                             decision = True
                             info = ret[ff]['info']['sound']
                             frm = ret[ff]
             elif type == "language":
                 if ret != None:
-                    if len(ret) > 1:
+                    if len(ret) >= 1:
                         for x in ret:
                             decision = True
                             info = ret[x]['info']['language'] # gets the last one
                             frm = ret[x]
             elif type == "emotion":
                 if ret != None:
-                    if len(ret) > 1:
+                    if len(ret) >= 1:
                         for x in ret:
                             decision = True
                             info = ret[x]['info']['emotion'] # gets the last one
                             frm = ret[x]
             elif type == "speech2text":
                 if ret != None:
-                    if len(ret) > 1:
+                    if len(ret) >= 1:
                         for x in ret:
                             if ret[x]['type'] == 'human':
                                 decision = True
