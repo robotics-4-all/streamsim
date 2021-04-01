@@ -971,31 +971,39 @@ class TfController:
         if decl['subtype']['subclass'][0] == "microphone":
             # possible types: sound, language, emotion, speech2text
             ret = self.check_affectability(name)
+            decision = False
+            info = ""
+            frm = ret
+
             if type == "sound":
-                decision = False
-                info = ""
-                frm = ret
-                if ret != None and len(ret) > 1:
-                    for ff in ret:
-                        decision = True
-                        frm = ret[ff]
+                if ret != None:
+                    if len(ret) > 1:
+                        for ff in ret:
+                            decision = True
+                            info = ret[ff]['info']['sound']
+                            frm = ret[ff]
             elif type == "language":
-                decision = True
-                for x in ret:
-                    info = ret[x]['info']['language'] # gets the last one
-                    frm = ret[x]
+                if ret != None:
+                    if len(ret) > 1:
+                        for x in ret:
+                            decision = True
+                            info = ret[x]['info']['language'] # gets the last one
+                            frm = ret[x]
             elif type == "emotion":
-                decision = True
-                for x in ret:
-                    info = ret[x]['info']['emotion'] # gets the last one
-                    frm = ret[x]
+                if ret != None:
+                    if len(ret) > 1:
+                        for x in ret:
+                            decision = True
+                            info = ret[x]['info']['emotion'] # gets the last one
+                            frm = ret[x]
             elif type == "speech2text":
-                decision = False
-                for x in ret:
-                    if ret[x]['type'] == 'human':
-                        decision = True
-                        info = ret[x]['info']['speech']
-                        frm = ret[x]
+                if ret != None:
+                    if len(ret) > 1:
+                        for x in ret:
+                            if ret[x]['type'] == 'human':
+                                decision = True
+                                info = ret[x]['info']['speech']
+                                frm = ret[x]
                 if info == "":
                     decision = False
             else:
