@@ -74,23 +74,6 @@ class World:
             "timestamp": time.time()
         }
 
-    def check_ok(self, x1, x2, y1, y2):
-        if x1 < 0 or self.width <= x1:
-            return False
-
-        if x2 < 0 or self.width <= x2:
-            return False
-
-        if y1 < 0 or self.height <= y1:
-            return False
-
-        if y2 < 0 or self.height <= y2:
-            return False
-
-        return True
-        
-        
-
     def setup(self):
         self.width = 0
         self.height = 0
@@ -107,13 +90,10 @@ class World:
             # Add obstacles information in map
             self.obstacles = self.configuration['map']['obstacles']['lines']
             for obst in self.obstacles:
-                x1 = int(obst['x1'] / self.resolution)
-                x2 = int(obst['x2'] / self.resolution)
-                y1 = int(obst['y1'] / self.resolution)
-                y2 = int(obst['y2'] / self.resolution)
-
-                if not self.check_ok(x1, x2, y1, y2):
-                    continue
+                x1 = max(min(int(obst['x1'] / self.resolution), self.width - 1), 0)
+                x2 = max(min(int(obst['x2'] / self.resolution), self.width - 1), 0)
+                y1 = max(min(int(obst['y1'] / self.resolution), self.height - 1), 0)
+                y2 = max(min(int(obst['y2'] / self.resolution), self.height - 1), 0)
 
                 if x1 == x2:
                     if y1 > y2:
