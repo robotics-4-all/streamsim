@@ -81,6 +81,15 @@ class LedsController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
         package["tf_declare"].call(tf_package)
 
+
+        self._color = {
+                'r': 0.0,
+                'g': 0.0,
+                'b': 0.0
+        }
+        self._luminosity = 0
+
+
         if self.info["mode"] == "real":
             from pidevices import LedController
             self.led_strip = LedController(led_count=self.conf["led_count"],
@@ -100,10 +109,15 @@ class LedsController(BaseThing):
         )
         #############################################
 
-        self.leds_set_sub = CommlibFactory.getSubscriber(
+        self.set_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
-            topic = info["base_topic"] + ".set",
-            callback = self.leds_set_callback
+            callback = self.leds_set_callback,
+            rpc_name = info["base_topic"] + ".set"
+        )
+        self.get_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.leds_get_callback,
+            rpc_name = info["base_topic"] + ".get"
         )
         self.leds_wipe_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -130,47 +144,61 @@ class LedsController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.leds_set_sub.run()
+        self.set_rpc_server.run()
+        self.get_rpc_server.run()
         self.leds_wipe_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
     def stop(self):
-        self.leds_set_sub.stop()
+        self.set_rpc_server.stop()
+        self.get_rpc_server.stop()
         self.leds_wipe_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
+    def leds_get_callback(self, message, meta):
+        self.logger.info(f"Getting led state!")
+        return {
+            "color": self._color,
+            "luminosity": self._luminosity
+        }
+
     def leds_set_callback(self, message, meta):
         try:
             response = message
-            id = response["id"]
-            r = response["r"]
-            g = response["g"]
-            b = response["b"]
-            intensity = response["luminosity"]
-            self._color = [r, g, b, intensity]
-            _color = {
+            
+            r = response["r"] if "r" in response else 0.0
+            g = response["g"] if "g" in response else 0.0
+            b = response["b"] if "b" in response else 0.0
+            intensity = response["luminosity"] if "luminosity" in response else 0.0
+
+            real_color = [r, g, b, intensity]
+
+            _values = {
                 'r': r,
                 'g': g,
                 'b': b,
-                'luminosity': intensity
+                'luminosity': intensity,
             }
 
             CommlibFactory.notify_ui(
                 type = "effector_command",
                 data = {
                     "name": self.name,
-                    "value": _color
+                    "value": _values
                 }
             )
 
             if self.info["mode"] == "mock":
                 pass
             elif self.info["mode"] == "simulation":
-                pass
+                self._color["r"] = r
+                self._color["g"] = g
+                self._color["b"] = b
+                self._luminosity = intensity
             else: # The real deal
-                self.led_strip.write([self._color], wipe = False)
+                self.led_strip.write([real_color], wipe = False)
 
             # self.leds_pub.publish({"r": r, "g": g, "b": b})
 

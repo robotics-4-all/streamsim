@@ -556,7 +556,25 @@ map:
         y2: 4.037037037037036
 world:
   name: World
-  places: []
+  places:
+    - masterbedroom
+    - bathroom
+    - kidsroom
+    - guestbedroom
+    - guestbathroom
+    - storageroom
+    - tvroom
+    - lounge
+    - kitchen
+    - diningroom
+    - room1
+    - hall2
+    - hall1
+    - hall3
+    - hall4
+    - hall5
+    - swimmingpool
+    - photovoltaic
   properties:
     temperature: 22
     humidity: 60
@@ -666,7 +684,7 @@ robots:
           hz: 0.5
           name: tektrain_camera_gn_robot_2
           host: pan_tilt_gn_robot_2
-          range: 2
+          range: 3
           fov: 90
           width: 640
           height: 480
@@ -838,7 +856,7 @@ robots:
           hz: 0.5
           name: tektrain_camera_gn_robot_26
           host: pan_tilt_gn_robot_26
-          range: 2
+          range: 3
           fov: 90
           width: 640
           height: 480
@@ -923,7 +941,7 @@ env_devices:
   lights:
     - name: ef_light_23
       mode: mock
-      place: world
+      place: lounge
       pose:
         x: 20.21666666666667
         'y': 6.010937500000002
@@ -932,15 +950,33 @@ env_devices:
       range: 4
     - name: ef_light_24
       mode: mock
-      place: world
+      place: room1
       pose:
         x: 5.783333333333334
         'y': 10.844270833333335
         theta: 0
       luminosity: 100
       range: 4
-  thermostats: []
-  humidifiers: []
+  thermostats:
+    - name: ef_thermostat_36
+      mode: mock
+      place: lounge
+      pose:
+        x: 15.81666666666667
+        'y': 5.077604166666668
+        theta: 0
+      temperature: 22
+      range: 3
+  humidifiers:
+    - name: ef_humidifier_35
+      mode: mock
+      place: lounge
+      pose:
+        x: 15.916666666666668
+        'y': 6.944270833333334
+        theta: 0
+      humidity: 70
+      range: 3
 actors:
   humans:
     - id: 21
@@ -1085,6 +1121,14 @@ actors:
       'y': 13.968148148148149
       range: 1
     - id: 33
+      x: 32.69979166666667
+      'y': 13.968148148148149
+      range: 0.61
+    - id: 34
+      x: 32.69979166666667
+      'y': 13.968148148148149
+      range: 0.61
+    - id: 37
       x: 32.69979166666667
       'y': 13.968148148148149
       range: 0.61
