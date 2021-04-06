@@ -326,7 +326,7 @@ class SpeakerController(BaseThing):
                 time.sleep(0.1)
             self.logger.info("Playing done")
 
-        else: # The real deal
+        else: # The real deal 
             source = base64.b64decode(string.encode("ascii"))
             self.speaker.async_write(source, file_flag = False)
             while self.speaker.playing:

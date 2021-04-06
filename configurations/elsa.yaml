@@ -25,7 +25,7 @@ robots:
             ports: ["12333", "12334"]
             host_port: "12334"
             dev_name: "Mic"
-            channels: 6
+            channels: 1
             framerate: 44100
             max_data_length: 10
       # gstreamer_server:

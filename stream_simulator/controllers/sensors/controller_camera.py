@@ -101,7 +101,7 @@ class CameraController(BaseThing):
             broker = "redis",
             topic = self.base_topic + ".data"
         )
-
+        
         # merge actors
         self.actors = []
         for i in info["actors"]:
