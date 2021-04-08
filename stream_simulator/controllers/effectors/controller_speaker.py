@@ -85,7 +85,9 @@ class SpeakerController(BaseThing):
 
         if self.info["mode"] == "real":
             from pidevices import Speaker
-            self.speaker = Speaker(dev_name = self.conf["dev_name"], 
+            self.speaker = Speaker(dev_name = self.conf["dev_name"],
+                                   channels = self.conf["channels"],
+                                   framerate = self.conf["framerate"],
                                    name = self.name,
                                    max_data_length = self.conf["max_data_length"])
 
@@ -104,7 +106,7 @@ class SpeakerController(BaseThing):
                 self.client = texttospeech.TextToSpeechClient()
                 self.audio_config = texttospeech.AudioConfig(
                     audio_encoding = texttospeech.AudioEncoding.LINEAR16,
-                    sample_rate_hertz = 44100)
+                    sample_rate_hertz = self.conf["framerate"])
 
         self.play_action_server = CommlibFactory.getActionServer(
             broker = "redis",
@@ -135,6 +137,7 @@ class SpeakerController(BaseThing):
         self.play_pub = CommlibFactory.getPublisher(
             topic = info["base_topic"] + ".play.notify"
         )
+
         self.speak_pub = CommlibFactory.getPublisher(
             topic = info["base_topic"] + ".speak.notify"
         )
@@ -328,10 +331,33 @@ class SpeakerController(BaseThing):
 
         else: # The real deal 
             source = base64.b64decode(string.encode("ascii"))
+            duration = round(len(source) / (2 * self.speaker.framerate))
+
+            self.logger.info("Source size: {}".format(duration))
             self.speaker.async_write(source, file_flag = False)
-            while self.speaker.playing:
-                print("Playing...")
-                time.sleep(0.1)
+            
+            try:
+                self._timer = time.time()
+                while self.speaker.playing:
+                    if (time.time() - self._timer) > duration * 1.01:
+                        raise Exception("Speaker: timeout!")
+                    time.sleep(0.1)
+            except Exception as e:
+                self.logger.info("Speaker stuck with msg: {}! Restarting it..".format(str(e)))
+                
+                # try to reinitialize th speaker
+                success = False
+                self.speaker.stop()
+                while (not success):
+                    try:
+                        self.logger.info("Trying to reinitialize speaker!")
+                        self.speaker.start()
+                        success = True
+                    except Exception as e:
+                        self.logger.info("FAILED: {}".format(str(e)))
+                        success = False
+
+                    time.sleep(3)
 
         self.logger.info("{} Playing finished".format(self.name))
         self.blocked = False
