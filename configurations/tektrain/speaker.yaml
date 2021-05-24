@@ -1,6 +1,8 @@
 orientation: 0
 place: FRONT
 sensor_configuration:
-  dev_name: "default"
+  dev_name: "Speaker"
+  channels: 1
+  framerate: 44100
   card_index: 1
   max_data_length: 10

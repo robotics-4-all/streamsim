@@ -83,7 +83,7 @@ class SpeakerController(BaseThing):
 
         self.global_volume = None
         self.blocked = False
-
+        
         if self.info["mode"] == "real":
             from pidevices import Speaker
             self.speaker = Speaker(dev_name = self.conf["dev_name"],

@@ -386,16 +386,16 @@ class TfController:
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
 
-                    CommlibFactory.notify.publish({
-                        'type': 'sensor_pose',
-                        'data': {
+                    CommlibFactory.notify_ui(
+                        type = "sensor_pose",
+                        data = {
                             "name": i,
                             "x": self.places_absolute[i]['x'],
                             "y": self.places_absolute[i]['y'],
                             "theta": self.places_absolute[i]['theta']
                         }
-                    })
-                    #
+                    )
+                    
                     # CommlibFactory.notify_ui(
                     #     type = "sensor_pose",
                     #     data = {
