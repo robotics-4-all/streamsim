@@ -87,9 +87,7 @@ class MotionController(BaseThing):
                                                              E2=self.conf["E2"], 
                                                              M2=self.conf["M2"])
             
-            # give some time so all other the controllers are initialized
-            self._init_delay = 7
-
+            
         self.wheel_separation = self.conf["wheel_separation"]
         self.wheel_radius = self.conf["wheel_radius"]
 
@@ -104,7 +102,10 @@ class MotionController(BaseThing):
         # motion controller depends on other controller (imu, line follower, encoders)
         # in order to work. So it needs to wait to the other controllers are initialized so 
         # it can identify at runtime throw their topic
-        self._init_delay = 0
+        
+        # give some time so all other the controllers are initialized
+        self._init_delay = 7
+
         self.initializer = threading.Thread(target=self._init, args=(self._init_delay,), daemon=True)
 
         # publisher that exports robots velocities to other modules across streamsim
@@ -158,6 +159,7 @@ class MotionController(BaseThing):
         self._lf_topic = None
         self._servo_topic = None
 
+        #print(available_devices["devices"])
         for d in available_devices['devices']:
             if d['type'] == "IMU":
                 self._imu_topic = d['base_topic'] + ".data"
@@ -220,6 +222,7 @@ class MotionController(BaseThing):
         else: # The real deal
             # record available sensor devices after all controller have been initialized
             available_devices = self.device_finder.call({})
+            #print("available devices" ,available_devices)
             self.record_devices(available_devices=available_devices)
 
             from robot_motion import SpeedController, DirectionController, LineFollower, ComplexMotion
