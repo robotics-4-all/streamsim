@@ -21,5 +21,8 @@ sub = CommlibFactory.getSubscriber(
 
 sub.run()
 print(f"Subscribed to {sys.argv[1]}")
+
+
+
 while True:
     time.sleep(1)

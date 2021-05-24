@@ -44,9 +44,9 @@ class Test(unittest.TestCase):
 
                         # test normal execution of the action process
                         resp = self.set_action(
-                            linear = 0.1,
-                            rotational = 0.314,
-                            duration = 3
+                            linear = 0.15,
+                            rotational = 0.0,
+                            duration = 8
                         )
 
                         # validate results
@@ -61,7 +61,7 @@ class Test(unittest.TestCase):
                         self._preemt_thread.start()
 
                         resp = self.set_action(
-                            linear = 0.1,
+                            linear = 0.0,
                             rotational = 0.314,
                             duration = 10
                         )

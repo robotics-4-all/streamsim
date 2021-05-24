@@ -305,6 +305,10 @@ class TfController:
         for n in self.declarations_info:
             if self.declarations_info[n]['type'] == "actor":
                 continue
+            if not "subtype" in self.declarations_info[n]:
+                continue
+            if not "subclass" in self.declarations_info[n]['subtype']:
+                continue
             if "microphone" in self.declarations_info[n]['subtype']['subclass']:
                 # check distance
                 m_name = n

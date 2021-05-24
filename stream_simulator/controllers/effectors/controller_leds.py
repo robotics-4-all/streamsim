@@ -143,6 +143,7 @@ class LedsController(BaseThing):
 
     def leds_set_callback(self, message, meta):
         try:
+            print("Called from led set callback")
             response = message
             id = response["id"]
             r = response["r"]
@@ -193,11 +194,12 @@ class LedsController(BaseThing):
 
     def leds_wipe_callback(self, message, meta):
         try:
+            print("Called from led wipe callback")
             response = message
             r = response["r"]
             g = response["g"]
             b = response["b"]
-            intensity = response["luminosity"]
+            intensity = response["luminosity"] if "luminosity" in response else response["brightness"]
             ms = response["wait_ms"]
             self._color = [r, g, b, intensity]
 

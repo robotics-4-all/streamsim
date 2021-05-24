@@ -15,6 +15,7 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
+
 class SpeakerController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
@@ -95,14 +96,15 @@ class SpeakerController(BaseThing):
                 from espeakng import ESpeakNG
 
                 self.esng = ESpeakNG()
-                self.esng.pitch = 50
-                self.esng.speed = 80
+                self.esng.pitch = 60
+                self.esng.speed = 130
 
             elif self.info["speak_mode"] == "google":
                 import os
                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
 
                 from google.cloud import texttospeech
+                
                 self.client = texttospeech.TextToSpeechClient()
                 self.audio_config = texttospeech.AudioConfig(
                     audio_encoding = texttospeech.AudioEncoding.LINEAR16,

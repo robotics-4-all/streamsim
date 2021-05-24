@@ -21,9 +21,9 @@ robots:
           source: "tektrain/microphone"
       # sonar:
       #   -
-      ir:
-        -
-          source: "tektrain/irs/ir_f"
+      # ir:
+      #   -
+      #     source: "tektrain/irs/ir_f"
       #   -
       #     source: "tektrain/irs/ir_l"
       #   -
@@ -42,9 +42,9 @@ robots:
       imu:
         -
           source: "tektrain/imu_real"
-      button:
-        -
-          source: "tektrain/buttons/button_F"
+      # button:
+      #   -
+      #     source: "tektrain/buttons/button_F"
       #   -
       #     source: "tektrain/buttons/button_FR"
       #   -
@@ -71,9 +71,9 @@ robots:
       pan_tilt:
         -
           source: "tektrain/pan_tilt"
-      touch_screen:
-        -
-          source: "tektrain/touch_screen"
+      # touch_screen:
+      #   -
+      #     source: "tektrain/touch_screen"
       encoder:
       -
         source: "tektrain/encoders/encoder_BL_real"
