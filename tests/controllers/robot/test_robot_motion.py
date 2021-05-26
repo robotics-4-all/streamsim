@@ -10,8 +10,13 @@ from stream_simulator.connectivity import CommlibFactory
 import threading
 
 class Test(unittest.TestCase):
-    NORMAL_STATUS = 4
-    PREEMT_STATUS = 3
+    ACCEPTED = 1
+    EXECUTING = 2
+    CANCELING = 3
+    SUCCEDED = 4
+    ABORTED = 5
+    CANCELED = 6
+
     def setUp(self):
         pass
 
@@ -52,7 +57,7 @@ class Test(unittest.TestCase):
                         # validate results
                         self.assertEqual('status' in resp, True)
                         self.assertEqual('result' in resp, True)
-                        self.assertEqual(resp['status'], Test.NORMAL_STATUS)
+                        self.assertEqual(resp['status'], Test.SUCCEDED)
                         self.assertEqual(resp['result'], {})           
 
                         # test goal preemption
@@ -69,11 +74,16 @@ class Test(unittest.TestCase):
                         # validate results
                         self.assertEqual('status' in resp, True)
                         self.assertEqual('result' in resp, True)
-                        self.assertEqual(resp['status'], Test.PREEMT_STATUS)
-                        self.assertEqual(resp['result'], {})      
+                        self.assertEqual(self.is_cancelled(resp['status']), True)
         except:
             traceback.print_exc(file=sys.stdout)
             self.assertTrue(False)
+    
+    def is_cancelled(self, result):
+        if result == Test.CANCELED or result == Test.CANCELING:
+            return True
+        else:
+            return False 
     
     def set_action(self, linear, rotational, duration):
         # send an action
@@ -87,7 +97,7 @@ class Test(unittest.TestCase):
 
         self.goal_id_play = resp['goal_id']
 
-        while self.action_client.get_result(self.goal_id_play)["status"] == 1:
+        while self.action_client.get_result(self.goal_id_play)["status"] == Test.ACCEPTED:
             if self._preemt:
                 break
             time.sleep(0.1)

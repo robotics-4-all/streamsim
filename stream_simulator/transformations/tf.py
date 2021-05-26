@@ -856,22 +856,14 @@ class TfController:
             lin_start = self.declarations_info[name]['pose']['start']
             lin_end = self.declarations_info[name]['pose']['end']
             sta = [
-<<<<<<< HEAD
                 lin_start['x'],
                 lin_start['y']
             ]
             end = [
                 lin_end['x'],
-                lin_end['y']
-=======
-                lin_start['x'], #* self.resolution
-                lin_start['y'] #* self.resolution
+                lin_enc['y']
             ]
-            end = [
-                lin_end['x'], #* self.resolution
-                lin_end['y'] #* self.resolution
->>>>>>> origin/sfhmmy21_final
-            ]
+
             inter = self.calc_distance(sta, end)
             ret = {}
 

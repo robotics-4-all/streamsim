@@ -157,6 +157,10 @@ class Robot:
         self.map = map
         self.width = self.map.shape[0]
         self.height = self.map.shape[1]
+        if 'resolution' in self.world['map']:
+                self.resolution = self.world['map']['resolution']
+        else:
+            self.resolution = 1
         self.logger.info("Robot {}: map set".format(self.name))
 
         self._x = 0
@@ -548,8 +552,8 @@ class Robot:
         if x_i > x_i_p:
             x_i, x_i_p = x_i_p, x_i
 
-        y_i = int(y)
-        y_i_p = int(prev_y)
+        y_i = int(y / self.resolution)
+        y_i_p = int(prev_y / self.resolution)
         if y_i > y_i_p:
             y_i, y_i_p = y_i_p, y_i
 
@@ -586,6 +590,7 @@ class Robot:
             "x": self._x,
             "y": self._y,
             "theta": self._theta,
+            "resolution": self.resolution,
             "name": self.name
         })
 
@@ -630,7 +635,8 @@ class Robot:
                         self.pose_pub.publish({
                             "x": xx,
                             "y": yy,
-                            "theta": theta2
+                            "theta": theta2,
+                            "resolution": self.resolution
                         })
                     self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
 
@@ -639,7 +645,8 @@ class Robot:
                         "x": xx,
                         "y": yy,
                         "theta": theta2,
-                        "name": self.name
+                        "name": self.name,
+                        "resolution": self.resolution
                     })
 
                 if self.check_ok(self._x, self._y, prev_x, prev_y):

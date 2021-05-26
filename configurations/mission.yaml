@@ -1,14 +1,21 @@
+amqp:
+    credentials:
+      username: "bot"
+      password: "b0t"
+    host: "localhost"
+    port: 5672
+    vhost: "/"
+    
+redis:
+  host: "localhost"
+  port: 6379
+
 simulation:
   name: streamsim
 map:
-<<<<<<< HEAD
-  width: 646
-  height: 430
-=======
   width: 36.333333333333336
   height: 24.222222222222225
   resolution: 0.036811887875717667
->>>>>>> origin/sfhmmy21_final
   obstacles:
     lines:
       - x1: 3.3100625000000004

@@ -41,8 +41,8 @@ class Test(unittest.TestCase):
                         # Set constant
                         print("Setting 90, 45")
                         set_rpc.publish({
-                            'yaw': 45,
-                            'pitch': 70
+                            'pan': 45,
+                            'tilt': 70
                         })
 
                         time.sleep(1)

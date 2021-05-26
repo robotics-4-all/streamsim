@@ -47,8 +47,21 @@ class Simulator:
             self.name = "streamsim"
 
         resolution = 0.2
-        if 'map' in self.configuration and 'resolution' in self.configuration['map']:
-            resolution = self.configuration['map']['resolution']
+        if 'map' in self.configuration:
+            if 'resolution' in self.configuration['map']:
+                resolution = self.configuration['map']['resolution']
+
+        if 'amqp' in self.configuration:
+            ConnParams.set(
+                type = "amqp",
+                settings = self.configuration['amqp']
+            )
+        
+        if 'redis' in self.configuration:
+            ConnParams.set(
+                type = "redis",
+                settings = self.configuration['redis']
+            )
 
         # Declaring tf controller and setting basetopic
         self.tf = TfController(
