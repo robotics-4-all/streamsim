@@ -41,7 +41,7 @@ class Test(unittest.TestCase):
                             broker = "redis",
                             action_name = s["base_topic"] + ".set"
                         )
-
+                        
                         # test normal execution of the action process
                         resp = self.set_action(
                             linear = 0.15,

@@ -123,16 +123,16 @@ class SonarController(BaseThing):
                     ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
                     # Calculate distance
                     d = 1
-                    originx = self.robot_pose["x"]
-                    originy = self.robot_pose["y"]
+                    originx = self.robot_pose["x"] / self.robot_pose["resolution"]
+                    originy = self.robot_pose["y"] / self.robot_pose["resolution"]
                     tmpx = originx
                     tmpy = originy
-                    limit = self.info["max_range"]
+                    limit = self.info["max_range"] / self.robot_pose["resolution"]
                     while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
                         d += 1
                         tmpx = originx + d * math.cos(ths)
                         tmpy = originy + d * math.sin(ths)
-                    val = d
+                    val = d * self.robot_pose["resolution"]
                 except:
                     self.logger.warning("Pose not got yet..")
             else: # The real deal

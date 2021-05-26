@@ -14,10 +14,11 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class TfController:
-    def __init__(self, base = None, logger = None):
+    def __init__(self, base = None, resolution = None, logger = None):
         self.logger = Logger("tf") if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
+        self.resolution = resolution
         self.lin_alarms_robots = {}
 
         self.declare_rpc_server = CommlibFactory.getRPCService(
@@ -177,10 +178,10 @@ class TfController:
 
             self.places_relative[d['name']] = d['pose'].copy()
             self.places_absolute[d['name']] = d['pose'].copy()
-            # if 'x' in d['pose']: # The only culprit is linear alarm
-            #     for i in ['x', 'y']:
-            #         self.places_relative[d['name']][i] *= self.resolution
-            #         self.places_absolute[d['name']][i] *= self.resolution
+            if 'x' in d['pose']: # The only culprit is linear alarm
+                for i in ['x', 'y']:
+                    self.places_relative[d['name']][i] #*= self.resolution
+                    self.places_absolute[d['name']][i] #*= self.resolution
 
             # if d['range'] != None:
             #     d['range'] *= self.resolution
@@ -855,12 +856,21 @@ class TfController:
             lin_start = self.declarations_info[name]['pose']['start']
             lin_end = self.declarations_info[name]['pose']['end']
             sta = [
+<<<<<<< HEAD
                 lin_start['x'],
                 lin_start['y']
             ]
             end = [
                 lin_end['x'],
                 lin_end['y']
+=======
+                lin_start['x'], #* self.resolution
+                lin_start['y'] #* self.resolution
+            ]
+            end = [
+                lin_end['x'], #* self.resolution
+                lin_end['y'] #* self.resolution
+>>>>>>> origin/sfhmmy21_final
             ]
             inter = self.calc_distance(sta, end)
             ret = {}
@@ -975,30 +985,41 @@ class TfController:
         if decl['subtype']['subclass'][0] == "microphone":
             # possible types: sound, language, emotion, speech2text
             ret = self.check_affectability(name)
+            decision = False
+            info = ""
+            frm = ret
+            print(message)
+            print("===============", ret)
+
             if type == "sound":
-                decision = True
-                info = ""
-                frm = ret
-                if ret != None and len(ret) > 1:
-                    for ff in ret:
-                        frm = ret[ff]
+                if ret != None:
+                    if len(ret) >= 1:
+                        for ff in ret:
+                            decision = True
+                            info = ret[ff]['info']['sound']
+                            frm = ret[ff]
             elif type == "language":
-                decision = True
-                for x in ret:
-                    info = ret[x]['info']['language'] # gets the last one
-                    frm = ret[x]
+                if ret != None:
+                    if len(ret) >= 1:
+                        for x in ret:
+                            decision = True
+                            info = ret[x]['info']['language'] # gets the last one
+                            frm = ret[x]
             elif type == "emotion":
-                decision = True
-                for x in ret:
-                    info = ret[x]['info']['emotion'] # gets the last one
-                    frm = ret[x]
+                if ret != None:
+                    if len(ret) >= 1:
+                        for x in ret:
+                            decision = True
+                            info = ret[x]['info']['emotion'] # gets the last one
+                            frm = ret[x]
             elif type == "speech2text":
-                decision = False
-                for x in ret:
-                    if ret[x]['type'] == 'human':
-                        decision = True
-                        info = ret[x]['info']['speech']
-                        frm = ret[x]
+                if ret != None:
+                    if len(ret) >= 1:
+                        for x in ret:
+                            if ret[x]['type'] == 'human':
+                                decision = True
+                                info = ret[x]['info']['speech']
+                                frm = ret[x]
                 if info == "":
                     decision = False
             else:

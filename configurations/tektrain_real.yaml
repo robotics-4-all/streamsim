@@ -21,9 +21,9 @@ robots:
           source: "tektrain/microphone"
       # sonar:
       #   -
-      # ir:
-      #   -
-      #     source: "tektrain/irs/ir_f"
+      ir:
+        -
+          source: "tektrain/irs/ir_f"
       #   -
       #     source: "tektrain/irs/ir_l"
       #   -

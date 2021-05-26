@@ -34,17 +34,13 @@ robots:
           source: "tektrain/sonars/sonar_br"
       ir:
         -
-          source: "tektrain/irs/ir_fr"
-        -
-          source: "tektrain/irs/ir_fl"
+          source: "tektrain/irs/ir_f"
         -
           source: "tektrain/irs/ir_r"
         -
           source: "tektrain/irs/ir_l"
         -
-          source: "tektrain/irs/ir_br"
-        -
-          source: "tektrain/irs/ir_bl"
+          source: "tektrain/irs/ir_b"
       tof:
         -
           source: "tektrain/tof"
@@ -119,7 +115,7 @@ actors:
   superman:
     - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
   sound_sources:
-    - {id: 4, x: 120, y: 100, lang: EN} # lang for language detection | EL or EN
+    - {id: 4, x: 120, y: 100, lang: EN, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
   qrs:
     - {id: 5, x: 320, y: 100, message: test}
   barcodes:

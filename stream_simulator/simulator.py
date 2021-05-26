@@ -27,7 +27,7 @@ from stream_simulator.controllers import IrController
 
 class Simulator:
     def __init__(self,
-                 tick = 0.25,
+                 tick = 0.1,
                  conf_file = None,
                  configuration = None,
                  device = None
@@ -45,6 +45,10 @@ class Simulator:
             self.name = self.configuration["simulation"]["name"]
         else:
             self.name = "streamsim"
+
+        resolution = 0.2
+        if 'map' in self.configuration and 'resolution' in self.configuration['map']:
+            resolution = self.configuration['map']['resolution']
 
         # Declaring tf controller and setting basetopic
         self.tf = TfController(

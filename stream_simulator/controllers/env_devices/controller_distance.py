@@ -66,6 +66,7 @@ class EnvDistanceController(BaseThing):
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
         self.map = package["map"]
+        self.resolution = package["resolution"]
         self.max_range = info['conf']['max_range']
 
         # tf handling
@@ -131,8 +132,8 @@ class EnvDistanceController(BaseThing):
                 'x': 0,
                 'y': 0
             }
-        self.robots_poses[nm]['x'] = message['x']
-        self.robots_poses[nm]['y'] = message['y']
+        self.robots_poses[nm]['x'] = message['x'] / self.resolution
+        self.robots_poses[nm]['y'] = message['y'] / self.resolution
 
     def get_mode_callback(self, message, meta):
         return {
@@ -214,22 +215,18 @@ class EnvDistanceController(BaseThing):
                     self.logger.warning(f"Unsupported operation: {self.operation}")
 
             elif self.mode == "simulation":
-
-
                 # Get pose of the sensor (in case it is on a pan-tilt)
                 pp = CommlibFactory.get_tf.call({
                     "name": self.name
                 })
-                xx = pp['x']
-                yy = pp['y']
+                xx = pp['x'] / self.resolution
+                yy = pp['y'] / self.resolution
                 th = pp['theta']
-
-
 
                 d = 1
                 tmpx = int(xx)
                 tmpy = int(yy)
-                limit = self.max_range
+                limit = self.max_range / self.resolution
                 robot = False
                 while self.map[int(tmpx), int(tmpy)] == 0 and d < limit and robot == False:
                     d += 1
@@ -243,11 +240,11 @@ class EnvDistanceController(BaseThing):
                             math.pow(tmpx - self.robots_poses[r]['x'], 2)
                         )
                         # print(dd, 0.5)
-                        if dd < (0.5):
-                            print(d)
+                        if dd < (0.5 / self.resolution):
+                            print(d / self.resolution)
                             robot = True
 
-                val = d
+                val = d * self.resolution
 
                 # print(self.name, val)
             # Publishing value:

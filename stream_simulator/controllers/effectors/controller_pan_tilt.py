@@ -80,6 +80,10 @@ class PanTiltController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
         package["tf_declare"].call(tf_package)
 
+        # init values
+        self._yaw = 0.0
+        self._pitch = 0.0
+
         # create object
         if self.info["mode"] == "real":
             from pidevices import PCA9685
@@ -94,6 +98,11 @@ class PanTiltController(BaseThing):
             broker = "redis",
             topic = info["base_topic"] + ".set",
             callback = self.pan_tilt_set_callback
+        )
+        self.pan_tilt_get_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.get_pan_tilt_callback,
+            rpc_name = info["base_topic"] + ".get"
         )
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -119,7 +128,7 @@ class PanTiltController(BaseThing):
 
     def start(self):
         self.pan_tilt_set_sub.run()
-
+        self.pan_tilt_get_rpc_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
@@ -128,7 +137,7 @@ class PanTiltController(BaseThing):
 
     def stop(self):
         self.pan_tilt_set_sub.stop()
-
+        self.pan_tilt_get_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
@@ -136,20 +145,26 @@ class PanTiltController(BaseThing):
         if self.info["mode"] == "real":
             self.pan_tilt.stop()
 
+    def get_pan_tilt_callback(self, message, meta):
+        return {
+            "pan": self._yaw,
+            "tilt": self._pitch
+        }
+
+
     def pan_tilt_set_callback(self, message, meta):
         try:
-
             response = message
-            self._yaw = response['yaw']
-            self._pitch = response['pitch']
+            self._yaw = response['pan']
+            self._pitch = response['tilt']
 
             # Storing value:
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
                     "data": {
-                        "yaw": self._yaw,
-                        "pitch": self._pitch
+                        "pan": self._yaw,
+                        "tilt": self._pitch
                     },
                     "timestamp": time.time()
                 }]

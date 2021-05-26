@@ -15,7 +15,7 @@ world:
 
 robots:
   - source: "circleci/circleci_robot_1"
-  - source: "circleci/circleci_robot_2"
+  # - source: "circleci/circleci_robot_2"
 
 env_devices:
   relays:
@@ -73,7 +73,7 @@ actors:
   superman:
     - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
   sound_sources:
-    - {id: 4, x: 120, y: 100, lang: EN} # lang for language detection | EL or EN
+    - {id: 4, x: 120, y: 100, lang: EN, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
   qrs:
     - {id: 5, x: 320, y: 100, message: test}
   barcodes:

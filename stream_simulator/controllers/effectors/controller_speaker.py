@@ -338,28 +338,8 @@ class SpeakerController(BaseThing):
             self.logger.info("Source size: {}".format(duration))
             self.speaker.async_write(source, file_flag = False)
             
-            try:
-                self._timer = time.time()
-                while self.speaker.playing:
-                    if (time.time() - self._timer) > duration * 1.01:
-                        raise Exception("Speaker: timeout!")
-                    time.sleep(0.1)
-            except Exception as e:
-                self.logger.info("Speaker stuck with msg: {}! Restarting it..".format(str(e)))
-                
-                # try to reinitialize th speaker
-                success = False
-                self.speaker.stop()
-                while (not success):
-                    try:
-                        self.logger.info("Trying to reinitialize speaker!")
-                        self.speaker.start()
-                        success = True
-                    except Exception as e:
-                        self.logger.info("FAILED: {}".format(str(e)))
-                        success = False
-
-                    time.sleep(3)
+            while self.speaker.playing:
+                time.sleep(0.1)
 
         self.logger.info("{} Playing finished".format(self.name))
         self.blocked = False

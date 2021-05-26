@@ -80,18 +80,20 @@ class World:
         self.map = None
         self.obstacles = []
         if 'map' in self.configuration:
-            self.width = int(self.configuration['map']['width'])
-            self.height = int(self.configuration['map']['height'])
-
+            self.resolution = self.configuration['map']['resolution']
+            self.width = int(self.configuration['map']['width'] / self.resolution)
+            self.height = int(self.configuration['map']['height'] / self.resolution)
             self.map = numpy.zeros((self.width, self.height))
+            
 
             # Add obstacles information in map
             self.obstacles = self.configuration['map']['obstacles']['lines']
             for obst in self.obstacles:
-                x1 = int(obst['x1'])
-                x2 = int(obst['x2'])
-                y1 = int(obst['y1'])
-                y2 = int(obst['y2'])
+                x1 = max(min(int(obst['x1'] / self.resolution), self.width - 1), 0)
+                x2 = max(min(int(obst['x2'] / self.resolution), self.width - 1), 0)
+                y1 = max(min(int(obst['y1'] / self.resolution), self.height - 1), 0)
+                y2 = max(min(int(obst['y2'] / self.resolution), self.height - 1), 0)
+
                 if x1 == x2:
                     if y1 > y2:
                         tmp = y2

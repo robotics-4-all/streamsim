@@ -61,7 +61,7 @@ class Robot:
                  configuration = None,
                  world = None,
                  map = None,
-                 tick = 0.25):
+                 tick = 0.1):
 
         self.env_properties = world.env_properties
         world = world.configuration
@@ -164,8 +164,8 @@ class Robot:
         self._theta = 0
         if "starting_pose" in self.configuration:
             pose = self.configuration['starting_pose']
-            self._init_x = pose['x']
-            self._init_y = pose['y']
+            self._init_x = pose['x'] #* self.resolution
+            self._init_y = pose['y'] #* self.resolution
             self._init_theta = pose['theta'] / 180.0 * math.pi
             self.logger.info("Robot {} pose set: {}, {}, {}".format(
                 self.name, self._x, self._y, self._theta))
@@ -536,14 +536,15 @@ class Robot:
             self.error_log_msg = "Out of bounds - negative x or y"
             self.logger.error("{}: {}".format(self.name, self.error_log_msg))
             return True
-        if x > self.width or y > self.height:
+        if x / self.resolution > self.width or y / self.resolution > self.height:
             self.error_log_msg = "Out of bounds"
             self.logger.error("{}: {}".format(self.name, self.error_log_msg))
             return True
 
         # Check collision to obstacles
-        x_i = int(x)
-        x_i_p = int(prev_x)
+        
+        x_i = int(x / self.resolution)
+        x_i_p = int(prev_x / self.resolution)
         if x_i > x_i_p:
             x_i, x_i_p = x_i_p, x_i
 
@@ -555,13 +556,13 @@ class Robot:
         if x_i == x_i_p:
             for i in range(y_i, y_i_p):
                 if self.map[x_i, i] == 1:
-                    self.error_log_msg = "Crash #1"
+                    self.error_log_msg = "Crashed on a Wall"
                     self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
         elif y_i == y_i_p:
             for i in range(x_i, x_i_p):
                 if self.map[i, y_i] == 1:
-                    self.error_log_msg = "Crash #2"
+                    self.error_log_msg = "Crashed on a Wall"
                     self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
         else: # we have a straight line
@@ -572,7 +573,7 @@ class Robot:
                 xx = x_i + d * math.cos(th)
                 yy = y_i + d * math.sin(th)
                 if self.map[int(xx), int(yy)] == 1:
-                    self.error_log_msg = "Crash #3"
+                    self.error_log_msg = "Crashed on a Wall"
                     self.logger.error("{}: {}".format(self.name, self.error_log_msg))
                     return True
                 d += 1.0
@@ -589,27 +590,35 @@ class Robot:
         })
 
     def simulation_thread(self):
+        t = time.time()
+
         self.dispatch_pose_local()
         while self.stopped is False:
             size = len(self.circ_buff)
             if size != 0:
+                # get last motion parameters
                 _linear = self.circ_buff[size - 1]['linear']
                 _angular = self.circ_buff[size - 1]['rotational']
                 
+                # update time interval
+                dt = time.time() - t
+                t = time.time()
+
+                # update previous state
                 prev_x = self._x
                 prev_y = self._y
                 prev_th = self._theta
 
                 if _angular == 0:
-                    self._x += _linear * self.dt * math.cos(self._theta)
-                    self._y += _linear * self.dt * math.sin(self._theta)
+                    self._x += _linear * dt * math.cos(self._theta)
+                    self._y += _linear * dt * math.sin(self._theta)
                 else:
                     arc = _linear / _angular
                     self._x += - arc * math.sin(self._theta) + \
-                        arc * math.sin(self._theta + self.dt * _angular)
+                        arc * math.sin(self._theta + dt * _angular)
                     self._y -= - arc * math.cos(self._theta) + \
-                        arc * math.cos(self._theta + self.dt * _angular)
-                self._theta += _angular * self.dt
+                        arc * math.cos(self._theta + dt * _angular)
+                self._theta += _angular * dt
 
                 xx = float("{:.2f}".format(self._x))
                 yy = float("{:.2f}".format(self._y))

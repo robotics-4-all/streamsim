@@ -41,7 +41,7 @@ class Test(unittest.TestCase):
                         # Set constant
                         print("Setting 90, 45")
                         set_rpc.publish({
-                            'yaw': 90,
+                            'yaw': 45,
                             'pitch': 70
                         })
 
