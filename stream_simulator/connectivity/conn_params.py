@@ -14,9 +14,9 @@ class ConnParams:
             "username": "bot",
             "password": "b0t"
         },
-        "host": "localhost",
+        "host": "tektrain-cloud.ddns.net",
         "port": 6379,
-        "vhost": "/"
+        "vhost": "sim"
     }
 
     @staticmethod

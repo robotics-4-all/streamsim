@@ -139,6 +139,7 @@ class EncoderController(BaseThing):
                 elif len(rl['val']) == 1:
                     t = 0
                     data = rl['val'][0]['data']
+
                     # check timestamps:
                     if rl['val'][0]['timestamp'] < time.time() - period:
                         # the whole period had the velocity
@@ -147,11 +148,11 @@ class EncoderController(BaseThing):
                     else:
                         t = time.time() - rl['val'][0]['timestamp']
 
-                    lin_factor = self.linear_coeff * t * data['linear']
+                    lin_factor = self.linear_coeff * t * data['linearVelocity']
                     if "L" in self.place:
-                        rot_factor = - self.angular_coeff * t * data['angular']
+                        rot_factor = - self.angular_coeff * t * data['rotationalVelocity']
                     else:
-                        rot_factor = self.angular_coeff * t * data['angular']
+                        rot_factor = self.angular_coeff * t * data['rotationalVelocity']
 
                     self.data = lin_factor + rot_factor
                     # print("Case 1", t, lin_factor, rot_factor, self.data, self.name)
@@ -162,22 +163,22 @@ class EncoderController(BaseThing):
                         # the whole period had the velocity
                         t = period
                         data = rl['val'][0]['data']
-                        lin_factor = self.linear_coeff * t * data['linear']
+                        lin_factor = self.linear_coeff * t * data['linearVelocity']
                         if "L" in self.place:
-                            rot_factor = - self.angular_coeff * t * data['angular']
+                            rot_factor = - self.angular_coeff * t * data['rotationalVelocity']
                         else:
-                            rot_factor = self.angular_coeff * t * data['angular']
+                            rot_factor = self.angular_coeff * t * data['rotationalVelocity']
                         self.data = lin_factor + rot_factor
 
                         # print("Case 1", t, lin_factor, rot_factor, self.data, self.name)
                     else:
                         t = time.time() - rl['val'][0]['timestamp']
                         data = rl['val'][0]['data']
-                        lin_factor = self.linear_coeff * t * data['linear']
+                        lin_factor = self.linear_coeff * t * data['linearVelocity']
                         if "L" in self.place:
-                            rot_factor = - self.angular_coeff * t * data['angular']
+                            rot_factor = - self.angular_coeff * t * data['rotationalVelocity']
                         else:
-                            rot_factor = self.angular_coeff * t * data['angular']
+                            rot_factor = self.angular_coeff * t * data['rotationalVelocity']
                         self.data = lin_factor + rot_factor
                         # print("Case 3", t, lin_factor, rot_factor, self.data, self.name)
 
@@ -186,11 +187,11 @@ class EncoderController(BaseThing):
                         if t_p > period:
                             t_p = period - t
                             data = rl['val'][1]['data']
-                            lin_factor = self.linear_coeff * t_p * data['linear']
+                            lin_factor = self.linear_coeff * t_p * data['linearVelocity']
                             if "L" in self.place:
-                                rot_factor = - self.angular_coeff * t_p * data['angular']
+                                rot_factor = - self.angular_coeff * t_p * data['rotationalVelocity']
                             else:
-                                rot_factor = self.angular_coeff * t_p * data['angular']
+                                rot_factor = self.angular_coeff * t_p * data['rotationalVelocity']
                             self.data += lin_factor + rot_factor
 
                             # print("Case 3.2", t_p, lin_factor, rot_factor, self.data, self.name)
