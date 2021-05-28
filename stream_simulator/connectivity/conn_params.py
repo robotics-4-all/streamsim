@@ -15,7 +15,7 @@ class ConnParams:
             "password": "b0t"
         },
         "host": "tektrain-cloud.ddns.net",
-        "port": 6379,
+        "port": 5672,
         "vhost": "sim"
     }
 
