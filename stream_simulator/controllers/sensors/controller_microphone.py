@@ -246,7 +246,12 @@ class MicrophoneController(BaseThing):
                 time.sleep(0.1)
             self.logger.info("Recording done")
 
-            ret["record"] = self.load_wav(wav)
+            try:
+                ret["record"] = self.load_wav(wav)
+            except OSError as e:
+                self.logger.error(f"No such file of directory {e}")
+                ret["record"] = base64.b64encode(b'0x55').decode("ascii") # return mock in case of error
+
             ret["volume"] = 100
 
         else: # The real deal

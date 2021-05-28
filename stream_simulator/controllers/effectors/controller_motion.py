@@ -216,7 +216,7 @@ class MotionController(BaseThing):
         if self.info["mode"] == "mock":
             pass
         elif self.info["mode"] == "simulation":
-            from robot_motion import ComplexMotionSimulator
+            from robot_motion.complex_motion import ComplexMotionSimulator
 
             self._complex_controller = ComplexMotionSimulator(callback=self._publish_velocities_cb)
         else: # The real deal
@@ -369,7 +369,7 @@ class MotionController(BaseThing):
                 }
             }
         }
-
+        
         # assign to the complex controller the new goal to take care of
         self._complex_controller.set_next_goal(goal=goalh.data)
         

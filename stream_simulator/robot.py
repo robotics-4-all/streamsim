@@ -628,7 +628,7 @@ class Robot:
                 xx = float("{:.2f}".format(self._x))
                 yy = float("{:.2f}".format(self._y))
                 theta2 = float("{:.2f}".format(self._theta))
-
+                
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
                     if self.configuration['amqp_inform'] is True:
                         self.logger.info("AMQP pose updated")

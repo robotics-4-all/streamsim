@@ -250,7 +250,7 @@ class LedsController(BaseThing):
                 pass
             else: # The real deal
                 self.led_strip.write([self._color], wipe=True)
-            #
+            
             # self.leds_wipe_pub.publish({
             #     "r": r,
             #     "g": g,
