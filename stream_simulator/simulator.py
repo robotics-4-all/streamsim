@@ -98,6 +98,15 @@ class Simulator:
         self.robot_names = []
         if "robots" in self.configuration:
             for r in self.configuration["robots"]:
+                # check if robot name should be overrided
+                if device is not None:
+                    r["name"] = device
+
+                # check if a robot name even exists
+                if not "name" in r:
+                    r["name"] = "default" 
+                    self.logger.warning("No robot name given in configuration. Setting it to <default>!")
+
                 self.robots.append(
                     Robot(
                         configuration = r,

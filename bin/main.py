@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import time
@@ -16,6 +16,7 @@ c = sys.argv[1]
 # Check if we have device name.
 # If yes, it will be assigned to the first device
 _device_name = None
+print("Arguments ", sys.argv)
 if len(sys.argv) == 3:
     _device_name = sys.argv[2]
 

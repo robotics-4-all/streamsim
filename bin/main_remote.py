@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import time
@@ -28,6 +28,13 @@ class SimulatorHandler:
         logging.getLogger("pika").setLevel(logging.WARNING)
 
         self.timeout = 120
+
+        try:
+            self.namespace = os.environ['TEKTRAIN_NAMESPACE']
+        except:
+            self.logger.warning("No TEKTRAIN_NAMESPACE environmental variable found. Automatically setting it to robot")
+            os.environ["TEKTRAIN_NAMESPACE"] = "robot"
+            self.namespace = "robot"
 
         from derp_me.client import DerpMeClient
         self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -107,7 +114,7 @@ class SimulatorHandler:
             self.logger.info(f"{Fore.MAGENTA}{s} : {self.timestamps[t]}{Style.RESET_ALL}")
 
     def start_callback(self, message, meta):
-        print(message)
+        print("Inside start callback")
         try:
             self.simulators_cnt += 1
             name = "teksim_device_" + str(self.simulators_cnt)
@@ -134,7 +141,7 @@ class SimulatorHandler:
                 try:
                     v = self.derp_client.lget("stream_sim/state", 0, 0)['val'][0]
                     self.logger.warning(v)
-                    if v['timestamp'] > _time_start and v["device"] == f"/robot/{name}":
+                    if v['timestamp'] > _time_start and v["device"] == f"{self.namespace}.{name}":
                         _started = True
                         self.logger.warning(f"Simulator {name} started")
                 except:
