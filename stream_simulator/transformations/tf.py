@@ -14,7 +14,7 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class TfController:
-    def __init__(self, base = None, resolution = None, logger = None):
+    def __init__(self, base = None, device = None, resolution = None, logger = None):
         self.logger = Logger("tf") if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
@@ -60,6 +60,7 @@ class TfController:
             'host', 'host_type', 'properties', 'id'
         ]
 
+        self.device = device
         self.declarations = []
         self.declarations_info = {}
         self.names = []
@@ -212,6 +213,7 @@ class TfController:
             rpc_name = f"{res['world']}.nodes_detector.get_connected_devices"
         )
         rr = cl.call({})
+
         for d in rr['devices']:
             if d['type'] == 'PAN_TILT':
                 self.pantilts[d['name']] = {
@@ -337,16 +339,15 @@ class TfController:
         self.places_absolute[nm]['y'] = message['y']
         self.places_absolute[nm]['theta'] = message['theta']
 
-        CommlibFactory.notify_ui(
-            type = "robot_pose",
-            data = {
-                "name": nm,
-                "x": message['x'],
-                "y": message['y'],
-                "theta": message['theta']
-            }
-        )
-
+        # CommlibFactory.notify_ui(
+        #     robot_name = nm,
+        #     type = "pose",
+        #     data = {
+        #         "x": message['x'],
+        #         "y": message['y'],
+        #         "theta": message['theta']
+        #     }
+        # )
 
         # Update all thetas of devices
         for d in self.tree[nm]:
@@ -386,8 +387,10 @@ class TfController:
                     self.places_absolute[i]['theta'] = \
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
-
+                    
+                    robot_name = self.device if self.device is not None else self.pantilts[pt_name]["place"]
                     CommlibFactory.notify_ui(
+                        robot_name = robot_name,
                         type = "sensor_pose",
                         data = {
                             "name": i,
@@ -396,17 +399,8 @@ class TfController:
                             "theta": self.places_absolute[i]['theta']
                         }
                     )
-                    
-                    # CommlibFactory.notify_ui(
-                    #     type = "sensor_pose",
-                    #     data = {
-                    #         "name": i,
-                    #         "x": self.places_absolute[i]['x'],
-                    #         "y": self.places_absolute[i]['y'],
-                    #         "theta": self.places_absolute[i]['theta']
-                    #     }
-                    # )
-                    # self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
+
+                    self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
 
     def pan_tilt_callback(self, message, meta):
         self.pantilts[message['name']]['pan'] = message['pan']
@@ -980,8 +974,6 @@ class TfController:
             decision = False
             info = ""
             frm = ret
-            print(message)
-            print("===============", ret)
 
             if type == "sound":
                 if ret != None:

@@ -113,7 +113,8 @@ class ImuController(BaseThing):
             self.robot_pose = {
                 "x": 0,
                 "y": 0,
-                "theta": 0
+                "theta": 0,
+                "timestamp": 0
             }
 
         self.enable_rpc_server = CommlibFactory.getRPCService(

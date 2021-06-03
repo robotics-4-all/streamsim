@@ -65,7 +65,8 @@ class Simulator:
 
         # Declaring tf controller and setting basetopic
         self.tf = TfController(
-            base = self.name
+            base = self.name,
+            device = device
         )
         self.configuration['tf_base'] = self.tf.base_topic
         time.sleep(0.5)
@@ -81,7 +82,7 @@ class Simulator:
         # Setup notification channel
         if not real_mode_exists:
             self.logger.info(f"Created {self.name}.notifications publisher!")
-            CommlibFactory.notify = CommlibFactory.getPublisher(
+            CommlibFactory.notify_sim = CommlibFactory.getPublisher(
                 broker = 'amqp',
                 topic = f"{self.name}.notifications"
             )
@@ -98,24 +99,34 @@ class Simulator:
         self.robot_names = []
         if "robots" in self.configuration:
             for r in self.configuration["robots"]:
-                # check if robot name should be overrided
-                if device is not None:
-                    r["name"] = device
-
                 # check if a robot name even exists
                 if not "name" in r:
-                    r["name"] = "default" 
+                    r["name"] = device if device is not None else "default"
                     self.logger.warning("No robot name given in configuration. Setting it to <default>!")
 
+                # create robot
                 self.robots.append(
                     Robot(
                         configuration = r,
                         world = self.world,
                         map = self.world.map,
+                        device = device,
                         tick = self.tick
                     )
                 )
                 self.robot_names.append(r["name"])
+                
+                topic_name = device if device is not None else r["name"]
+
+                # create robot's notify_ui pub
+                if not real_mode_exists:
+                    self.logger.info(f"Created {topic_name}.notifications publisher =======================================!")
+                    CommlibFactory.notify_robots[topic_name] = CommlibFactory.getPublisher(
+                        broker = 'amqp',
+                        topic = f"{topic_name}.notifications"
+                    )
+                else:
+                    self.logger.warning("Robot with real mode detected. Skipping notifications publisher!")
 
         self.devices_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -191,6 +202,7 @@ class Simulator:
             _robot.start()
 
             CommlibFactory.notify_ui(
+                robot_name = _robot.name,
                 type = "new_message",
                 data = {
                     "type": "logs",
@@ -259,10 +271,12 @@ class Simulator:
         for i in range(0, len(self.robots)):
             self.robots[i].dispatch_pose_local()
 
-        CommlibFactory.notify_ui(
-            type = "new_message",
-            data = {
-                "type": "logs",
-                "message": f"Simulator started"
-            }
-        )
+        for _robot in self.robots:
+            CommlibFactory.notify_ui(
+                robot_name = _robot.name,
+                type = "new_message",
+                data = {
+                    "type": "logs",
+                    "message": f"Simulator started"
+                }
+            )

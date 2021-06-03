@@ -86,6 +86,10 @@ class MotionController(BaseThing):
                                                              M1=self.conf["M1"], 
                                                              E2=self.conf["E2"], 
                                                              M2=self.conf["M2"])
+
+            self._init_delay = 7
+        else: 
+            self._init_delay = 1
             
             
         self.wheel_separation = self.conf["wheel_separation"]
@@ -104,8 +108,7 @@ class MotionController(BaseThing):
         # it can identify at runtime throw their topic
         
         # give some time so all other the controllers are initialized
-        self._init_delay = 7
-
+        
         self.initializer = threading.Thread(target=self._init, args=(self._init_delay,), daemon=True)
 
         # publisher that exports robots velocities to other modules across streamsim

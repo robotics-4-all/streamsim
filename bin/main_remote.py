@@ -114,7 +114,6 @@ class SimulatorHandler:
             self.logger.info(f"{Fore.MAGENTA}{s} : {self.timestamps[t]}{Style.RESET_ALL}")
 
     def start_callback(self, message, meta):
-        print("Inside start callback")
         try:
             self.simulators_cnt += 1
             name = "teksim_device_" + str(self.simulators_cnt)

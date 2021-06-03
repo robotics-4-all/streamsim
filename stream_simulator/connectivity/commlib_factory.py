@@ -23,18 +23,27 @@ class CommlibFactory:
     }
     reset = Style.RESET_ALL
     derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-    notify = None
+    notify_sim = None
+    notify_robots = {}
     get_tf_affection = None
     get_tf = None
 
     @staticmethod
-    def notify_ui(type = None, data = None):
-        if CommlibFactory.notify is not None:
-            CommlibFactory.notify.publish({
-                'type': type,
-                'data': data
-            })
-            CommlibFactory.logger.info(f"{Fore.MAGENTA}AMQP inform {type}: {data}{Style.RESET_ALL}")
+    def notify_ui(robot_name = None, type = None, data = None):
+        if robot_name is None:
+            if CommlibFactory.notify_sim is not None:
+                CommlibFactory.notify_sim.publish({
+                    'type': type,
+                    'data': data
+                })
+                CommlibFactory.logger.info(f"{Fore.MAGENTA}AMQP inform sim of {type}: {data}{Style.RESET_ALL}")
+        else:
+            if robot_name in CommlibFactory.notify_robots:
+                CommlibFactory.notify_robots[robot_name].publish({
+                    'type': type,
+                    'data': data
+                })
+                CommlibFactory.logger.info(f"{Fore.MAGENTA}AMQP inform {robot_name} of {type}: {data}{Style.RESET_ALL}")
 
     stats = {
         'amqp': {
