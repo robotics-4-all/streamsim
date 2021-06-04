@@ -148,6 +148,7 @@ class CytronLFController(BaseThing):
                     }
                 except:
                     self.logger.warning("Pose not got yet..")
+                    pass
             else: # The real deal
                 data = self.lf_sensor.read()
 

@@ -15,9 +15,9 @@ c = sys.argv[1]
 
 # Check if we have device name.
 # If yes, it will be assigned to the first device
-_device_name = None
+_device_sim_name = None
 if len(sys.argv) == 3:
-    _device_name = sys.argv[2]
+    _device_sim_name = sys.argv[2]
 
-s = Simulator(conf_file = c, device = _device_name)
+s = Simulator(conf_file = c, device_sim_name = _device_sim_name)
 s.start()

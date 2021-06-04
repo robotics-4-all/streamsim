@@ -61,7 +61,7 @@ class Robot:
                  configuration = None,
                  world = None,
                  map = None,
-                 device = None,
+                 sim_name = None,
                  tick = 0.1):
 
         self.env_properties = world.env_properties
@@ -133,9 +133,13 @@ class Robot:
             self.logger.warning(f"Error in streamsim system configuration file: {str(e)}")
 
         self.raw_name = self.configuration["name"]
-        self.sim_robot_name = device if device is not None else self.raw_name
+        
 
-        self.name = self.namespace + "." + self.sim_robot_name
+        self.name = self.namespace + "." + self.raw_name
+        self.sim_name = sim_name if sim_name is not None else self.name
+
+        print("Robot name is ===================", self.name)
+        print("Robot name is ===================", self.sim_name)
         self.dt = tick
 
         # circular buffer that stores the last 5 published velocities
@@ -487,10 +491,11 @@ class Robot:
             "stream_sim/state",
             [{
                 "state": "ACTIVE",
-                "device": self.name,
+                "device": f"{self.namespace}.{self.sim_name}",
                 "timestamp": time.time()
             }])
-        self.logger.warning(f"Notified for being ready")
+        target = f"{self.namespace}.{self.sim_name}"
+        self.logger.warning(f"Notified for being ready {target}")
         r = CommlibFactory.derp_client.lset(
             f"{self.name}/step_by_step_status",
             [{
@@ -637,9 +642,7 @@ class Robot:
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
                     if self.configuration['amqp_inform'] is True:
                         self.logger.info("AMQP pose updated")
-                        print(f"============================ {self.sim_robot_name}")
                         CommlibFactory.notify_ui(
-                            robot_name = self.sim_robot_name,
                             type = "robot_pose",
                             data = {
                                 "x": xx,
@@ -667,7 +670,6 @@ class Robot:
 
                     # notify ui about the error in robot's position
                     CommlibFactory.notify_ui(
-                        robot_name = self.sim_robot_name,
                         type = "logs",
                         data = {
                             "name": self.raw_name,

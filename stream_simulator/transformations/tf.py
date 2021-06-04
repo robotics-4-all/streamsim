@@ -14,7 +14,7 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class TfController:
-    def __init__(self, base = None, device = None, resolution = None, logger = None):
+    def __init__(self, base = None, resolution = None, logger = None):
         self.logger = Logger("tf") if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
@@ -60,7 +60,6 @@ class TfController:
             'host', 'host_type', 'properties', 'id'
         ]
 
-        self.device = device
         self.declarations = []
         self.declarations_info = {}
         self.names = []
@@ -388,12 +387,11 @@ class TfController:
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
                     
-                    robot_name = self.device if self.device is not None else self.pantilts[pt_name]["place"]
                     CommlibFactory.notify_ui(
-                        robot_name = robot_name,
                         type = "sensor_pose",
                         data = {
                             "name": i,
+                            "robot": self.pantilts[pt_name]["place"],
                             "x": self.places_absolute[i]['x'],
                             "y": self.places_absolute[i]['y'],
                             "theta": self.places_absolute[i]['theta']
