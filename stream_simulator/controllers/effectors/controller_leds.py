@@ -231,33 +231,24 @@ class LedsController(BaseThing):
             ms = response["wait_ms"]
             self._color = [r, g, b, intensity]
 
-            CommlibFactory.notify_ui(
-                type = "effector_command",
-                data = {
-                    "name": self.name,
-                    "value": {
-                        'r': r,
-                        'g': g,
-                        'b': b,
-                        'luminosity': intensity
-                    }
-                }
-            )
-
             if self.info["mode"] == "mock":
                 pass
             elif self.info["mode"] == "simulation":
-                pass
+                CommlibFactory.notify_ui(
+                    type = "robot_effectors",
+                    data = {
+                        "name": self.name,
+                        "robot": self.info["device_name"],
+                        "value": {
+                            'r': r,
+                            'g': g,
+                            'b': b,
+                            'luminosity': intensity
+                        }
+                    }
+                )
             else: # The real deal
                 self.led_strip.write([self._color], wipe=True)
-            
-            # self.leds_wipe_pub.publish({
-            #     "r": r,
-            #     "g": g,
-            #     "b": b,
-            #     "luminosity": intensity,
-            #     "ms": ms
-            # })
 
             # Storing value:
             r = CommlibFactory.derp_client.lset(

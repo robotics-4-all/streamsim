@@ -135,9 +135,10 @@ class Robot:
         self.raw_name = self.configuration["name"]
         
 
-        self.name = self.namespace + "." + self.raw_name
-        self.sim_name = sim_name if sim_name is not None else self.name
-
+        self.sim_name = sim_name if sim_name is not None else self.raw_name
+        self.name = self.namespace + "." + sim_name
+        
+        
         print("Robot name is ===================", self.name)
         print("Robot name is ===================", self.sim_name)
         self.dt = tick
