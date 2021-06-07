@@ -17,8 +17,9 @@ class TfController:
     def __init__(self, base = None, device = None, resolution = None, logger = None):
         self.logger = Logger("tf") if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
+
         self.base = base
-        self.device = device if device is not None else self.base
+        self.device = device
         self.resolution = resolution
         self.lin_alarms_robots = {}
 
@@ -46,9 +47,10 @@ class TfController:
         )
         self.get_affectability_rpc_server.run()
 
+        sim_detection_topic = f"{self.device if self.device else self.base}.tf"
         self.get_sim_detection_rpc_server = CommlibFactory.getRPCService(
             callback = self.get_sim_detection_callback,
-            rpc_name = self.device + ".tf" + ".simulated_detection"
+            rpc_name = sim_detection_topic + ".simulated_detection"
         )
         self.get_sim_detection_rpc_server.run()
 
@@ -195,9 +197,11 @@ class TfController:
 
         # Pan tilts on robots
         for r in res['robots']:
+            print("======================================================================================", r)
+            _topic = self.device if self.device is not None else r
             cl = CommlibFactory.getRPCClient(
                 broker = "redis",
-                rpc_name = f"robot.{self.device}.nodes_detector.get_connected_devices"
+                rpc_name = f"robot.{_topic}.nodes_detector.get_connected_devices"
             )
             rr = cl.call({})
             for d in rr['devices']:
@@ -330,11 +334,7 @@ class TfController:
                         'language': message['language']
                     })
 
-    def robot_pose_callback(self, message, meta):
-        self.logger.warning("===========================robot_pose_callback=========================")
-        self.logger.warning("===================================================================")
-        self.logger.warning("===================================================================")
-        
+    def robot_pose_callback(self, message, meta):        
         nm = message['name'].split(".")[-1]
         # self.logger.info(f"Updating {nm}: {message}")
         if nm not in self.places_absolute:
@@ -400,10 +400,6 @@ class TfController:
     def pan_tilt_callback(self, message, meta):
         self.pantilts[message['name']]['pan'] = message['pan']
         self.update_pan_tilt(message['name'], message['pan'])
-
-        self.logger.warning("===========================robot_pose_callback=========================")
-        self.logger.warning("===================================================================")
-        self.logger.warning("===================================================================")
 
     # {
     #     'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \

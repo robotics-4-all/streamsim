@@ -297,7 +297,6 @@ class MotionController(BaseThing):
         self._reset_state_sub.run()
 
     def _reset_motion_state(self, message, meta):
-        print("Resseting internal motion state")
         self._complex_controller.reset()
         return {}
 

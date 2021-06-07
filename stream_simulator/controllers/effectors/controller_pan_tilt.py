@@ -151,7 +151,6 @@ class PanTiltController(BaseThing):
             "tilt": self._tilt
         }
 
-
     def pan_tilt_set_callback(self, message, meta):
         try:
             response = message

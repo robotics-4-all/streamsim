@@ -87,7 +87,7 @@ class LedsController(BaseThing):
                 'g': 0.0,
                 'b': 0.0
         }
-        self._luminosity = 0
+        self._brightness = 0
 
 
         if self.info["mode"] == "real":
@@ -98,22 +98,12 @@ class LedsController(BaseThing):
                                             led_brightness=self.conf["led_brightness"],
                                             led_channel=self.conf["led_channel"])
 
-        # These are to inform amqp###################
-        self.leds_pub = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self.info['device_name'] + ".leds"
-        )
         self.leds_wipe_pub = CommlibFactory.getPublisher(
             broker = "redis",
             topic = self.base_topic + ".wipe"
         )
         #############################################
 
-        self.set_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.leds_set_callback,
-            rpc_name = info["base_topic"] + ".set"
-        )
         self.get_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.leds_get_callback,
@@ -144,14 +134,12 @@ class LedsController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.set_rpc_server.run()
         self.get_rpc_server.run()
         self.leds_wipe_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
     def stop(self):
-        self.set_rpc_server.stop()
         self.get_rpc_server.stop()
         self.leds_wipe_server.stop()
         self.enable_rpc_server.stop()
@@ -161,75 +149,20 @@ class LedsController(BaseThing):
         self.logger.info(f"Getting led state!")
         return {
             "color": self._color,
-            "luminosity": self._luminosity
+            "luminosity": self._brightness
         }
-
-    def leds_set_callback(self, message, meta):
-        try:
-            print("Called from led set callback")
-            response = message
-            
-            r = response["r"] if "r" in response else 0.0
-            g = response["g"] if "g" in response else 0.0
-            b = response["b"] if "b" in response else 0.0
-            intensity = response["luminosity"] if "luminosity" in response else 0.0
-
-            real_color = [r, g, b, intensity]
-
-            _values = {
-                'r': r,
-                'g': g,
-                'b': b,
-                'luminosity': intensity,
-            }
-
-            CommlibFactory.notify_ui(
-                type = "effector_command",
-                data = {
-                    "name": self.name,
-                    "value": _values
-                }
-            )
-
-            if self.info["mode"] == "mock":
-                pass
-            elif self.info["mode"] == "simulation":
-                self._color["r"] = r
-                self._color["g"] = g
-                self._color["b"] = b
-                self._luminosity = intensity
-            else: # The real deal
-                self.led_strip.write([real_color], wipe = False)
-
-            # self.leds_pub.publish({"r": r, "g": g, "b": b})
-
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "data": {"r": r, "g": g, "b": b, "luminosity": intensity},
-                    "type": "simple",
-                    "timestamp": time.time()
-                }]
-            )
-
-            self.logger.info("{}: New leds command: {}".format(self.name, message))
-
-        except Exception as e:
-            self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
-
-        return {}
 
     def leds_wipe_callback(self, message, meta):
         try:
-            print("Called from led wipe callback")
             response = message
             r = response["r"]
             g = response["g"]
             b = response["b"]
-            intensity = response["luminosity"] if "luminosity" in response else response["brightness"]
-            ms = response["wait_ms"]
-            self._color = [r, g, b, intensity]
+            brightness = response["brightness"]
+            ms = response["wait_ms"] if "wait_ms" in response else 0
+
+            self._color = [r, g, b, brightness]
+            self._brightness = brightness
 
             CommlibFactory.notify_ui(
                 type = "robot_effectors",
@@ -240,7 +173,7 @@ class LedsController(BaseThing):
                         'r': r,
                         'g': g,
                         'b': b,
-                        'luminosity': intensity
+                        'brightness': brightness
                     }
                 }
             )
@@ -252,11 +185,10 @@ class LedsController(BaseThing):
             else: # The real deal
                 self.led_strip.write([self._color], wipe=True)
 
-            # Storing value:
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
-                    "data": {"r": r, "g": g, "b": b, "luminosity": intensity},
+                    "data": {"r": r, "g": g, "b": b, "brightness": brightness},
                     "type": "wipe",
                     "timestamp": time.time()
                 }]
