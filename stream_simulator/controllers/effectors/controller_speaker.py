@@ -165,9 +165,10 @@ class SpeakerController(BaseThing):
         self.blocked = True
 
         CommlibFactory.notify_ui(
-            type = "effector_command",
+            type = "robot_effectors",
             data = {
                 "name": self.name,
+                "robot": self.info["device_name"],
                 "value": {
                     "text": goalh.data["text"]
                 }

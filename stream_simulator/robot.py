@@ -136,11 +136,9 @@ class Robot:
         
 
         self.sim_name = sim_name if sim_name is not None else self.raw_name
-        self.name = self.namespace + "." + sim_name
+        self.name = self.namespace + "." + self.sim_name
+        self.extra_name = self.name #elf.namespace + "." + self.raw_name
         
-        
-        print("Robot name is ===================", self.name)
-        print("Robot name is ===================", self.sim_name)
         self.dt = tick
 
         # circular buffer that stores the last 5 published velocities
@@ -169,7 +167,7 @@ class Robot:
                 self.resolution = self.world['map']['resolution']
         else:
             self.resolution = 1
-        self.logger.info("Robot {}: map set".format(self.name))
+        self.logger.info("Robot {}: map set".format(self.extra_name))
 
         self._x = 0
         self._y = 0
@@ -180,7 +178,7 @@ class Robot:
             self._init_y = pose['y'] #* self.resolution
             self._init_theta = pose['theta'] / 180.0 * math.pi
             self.logger.info("Robot {} pose set: {}, {}, {}".format(
-                self.name, self._x, self._y, self._theta))
+                self.extra_name, self._x, self._y, self._theta))
 
             self._x = self._init_x
             self._y = self._init_y
@@ -206,11 +204,12 @@ class Robot:
         self.controllers = {}
         self.device_lookup()
 
+    
         # rpc service which resets the robot pose to the initial given values
         self.reset_pose_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.reset_pose_callback,
-            rpc_name = self.name + '.reset_robot_pose'
+            rpc_name =  self.extra_name + '.reset_robot_pose'
         )
         self.devices_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -219,7 +218,7 @@ class Robot:
         )
         self.internal_pose_pub = CommlibFactory.getPublisher(
             broker = "redis",
-            topic = self.name + ".pose"
+            topic = self.namespace + "." + self.raw_name + ".pose"
         )
 
         # publisher that resets robots real state every time a new application is execute
@@ -241,22 +240,22 @@ class Robot:
             final_exec = final_t + ".execution"
 
             # AMQP Publishers  -----------------------------------------------
-            self.pose_pub = CommlibFactory.getPublisher(
-                broker = "amqp",
-                topic = final_top
-            )
+            # self.pose_pub = CommlibFactory.getPublisher(
+            #     broker = "amqp",
+            #     topic = final_top
+            # )
             self.detects_pub = CommlibFactory.getPublisher(
                 broker = "amqp",
                 topic = final_dete_top
             )
-            self.leds_pub = CommlibFactory.getPublisher(
-                broker = "amqp",
-                topic = final_leds_top
-            )
-            self.leds_wipe_pub = CommlibFactory.getPublisher(
-                broker = "amqp",
-                topic = final_leds_wipe_top
-            )
+            # self.leds_pub = CommlibFactory.getPublisher(
+            #     broker = "amqp",
+            #     topic = final_leds_top
+            # )
+            # self.leds_wipe_pub = CommlibFactory.getPublisher(
+            #     broker = "amqp",
+            #     topic = final_leds_wipe_top
+            # )
             self.execution_pub = CommlibFactory.getPublisher(
                 broker = "amqp",
                 topic = final_exec
@@ -299,21 +298,21 @@ class Robot:
                 topic = final_t + ".detects",
                 callback = self.detects_redis
             )
-            self.leds_redis_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = final_t + ".leds",
-                callback = self.leds_redis
-            )
-            self.leds_wipe_redis_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = final_t + ".leds.wipe",
-                callback = self.leds_wipe_redis
-            )
+            # self.leds_redis_sub = CommlibFactory.getSubscriber(
+            #     broker = "redis",
+            #     topic = final_t + ".leds",
+            #     callback = self.leds_redis
+            # )
+            # self.leds_wipe_redis_sub = CommlibFactory.getSubscriber(
+            #     broker = "redis",
+            #     topic = final_t + ".leds.wipe",
+            #     callback = self.leds_wipe_redis
+            # )
 
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
-        self.logger.info("Device {} set-up".format(self.name))
+        self.logger.info("Device {} set-up".format(self.extra_name))
 
     def register_controller(self, c):
         if c.name in self.controllers:
@@ -350,7 +349,7 @@ class Robot:
         if "actors" in self.world:
             actors = self.world["actors"]
         p = {
-            "name": self.name,
+            "name": self.extra_name,
             "mode": self.mode,
             "speak_mode": self.speak_mode,
             "namespace": self.namespace,
@@ -424,15 +423,15 @@ class Robot:
             }
             self.register_controller(map["button_array"](conf = m, package = p))
 
-    def leds_redis(self, message, meta):
-        self.logger.debug("Got leds from redis " + str(message))
-        self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
-        self.leds_pub.publish(message)
+    # def leds_redis(self, message, meta):
+    #     self.logger.debug("Got leds from redis " + str(message))
+    #     self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+    #     self.leds_pub.publish(message)
 
-    def leds_wipe_redis(self, message, meta):
-        self.logger.debug("Got leds wipe from redis " + str(message))
-        self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
-        self.leds_wipe_pub.publish(message)
+    # def leds_wipe_redis(self, message, meta):
+    #     self.logger.debug("Got leds wipe from redis " + str(message))
+    #     self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+    #     self.leds_wipe_pub.publish(message)
 
     def execution_nodes_redis(self, message, meta):
         self.logger.debug("Got execution node from redis " + str(message))
@@ -446,7 +445,7 @@ class Robot:
         done = False
         while not done:
             try:
-                v2 = CommlibFactory.derp_client.lget(self.name + ".detect.source", 0, 0)['val'][0]
+                v2 = CommlibFactory.derp_client.lget(self.extra_name + ".detect.source", 0, 0)['val'][0]
                 self.logger.info("Got the source!")
                 done = True
             except:
@@ -478,8 +477,8 @@ class Robot:
             self.buttons_amqp_sub.run()
             self.execution_nodes_redis_sub.run()
             self.detects_redis_sub.run()
-            self.leds_redis_sub.run()
-            self.leds_wipe_redis_sub.run()
+            # self.leds_redis_sub.run()
+            # self.leds_wipe_redis_sub.run()
             if self.step_by_step_execution:
                 self.step_by_step_amqp_sub.run()
 
@@ -549,11 +548,11 @@ class Robot:
         # Check out of bounds
         if x < 0 or y < 0:
             self.error_log_msg = "Out of bounds - negative x or y"
-            self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+            self.logger.error("{}: {}".format(self.extra_name, self.error_log_msg))
             return True
         if x / self.resolution > self.width or y / self.resolution > self.height:
             self.error_log_msg = "Out of bounds"
-            self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+            self.logger.error("{}: {}".format(self.extra_name, self.error_log_msg))
             return True
 
         # Check collision to obstacles
@@ -572,13 +571,13 @@ class Robot:
             for i in range(y_i, y_i_p):
                 if self.map[x_i, i] == 1:
                     self.error_log_msg = "Crashed on a Wall"
-                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+                    self.logger.error("{}: {}".format(self.extra_name, self.error_log_msg))
                     return True
         elif y_i == y_i_p:
             for i in range(x_i, x_i_p):
                 if self.map[i, y_i] == 1:
                     self.error_log_msg = "Crashed on a Wall"
-                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+                    self.logger.error("{}: {}".format(self.extra_name, self.error_log_msg))
                     return True
         else: # we have a straight line
             th = math.atan2(y_i_p - y_i, x_i_p - x_i)
@@ -589,7 +588,7 @@ class Robot:
                 yy = y_i + d * math.sin(th)
                 if self.map[int(xx), int(yy)] == 1:
                     self.error_log_msg = "Crashed on a Wall"
-                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+                    self.logger.error("{}: {}".format(self.extra_name, self.error_log_msg))
                     return True
                 d += 1.0
 
@@ -602,7 +601,7 @@ class Robot:
             "y": self._y,
             "theta": self._theta,
             "resolution": self.resolution,
-            "name": self.name
+            "name": self.namespace + "." + self.raw_name
         })
 
     def simulation_thread(self):
@@ -660,7 +659,7 @@ class Robot:
                         "x": xx,
                         "y": yy,
                         "theta": theta2,
-                        "name": self.name,
+                        "name": self.namespace + "." + self.raw_name,
                         "resolution": self.resolution
                     })
 

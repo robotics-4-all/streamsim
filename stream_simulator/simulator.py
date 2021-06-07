@@ -65,7 +65,8 @@ class Simulator:
 
         # Declaring tf controller and setting basetopic
         self.tf = TfController(
-            base = self.name
+            base = self.name,
+            device = device_sim_name
         )
         self.configuration['tf_base'] = self.tf.base_topic
         time.sleep(0.5)

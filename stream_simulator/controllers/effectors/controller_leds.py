@@ -231,22 +231,24 @@ class LedsController(BaseThing):
             ms = response["wait_ms"]
             self._color = [r, g, b, intensity]
 
+            CommlibFactory.notify_ui(
+                type = "robot_effectors",
+                data = {
+                    "name": self.name,
+                    "robot": self.info["device_name"],
+                    "value": {
+                        'r': r,
+                        'g': g,
+                        'b': b,
+                        'luminosity': intensity
+                    }
+                }
+            )
+
             if self.info["mode"] == "mock":
                 pass
             elif self.info["mode"] == "simulation":
-                CommlibFactory.notify_ui(
-                    type = "robot_effectors",
-                    data = {
-                        "name": self.name,
-                        "robot": self.info["device_name"],
-                        "value": {
-                            'r': r,
-                            'g': g,
-                            'b': b,
-                            'luminosity': intensity
-                        }
-                    }
-                )
+                pass
             else: # The real deal
                 self.led_strip.write([self._color], wipe=True)
 

@@ -14,10 +14,11 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class TfController:
-    def __init__(self, base = None, resolution = None, logger = None):
+    def __init__(self, base = None, device = None, resolution = None, logger = None):
         self.logger = Logger("tf") if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
+        self.device = device if device is not None else self.base
         self.resolution = resolution
         self.lin_alarms_robots = {}
 
@@ -47,7 +48,7 @@ class TfController:
 
         self.get_sim_detection_rpc_server = CommlibFactory.getRPCService(
             callback = self.get_sim_detection_callback,
-            rpc_name = self.base_topic + ".simulated_detection"
+            rpc_name = self.device + ".tf" + ".simulated_detection"
         )
         self.get_sim_detection_rpc_server.run()
 
@@ -196,7 +197,7 @@ class TfController:
         for r in res['robots']:
             cl = CommlibFactory.getRPCClient(
                 broker = "redis",
-                rpc_name = f"robot.{r}.nodes_detector.get_connected_devices"
+                rpc_name = f"robot.{self.device}.nodes_detector.get_connected_devices"
             )
             rr = cl.call({})
             for d in rr['devices']:
@@ -330,6 +331,10 @@ class TfController:
                     })
 
     def robot_pose_callback(self, message, meta):
+        self.logger.warning("===========================robot_pose_callback=========================")
+        self.logger.warning("===================================================================")
+        self.logger.warning("===================================================================")
+        
         nm = message['name'].split(".")[-1]
         # self.logger.info(f"Updating {nm}: {message}")
         if nm not in self.places_absolute:
@@ -337,16 +342,6 @@ class TfController:
         self.places_absolute[nm]['x'] = message['x']
         self.places_absolute[nm]['y'] = message['y']
         self.places_absolute[nm]['theta'] = message['theta']
-
-        # CommlibFactory.notify_ui(
-        #     robot_name = nm,
-        #     type = "pose",
-        #     data = {
-        #         "x": message['x'],
-        #         "y": message['y'],
-        #         "theta": message['theta']
-        #     }
-        # )
 
         # Update all thetas of devices
         for d in self.tree[nm]:
@@ -388,13 +383,15 @@ class TfController:
                         abs_pt_theta
                     
                     CommlibFactory.notify_ui(
-                        type = "sensor_pose",
+                        type = "robot_effectors",
                         data = {
                             "name": i,
                             "robot": self.pantilts[pt_name]["place"],
-                            "x": self.places_absolute[i]['x'],
-                            "y": self.places_absolute[i]['y'],
-                            "theta": self.places_absolute[i]['theta']
+                            "value": {
+                                "x": self.places_absolute[i]['x'],
+                                "y": self.places_absolute[i]['y'],
+                                "theta": self.places_absolute[i]['theta']
+                            }
                         }
                     )
 
@@ -403,6 +400,10 @@ class TfController:
     def pan_tilt_callback(self, message, meta):
         self.pantilts[message['name']]['pan'] = message['pan']
         self.update_pan_tilt(message['name'], message['pan'])
+
+        self.logger.warning("===========================robot_pose_callback=========================")
+        self.logger.warning("===================================================================")
+        self.logger.warning("===================================================================")
 
     # {
     #     'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
@@ -941,6 +942,7 @@ class TfController:
         try:
             name = message['name']
             type = message['type']
+            print(self.declarations_info)
             decl = self.declarations_info[name]
         except Exception as e:
             raise Exception(f"{name} not in devices")
@@ -1122,9 +1124,9 @@ class TfController:
             "result": decision
         })
 
-        CommlibFactory.notify.publish({
-            "type": "detection",
-            "data": {
+        CommlibFactory.notify_ui(
+            type = "detection",
+            data = {
                 "name": name,
                 "device_type": decl['subtype']['subclass'][0],
                 "type": type,
@@ -1134,7 +1136,7 @@ class TfController:
                 "info": info,
                 "frm": frm
             }
-        })
+        )
 
         return {
             "result": decision,

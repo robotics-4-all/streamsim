@@ -81,8 +81,8 @@ class PanTiltController(BaseThing):
         package["tf_declare"].call(tf_package)
 
         # init values
-        self._yaw = 0.0
-        self._pitch = 0.0
+        self._pan = 0.0
+        self._tilt = 0.0
 
         # create object
         if self.info["mode"] == "real":
@@ -147,24 +147,24 @@ class PanTiltController(BaseThing):
 
     def get_pan_tilt_callback(self, message, meta):
         return {
-            "pan": self._yaw,
-            "tilt": self._pitch
+            "pan": self._pan,
+            "tilt": self._tilt
         }
 
 
     def pan_tilt_set_callback(self, message, meta):
         try:
             response = message
-            self._yaw = response['pan']
-            self._pitch = response['tilt']
+            self._pan = response['pan']
+            self._tilt = response['tilt']
 
             # Storing value:
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
                 [{
                     "data": {
-                        "pan": self._yaw,
-                        "tilt": self._pitch
+                        "pan": self._pan,
+                        "tilt": self._tilt
                     },
                     "timestamp": time.time()
                 }]
@@ -176,16 +176,15 @@ class PanTiltController(BaseThing):
                 pass
             else: # The real deal
                 #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-                print("Setting channel to: ", self._yaw, self._pitch)
-                self.pan_tilt.write(self.yaw_channel, self._yaw, degrees=True)
-                self.pan_tilt.write(self.pitch_channel, self._pitch, degrees=True)
+                self.pan_tilt.write(self.yaw_channel, self._pan, degrees=True)
+                self.pan_tilt.write(self.pitch_channel, self._tilt, degrees=True)
 
             self.data_publisher.publish({
-                'pan': self._yaw,
-                'tilt': self._pitch,
+                'pan': self._pan,
+                'tilt': self._tilt,
                 'name': self.name
             })
 
-            self.logger.info("{}: New pan tilt command: {}, {}".format(self.name, self._yaw, self._pitch))
+            self.logger.info("{}: New pan tilt command: {}, {}".format(self.name, self._tilt, self._tilt))
         except Exception as e:
             self.logger.error("{}: pan_tilt is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
