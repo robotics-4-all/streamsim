@@ -938,7 +938,7 @@ class TfController:
         try:
             name = message['name']
             type = message['type']
-            print(self.declarations_info)
+            # print(self.declarations_info)
             decl = self.declarations_info[name]
         except Exception as e:
             raise Exception(f"{name} not in devices")

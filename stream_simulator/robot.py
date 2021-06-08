@@ -493,6 +493,7 @@ class Robot:
         self.motion_state_reset_pub.publish({})
 
         return {
+                "name": self.raw_name,
                 "devices": self.devices,
                 "timestamp": time.time()
         }
