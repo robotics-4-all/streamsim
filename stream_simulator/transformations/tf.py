@@ -197,7 +197,6 @@ class TfController:
 
         # Pan tilts on robots
         for r in res['robots']:
-            print("======================================================================================", r)
             _topic = self.device if self.device is not None else r
             cl = CommlibFactory.getRPCClient(
                 broker = "redis",
@@ -324,7 +323,6 @@ class TfController:
                 xy = [pose['x'], pose['y']]
                 m_xy = [m_pose['x'], m_pose['y']]
                 d = self.calc_distance(xy, m_xy)
-                # print(d)
 
                 # lets say 4 meters
                 if d < 4.0:
@@ -364,9 +362,9 @@ class TfController:
                 # self.logger.info(f"Updating pt {d} on {nm}")
                 pan_now = self.pantilts[d]['pan']
                 # self.logger.info(f"giving {pan_now}")
-                self.update_pan_tilt(d, pan_now)
+                self.update_pan_tilt(d, pan_now, False)
 
-    def update_pan_tilt(self, pt_name, pan):
+    def update_pan_tilt(self, pt_name, pan, notify = True):
         base_th = 0
         # If we are on a robot take its theta
         if self.items_hosts_dict[pt_name] != None:
@@ -382,18 +380,19 @@ class TfController:
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
                     
-                    CommlibFactory.notify_ui(
-                        type = "robot_effectors",
-                        data = {
-                            "name": i,
-                            "robot": self.pantilts[pt_name]["place"],
-                            "value": {
-                                "x": self.places_absolute[i]['x'],
-                                "y": self.places_absolute[i]['y'],
-                                "theta": self.places_absolute[i]['theta']
+                    if notify:
+                        CommlibFactory.notify_ui(
+                            type = "robot_effectors",
+                            data = {
+                                "name": i,
+                                "robot": self.pantilts[pt_name]["place"],
+                                "value": {
+                                    "x": self.places_absolute[i]['x'],
+                                    "y": self.places_absolute[i]['y'],
+                                    "theta": self.places_absolute[i]['theta']
+                                }
                             }
-                        }
-                    )
+                        )
 
                     self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
 
@@ -538,7 +537,6 @@ class TfController:
     def handle_affection_ranged(self, xy, f, type):
         dd = self.check_distance(xy, f)
         d = dd['distance']
-        # print(self.declarations_info[f])
         if d < self.declarations_info[f]['range']: # range is fire's
             if self.declarations_info[f]["properties"] == None:
                 self.declarations_info[f]["properties"] = {}
@@ -558,14 +556,13 @@ class TfController:
 
         d = math.sqrt((p_d['x'] - p_f['x'])**2 + (p_d['y'] - p_f['y'])**2)
 
-        # print(name, p_d, p_f, d)
         if d < self.declarations_info[name]['range']: # range of arced sensor
             # Check if in specific arc
             fov = self.declarations_info[name]["properties"]["fov"] / 180.0 * math.pi
             min_a = p_d['theta'] - fov / 2
             max_a = p_d['theta'] + fov / 2
             f_ang = math.atan2(p_f['y'] - p_d['y'], p_f['x'] - p_d['x'])
-            # print(min_a, max_a, f_ang)
+
             ok = False
             ang = None
             if min_a < f_ang and f_ang < max_a:
@@ -938,7 +935,6 @@ class TfController:
         try:
             name = message['name']
             type = message['type']
-            # print(self.declarations_info)
             decl = self.declarations_info[name]
         except Exception as e:
             raise Exception(f"{name} not in devices")
@@ -976,7 +972,7 @@ class TfController:
                     if len(ret) >= 1:
                         for ff in ret:
                             decision = True
-                            info = ret[ff]['info']['sound']
+                            info = ret[ff]['range']
                             frm = ret[ff]
             elif type == "language":
                 if ret != None:

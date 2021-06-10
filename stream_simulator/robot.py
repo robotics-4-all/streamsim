@@ -183,8 +183,6 @@ class Robot:
 
         self.step_by_step_execution = self.configuration['step_by_step_execution']
         self.logger.warning("Step by step execution is {}".format(self.step_by_step_execution))
-        print("******************************************************************")
-        print("******************************************************************")
 
         # Devices set
         self.speak_mode = self.configuration["speak_mode"]
@@ -260,18 +258,16 @@ class Robot:
                 )
 
             # REDIS Publishers  -----------------------------------------------
-
             self.buttons_sim_pub = CommlibFactory.getPublisher(
                 broker = "redis",
                 topic = self.configuration["name"] + ".buttons_sim"
             )
             self.next_step_pub = CommlibFactory.getPublisher(
                 broker = "redis",
-                topic = self.configuration["name"] + ".next_step"
+                topic = sim_name + ".next_step"
             )
 
             # REDIS Subscribers -----------------------------------------------
-
             self.execution_nodes_redis_sub = CommlibFactory.getSubscriber(
                 broker = "redis",
                 topic = final_t + ".execution.nodes",
@@ -441,8 +437,6 @@ class Robot:
             self.buttons_amqp_sub.run()
             self.execution_nodes_redis_sub.run()
             self.detects_redis_sub.run()
-            # self.leds_redis_sub.run()
-            # self.leds_wipe_redis_sub.run()
             if self.step_by_step_execution:
                 self.step_by_step_amqp_sub.run()
 
@@ -465,6 +459,13 @@ class Robot:
                 "value": self.step_by_step_execution,
                 "timestamp": time.time()
             }])
+        r = CommlibFactory.derp_client.lset(
+            f"{self.sim_name}/is_simulated",
+            [{
+                "value": self.mode,
+                "timestamp": time.time()
+            }]
+        )
 
     def stop(self):
         for c in self.controllers:
