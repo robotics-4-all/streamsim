@@ -7,14 +7,19 @@ led_strip = None
 
 def init_neopixel(message, meta):
     global led_strip
-    if led_strip is None:
+
+    if led_strip is not None:
+        led_strip.stop()
+        print("Reintializing Neopixel")
+    else:
         print("Intializing Neopixel")
-        settings = message["settings"]
-        led_strip = LedController(led_count=settings["led_count"],
-                                    led_pin=settings["led_pin"],
-                                    led_freq_hz=settings["led_freq_hz"],
-                                    led_brightness=settings["led_brightness"],
-                                    led_channel=settings["led_channel"])
+
+    settings = message["settings"]
+    led_strip = LedController(led_count=settings["led_count"],
+                                led_pin=settings["led_pin"],
+                                led_freq_hz=settings["led_freq_hz"],
+                                led_brightness=settings["led_brightness"],
+                                led_channel=settings["led_channel"])
     
     return {}
 

@@ -11,6 +11,7 @@ import cv2
 import os
 from os.path import expanduser
 import base64
+import io
 
 from colorama import Fore, Style
 
@@ -375,11 +376,14 @@ class CameraController(BaseThing):
             data = base64.b64encode(bytes(data)).decode("ascii")
 
         else: # The real deal
+            #img = self.sensor.read(image_dims=(width, height), image_format='bmp')[-1].frame
+            stream = io.BytesIO()
             self.sensor.start()
-            img = self.sensor.read(image_dims=(width, height), image_format='bmp')[-1].frame
-            self.sensor._camera.capture('/home/pi/real_image.bmp')
+            time.sleep(0.5)
+            self.sensor._camera.capture(stream, format='png')
             self.sensor.stop()
-            data = base64.b64encode(img).decode("ascii")
+            stream.seek(0)
+            data = base64.b64encode(stream.getvalue()).decode("ascii")
 
         timestamp = time.time()
         secs = int(timestamp)
