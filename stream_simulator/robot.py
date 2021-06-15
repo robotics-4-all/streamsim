@@ -262,9 +262,11 @@ class Robot:
                 broker = "redis",
                 topic = self.configuration["name"] + ".buttons_sim"
             )
+
+            _next_step_basic_topic = sim_name if sim_name is not None else "streamsim"
             self.next_step_pub = CommlibFactory.getPublisher(
                 broker = "redis",
-                topic = sim_name + ".next_step"
+                topic = _next_step_basic_topic + ".next_step"
             )
 
             # REDIS Subscribers -----------------------------------------------

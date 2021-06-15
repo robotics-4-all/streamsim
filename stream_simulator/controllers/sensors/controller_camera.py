@@ -123,9 +123,6 @@ class CameraController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose",
                 callback = self.robot_pose_update
             )
-
-            self.robot_pose_sub.run()
-
         self.video_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.video_callback,
@@ -380,6 +377,7 @@ class CameraController(BaseThing):
         else: # The real deal
             self.sensor.start()
             img = self.sensor.read(image_dims=(width, height), image_format='bmp')[-1].frame
+            self.sensor._camera.capture('/home/pi/real_image.bmp')
             self.sensor.stop()
             data = base64.b64encode(img).decode("ascii")
 

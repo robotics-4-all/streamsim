@@ -15,6 +15,8 @@ from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class LedsController(BaseThing):
+    WAIT_MS = 50
+
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = Logger(conf["name"])
@@ -81,7 +83,6 @@ class LedsController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
         package["tf_declare"].call(tf_package)
 
-
         self._color = {
                 'r': 0.0,
                 'g': 0.0,
@@ -89,19 +90,18 @@ class LedsController(BaseThing):
         }
         self._brightness = 0
 
-
         if self.info["mode"] == "real":
-            from pidevices import LedController
-            self.led_strip = LedController(led_count=self.conf["led_count"],
-                                            led_pin=self.conf["led_pin"],
-                                            led_freq_hz=self.conf["led_freq_hz"],
-                                            led_brightness=self.conf["led_brightness"],
-                                            led_channel=self.conf["led_channel"])
+            # topic to initialize and publish to the remote led driver 
+            self.neopixel_create_client = CommlibFactory.getRPCClient(
+                broker="redis",            
+                rpc_name = "neopixel.init"
+            )
 
-        self.leds_wipe_pub = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self.base_topic + ".wipe"
-        )
+            self.neopixel_pub = CommlibFactory.getPublisher(
+                broker = "redis",
+                topic = "neopixel.set"
+            )
+        
         #############################################
 
         self.get_rpc_server = CommlibFactory.getRPCService(
@@ -138,6 +138,11 @@ class LedsController(BaseThing):
         self.leds_wipe_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+    
+        if self.info["mode"] == "real":
+            self.neopixel_create_client.call({
+                "settings": self.conf
+            })
 
     def stop(self):
         self.get_rpc_server.stop()
@@ -155,11 +160,12 @@ class LedsController(BaseThing):
     def leds_wipe_callback(self, message, meta):
         try:
             response = message
+
             r = response["r"]
             g = response["g"]
             b = response["b"]
             brightness = response["brightness"]
-            ms = response["wait_ms"] if "wait_ms" in response else 0
+            wait_ms = response["wait_ms"] if "wait_ms" in response else LedsController.WAIT_MS
 
             self._color = [r, g, b, brightness]
             self._brightness = brightness
@@ -183,7 +189,10 @@ class LedsController(BaseThing):
             elif self.info["mode"] == "simulation":
                 pass
             else: # The real deal
-                self.led_strip.write([self._color], wipe=True)
+                self.neopixel_pub.publish({
+                    "color":self._color,
+                    "wait_ms": wait_ms
+                })
 
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,

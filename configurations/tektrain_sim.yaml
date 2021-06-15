@@ -56,6 +56,9 @@ robots:
       tof:
         -
           source: "tektrain/tof"
+      servo:
+        -
+          source: "tektrain/servos/servo_1"
       camera:
         -
           source: "tektrain/camera"

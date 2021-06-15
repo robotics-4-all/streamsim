@@ -354,15 +354,16 @@ class TfController:
 
             # Just setting devs on pan tilts the robot's pose
             if d in self.pantilts:
-                pt_devs = self.tree[d]
-                for dev in pt_devs:
-                    self.places_absolute[dev]['x'] = self.places_absolute[nm]['x']
-                    self.places_absolute[dev]['y'] = self.places_absolute[nm]['y']
-                # Updating the angle of objects on pan-tilt
-                # self.logger.info(f"Updating pt {d} on {nm}")
-                pan_now = self.pantilts[d]['pan']
-                # self.logger.info(f"giving {pan_now}")
-                self.update_pan_tilt(d, pan_now, False)
+                if d in self.tree:
+                    pt_devs = self.tree[d]
+                    for dev in pt_devs:
+                        self.places_absolute[dev]['x'] = self.places_absolute[nm]['x']
+                        self.places_absolute[dev]['y'] = self.places_absolute[nm]['y']
+                    # Updating the angle of objects on pan-tilt
+                    # self.logger.info(f"Updating pt {d} on {nm}")
+                    pan_now = self.pantilts[d]['pan']
+                    # self.logger.info(f"giving {pan_now}")
+                    self.update_pan_tilt(d, pan_now, False)
 
     def update_pan_tilt(self, pt_name, pan, notify = True):
         base_th = 0

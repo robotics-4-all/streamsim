@@ -102,10 +102,11 @@ class SpeakerController(BaseThing):
             elif self.info["speak_mode"] == "google":
                 import os
                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
-
+                self.logger.warning('00000000000000')
                 from google.cloud import texttospeech
                 
                 self.client = texttospeech.TextToSpeechClient()
+
                 self.audio_config = texttospeech.AudioConfig(
                     audio_encoding = texttospeech.AudioEncoding.LINEAR16,
                     sample_rate_hertz = self.conf["framerate"])

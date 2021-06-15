@@ -23,7 +23,7 @@ robots:
   -
     name: tektrain_1
     mode: real # [simulation, mock, real]
-    speak_mode: espeak # [google, espeak] - in case of real mode
+    speak_mode: google # [google, espeak] - in case of real mode
     wait_for: [] #[rhasspy] # in case of real mode
     amqp_inform: true
     step_by_step_execution: false
@@ -36,21 +36,21 @@ robots:
       ir:
         -
           source: "tektrain/irs/ir_f"
-      #   -
-      #     source: "tektrain/irs/ir_l"
-      #   -
-      #     source: "tektrain/irs/ir_b"
-      #   -
-      #     source: "tektrain/irs/ir_r"
+        # -
+        #   source: "tektrain/irs/ir_l"
+        # -
+        #   source: "tektrain/irs/ir_b"
+        # -
+        #   source: "tektrain/irs/ir_r"
       tof:
         -
           source: "tektrain/tof"
       camera:
         -
           source: "tektrain/camera"
-      servo:
-        -
-          source: "tektrain/servos/servo_1"
+      # servo:
+      #   -
+      #     source: "tektrain/servos/servo_1"
       imu:
         -
           source: "tektrain/imu_real"

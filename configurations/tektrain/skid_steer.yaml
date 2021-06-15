@@ -8,4 +8,4 @@ sensor_configuration:
   M2: 26
   max_data_length: 10
   wheel_separation: 0.147
-  wheel_radius: 0.035
+  wheel_radius: 0.0325

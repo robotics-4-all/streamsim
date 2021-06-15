@@ -1,12 +1,12 @@
 [Unit]
-Description=Service for StreamSim.
+Description=Service for Neopixel driver.
 # After=multi-user.target
-After=multi-user.target network.target redis-server.service neopixel.service
+After=multi-user.target redis-server.service
 
 [Service]
 User=pi
 Type=idle
-ExecStart=/usr/bin/python3 -u main.py tektrain_real
+ExecStart=sudo /usr/bin/python3 -u neopixel_startup.py
 WorkingDirectory=/home/pi/new_infrastructure/stream-sim-backend/bin
 StandardOutput=inherit
 StandardError=inherit
