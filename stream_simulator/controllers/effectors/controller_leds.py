@@ -91,12 +91,23 @@ class LedsController(BaseThing):
 
 
         if self.info["mode"] == "real":
-            from pidevices import LedController
-            self.led_strip = LedController(led_count=self.conf["led_count"],
-                                            led_pin=self.conf["led_pin"],
-                                            led_freq_hz=self.conf["led_freq_hz"],
-                                            led_brightness=self.conf["led_brightness"],
-                                            led_channel=self.conf["led_channel"])
+            self.neopixel_client = CommlibFactory.getRPCClient(
+                broker="redis",            
+                rpc_name = "neopixel.init"
+            )
+
+            self.neopixel_pub = CommlibFactory.getPublisher(
+                broker = "redis",
+                topic = "neopixel.set"
+            )
+            
+
+            # from pidevices import LedController
+            # self.led_strip = LedController(led_count=self.conf["led_count"],
+            #                                 led_pin=self.conf["led_pin"],
+            #                                 led_freq_hz=self.conf["led_freq_hz"],
+            #                                 led_brightness=self.conf["led_brightness"],
+            #                                 led_channel=self.conf["led_channel"])
 
         # These are to inform amqp###################
         self.leds_pub = CommlibFactory.getPublisher(
@@ -149,6 +160,11 @@ class LedsController(BaseThing):
         self.leds_wipe_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+    
+        if self.info["mode"] == "real":
+            self.neopixel_client.call({
+                "settings": self.conf
+            })
 
     def stop(self):
         self.set_rpc_server.stop()
@@ -199,7 +215,10 @@ class LedsController(BaseThing):
                 self._color["b"] = b
                 self._luminosity = intensity
             else: # The real deal
-                self.led_strip.write([real_color], wipe = False)
+                #self.led_strip.write([real_color], wipe = False)
+                self.neopixel_pub.publish({
+                    "color":self._color
+                })
 
             # self.leds_pub.publish({"r": r, "g": g, "b": b})
 
@@ -249,7 +268,10 @@ class LedsController(BaseThing):
             elif self.info["mode"] == "simulation":
                 pass
             else: # The real deal
-                self.led_strip.write([self._color], wipe=True)
+                self.neopixel_pub.publish({
+                    "color":self._color
+                })
+                # self.led_strip.write([self._color], wipe=True)
             
             # self.leds_wipe_pub.publish({
             #     "r": r,

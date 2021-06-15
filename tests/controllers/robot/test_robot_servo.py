@@ -39,13 +39,13 @@ class Test(unittest.TestCase):
                         )
 
                         # Set constant
-                        for i in range(0, 150, 1):
+                        for i in range(0, 180, 1):
                             set_rpc.publish({
                                 'angle': i
                             })
                             time.sleep(0.05)
 
-                        for i in range(150, 0, -1):
+                        for i in range(180, 0, -1):
                             set_rpc.publish({
                                 'angle': i
                             })
