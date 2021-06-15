@@ -74,9 +74,9 @@ robots:
       # env:
       #   -
       #     source: "tektrain/env"
-      # speaker:
-      #   -
-      #     source: "tektrain/speaker"
+      speaker:
+        -
+          source: "tektrain/speaker"
       leds:
         -
           source: "tektrain/leds"

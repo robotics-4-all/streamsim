@@ -100,6 +100,7 @@ class LedsController(BaseThing):
                 broker = "redis",
                 topic = "neopixel.set"
             )
+            pass
             
 
             # from pidevices import LedController
@@ -219,7 +220,7 @@ class LedsController(BaseThing):
                 self.neopixel_pub.publish({
                     "color":self._color
                 })
-
+                pass
             # self.leds_pub.publish({"r": r, "g": g, "b": b})
 
             # Storing value:
@@ -272,7 +273,7 @@ class LedsController(BaseThing):
                     "color":self._color
                 })
                 # self.led_strip.write([self._color], wipe=True)
-            
+                pass
             # self.leds_wipe_pub.publish({
             #     "r": r,
             #     "g": g,
