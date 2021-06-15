@@ -464,7 +464,7 @@ class Robot:
         r = CommlibFactory.derp_client.lset(
             f"{self.sim_name}/is_simulated",
             [{
-                "value": self.mode,
+                "value": (self.mode == "simulation"),
                 "timestamp": time.time()
             }]
         )
