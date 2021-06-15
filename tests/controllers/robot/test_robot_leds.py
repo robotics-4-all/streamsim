@@ -33,31 +33,17 @@ class Test(unittest.TestCase):
                 # Get ph sensors
                 for s in res["devices"]:
                     if s["type"] == "LED":
-                        set_rpc = CommlibFactory.getPublisher(
-                            broker = "redis",
-                            topic = s["base_topic"] + ".set"
-                        )
                         wipe_rpc = CommlibFactory.getRPCClient(
                             broker = "redis",
                             rpc_name = s["base_topic"] + ".wipe"
                         )
 
                         # Set constant
-                        print("Showing color")
-                        set_rpc.publish({
-                            "id": 0,
-                            "r": 0,
-                            "g": 30,
-                            "b": 10,
-                            "luminosity": 100
-                        })
-
-                        print("Wiping")
                         ret = wipe_rpc.call({
                             "r": 0,
                             "g": 30,
                             "b": 10,
-                            "luminosity": 100,
+                            "brightness": 100,
                             "wait_ms": 4
                         })
                         print(ret)
