@@ -15,7 +15,6 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
-
 class SpeakerController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
@@ -83,30 +82,42 @@ class SpeakerController(BaseThing):
 
         self.global_volume = None
         self.blocked = False
-        
+
         if self.info["mode"] == "real":
-            from pidevices import Speaker
-            self.speaker = Speaker(dev_name = self.conf["dev_name"],
-                                   channels = self.conf["channels"],
-                                   framerate = self.conf["framerate"],
-                                   name = self.name,
-                                   max_data_length = self.conf["max_data_length"])
+            try:
+                from pidevices import SafeSpeaker
+                self.speaker = SafeSpeaker(dev_name = self.conf["dev_name"],
+                                            volume = 50,
+                                            channels = self.conf["channels"],
+                                            framerate = self.conf["framerate"],
+                                            name = self.name,
+                                            max_data_length = self.conf["max_data_length"])
+            except ImportError as e:
+                from pidevices import Speaker
+                self.speaker = Speaker(dev_name = self.conf["dev_name"],
+                                        volume = 50,
+                                        channels = self.conf["channels"],
+                                        framerate = self.conf["framerate"],
+                                        name = self.name,
+                                        max_data_length = self.conf["max_data_length"])
+                self.logger.warning("Using Default Speaker Driver")
+            else:
+                self.speaker.start()
+                self.logger.warning("Using Safe Speaker Driver")
 
             if self.info["speak_mode"] == "espeak":
                 from espeakng import ESpeakNG
 
                 self.esng = ESpeakNG()
-                self.esng.pitch = 60
-                self.esng.speed = 130
+                self.esng.pitch = 50
+                self.esng.speed = 80
 
             elif self.info["speak_mode"] == "google":
                 import os
                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
-                self.logger.warning('00000000000000')
-                from google.cloud import texttospeech
-                
-                self.client = texttospeech.TextToSpeechClient()
 
+                from google.cloud import texttospeech
+                self.client = texttospeech.TextToSpeechClient()
                 self.audio_config = texttospeech.AudioConfig(
                     audio_encoding = texttospeech.AudioEncoding.LINEAR16,
                     sample_rate_hertz = self.conf["framerate"])
@@ -166,10 +177,9 @@ class SpeakerController(BaseThing):
         self.blocked = True
 
         CommlibFactory.notify_ui(
-            type = "robot_effectors",
+            type = "effector_command",
             data = {
                 "name": self.name,
-                "robot": self.info["device_name"],
                 "value": {
                     "text": goalh.data["text"]
                 }
@@ -333,13 +343,12 @@ class SpeakerController(BaseThing):
                 time.sleep(0.1)
             self.logger.info("Playing done")
 
-        else: # The real deal 
+        else: # The real deal
             source = base64.b64decode(string.encode("ascii"))
             duration = round(len(source) / (2 * self.speaker.framerate))
-
             self.logger.info("Source size: {}".format(duration))
             self.speaker.async_write(source, file_flag = False)
-            
+
             while self.speaker.playing:
                 time.sleep(0.1)
 
@@ -349,9 +358,8 @@ class SpeakerController(BaseThing):
 
     def set_global_volume(self):
         try:
-            import alsaaudio
-            m = alsaaudio.Mixer("PCM")
-            m.setvolume(int(self.global_volume))
+            self.speaker.volume = int(self.global_volume)
+
             self.logger.info(f"{Fore.MAGENTA}Alsamixer audio set to {self.global_volume}{Style.RESET_ALL}")
         except Exception as e:
             err = f"Something went wrong with global volume set: {str(e)}. Is the alsaaudio python library installed?"

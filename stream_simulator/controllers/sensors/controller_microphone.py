@@ -92,11 +92,22 @@ class MicrophoneController(BaseThing):
                 self.actors.append(k)
 
         if self.info["mode"] == "real":
-            from pidevices import Microphone
-            self.sensor = Microphone(dev_name=self.conf["dev_name"],
-                                     channels=self.conf["channels"],
-                                     name=self.name,
-                                     max_data_length=self.conf["max_data_length"])
+            try:
+                from pidevices import SafeMicrophone
+                self.sensor = SafeMicrophone(dev_name=self.conf["dev_name"],
+                                            channels=self.conf["channels"],
+                                            name=self.name,
+                                            max_data_length=self.conf["max_data_length"])
+            except ImportError as e:
+                from pidevices import Microphone
+                self.sensor = Microphone(dev_name=self.conf["dev_name"],
+                                        channels=self.conf["channels"],
+                                        name=self.name,
+                                        max_data_length=self.conf["max_data_length"])
+                self.logger.warning("Using Default Microphone Driver")
+            else:
+                self.sensor.start()
+                self.logger.warning("Using Safe Microphone Driver")
 
         self.record_action_server = CommlibFactory.getActionServer(
             broker = "redis",
@@ -256,14 +267,25 @@ class MicrophoneController(BaseThing):
 
         else: # The real deal
             self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
+            
             now = time.time()
-            while time.time() - now < duration + 0.2:
+            while time.time() - now < (duration + 0.5) or self.sensor.recording:
                 if goalh.cancel_event.is_set():
-                    self.logger.info("Cancel got")
                     self.blocked = False
+                    self.sensor.cancel()
+
+                    self.logger.info("Cancel got")
                     return ret
+
                 time.sleep(0.1)
-            ret["record"] = base64.b64encode(self.sensor.record).decode("ascii")
+
+            record = self.sensor.record
+
+            self.logger.info(f"Recorded size: {len(record)}")
+        
+            
+            if record:
+                ret["record"] = base64.b64encode(record).decode("ascii")
 
         self.logger.info("{} recording finished".format(self.name))
         self.blocked = False
@@ -292,12 +314,16 @@ class MicrophoneController(BaseThing):
 
         if self.info["mode"] == "real": # The real deal
             self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
+
             now = time.time()
-            while time.time() - now < duration + 0.2:
+            while time.time() - now < (duration + 0.5) or self.sensor.recording:
                 if goalh.cancel_event.is_set():
-                    self.logger.info("Cancel got")
                     self.blocked = False
+                    self.speaker.cancel()
+
+                    self.logger.info("Cancel got")
                     return ret
+                
                 time.sleep(0.1)
 
             rec = base64.b64encode(self.sensor.record).decode("ascii")
