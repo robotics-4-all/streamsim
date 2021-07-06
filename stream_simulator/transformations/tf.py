@@ -217,13 +217,14 @@ class TfController:
         )
         rr = cl.call({})
 
-        for d in rr['devices']:
-            if d['type'] == 'PAN_TILT':
-                self.pantilts[d['name']] = {
-                    'base_topic': d['base_topic'],
-                    'place': d['categorization']['place'],
-                    'pan': 0.0
-                }
+        if 'devices' in rr:
+            for d in rr['devices']:
+                if d['type'] == 'PAN_TILT':
+                    self.pantilts[d['name']] = {
+                        'base_topic': d['base_topic'],
+                        'place': d['categorization']['place'],
+                        'pan': 0.0
+                    }
 
         self.logger.info("Pan tilts detected:")
         for p in self.pantilts:
