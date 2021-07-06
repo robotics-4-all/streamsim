@@ -91,7 +91,8 @@ class SpeakerController(BaseThing):
                                             channels = self.conf["channels"],
                                             framerate = self.conf["framerate"],
                                             name = self.name,
-                                            max_data_length = self.conf["max_data_length"])
+                                            max_data_length = self.conf["max_data_length"],
+                                            restart_cb = self.initialize_google_speech2text)
             except ImportError as e:
                 from pidevices import Speaker
                 self.speaker = Speaker(dev_name = self.conf["dev_name"],
@@ -116,11 +117,7 @@ class SpeakerController(BaseThing):
                 import os
                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
 
-                from google.cloud import texttospeech
-                self.client = texttospeech.TextToSpeechClient()
-                self.audio_config = texttospeech.AudioConfig(
-                    audio_encoding = texttospeech.AudioEncoding.LINEAR16,
-                    sample_rate_hertz = self.conf["framerate"])
+                self.initialize_google_speech2text()
 
         self.play_action_server = CommlibFactory.getActionServer(
             broker = "redis",
@@ -164,6 +161,13 @@ class SpeakerController(BaseThing):
         if res['val'] is not None:
             self.global_volume = int(res['val'])
             self.set_global_volume()
+
+    def initialize_google_speech2text(self):
+        from google.cloud import texttospeech
+        self.client = texttospeech.TextToSpeechClient()
+        self.audio_config = texttospeech.AudioConfig(
+            audio_encoding = texttospeech.AudioEncoding.LINEAR16,
+            sample_rate_hertz = self.conf["framerate"])
 
     def on_goal_speak(self, goalh):
         self.logger.info("{} speak started".format(self.name))
@@ -237,33 +241,46 @@ class SpeakerController(BaseThing):
             self.logger.info("Speaking done")
 
         else: # The real deal
-            if self.info["speak_mode"] == "espeak":
-                path = "../stream_simulator/resources/english_sentence.wav"
-                self.esng.voice = language
-                self.esng._espeak_exe([texts, "-w", path], sync = True)
-                self.speaker.volume = volume
-                self.speaker.async_write(path, file_flag=True)
-                while self.speaker.playing:
-                    if goalh.cancel_event.is_set():
-                        self.logger.info("Cancel got")
-                        self.blocked = False
-                        return ret
-                    time.sleep(0.1)
-            else: # google
-                from google.cloud import texttospeech
-                self.voice = texttospeech.VoiceSelectionParams(\
-                    language_code = language,\
-                    ssml_gender = texttospeech.SsmlVoiceGender.FEMALE)
+            try:
+                if self.info["speak_mode"] == "espeak":
+                    path = "../stream_simulator/resources/english_sentence.wav"
+                    self.esng.voice = language
+                    self.esng._espeak_exe([texts, "-w", path], sync = True)
+                    self.speaker.volume = volume
+                    self.speaker.async_write(path, file_flag=True)
+                    while self.speaker.playing:
+                        if goalh.cancel_event.is_set():
+                            self.speaker.cancel()
+                            self.logger.info("Cancel got")
+                            self.blocked = False
+                            return ret
+                        time.sleep(0.1)
+                else: # google
+                    from google.cloud import texttospeech
+                    self.logger.info("Creating voice settings")
+                    self.voice = texttospeech.VoiceSelectionParams(\
+                        language_code = language,\
+                        ssml_gender = texttospeech.SsmlVoiceGender.FEMALE)
 
-                synthesis_input = texttospeech.SynthesisInput(text = texts)
-                response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
+                    self.logger.info("Synthesising voice")
+                    synthesis_input = texttospeech.SynthesisInput(text = texts)
+                    self.logger.info("Getting voice responce")
+                    response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
 
-                self.speaker.volume = volume
-                self.speaker.async_write(response.audio_content, file_flag=False)
-                self.logger.info("Speaking...")
-                while self.speaker.playing:
-                    time.sleep(0.1)
-                self.logger.info("Speaking done")
+                    self.speaker.volume = volume
+                    self.speaker.async_write(response.audio_content, file_flag=False)
+                    self.logger.info("Speaking...")
+                    while self.speaker.playing:
+                        if goalh.cancel_event.is_set():
+                            self.speaker.cancel()
+                            self.logger.info("Cancel got")
+                            self.blocked = False
+                            return ret
+                        time.sleep(0.1)
+                    self.logger.info("Speaking done")
+            except Exception as e:
+                self.speaker.restart()
+                self.logger.warning("Google Api crush restarting it!")
 
         self.logger.info("{} Speak finished".format(self.name))
         self.blocked = False
@@ -283,7 +300,7 @@ class SpeakerController(BaseThing):
         self.logger.info("Speaking...")
         while self.speaker.playing:
             time.sleep(0.1)
-        self.logger.info("Speaking done")
+        self.logger.info("Google Speaking done!")
 
     def on_goal_play(self, goalh):
         self.logger.info("{} play started".format(self.name))
@@ -350,6 +367,10 @@ class SpeakerController(BaseThing):
             self.speaker.async_write(source, file_flag = False)
 
             while self.speaker.playing:
+                if goalh.cancel_event.is_set():
+                    self.logger.info("Cancel got")
+                    self.speaker.cancel()
+                    return ret
                 time.sleep(0.1)
 
         self.logger.info("{} Playing finished".format(self.name))
