@@ -87,20 +87,19 @@ class SpeakerController(BaseThing):
             try:
                 from pidevices import SafeSpeaker
                 self.speaker = SafeSpeaker(dev_name = self.conf["dev_name"],
-                                            volume = 50,
-                                            channels = self.conf["channels"],
-                                            framerate = self.conf["framerate"],
-                                            name = self.name,
-                                            max_data_length = self.conf["max_data_length"],
-                                            restart_cb = self.initialize_google_speech2text)
+                                           volume = 50,
+                                           channels = self.conf["channels"],
+                                           framerate = self.conf["framerate"],
+                                           name = self.name,
+                                           max_data_length = self.conf["max_data_length"],
+                                           restart_cb = self.initialize_google_speech2text)
             except ImportError as e:
                 from pidevices import Speaker
                 self.speaker = Speaker(dev_name = self.conf["dev_name"],
-                                        volume = 50,
-                                        channels = self.conf["channels"],
-                                        framerate = self.conf["framerate"],
-                                        name = self.name,
-                                        max_data_length = self.conf["max_data_length"])
+                                       volume = 50,
+                                       channels = self.conf["channels"],
+                                       name = self.name,
+                                       max_data_length = self.conf["max_data_length"])
                 self.logger.warning("Using Default Speaker Driver")
             else:
                 self.speaker.start()
@@ -158,8 +157,8 @@ class SpeakerController(BaseThing):
             "device.global_volume.persistent",
             persistent = True
         )
-        if res['val'] is not None:
-            self.global_volume = int(res['val'])
+        if res['val'] is None:
+            self.global_volume = 70
             self.set_global_volume()
 
     def initialize_google_speech2text(self):
