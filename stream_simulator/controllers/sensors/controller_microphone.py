@@ -91,23 +91,13 @@ class MicrophoneController(BaseThing):
                 h["type"] = i
                 self.actors.append(k)
 
-        if self.info["mode"] == "real":
-            try:
-                from pidevices import SafeMicrophone
-                self.sensor = SafeMicrophone(dev_name=self.conf["dev_name"],
-                                            channels=self.conf["channels"],
-                                            name=self.name,
-                                            max_data_length=self.conf["max_data_length"])
-            except ImportError as e:
-                from pidevices import Microphone
-                self.sensor = Microphone(dev_name=self.conf["dev_name"],
-                                        channels=self.conf["channels"],
-                                        name=self.name,
-                                        max_data_length=self.conf["max_data_length"])
-                self.logger.warning("Using Default Microphone Driver")
-            else:
-                self.sensor.start()
-                self.logger.warning("Using Safe Microphone Driver")
+        from pidevices import Microphone
+        self.sensor = Microphone(dev_name=self.conf["dev_name"],
+                                channels=self.conf["channels"],
+                                name=self.name,
+                                max_data_length=self.conf["max_data_length"])
+        self.logger.warning("Using Default Microphone Driver")
+        self.sensor.start()
 
         self.record_action_server = CommlibFactory.getActionServer(
             broker = "redis",

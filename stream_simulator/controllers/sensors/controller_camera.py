@@ -19,6 +19,8 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
+from pidevices import Dims, VirtualCameraError
+
 class CameraController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
@@ -112,12 +114,12 @@ class CameraController(BaseThing):
                 self.actors.append(k)
 
         if self.info["mode"] == "real":
-            from pidevices import Camera, Dims
-            self.sensor = Camera(framerate=self.conf["framerate"],
-                                 resolution=Dims(self.conf["width"], self.conf["height"]),
-                                 name=self.name,
-                                 max_data_length=self.conf["max_data_length"])
-            self.sensor.stop()
+            from pidevices import VirtualCamera
+            self.sensor = VirtualCamera(framerate=self.conf["framerate"],
+                                        resolution=Dims(self.conf["width"], self.conf["height"]),
+                                        name=self.name,
+                                        max_data_length=self.conf["max_data_length"])
+
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = CommlibFactory.getSubscriber(
                 broker = "redis",
@@ -277,8 +279,9 @@ class CameraController(BaseThing):
     def get_image(self, message):
         self.logger.debug("Robot {}: get image callback: {}".format(self.name, message))
         try:
-            width = message["width"]
-            height = message["height"]
+            width = message["width"] if "width" in message else 640
+            height = message["height"] if "height" in message else 480
+            data_format = message["format"] if "format" in message else "bmp"
         except Exception as e:
             self.logger.error("{}: Malformed message for image get: {} - {}".format(self.name, str(e.__class__), str(e)))
             return {}
@@ -376,14 +379,13 @@ class CameraController(BaseThing):
             data = base64.b64encode(bytes(data)).decode("ascii")
 
         else: # The real deal
-            #img = self.sensor.read(image_dims=(width, height), image_format='bmp')[-1].frame
-            stream = io.BytesIO()
-            self.sensor.start()
-            time.sleep(0.5)
-            self.sensor._camera.capture(stream, format='png')
-            self.sensor.stop()
-            stream.seek(0)
-            data = base64.b64encode(stream.getvalue()).decode("ascii")
+            try:
+                data = self.sensor.read(image_dims=Dims(width, height), image_format=data_format, save=True).data
+            except VirtualCameraError as e:
+                data = self.sensor.get_frame().data
+                self.sensor.restart()
+
+            data = base64.b64encode(data).decode("ascii")
 
         timestamp = time.time()
         secs = int(timestamp)

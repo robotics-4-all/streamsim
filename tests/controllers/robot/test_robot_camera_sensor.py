@@ -39,7 +39,7 @@ class Test(unittest.TestCase):
                             callback = self.callback
                         )
                         sub.run()
-                        time.sleep(2)
+                        time.sleep(5)
                         sub.stop()
 
         except:
@@ -47,7 +47,7 @@ class Test(unittest.TestCase):
             self.assertTrue(False)
 
     def callback(self, message, meta):
-        print(message)
+        print("Message: ",message)
 
     def tearDown(self):
         pass
