@@ -19,7 +19,8 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
-from pidevices import Dims, VirtualCameraError
+from pidevices import Dims
+
 
 class CameraController(BaseThing):
     def __init__(self, conf = None, package = None):
@@ -114,11 +115,12 @@ class CameraController(BaseThing):
                 self.actors.append(k)
 
         if self.info["mode"] == "real":
-            from pidevices import VirtualCamera
-            self.sensor = VirtualCamera(framerate=self.conf["framerate"],
-                                        resolution=Dims(self.conf["width"], self.conf["height"]),
-                                        name=self.name,
-                                        max_data_length=self.conf["max_data_length"])
+            from pidevices.sensors import CV2Camera
+            self.sensor = CV2Camera(device_id=self.conf['device_id'],
+                                    framerate=self.conf["framerate"],
+                                    resolution=Dims(self.conf["width"], self.conf["height"]),
+                                    name=self.name,
+                                    max_data_length=self.conf["max_data_length"])
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = CommlibFactory.getSubscriber(
@@ -381,7 +383,7 @@ class CameraController(BaseThing):
         else: # The real deal
             try:
                 data = self.sensor.read(image_dims=Dims(width, height), image_format=data_format, save=True).data
-            except VirtualCameraError as e:
+            except Exception as e:
                 data = self.sensor.get_frame().data
                 self.sensor.restart()
 

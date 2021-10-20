@@ -35,6 +35,7 @@ robots:
          name: "elsa_camera"
          hz: 1
          sensor_configuration:
+           device_id: 1
            framerate: 30
            width: 640
            height: 480
