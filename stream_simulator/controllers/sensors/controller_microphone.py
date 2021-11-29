@@ -256,26 +256,31 @@ class MicrophoneController(BaseThing):
             ret["volume"] = 100
 
         else: # The real deal
-            self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
-            
-            now = time.time()
-            while time.time() - now < (duration + 0.5) or self.sensor.recording:
-                if goalh.cancel_event.is_set():
-                    self.blocked = False
-                    self.sensor.cancel()
+            try:
+                self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
+                
+                while not self.sensor.recording:
+                    time.sleep(0.1)
+                
+                now = time.time()
+                while time.time() - now < (duration + 0.5) and self.sensor.recording:
+                    if goalh.cancel_event.is_set():
+                        self.blocked = False
+                        self.sensor.cancel()
 
-                    self.logger.info("Cancel got")
-                    return ret
+                        self.logger.info("Cancel got")
+                        return ret
 
-                time.sleep(0.1)
+                    time.sleep(0.1)
 
-            record = self.sensor.record
+                record = self.sensor.record
 
-            self.logger.info(f"Recorded size: {len(record)}")
-        
-            
-            if record:
-                ret["record"] = base64.b64encode(record).decode("ascii")
+                self.logger.info(f"Recorded size: {len(record)}")
+
+                if record:
+                    ret["record"] = base64.b64encode(record).decode("ascii")
+            except Exception as e:
+                self.logger.error("{} problem in driver during recording".format(self.name))
 
         self.logger.info("{} recording finished".format(self.name))
         self.blocked = False
@@ -301,43 +306,56 @@ class MicrophoneController(BaseThing):
             language = goalh.data["language"]
         except Exception as e:
             self.logger.error("{} goal had no duration and language as parameter".format(self.name))
-
+        
         if self.info["mode"] == "real": # The real deal
-            self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
+            try:
+                self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
 
-            now = time.time()
-            while time.time() - now < (duration + 0.5) or self.sensor.recording:
-                if goalh.cancel_event.is_set():
-                    self.blocked = False
-                    self.speaker.cancel()
+                while not self.sensor.recording:
+                    time.sleep(0.1)
 
-                    self.logger.info("Cancel got")
-                    return ret
+                now = time.time()
+                while time.time() - now < (duration + 0.5) and self.sensor.recording:
+                    if goalh.cancel_event.is_set():
+                        self.blocked = False
+                        self.speaker.cancel()
+
+                        self.logger.info("Cancel got")
+                        return ret
+                    
+                    time.sleep(0.1)
+
+                rec = base64.b64encode(self.sensor.record).decode("ascii")
+                rec = base64.b64decode(rec)
+            except Exception as e:
+                self.logger.error("{} problem in driver during recording".format(self.name))
+
+            try:
+                from google.cloud import speech
+
+                self.client = speech.SpeechClient()
+                speech_config = speech.RecognitionConfig(
+                    encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+                    sample_rate_hertz=44100,
+                    language_code='el-GR'
+                )
+
+                text = self.client.recognize(
+                    config = speech_config,
+                    audio = speech.RecognitionAudio(content = rec)
+                )
                 
-                time.sleep(0.1)
+                self.logger.info(f"Results: {text}")
 
-            rec = base64.b64encode(self.sensor.record).decode("ascii")
-            rec = base64.b64decode(rec)
-
-            from google.cloud import speech
-            from google.cloud.speech import enums
-            from google.cloud.speech import types
-            self.client = speech.SpeechClient()
-            speech_config = types.RecognitionConfig(
-                encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
-                sample_rate_hertz=44100,
-                language_code='el-GR'
-            )
-
-            text = self.client.recognize(
-                config = speech_config,
-                audio = types.RecognitionAudio(content = rec)
-            )
-            self.logger.info(f"Results: {text}")
-            if len(text.results):
-                text = text.results[0].alternatives[0].transcript
-            else:
+                if len(text.results):
+                    text = text.results[0].alternatives[0].transcript
+                else:
+                    text = ''
+            
+            except Exception as e:
                 text = ''
+
+                self.logger.error("{} Problem with google test-to-speech".format(self.name))
 
         self.logger.info("Listening finished: " + str(text))
         self.blocked = False
