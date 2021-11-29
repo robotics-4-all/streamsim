@@ -24,28 +24,29 @@ robots:
             hosts: ["127.0.0.1", "127.0.0.1"]
             ports: ["12333", "12334"]
             host_port: "12334"
-            dev_name: "Mic"
+            dev_name: "pulse"
             channels: 1
             framerate: 44100
             max_data_length: 10
       camera:
-        -
-          orientation: 0
-          place: FRONT
-          name: "elsa_camera"
-          hz: 1
-          sensor_configuration:
-            framerate: 30
-            width: 640
-            height: 480
-            max_data_length: 2
+       -
+         orientation: 0
+         place: FRONT
+         name: "elsa_camera"
+         hz: 1
+         sensor_configuration:
+           device_id: 1
+           framerate: 30
+           width: 640
+           height: 480
+           max_data_length: 2
       speaker:
         -
           orientation: 0
           place: FRONT
           name: "elsa_speaker"
           sensor_configuration:
-            dev_name: "Speaker"
+            dev_name: "pulse"
             channels: 1
             framerate: 44100
             max_data_length: 10
