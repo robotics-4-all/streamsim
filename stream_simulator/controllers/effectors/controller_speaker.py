@@ -84,11 +84,12 @@ class SpeakerController(BaseThing):
         self.blocked = False
 
         from pidevices import Speaker
-        self.speaker = Speaker(dev_name = self.conf["dev_name"],
-                               volume = 50,
-                               channels = self.conf["channels"],
-                               name = self.name,
-                               max_data_length = self.conf["max_data_length"])
+        self.speaker = Speaker(dev_name=self.conf["dev_name"],
+                               volume=50,
+                               channels=self.conf["channels"],
+                               name=self.name,
+                               max_data_length=self.conf["max_data_length"],
+                               framerate=self.conf["framerate"])
         self.logger.warning("Using Default Speaker Driver")
         if self.info["speak_mode"] == "espeak":
             from espeakng import ESpeakNG
@@ -145,8 +146,9 @@ class SpeakerController(BaseThing):
             persistent = True
         )
         if res['val'] is None:
-            self.global_volume = 70
-            self.set_global_volume()
+            res['val'] = 70
+        self.global_volume = int(res['val'])
+        self.set_global_volume()
 
     def initialize_google_speech2text(self):
         from google.cloud import texttospeech

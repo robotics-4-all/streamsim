@@ -26,7 +26,7 @@ robots:
             host_port: "12334"
             dev_name: "pulse"
             channels: 1
-            framerate: 44100
+            framerate: 16000
             max_data_length: 10
       camera:
        -
@@ -48,13 +48,5 @@ robots:
           sensor_configuration:
             dev_name: "pulse"
             channels: 1
-            framerate: 44100
+            framerate: 16000
             max_data_length: 10
-      # gstreamer_server:
-      #   -
-      #     orientation: 0
-      #     place: CENTER
-      #     sensor_configuration:
-      #       alsa_device: "Mic"
-      #       hosts: ["127.0.0.1"]
-      #       ports: ["12333"]
