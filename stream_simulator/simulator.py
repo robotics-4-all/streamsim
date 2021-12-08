@@ -199,38 +199,6 @@ class Simulator:
             )
 
             self.logger.warning("Simulation started")
-            if _robot.world['robots'][i]['mode'] == 'real' and _robot.world['robots'][i]['speak_mode'] == "google":
-                # Wait for rhasspy
-                from derp_me.client import DerpMeClient
-                self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-                self.logger.warning(f"New derp-me client from simulator.py")
-
-                wait_for = _robot.world['robots'][i]['wait_for']
-
-                if "rhasspy" in wait_for:
-                    rhasspy_ok = False
-                    self.logger.warning("Waiting for rhasspy")
-                    while not rhasspy_ok:
-                        time.sleep(0.3)
-                        r = self.derp_client.lget("rhasspy/state", 0, 0)
-                        self.logger.info(r)
-                        if r['status'] == 1:
-                            self.logger.warning("Rhasspy is up!")
-                            rhasspy_ok = True
-
-                # Get the speaker
-                sp_con = None
-                for c in _robot.controllers:
-                    if _robot.controllers[c].info['categorization']['subclass'][0] == "speaker":
-                        sp_con = _robot.controllers[c]
-                        break
-
-                if sp_con != None:
-                    sp_con.google_speak(
-                            language="el",
-                            texts='Η συσκευή σας είναι έτοιμη προς χρήση!',
-                            volume=50
-                    )
 
         self.tf.setup()
 
