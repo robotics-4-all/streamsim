@@ -309,7 +309,7 @@ class MicrophoneController(BaseThing):
         
         if self.info["mode"] == "real": # The real deal
             try:
-                self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
+                self.sensor.async_read(secs=duration, volume=100, framerate=self.conf["framerate"])
 
                 while not self.sensor.recording:
                     time.sleep(0.1)
@@ -336,7 +336,7 @@ class MicrophoneController(BaseThing):
                 self.client = speech.SpeechClient()
                 speech_config = speech.RecognitionConfig(
                     encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-                    sample_rate_hertz=44100,
+                    sample_rate_hertz=self.conf["framerate"],
                     language_code='el-GR'
                 )
 
