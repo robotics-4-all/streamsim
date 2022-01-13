@@ -316,7 +316,7 @@ class MicrophoneController(BaseThing):
             try:
                 if duration == -1:
                     self.vad.reset()
-                    self.sensor.async_read(secs=100, file_path="/home/pi/yolo2.wav", stream_cb=self.vad.update)         
+                    self.sensor.async_read(secs=100, stream_cb=self.vad.update)         
 
                     voice_was_detected = False
                     while not self.vad.has_spoken():
