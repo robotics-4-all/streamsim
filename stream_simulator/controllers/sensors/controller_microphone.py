@@ -8,12 +8,14 @@ import logging
 import threading
 import random
 import base64
+import wave
 
 from colorama import Fore, Style
 
 from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
+from stream_simulator.functionality import VAD
 
 class MicrophoneController(BaseThing):
     def __init__(self, conf = None, package = None):
@@ -90,12 +92,15 @@ class MicrophoneController(BaseThing):
                 k = h
                 h["type"] = i
                 self.actors.append(k)
+        
+        from pidevices import PyAudioMic
+        self.vad = VAD()
+        self.timeout = self.conf["voice_timeout"]
+        self.sensor = PyAudioMic(channels=self.conf["channels"],
+                                 framerate=self.conf["framerate"],
+                                 name=self.name,
+                                 max_data_length=self.conf["max_data_length"])
 
-        from pidevices import Microphone
-        self.sensor = Microphone(dev_name=self.conf["dev_name"],
-                                channels=self.conf["channels"],
-                                name=self.name,
-                                max_data_length=self.conf["max_data_length"])
         self.logger.warning("Using Default Microphone Driver")
         self.sensor.start()
 
@@ -257,7 +262,7 @@ class MicrophoneController(BaseThing):
 
         else: # The real deal
             try:
-                self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
+                self.sensor.async_read(secs = duration)
                 
                 while not self.sensor.recording:
                     time.sleep(0.1)
@@ -306,29 +311,47 @@ class MicrophoneController(BaseThing):
             language = goalh.data["language"]
         except Exception as e:
             self.logger.error("{} goal had no duration and language as parameter".format(self.name))
-        
+
         if self.info["mode"] == "real": # The real deal
             try:
-                self.sensor.async_read(secs=duration, volume=100, framerate=self.conf["framerate"])
+                if duration == -1:
+                    self.vad.reset()
+                    self.sensor.async_read(secs=100, file_path="/home/pi/yolo2.wav", stream_cb=self.vad.update)         
 
-                while not self.sensor.recording:
-                    time.sleep(0.1)
+                    voice_was_detected = False
+                    while not self.vad.has_spoken():
+                        if self.vad.voice_detected() and not voice_was_detected:
+                            voice_was_detected = True
+                            self.logger.info("Voice Detected! Start Recording...")
+                        if goalh.cancel_event.is_set():
+                            self.sensor.cancel()
+                            self.logger.info("Goal Cancelled")
+                            break
+                        time.sleep(0.1)
 
-                now = time.time()
-                while time.time() - now < (duration + 0.5) and self.sensor.recording:
-                    if goalh.cancel_event.is_set():
-                        self.blocked = False
-                        self.speaker.cancel()
-
-                        self.logger.info("Cancel got")
-                        return ret
+                    self.sensor.cancel()
                     
-                    time.sleep(0.1)
+                    self.logger.info("No voice during last: {} sec. Stop Recording!".format(self.vad.timeout))
+
+                    time.sleep(0.3)
+                else:
+                    self.sensor.async_read(secs=duration)
+
+                    while not self.sensor.recording:
+                        time.sleep(0.1)
+
+                    now = time.time()
+                    while time.time() - now < (duration + 0.1) and self.sensor.recording:
+                        if goalh.cancel_event.is_set():
+                            self.sensor.cancel()
+                            self.logger.info("Goal Cancelled")
+                            break
+                        time.sleep(0.1)
 
                 rec = base64.b64encode(self.sensor.record).decode("ascii")
                 rec = base64.b64decode(rec)
             except Exception as e:
-                self.logger.error("{} problem in driver during recording".format(self.name))
+                self.logger.error("{} problem in driver during recording: {}".format(self.name, e))
 
             try:
                 from google.cloud import speech
@@ -336,7 +359,7 @@ class MicrophoneController(BaseThing):
                 self.client = speech.SpeechClient()
                 speech_config = speech.RecognitionConfig(
                     encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-                    sample_rate_hertz=self.conf["framerate"],
+                    sample_rate_hertz=self.conf['framerate'],
                     language_code='el-GR'
                 )
 
@@ -345,8 +368,6 @@ class MicrophoneController(BaseThing):
                     audio = speech.RecognitionAudio(content = rec)
                 )
                 
-                self.logger.info(f"Results: {text}")
-
                 if len(text.results):
                     text = text.results[0].alternatives[0].transcript
                 else:
@@ -355,7 +376,7 @@ class MicrophoneController(BaseThing):
             except Exception as e:
                 text = ''
 
-                self.logger.error("{} Problem with google test-to-speech".format(self.name))
+                self.logger.error("{} Problem with google text-to-speech".format(self.name))
 
         self.logger.info("Listening finished: " + str(text))
         self.blocked = False

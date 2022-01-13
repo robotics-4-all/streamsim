@@ -27,6 +27,7 @@ robots:
             dev_name: "pulse"
             channels: 1
             framerate: 16000
+            voice_timeout: 1.5
             max_data_length: 10
       camera:
        -
