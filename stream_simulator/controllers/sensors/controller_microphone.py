@@ -95,7 +95,6 @@ class MicrophoneController(BaseThing):
         
         from pidevices import PyAudioMic
         self.vad = VAD()
-        self.timeout = self.conf["voice_timeout"]
         self.sensor = PyAudioMic(channels=self.conf["channels"],
                                  framerate=self.conf["framerate"],
                                  name=self.name,
@@ -122,6 +121,12 @@ class MicrophoneController(BaseThing):
             broker = "redis",
             callback = self.disable_callback,
             rpc_name = info["base_topic"] + ".disable"
+        )
+
+        self.vad_training_rpc = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.vad_training_callback,
+            rpc_name = info["base_topic"] + ".train_vad"
         )
 
         self.record_pub = CommlibFactory.getPublisher(
@@ -331,7 +336,7 @@ class MicrophoneController(BaseThing):
 
                     self.sensor.cancel()
                     
-                    self.logger.info("No voice during last: {} sec. Stop Recording!".format(self.vad.timeout))
+                    self.logger.info("No voice during last: {} sec. Stop Recording!".format(self.vad.speech_timeout))
 
                     time.sleep(0.3)
                 else:
@@ -390,11 +395,19 @@ class MicrophoneController(BaseThing):
         self.info["enabled"] = False
         return {"enabled": False}
 
+    def vad_training_callback(self, message, meta):
+        self.vad.start_train()
+        self.sensor.read(secs = 3, stream_cb=self.vad.train)
+        self.vad.finish_train()
+
+        return {}
+
     def start(self):
         self.record_action_server.run()
         self.listen_action_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+        self.vad_training_rpc.run()
 
     def stop(self):
         self.record_action_server._goal_rpc.stop()
@@ -405,3 +418,4 @@ class MicrophoneController(BaseThing):
         self.listen_action_server._result_rpc.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+        self.vad_training_rpc.stop()

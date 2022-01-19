@@ -90,7 +90,7 @@ class BlockQueue(deque):
 
 
 class VAD:
-    FILEPATH = "../../configurations/vad/vad.conf"
+    FILEPATH = "../configurations/vad/vad.conf"
     BLOCK_SIZE = 1024
     DOMINANT_INDEXES = "8, 7, 6, 21, 22, 25, 9, 30, 29, 79, 24, 28, 27, 26, 14"
     MIN_TARGET_INDEX = 6
@@ -191,12 +191,12 @@ class VAD:
         self._counter = 0
 
     @property
-    def timeout(self):
-        return self._timeout
+    def speech_timeout(self):
+        return self._speech_timeout
     
-    @timeout.setter
-    def timeout(self, timeout):
-        self._timeout = timeout
+    @speech_timeout.setter
+    def speech_timeout(self, timeout):
+        self._speech_timeout = timeout
 
     def _fft(self, data):
         window = np.frombuffer(data, dtype="int16")
@@ -263,6 +263,26 @@ class VAD:
     def has_spoken(self):
         return self._has_spoken
 
+    def start_train(self):
+        self._train_noise_threshold = 0
+        self._train_noise_samples = 0
+    
+    def train(self, data, timestamp):
+        block_freq = self._fft(data)
+        curr_noise_level = np.average(block_freq)
+
+        self._train_noise_threshold += curr_noise_level
+        self._train_noise_samples += 1
+
+    def finish_train(self):
+        if self._train_noise_samples > 0:
+            self._noise_threshold = (3/2) * self._train_noise_threshold / self._train_noise_samples
+
+            try:
+                self._config.set('Algorithm', 'NOISE_THRESHOLD', str(self._noise_threshold))
+                self._logger.info("Noise level succesfully setted to: {}".format(self._noise_threshold))
+            except Exception as e:
+                self._logger.error("Error occurent when tried to save: {}".format(e))
     def update(self, data, timestamp):
         # calculate frequencies of data block
         block_freq = self._fft(data)
@@ -304,6 +324,12 @@ if __name__ == "__main__":
                      framerate=FRAMERATE,
                      name="mic",
                      max_data_length=1)
+
+    vad.start_train()
+    mic.read(secs=3, stream_cb=vad.train)
+    vad.finish_train()
+
+    time.sleep(5)
 
     vad.reset()
     print("Starting")

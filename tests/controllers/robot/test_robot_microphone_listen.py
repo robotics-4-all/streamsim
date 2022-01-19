@@ -32,6 +32,13 @@ class Test(unittest.TestCase):
 
                 for s in res["devices"]:
                     if s["type"] == "MICROPHONE":
+                        rpc = CommlibFactory.getRPCClient(
+                            broker = "redis",
+                            rpc_name = s["base_topic"] + ".train_vad"
+                        )
+                        
+                        res = rpc.call({})
+                        
                         # Speak
                         action = CommlibFactory.getActionClient(
                             broker = "redis",
