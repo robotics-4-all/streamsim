@@ -1,16 +1,18 @@
 from pidevices.sensors.generic_microphone import PyAudioMic
+from commlib.logger import Logger
+
 from collections import deque, Counter
 from scipy.fft import fft
-from enum import IntEnum
 import numpy as np
+
+import configparser
+import enum
 import wave
 import time
-
-CHANNELS = 1
-FRAMERATE = 16000
+import os
 
 
-class BlockState(IntEnum):
+class BlockState(enum.IntEnum):
     IDLE = 0
     SPEAKING = 1
 
@@ -88,16 +90,22 @@ class BlockQueue(deque):
 
 
 class VAD:
+    FILEPATH = "../../configurations/vad/vad.conf"
     BLOCK_SIZE = 1024
-    IMPORTANT_INDEXES = [8, 7, 6, 21, 22, 25, 9, 30, 29, 79, 24, 28, 27, 26, 14]
-    MIN_FREQ_INDEX = 6
-    MAX_FREQ_INDEX = 38
-    NOISE_THRESHOLD = 380
-
+    DOMINANT_INDEXES = "8, 7, 6, 21, 22, 25, 9, 30, 29, 79, 24, 28, 27, 26, 14"
+    MIN_TARGET_INDEX = 6
+    MAX_TARGET_INDEX = 38
+    NOISE_THRESHOLD = 700
     NO_SPEAK_TIMEOUT = 1.5
+    SPEECH_TIMEOUT = 3
+    SPEECH_SENSITIVITY = 0.3
+    SENSITIVITY = 0.6
 
     def __init__(self, filter_size=7, sensitivity=2, hysterisis=3):
-        # parse arguments
+        self._logger = Logger(VAD.__name__)
+
+        self.load_params()
+
         self._filter_size = filter_size
         self._sensitivity = sensitivity
         self._hysterisis = hysterisis
@@ -108,26 +116,79 @@ class VAD:
 
         self.reset()
 
+    def _import_param(self, namespace, param, default):
+        result = None
+
+        try:
+            result = self._config[namespace][param]
+            self._logger.debug("Imported variable {} with value: {}".format(
+                param, result
+            ))
+        except Exception as e:
+            result = None
+            self._logger.warning("Could not import {} from namespace {}!".format(
+                param, namespace
+            ))
+
+        if result is None:
+            result = default
+            self._logger.info("Imported parameter: {} as default!".format(param))
+
+        return result
+
+    def load_params(self):
+        if not os.path.isfile(VAD.FILEPATH):
+            self._logger.error("No configuration file: <{}> found!".format(VAD.FILEPATH))
+
+        self._config = configparser.ConfigParser()
+        self._config.read(VAD.FILEPATH)
+
+        self._min_target_index = int(self._import_param(namespace='Algorithm',
+                                                        param='MIN_TARGET_INDEX',
+                                                        default=VAD.MIN_TARGET_INDEX))
+
+        self._max_target_index = int(self._import_param(namespace='Algorithm',
+                                                        param='MAX_TARGET_INDEX',
+                                                        default=VAD.MAX_TARGET_INDEX))
+
+        self._noise_threshold = float(self._import_param(namespace='Algorithm',
+                                                         param='NOISE_THRESHOLD',
+                                                         default=VAD.NOISE_THRESHOLD))
+
+        self._dominant_indexes = (self._import_param(namespace='Algorithm',
+                                                         param='DOMINANT_INDEXES',
+                                                         default=VAD.DOMINANT_INDEXES))  
+
+        self._dominant_freq_indexes = list(map(int, self._dominant_indexes.split(",")))
+
+        self._no_speak_timeout = float(self._import_param(namespace='Settings',
+                                                         param='NO_SPEAK_TIMEOUT',
+                                                         default=VAD.NO_SPEAK_TIMEOUT))
+        
+        self._speech_timeout = float(self._import_param(namespace='Settings',
+                                                         param='SPEECH_TIMEOUT',
+                                                         default=VAD.SPEECH_TIMEOUT))
+
+        self._speech_sensitivity = float(self._import_param(namespace='Settings',
+                                                         param='SENSITIVITY',
+                                                         default=VAD.SENSITIVITY))
+
+        self._speech_sensitivity = round(10 * (1 - self._speech_sensitivity)) 
+
     def reset(self):
         self._block_to_add = 100
 
         # list holding recorded block containing sound
         self._recording = bytearray()
 
-        # sound energy threshold
-        self._energy_threshold = VAD.NOISE_THRESHOLD
-
         # important frequencies of speech during training
-        self._speech_important_freq = np.array(VAD.IMPORTANT_INDEXES)
-
-        self._speaking_history = deque(maxlen=3)
-        self._speaking = False
-        self._timeout = VAD.NO_SPEAK_TIMEOUT
+        self._speaking_history = deque(maxlen=10)
+        self._speaking_started = False
         self._has_spoken = False
-        self._timer = time.time()
+        self._speach_timeout_timer = time.time()
+        self._no_speak_timeout_timer = time.time()
 
         self._counter = 0
-
 
     @property
     def timeout(self):
@@ -146,46 +207,58 @@ class VAD:
         return block_freq
 
     def _is_speaking(self, block_freq):
-        energy_level = np.average(block_freq)
+        if not self._has_spoken:
+            energy_level = np.average(block_freq)
+            
+            if energy_level > self._noise_threshold:
+                block_important_freq = (-block_freq).argsort()[:8]
+                dom_freq = np.argmax(block_freq)
+
+                matched_freq = len(np.intersect1d(block_important_freq,
+                                                self._dominant_freq_indexes))
+
+                if matched_freq >= 4 and (dom_freq in range(VAD.MIN_TARGET_INDEX, 
+                                                            VAD.MAX_TARGET_INDEX)):
+                    
+                    print("Speaking")
+                    self._update_state(True)
+                    return True
+
+            print("Idle")
+            self._update_state(False)
+            
+            return False
         
-        if energy_level > self._energy_threshold:
-            block_important_freq = (-block_freq).argsort()[:8]
-            dom_freq = np.argmax(block_freq)
-
-            matched_freq = len(np.intersect1d(block_important_freq,
-                                              self._speech_important_freq))
-
-            if matched_freq >= 4 and (dom_freq in range(VAD.MIN_FREQ_INDEX, 
-                                                        VAD.MAX_FREQ_INDEX)):
-                
-                print("Speaking")
-                self._update_state(True)
-                return True
-
-        print("Idle")
-        self._update_state(False)
-        
-        return False        
+        return False
 
     def voice_detected(self):
-        if self._speaking:
+        if self._speaking_started:
             return True
         else:
             return False
 
     def _update_state(self, state):
         self._speaking_history.append(state)
-        started_to_speak = (self._speaking_history.count(1) >= 2)
+        started_to_speak = (self._speaking_history.count(BlockState.SPEAKING) >= self._speech_sensitivity)
 
-        if started_to_speak and not self._speaking:
-            self._speaking = True
-            self._timer = time.time()
-        elif self._speaking:
+        if started_to_speak and not self._speaking_started:
+            self._speaking_started = True
+            self._speach_timeout_timer = time.time()
+        elif self._speaking_started:
             if state:
-                self._timer = time.time()
+                self._speach_timeout_timer = time.time()
             else:
-                if time.time() - self._timer > self._timeout:
+                if time.time() - self._speach_timeout_timer > self._no_speak_timeout:
                     self._has_spoken = True
+                    self._logger.info("Timeout occured! No speech during {} secs.".format(
+                        self._speech_timeout
+                    ))
+        else:
+            if (time.time() - self._no_speak_timeout_timer) > self._no_speak_timeout:
+                self._has_spoken = True
+                self._logger.info("Timeout occured! Speech not started during last {} secs".format(
+                    self._no_speak_timeout
+                ))
 
     def has_spoken(self):
         return self._has_spoken
@@ -223,13 +296,14 @@ class VAD:
 
 
 if __name__ == "__main__":
+    CHANNELS = 1
+    FRAMERATE = 16000
+
     vad = VAD()
     mic = PyAudioMic(channels=CHANNELS,
                      framerate=FRAMERATE,
                      name="mic",
                      max_data_length=1)
-    
-    # time.sleep(3)
 
     vad.reset()
     print("Starting")
@@ -252,5 +326,3 @@ if __name__ == "__main__":
 
     print("Recording size: ", len(vad._recording))
     mic.stop()
-
-
