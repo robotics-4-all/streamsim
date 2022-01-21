@@ -396,14 +396,22 @@ class MicrophoneController(BaseThing):
         return {"enabled": False}
 
     def vad_training_callback(self, message, meta):
+        self.logger.info("{} VAD training started".format(self.name))
+
         status = False
+        
+        if self.info["enabled"] == False:
+            return {"status": status}
         
         try:
             if not "duration" in message:
                 raise KeyError("Wrong parameters: Require <duration>")
 
+            if message['duration'] <= 0:
+                raise ValueError("Duration must be a positive number!")
+
             self.vad.start_train()
-            self.sensor.read(secs=3, stream_cb=self.vad.train)
+            self.sensor.read(secs=message['duration'], stream_cb=self.vad.train)
             self.vad.finish_train()
             status = True
             self.logger.info("VAD training completed succesfully!")
