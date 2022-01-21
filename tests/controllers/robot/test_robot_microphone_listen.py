@@ -29,7 +29,7 @@ class Test(unittest.TestCase):
                     rpc_name = f"robot.{r}.nodes_detector.get_connected_devices"
                 )
                 res = cl.call({})
-
+                
                 for s in res["devices"]:
                     if s["type"] == "MICROPHONE":
                         rpc = CommlibFactory.getRPCClient(
