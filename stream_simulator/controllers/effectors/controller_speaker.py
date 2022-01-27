@@ -304,6 +304,7 @@ class SpeakerController(BaseThing):
         try:
             string = goalh.data["string"]
             volume = goalh.data["volume"]
+            is_file = goalh.data["is_file"]
             if self.global_volume is not None:
                 volume = self.global_volume
                 self.logger.info(f"{Fore.MAGENTA}Volume forced to {self.global_volume}{Style.RESET_ALL}")
@@ -349,10 +350,13 @@ class SpeakerController(BaseThing):
             self.logger.info("Playing done")
 
         else: # The real deal
-            source = base64.b64decode(string.encode("ascii"))
-            duration = round(len(source) / (2 * self.speaker.framerate))
-            self.logger.info("Source size: {}".format(duration))
-            self.speaker.async_write(source, file_flag = False)
+            if is_file == True:
+                self.speaker.async_write(string, file_flag=True)
+            else:
+                source = base64.b64decode(string.encode("ascii"))
+                # duration = round(len(source) / (2 * self.speaker.framerate))
+                # self.logger.info("Source size: {}".format(duration))
+                self.speaker.async_write(source, file_flag=False)
 
             while self.speaker.playing:
                 if goalh.cancel_event.is_set():
