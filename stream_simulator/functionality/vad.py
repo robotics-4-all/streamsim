@@ -248,7 +248,7 @@ class VAD:
             if state:
                 self._speach_timeout_timer = time.time()
             else:
-                if time.time() - self._speach_timeout_timer > self._no_speak_timeout:
+                if time.time() - self._speach_timeout_timer > self._speech_timeout:
                     self._has_spoken = True
                     self._logger.info("Timeout occured! No speech during {} secs.".format(
                         self._speech_timeout
@@ -276,7 +276,12 @@ class VAD:
 
     def finish_train(self):
         if self._train_noise_samples > 0:
-            self._noise_threshold = (3/2) * self._train_noise_threshold / self._train_noise_samples
+            aver_threshold = self._train_noise_threshold / self._train_noise_samples
+
+            if self._noise_threshold < VAD.NOISE_THRESHOLD:
+                self._noise_threshold = (aver_threshold + VAD.NOISE_THRESHOLD) / 2
+            else:
+                self._noise_threshold = (3/2) * aver_threshold
 
             try:
                 self._config.set('Algorithm', 'NOISE_THRESHOLD', str(self._noise_threshold))

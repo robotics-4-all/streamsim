@@ -28,18 +28,18 @@ robots:
             channels: 1
             framerate: 16000
             max_data_length: 10
-      camera:
-       -
-         orientation: 0
-         place: FRONT
-         name: "elsa_camera"
-         hz: 1
-         sensor_configuration:
-           device_id: 1
-           framerate: 30
-           width: 640
-           height: 480
-           max_data_length: 2
+      # camera:
+      #  -
+      #    orientation: 0
+      #    place: FRONT
+      #    name: "elsa_camera"
+      #    hz: 1
+      #    sensor_configuration:
+      #      device_id: 1
+      #      framerate: 30
+      #      width: 640
+      #      height: 480
+      #      max_data_length: 2
       speaker:
         -
           orientation: 0
