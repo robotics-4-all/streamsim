@@ -186,7 +186,7 @@ class SpeakerController(BaseThing):
                 self.logger.info(f"{Fore.MAGENTA}Volume forced to {self.global_volume}{Style.RESET_ALL}")
             language = goalh.data["language"]
         except Exception as e:
-            self.logger.error("{} wrong parameters: {}".format(self.name, ))
+            self.logger.error("{} wrong parameters: {}".format(self.name, e))
 
         self.speak_pub.publish({
             "text": texts,
