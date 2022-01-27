@@ -309,7 +309,7 @@ class SpeakerController(BaseThing):
                 volume = self.global_volume
                 self.logger.info(f"{Fore.MAGENTA}Volume forced to {self.global_volume}{Style.RESET_ALL}")
         except Exception as e:
-            self.logger.error("{} wrong parameters: {}".format(self.name, ))
+            self.logger.error("{} wrong parameters: {}".format(self.name, e))
 
         self.play_pub.publish({
             "text": string,
