@@ -15,6 +15,10 @@ from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
+import subprocess
+import wave
+
+
 class SpeakerController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
@@ -83,13 +87,27 @@ class SpeakerController(BaseThing):
         self.global_volume = None
         self.blocked = False
 
-        from pidevices import Speaker
-        self.speaker = Speaker(dev_name=self.conf["dev_name"],
-                               volume=50,
-                               channels=self.conf["channels"],
-                               name=self.name,
-                               max_data_length=self.conf["max_data_length"],
-                               framerate=self.conf["framerate"])
+        # from pidevices import Speaker
+        # self.speaker = Speaker(dev_name=self.conf["dev_name"],
+        #                        volume=50,
+        #                        channels=self.conf["channels"],
+        #                        name=self.name,
+        #                        shutdown_pin=4,
+        #                        max_data_length=self.conf["max_data_length"],
+        #                        framerate=self.conf["framerate"])
+
+        from pidevices import SystemSpeaker
+        from pidevices import Max98306
+
+        self.amp = Max98306()
+
+        self.speaker = SystemSpeaker(volume=50,
+                                     channels=self.conf["channels"],
+                                     framerate=self.conf["framerate"],
+                                     amp=self.amp,
+                                     name=self.name,
+                                     max_data_length=self.conf["max_data_length"])
+
         self.logger.warning("Using Default Speaker Driver")
         if self.info["speak_mode"] == "espeak":
             from espeakng import ESpeakNG
@@ -255,9 +273,19 @@ class SpeakerController(BaseThing):
                     self.logger.info("Getting voice responce")
                     response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
 
+                    source = {
+                        "data": response.audio_content[250:],
+                        "channels": self.conf['channels'],
+                        "framerate": self.conf['framerate']
+                    }
+
                     self.speaker.volume = volume
-                    self.speaker.async_write(response.audio_content, file_flag=False)
+                    self.speaker.async_write(source=source, file_flag=False)
                     self.logger.info("Speaking...")
+                    
+                    while not self.speaker.playing:
+                        time.sleep(0.1)
+
                     while self.speaker.playing:
                         if goalh.cancel_event.is_set():
                             self.speaker.cancel()
@@ -274,21 +302,21 @@ class SpeakerController(BaseThing):
         self.blocked = False
         return ret
 
-    def google_speak(self, language = None, texts = None, volume = None):
-        from google.cloud import texttospeech
-        self.voice = texttospeech.VoiceSelectionParams(\
-            language_code = language,\
-            ssml_gender = texttospeech.SsmlVoiceGender.FEMALE)
+    # def google_speak(self, language = None, texts = None, volume = None):
+    #     from google.cloud import texttospeech
+    #     self.voice = texttospeech.VoiceSelectionParams(\
+    #         language_code = language,\
+    #         ssml_gender = texttospeech.SsmlVoiceGender.FEMALE)
 
-        synthesis_input = texttospeech.SynthesisInput(text = texts)
-        response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
+    #     synthesis_input = texttospeech.SynthesisInput(text = texts)
+    #     response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
 
-        self.speaker.volume = volume
-        self.speaker.async_write(response.audio_content, file_flag=False)
-        self.logger.info("Speaking...")
-        while self.speaker.playing:
-            time.sleep(0.1)
-        self.logger.info("Google Speaking done!")
+    #     self.speaker.volume = volume
+    #     self.speaker.async_write(response.audio_content, file_flag=False)
+    #     self.logger.info("Speaking...")
+    #     while self.speaker.playing:
+    #         time.sleep(0.1)
+    #     self.logger.info("Google Speaking done!")
 
     def on_goal_play(self, goalh):
         self.logger.info("{} play started".format(self.name))
@@ -305,10 +333,13 @@ class SpeakerController(BaseThing):
             string = goalh.data["string"]
             volume = goalh.data["volume"]
             is_file = goalh.data["is_file"]
+
+            # check again
             if self.global_volume is not None:
                 volume = self.global_volume
                 self.logger.info(f"{Fore.MAGENTA}Volume forced to {self.global_volume}{Style.RESET_ALL}")
         except Exception as e:
+            is_file = True
             self.logger.error("{} wrong parameters: {}".format(self.name, e))
 
         self.play_pub.publish({
@@ -348,23 +379,20 @@ class SpeakerController(BaseThing):
                     return ret
                 time.sleep(0.1)
             self.logger.info("Playing done")
-
+                    
         else: # The real deal
-            if is_file == True:
-                self.speaker.async_write(string, file_flag=True)
-            else:
-                source = base64.b64decode(string.encode("ascii"))
-                # duration = round(len(source) / (2 * self.speaker.framerate))
-                # self.logger.info("Source size: {}".format(duration))
-                self.speaker.async_write(source, file_flag=False)
+            self.speaker.volume = volume
+            self.speaker.async_write(string, file_flag=is_file)
+            # source = base64.b64decode(string.encode("ascii"))    
 
             while self.speaker.playing:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
                     self.speaker.cancel()
+                    self.blocked = False
                     return ret
                 time.sleep(0.1)
-
+                
         self.logger.info("{} Playing finished".format(self.name))
         self.blocked = False
         return ret
