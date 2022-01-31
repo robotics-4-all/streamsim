@@ -283,15 +283,15 @@ class MicrophoneController(BaseThing):
 
                     time.sleep(0.1)
 
+                self.logger.info("Microphone unlocked")
+                
                 record = self.sensor.record
-
-                self.logger.info(f"Recorded size: {len(record)}")
 
                 if record:
                     ret["record"] = base64.b64encode(record).decode("ascii")
             except Exception as e:
                 self.logger.error("{} problem in driver during recording".format(self.name))
-
+        
         self.logger.info("{} recording finished".format(self.name))
         self.blocked = False
         return ret
@@ -358,6 +358,9 @@ class MicrophoneController(BaseThing):
             except Exception as e:
                 self.logger.error("{} problem in driver during recording: {}".format(self.name, e))
 
+            self.blocked = False
+            self.logger.info("Microphone unlocked")
+
             try:
                 from google.cloud import speech
 
@@ -370,7 +373,7 @@ class MicrophoneController(BaseThing):
 
                 text = self.client.recognize(
                     config = speech_config,
-                    audio = speech.RecognitionAudio(content = rec)
+                    audio = speech.RecognitionAudio(content=rec)
                 )
                 
                 if len(text.results):
@@ -383,8 +386,8 @@ class MicrophoneController(BaseThing):
 
                 self.logger.error("{} Problem with google text-to-speech".format(self.name))
 
+        
         self.logger.info("Listening finished: " + str(text))
-        self.blocked = False
         return {'text': text}
 
     def enable_callback(self, message, meta):

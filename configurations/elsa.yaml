@@ -46,6 +46,7 @@ robots:
           place: FRONT
           name: "elsa_speaker"
           sensor_configuration:
+            amplifier: True
             dev_name: "pulse"
             channels: 1
             framerate: 16000

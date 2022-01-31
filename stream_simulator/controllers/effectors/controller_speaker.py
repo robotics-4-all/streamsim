@@ -100,11 +100,17 @@ class SpeakerController(BaseThing):
         from pidevices import Max98306
 
         self.amp = Max98306()
-
+        
+        speaker_amp = None
+        if self.conf["amplifier"]:
+            speaker_amp = self.amp
+        else:
+            self.amp.enable()
+        
         self.speaker = SystemSpeaker(volume=50,
                                      channels=self.conf["channels"],
                                      framerate=self.conf["framerate"],
-                                     amp=self.amp,
+                                     amp=speaker_amp,
                                      name=self.name,
                                      max_data_length=self.conf["max_data_length"])
 
@@ -388,8 +394,14 @@ class SpeakerController(BaseThing):
                     
         else: # The real deal
             self.speaker.volume = volume
-            self.speaker.async_write(string, file_flag=is_file)
-            # source = base64.b64decode(string.encode("ascii"))    
+            
+            source = string
+            if not is_file:
+                source = base64.b64decode(string.encode("ascii")) 
+
+            self.speaker.async_write(source, file_flag=is_file)
+
+            # Check handle in case encoded string is given 
 
             while self.speaker.playing:
                 if goalh.cancel_event.is_set():
