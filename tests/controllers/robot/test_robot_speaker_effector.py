@@ -49,20 +49,30 @@ class Test(unittest.TestCase):
                         final_res = action.get_result(goal_id)
                         print(final_res)
 
-                        # Play
-                        action = CommlibFactory.getActionClient(
+                        # amp
+                        rpc = CommlibFactory.getRPCClient(
                             broker = "redis",
-                            action_name = s["base_topic"] + ".play"
+                            rpc_name = s["base_topic"] + ".set_amp"
                         )
-                        resp = action.send_goal({
-                            'string': '...',
-                            'volume': 50
+                        resp = rpc.call({
+                            'state': True
                         })
-                        goal_id = resp["goal_id"]
-                        while action.get_result(goal_id)["status"] == 1:
-                            time.sleep(0.1)
-                        final_res = action.get_result(goal_id)
-                        print(final_res)
+                        print(resp)
+                        
+                        # # Play
+                        # action = CommlibFactory.getActionClient(
+                        #     broker = "redis",
+                        #     action_name = s["base_topic"] + ".play"
+                        # )
+                        # resp = action.send_goal({
+                        #     'string': '...',
+                        #     'volume': 50
+                        # })
+                        # goal_id = resp["goal_id"]
+                        # while action.get_result(goal_id)["status"] == 1:
+                        #     time.sleep(0.1)
+                        # final_res = action.get_result(goal_id)
+                        # print(final_res)
 
         except:
             traceback.print_exc(file=sys.stdout)

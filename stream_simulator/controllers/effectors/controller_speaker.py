@@ -150,6 +150,12 @@ class SpeakerController(BaseThing):
             rpc_name = info["base_topic"] + ".disable"
         )
 
+        self.set_amp_rpc_server = CommlibFactory.getRPCService(
+            broker = "redis",
+            callback = self.set_amp_callback,
+            rpc_name = info["base_topic"] + ".set_amp"
+        )
+
         self.play_pub = CommlibFactory.getPublisher(
             topic = info["base_topic"] + ".play.notify"
         )
@@ -451,11 +457,40 @@ class SpeakerController(BaseThing):
         self.info["enabled"] = False
         return {"enabled": False}
 
+    def set_amp_callback(self, message, meta):
+        self.logger.info("Setting Amplifier State")
+
+        status = False
+        
+        if self.info["enabled"] == False:
+            self.logger.info("Controller {} is not enabled".format(self.name))
+            return {"status": status}
+
+        try:
+            if not "state" in message:
+                raise KeyError("Wrong parameters: Require <state>")
+
+            if not isinstance(message["state"], bool):
+                raise ValueError("Amplifier state must be bool")
+
+            if message["state"]:
+                self.amp.enable()
+            else:
+                self.amp.disable()
+
+            status = True
+            self.logger.info("Amplifier's state change to {} succensfully!".format(message["state"]))
+        except Exception as e:
+            self.logger.error("Error when trying to set amplifier's state: {}".format(e))
+            
+        return {"status": status}
+
     def start(self):
         self.play_action_server.run()
         self.speak_action_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
+        self.set_amp_rpc_server.run()
         self.global_volume_rpc_server.run()
 
     def stop(self):
@@ -467,4 +502,5 @@ class SpeakerController(BaseThing):
         self.speak_action_server._result_rpc.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+        self.set_amp_rpc_server.stop()
         self.global_volume_rpc_server.stop()
