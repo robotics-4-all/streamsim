@@ -40,6 +40,31 @@ robots:
       #      width: 640
       #      height: 480
       #      max_data_length: 2
+      leds:
+        -
+          orientation: 0
+          place: FRONT
+          sensor_configuration:
+            led_type: "respeaker"  # ws2812x
+            led_brightness: 255
+            name: "Respeaker Leds"
+            events: 
+              - topic: "event.listenning.started"
+                color: [0, 255, 0, 100]
+                effect: "think"
+                duration: -1
+              - topic: "event.listenning.stopped"
+                color: [0, 0, 0, 0]
+                effect: "none"
+                duration: 0
+              - topic: "rasa_nlu.recorded.failed"
+                color: [255, 0, 0, 100]
+                effect: "none"
+                duration: 1
+              - topic: "rasa_nlu.recorded.success"
+                color: [0, 255, 0, 100]
+                effect: "none"
+                duration: 1
       speaker:
         -
           orientation: 0

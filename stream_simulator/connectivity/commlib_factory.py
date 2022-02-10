@@ -19,7 +19,9 @@ class CommlibFactory:
         "Subscriber": Fore.MAGENTA,
         "Publisher": Fore.CYAN,
         "ActionServer": Fore.WHITE,
-        "ActionClient": Back.RED + Fore.WHITE
+        "ActionClient": Back.RED + Fore.WHITE,
+        "EventEmmiter": Back.RED + Fore.CYAN,
+        "Event": Back.RED + Fore.GREEN
     }
     reset = Style.RESET_ALL
     derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
@@ -43,7 +45,8 @@ class CommlibFactory:
             'rpc servers': 0,
             'rpc clients': 0,
             'action servers': 0,
-            'action clients': 0
+            'action clients': 0,
+            'event emitters': 0,
         },
         'redis': {
             'publishers': 0,
@@ -51,7 +54,11 @@ class CommlibFactory:
             'rpc servers': 0,
             'rpc clients': 0,
             'action servers': 0,
-            'action clients': 0
+            'action clients': 0,
+            'event emmiters': 0
+        },
+        'common': {
+            'events': 0
         }
     }
 
@@ -149,4 +156,31 @@ class CommlibFactory:
         )
         CommlibFactory.inform(broker, action_name, "ActionClient")
         CommlibFactory.stats[broker]['action clients'] += 1
+        return ret
+
+    @staticmethod
+    def getEventEmmiter(broker = "redis"):
+        ret = None
+        module = importlib.import_module(
+            f"commlib.transports.{broker}"
+        )
+        ret = module.EventEmitter(
+            conn_params = ConnParams.get(broker),
+        )
+        CommlibFactory.inform(broker, "", "EventEmmiter")
+        CommlibFactory.stats[broker]['event emmiters'] += 1
+        return ret
+
+    @staticmethod
+    def getEvent(name, event_name = None):
+        ret = None
+        module = importlib.import_module(
+            f"commlib.events"
+        )
+        ret = module.Event(
+            name = name,
+            uri = event_name
+        )
+        CommlibFactory.inform("Event", event_name, "Event")
+        CommlibFactory.stats['common']['events'] += 1
         return ret

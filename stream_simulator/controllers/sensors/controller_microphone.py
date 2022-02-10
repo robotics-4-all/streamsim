@@ -112,6 +112,17 @@ class MicrophoneController(BaseThing):
             callback = self.on_goal_listen,
             action_name = info["base_topic"] + ".listen"
         )
+        self.event_emmiter = CommlibFactory.getEventEmmiter(
+            broker = "redis"
+        )
+        self.event_start_listenning = CommlibFactory.getEvent(
+            name = "StartListenning",
+            event_name = "event.listenning.started"
+        )
+        self.event_stop_listenning = CommlibFactory.getEvent(
+            name = "StopListenning",
+            event_name = "event.listenning.stopped"
+        )
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.enable_callback,
@@ -301,6 +312,11 @@ class MicrophoneController(BaseThing):
         if self.info["enabled"] == False:
             return {}
 
+        self.event_emmiter.send_event(self.event_start_listenning)
+        self.logger.info("Emmiting event: {}!".format(
+            self.event_start_listenning.name
+        ))
+
         # ELSA stuff
         import os
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
@@ -360,6 +376,11 @@ class MicrophoneController(BaseThing):
 
             self.blocked = False
             self.logger.info("Microphone unlocked")
+
+            self.event_emmiter.send_event(self.event_stop_listenning)
+            self.logger.info("Emmiting event: {}!".format(
+                self.event_stop_listenning.name
+            ))
 
             try:
                 from google.cloud import speech

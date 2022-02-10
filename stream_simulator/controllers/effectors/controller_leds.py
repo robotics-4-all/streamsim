@@ -90,19 +90,63 @@ class LedsController(BaseThing):
         }
         self._brightness = 0
 
-        if self.info["mode"] == "real":
-            # topic to initialize and publish to the remote led driver 
-            self.neopixel_create_client = CommlibFactory.getRPCClient(
-                broker="redis",            
-                rpc_name = "neopixel.init"
-            )
+        if 'led_type' not in self.conf:
+            self.conf['led_type'] == "none"
 
-            self.neopixel_pub = CommlibFactory.getPublisher(
-                broker = "redis",
-                topic = "neopixel.set"
-            )
-        
+        if self.info["mode"] == "real":
+            try:
+                if self.conf['led_type'] == "respeaker":
+                    from pidevices import LedRespeaker
+
+                    self.leds = LedRespeaker(
+                        led_brightness=self.conf['led_brightness'], 
+                        name=self.conf['name']
+                    )
+                else:
+                    from pidevices import Neopixel
+
+                    self.leds = LedController(
+                        led_count=self.conf['led_count'],
+                        led_pin=self.conf['led_pin'],
+                        led_freq_hz=self.conf['led_freq_hz'],
+                        led_brightness=self.conf['led_brightness'],
+                        led_invert=self.conf['led_invert'],
+                        led_channel=self.conf['led_channel'],
+                        name=self.conf['name']
+                    )
+            except Exception as e:
+                self.logger.error("Error occured when initializing {} leds: {}.".format(
+                    self.conf['led_type'], 
+                    e
+                ))
+
+                self.leds = None
         #############################################
+
+        self.events = []
+        self.events_fields = {}
+
+        if 'events' in self.conf:
+            for event in self.conf['events']:
+                try:
+                    self.events.append(
+                        CommlibFactory.getSubscriber(
+                            broker = "redis",
+                            callback = self.event_cb,
+                            topic = event['topic']
+                        )
+                    )
+                    self.events_fields[event['topic']] = {
+                        "color": event['color'],
+                        "effect": event['effect'],
+                        "duration": int(event['duration'])
+                    }
+                except Exception as e:
+                    self.logger.error("Failed to create event for topic: {}".format(
+                        event['topic']
+                    ))
+        else:
+            self.logger.warning("No event section in Led Controller")
 
         self.get_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -124,6 +168,71 @@ class LedsController(BaseThing):
             callback = self.disable_callback,
             rpc_name = info["base_topic"] + ".disable"
         )
+    
+    def event_cb(self, message, meta):
+        try:
+            color = self.events_fields[message['uri']]['color']
+            effect = self.events_fields[message['uri']]['effect']
+            duration = self.events_fields[message['uri']]['duration']
+
+            status = self.animation(color, effect, duration)
+
+            if status == -1:
+                self.logger.warning("Invalid effect for event: {}".format(
+                    message['uri']
+                ))
+            elif status == -2:
+                self.logger.warning("Animation not implemented for led type: {}".format(
+                    self.conf["led_type"]
+                ))
+            else:
+                self.logger.info("Setting color for event {} to the value {}".format(
+                    message["uri"],
+                    color
+                ))
+        except Exception as e:
+            self.logger.error("Error when trying to set color for event: {} with message: {}".format(
+                message["uri"],
+                e
+            ))
+
+    def animation(self, color, effect, duration):
+        if self.conf["led_type"] == "respeaker":
+            if effect == "none":
+                self.leds.write(data=[color], wipe=True)
+            elif  effect == "listen":
+                hex_color = self.leds.rgb_to_hex(color)
+                self.leds.pixel_ring.set_color_palette(hex_color, 0x003333)
+                self.leds.pixel_ring.listen()
+            elif effect == "think":
+                hex_color = self.leds.rgb_to_hex(color)
+                self.leds.pixel_ring.set_color_palette(hex_color, 0x003333)
+                self.leds.pixel_ring.think()
+            elif  effect == "spin":
+                hex_color = self.leds.rgb_to_hex(color)
+                self.leds.pixel_ring.set_color_palette(hex_color, 0x003333)
+                self.leds.pixel_ring.spin()
+            elif  effect == "speak":
+                hex_color = self.leds.rgb_to_hex(color)
+                self.leds.pixel_ring.set_color_palette(hex_color, 0x003333)
+                self.leds.pixel_ring.speak()
+            else:
+                return -1
+
+            if duration > 0:
+                time.sleep(duration) 
+                self.leds.write(data=[[0, 0, 0, 0]], wipe=True)
+            
+            return 0
+        else:
+            return -2
+            
+
+    def event_start_listenning_callback(self, message, meta):
+        self.leds.write(data=[[255, 0, 0, 255]], wipe=True)
+
+    def event_stop_listenning_callback(self, message, meta):
+        self.leds.write(data=[[0, 0, 0, 0]], wipe=True)
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True
@@ -138,17 +247,19 @@ class LedsController(BaseThing):
         self.leds_wipe_server.run()
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
-    
-        if self.info["mode"] == "real":
-            self.neopixel_create_client.call({
-                "settings": self.conf
-            })
+
+        for event in self.events:
+            event.run()
+       
 
     def stop(self):
         self.get_rpc_server.stop()
         self.leds_wipe_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
+        
+        for event in self.events:
+            event.stop()
 
     def leds_get_callback(self, message, meta):
         self.logger.info(f"Getting led state!")
@@ -189,10 +300,7 @@ class LedsController(BaseThing):
             elif self.info["mode"] == "simulation":
                 pass
             else: # The real deal
-                self.neopixel_pub.publish({
-                    "color":self._color,
-                    "wait_ms": wait_ms
-                })
+                self.leds.write(data=[self._color], wait_ms=wait_ms, wipe=True)
 
             r = CommlibFactory.derp_client.lset(
                 self.derp_data_key,
