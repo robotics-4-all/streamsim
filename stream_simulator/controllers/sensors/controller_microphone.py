@@ -211,6 +211,12 @@ class MicrophoneController(BaseThing):
             "record": "",
             "volume": 0
         }
+
+        self.event_emmiter.send_event(self.event_start_listenning)
+        self.logger.info("Emmiting event: {}!".format(
+            self.event_start_listenning.name
+        ))
+
         if self.info["mode"] == "mock":
             now = time.time()
             while time.time() - now < duration:
@@ -298,10 +304,22 @@ class MicrophoneController(BaseThing):
                 
                 record = self.sensor.record
 
-                if record:
-                    ret["record"] = base64.b64encode(record).decode("ascii")
+                if self.sensor.record:
+                    record = {
+                        "data": base64.b64encode(self.sensor.record).decode("ascii"),
+                        "channels": self.sensor._channels,
+                        "framerate": self.sensor._framerate,
+                        "sample_width": self.sensor._sample_width
+                    }
+
+                    ret["record"] = record
             except Exception as e:
                 self.logger.error("{} problem in driver during recording".format(self.name))
+
+        self.event_emmiter.send_event(self.event_stop_listenning)
+        self.logger.info("Emmiting event: {}!".format(
+            self.event_stop_listenning.name
+        ))
         
         self.logger.info("{} recording finished".format(self.name))
         self.blocked = False
