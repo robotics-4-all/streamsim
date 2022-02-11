@@ -326,7 +326,7 @@ class SpeakerController(BaseThing):
         self.blocked = True
 
         try:
-            string = goalh.data["string"]
+            source = goalh.data["string"]
             volume = goalh.data["volume"]
             is_file = goalh.data["is_file"]
 
@@ -339,7 +339,7 @@ class SpeakerController(BaseThing):
             self.logger.error("{} wrong parameters: {}".format(self.name, e))
 
         self.play_pub.publish({
-            "text": string,
+            "text": source,
             "volume": volume
         })
 
@@ -375,14 +375,11 @@ class SpeakerController(BaseThing):
                     return ret
                 time.sleep(0.1)
             self.logger.info("Playing done")
-                    
-        else: # The real deal
-            self.speaker.volume = volume
-            
-            source = string
-            if not is_file:
-                source = base64.b64decode(string.encode("ascii")) 
+        
+        else: # The real deal      
+            source["data"] = base64.b64decode(source["data"].encode("ascii"))
 
+            self.speaker.volume = volume
             self.speaker.async_write(source, file_flag=is_file)
 
             # Check handle in case encoded string is given 
