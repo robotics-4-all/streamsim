@@ -65,6 +65,14 @@ robots:
                 color: [0, 255, 0, 100]
                 effect: "none"
                 duration: 1
+              - topic: "raven_wakeword.recording.started"
+                color: [0, 255, 0, 100]
+                effect: "think"
+                duration: -1
+              - topic: "raven_wakeword.recording.finished"
+                color: [0, 0, 0, 0]
+                effect: "none"
+                duration: 0
       speaker:
         -
           orientation: 0
