@@ -28,18 +28,18 @@ robots:
             channels: 1
             framerate: 16000
             max_data_length: 10
-      #camera:
-      # -
-      #   orientation: 0
-      #   place: FRONT
-      #   name: "elsa_camera"
-      #   hz: 1
-      #   sensor_configuration:
-      #     device_id: 1
-      #     framerate: 30
-      #     width: 640
-      #     height: 480
-      #     max_data_length: 2
+      camera:
+       -
+         orientation: 0
+         place: FRONT
+         name: "elsa_camera"
+         hz: 1
+         sensor_configuration:
+           device_id: 1
+           framerate: 30
+           width: 640
+           height: 480
+           max_data_length: 2
       leds:
         -
           orientation: 0
@@ -73,14 +73,6 @@ robots:
                 color: [0, 0, 0, 0]
                 effect: "none"
                 duration: 0
-              - topic: "app_manager.app.started"
-                color: [0, 0, 255, 200]
-                effect: "none"
-                duration: -1
-              - topic: "app_manager.app.stopped"
-                color: [255, 0, 0, 200]
-                effect: "none"
-                duration: 1
       speaker:
         -
           orientation: 0
