@@ -139,7 +139,7 @@ class LedsController(BaseThing):
                     self.events_fields[event['topic']] = {
                         "color": event['color'],
                         "effect": event['effect'],
-                        "duration": int(event['duration'])
+                        "duration": float(event['duration'])
                     }
                 except Exception as e:
                     self.logger.error("Failed to create event for topic: {}".format(
@@ -168,6 +168,9 @@ class LedsController(BaseThing):
             callback = self.disable_callback,
             rpc_name = info["base_topic"] + ".disable"
         )
+
+        self.animation([255, 155, 0, 0], "spin", -1)
+        
     
     def event_cb(self, message, meta):
         try:

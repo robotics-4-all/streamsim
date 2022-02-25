@@ -347,18 +347,37 @@ class MicrophoneController(BaseThing):
 
         try:
             duration = goalh.data["duration"]
+
+            if duration < 0:
+                self.logger.warning("{} listen duration should be a positive number".format(self.name))
+                raise ValueError
+
+        except Exception as e:
+            duration = 10
+            self.logger.error("{} goal had no duration as parameter".format(self.name))
+
+        try:
             language = goalh.data["language"]
         except Exception as e:
-            self.logger.error("{} goal had no duration and language as parameter".format(self.name))
+            language = 'EL'
+            self.logger.error("{} goal had no language as parameter".format(self.name))
+        
+        try:
+            vad = goalh.data["vad"]
+        except Exception as e:
+            vad = True
+            self.logger.error("{} goal had no vad as parameter".format(self.name))
 
+        
         if self.info["mode"] == "real": # The real deal
             try:
-                if duration == -1:
+                if vad: 
                     self.vad.reset()
                     self.sensor.async_read(secs=100, stream_cb=self.vad.update)         
 
+                    timer = time.time()
                     voice_was_detected = False
-                    while not self.vad.has_spoken():
+                    while not self.vad.has_spoken() and (time.time() - timer) < duration:
                         if self.vad.voice_detected() and not voice_was_detected:
                             voice_was_detected = True
                             self.logger.info("Voice Detected! Start Recording...")
@@ -368,11 +387,11 @@ class MicrophoneController(BaseThing):
                             break
                         time.sleep(0.1)
 
+                    time.sleep(0.3)
+
                     self.sensor.cancel()
                     
                     self.logger.info("No voice during last: {} sec. Stop Recording!".format(self.vad.speech_timeout))
-
-                    time.sleep(0.3)
                 else:
                     self.sensor.async_read(secs=duration)
 
@@ -424,7 +443,6 @@ class MicrophoneController(BaseThing):
                 text = ''
 
                 self.logger.error("{} Problem with google text-to-speech".format(self.name))
-
         
         self.logger.info("Listening finished: " + str(text))
         return {'text': text}

@@ -49,9 +49,13 @@ robots:
             led_brightness: 255
             name: "Respeaker Leds"
             events: 
+              - topic: "rasa_nlu.state.active"
+                color: [0, 0, 0, 0]
+                effect: "none"
+                duration: 0
               - topic: "event.listenning.started"
                 color: [0, 255, 0, 100]
-                effect: "think"
+                effect: "spin"
                 duration: -1
               - topic: "event.listenning.stopped"
                 color: [0, 0, 0, 0]
@@ -67,7 +71,7 @@ robots:
                 duration: 1
               - topic: "raven_wakeword.recording.started"
                 color: [0, 255, 0, 100]
-                effect: "think"
+                effect: "spin"
                 duration: -1
               - topic: "raven_wakeword.recording.finished"
                 color: [0, 0, 0, 0]
@@ -75,12 +79,12 @@ robots:
                 duration: 0
               - topic: "app_manager.app.started"
                 color: [0, 0, 255, 200]
-                effect: "none"
+                effect: "spin"
                 duration: -1
               - topic: "app_manager.app.stopped"
                 color: [255, 0, 0, 200]
                 effect: "none"
-                duration: 1
+                duration: 0.25
       speaker:
         -
           orientation: 0
