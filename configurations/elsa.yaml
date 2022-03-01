@@ -85,6 +85,30 @@ robots:
                 color: [255, 0, 0, 200]
                 effect: "none"
                 duration: 0.25
+              - topic: "device_upgrader.events.upgrade.start"
+                color: [255, 155, 0, 0]
+                effect: "spin"
+                duration: -1
+              - topic: "device_upgrader.events.upgrade.end"
+                color: [0, 0, 0, 0]
+                effect: "none"
+                duration: 0
+              - topic: "app_manager.app.install.start"
+                color: [255, 155, 0, 0]
+                effect: "spin"
+                duration: -1
+              - topic: "app_manager.app.uninstall.start"
+                color: [255, 155, 0, 0]
+                effect: "spin"
+                duration: -1
+              - topic: "app_manager.app.install.end"
+                color: [0, 0, 0, 0]
+                effect: "none"
+                duration: 0
+              - topic: "app_manager.app.uninstall.end"
+                color: [0, 0, 0, 0]
+                effect: "none"
+                duration: 0
       speaker:
         -
           orientation: 0
