@@ -9,14 +9,24 @@ class ConnParams:
         "port": 6379
     }
 
+    # AMQP_SETTINGS = {
+    #     "credentials": {
+    #         "username": "bot",
+    #         "password": "b0t"
+    #     },
+    #     "host": "tektrain-cloud.ddns.net",
+    #     "port": 5672,
+    #     "vhost": "sim"
+    # }
+    
     AMQP_SETTINGS = {
         "credentials": {
-            "username": "bot",
-            "password": "b0t"
+            "username": "elsa-0",
+            "password": "elsa-0"
         },
-        "host": "tektrain-cloud.ddns.net",
-        "port": 5672,
-        "vhost": "sim"
+        "host": "r4a-platform.ddns.net",
+        "port": 5782,
+        "vhost": "/"
     }
 
     @staticmethod

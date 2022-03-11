@@ -9,6 +9,7 @@ import threading
 import random
 import base64
 import wave
+import socket
 
 from colorama import Fore, Style
 
@@ -138,6 +139,12 @@ class MicrophoneController(BaseThing):
             broker = "redis",
             callback = self.vad_training_callback,
             rpc_name = info["base_topic"] + ".train_vad"
+        )
+
+        listen_text_topic = f"thing.{socket.gethostname()}.streamsim.microphone.listen"
+        self.listen_text_pub = CommlibFactory.getPublisher(
+            broker = "amqp",
+            topic = listen_text_topic
         )
 
         self.record_pub = CommlibFactory.getPublisher(
@@ -419,6 +426,8 @@ class MicrophoneController(BaseThing):
                 self.event_stop_listenning.name
             ))
 
+            result = ''
+
             try:
                 from google.cloud import speech
 
@@ -435,17 +444,21 @@ class MicrophoneController(BaseThing):
                 )
                 
                 if len(text.results):
-                    text = text.results[0].alternatives[0].transcript
+                    result = text.results[0].alternatives[0].transcript
                 else:
-                    text = ''
+                    result = ''
             
             except Exception as e:
-                text = ''
+                result = ''
 
                 self.logger.error("{} Problem with google text-to-speech".format(self.name))
-        
-        self.logger.info("Listening finished: " + str(text))
-        return {'text': text}
+
+        self.listen_text_pub.publish({
+            "text": result 
+        })
+
+        self.logger.info("Listening finished: " + str(result))
+        return {'text': result}
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

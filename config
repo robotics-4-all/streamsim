@@ -15,6 +15,7 @@ password = elsa-5
 [interfaces]
 heartbeat = thing.DEVICE.streamsim.heartbeat
 logs = thing.DEVICE.streamsim.logs
+listen_topic = thing.DEVICE.streamsim.microphone.listen
 
 [redis]
 host = localhost
