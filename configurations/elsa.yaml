@@ -109,6 +109,10 @@ robots:
                 color: [0, 0, 0, 0]
                 effect: "none"
                 duration: 0
+              - topic: "event.broker.down"
+                color: [255, 155, 0, 0]
+                effect: "spin"
+                duration: 0
       speaker:
         -
           orientation: 0
