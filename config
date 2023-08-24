@@ -4,7 +4,7 @@ device_name = elsa-5
 remote_logging = 1
 
 [broker]
-host = 155.207.33.189
+host = issel08.ee.auth.gr
 port = 5782
 vhost = /
 rpc_exchange = DEFAULT

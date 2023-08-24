@@ -14,7 +14,7 @@ class ConnParams:
     #         "username": "bot",
     #         "password": "b0t"
     #     },
-    #     "host": "tektrain-cloud.ddns.net",
+    #     "host": "issel08.ee.auth.gr.ddns.net",
     #     "port": 5672,
     #     "vhost": "sim"
     # }
@@ -24,7 +24,7 @@ class ConnParams:
             "username": "elsa-0",
             "password": "elsa-0"
         },
-        "host": "r4a-platform.ddns.net",
+        "host": "issel08.ee.auth.gr",
         "port": 5782,
         "vhost": "/"
     }
