@@ -2,7 +2,7 @@ name: robot_1
 mode: simulation # [simulation, mock, real]
 speak_mode: espeak # [google, espeak] - in case of real mode
 wait_for: [] #[rhasspy] # in case of real mode
-amqp_inform: false
+remote_inform: false
 step_by_step_execution: false
 devices:
   microphone:
