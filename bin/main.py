@@ -3,8 +3,11 @@
 
 import time
 import sys
+import logging
 
 from stream_simulator import Simulator
+
+logging.basicConfig(format='%(levelname)s : %(name)s : %(message)s', level=logging.DEBUG)
 
 if len(sys.argv) < 2:
     print("You must provide a valid yaml name as argument and if you want the device name. For example:")

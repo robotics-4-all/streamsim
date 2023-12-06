@@ -10,14 +10,13 @@ import random
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class LedsController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -135,11 +134,11 @@ class LedsController(BaseThing):
             rpc_name = info["base_topic"] + ".disable"
         )
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 
@@ -157,14 +156,14 @@ class LedsController(BaseThing):
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
-    def leds_get_callback(self, message, meta):
+    def leds_get_callback(self, message):
         self.logger.info(f"Getting led state!")
         return {
             "color": self._color,
             "luminosity": self._luminosity
         }
 
-    def leds_set_callback(self, message, meta):
+    def leds_set_callback(self, message):
         try:
             response = message
             
@@ -197,20 +196,6 @@ class LedsController(BaseThing):
                 self._color["g"] = g
                 self._color["b"] = b
                 self._luminosity = intensity
-            else: # The real deal
-                self.led_strip.write([real_color], wipe = False)
-
-            # self.leds_pub.publish({"r": r, "g": g, "b": b})
-
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "data": {"r": r, "g": g, "b": b, "luminosity": intensity},
-                    "type": "simple",
-                    "timestamp": time.time()
-                }]
-            )
 
             self.logger.info("{}: New leds command: {}".format(self.name, message))
 
@@ -219,7 +204,7 @@ class LedsController(BaseThing):
 
         return {}
 
-    def leds_wipe_callback(self, message, meta):
+    def leds_wipe_callback(self, message):
         try:
             response = message
             r = response["r"]
@@ -246,26 +231,6 @@ class LedsController(BaseThing):
                 pass
             elif self.info["mode"] == "simulation":
                 pass
-            else: # The real deal
-                self.led_strip.write([self._color], wipe=True)
-            #
-            # self.leds_wipe_pub.publish({
-            #     "r": r,
-            #     "g": g,
-            #     "b": b,
-            #     "luminosity": intensity,
-            #     "ms": ms
-            # })
-
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "data": {"r": r, "g": g, "b": b, "luminosity": intensity},
-                    "type": "wipe",
-                    "timestamp": time.time()
-                }]
-            )
 
             self.logger.info("{}: New leds wipe command: {}".format(self.name, message))
 

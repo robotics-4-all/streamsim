@@ -10,14 +10,13 @@ import random
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
 class SonarController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -107,7 +106,7 @@ class SonarController(BaseThing):
             )
 
 
-    def robot_pose_update(self, message, meta):
+    def robot_pose_update(self, message):
         self.robot_pose = message
 
     def sensor_read(self):
@@ -135,8 +134,6 @@ class SonarController(BaseThing):
                     val = d * self.robot_pose["resolution"]
                 except:
                     self.logger.warning("Pose not got yet..")
-            else: # The real deal
-                self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
 
             # Publishing value:
             self.publisher.publish({
@@ -144,18 +141,9 @@ class SonarController(BaseThing):
                 "timestamp": time.time()
             })
 
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "distance": val,
-                    "timestamp": time.time()
-                }]
-            )
-
         self.logger.debug("Sonar {} sensor read thread stopped".format(self.info["id"]))
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -165,7 +153,7 @@ class SonarController(BaseThing):
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         self.logger.info("Sonar {} stops reading".format(self.info["id"]))
         return {"enabled": False}

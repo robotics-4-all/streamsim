@@ -8,7 +8,6 @@ import logging
 import threading
 import random
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 

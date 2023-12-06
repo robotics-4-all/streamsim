@@ -10,14 +10,13 @@ import random
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
 class EnvHumidifierController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 

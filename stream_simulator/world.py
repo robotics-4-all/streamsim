@@ -8,12 +8,12 @@ import numpy
 import logging
 import math
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class World:
     def __init__(self):
-        self.logger = Logger("world")
+        pass
+        self.logger = logging.getLogger(__name__)
 
     def load_environment(self, configuration = None):
         self.configuration = configuration
@@ -47,7 +47,7 @@ class World:
         if "actors" in self.configuration:
             self.actors = self.configuration["actors"]
 
-        self.logger.info("World loaded")
+        # self.logger.info("World loaded")
         self.devices = []
         self.controllers = {}
 
@@ -68,7 +68,7 @@ class World:
         for c in self.controllers:
             self.controllers[c].start()
 
-    def devices_callback(self, message, meta):
+    def devices_callback(self, message):
         return {
             "devices": self.devices,
             "timestamp": time.time()

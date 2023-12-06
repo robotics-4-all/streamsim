@@ -13,46 +13,9 @@ import os
 from colorama import Fore, Style, Back
 import configparser
 
-from commlib.logger import RemoteLogger, Logger
 from commlib.node import TransportType
 import commlib.transports.amqp as acomm
 from stream_simulator.connectivity import CommlibFactory
-
-class HeartbeatThread(threading.Thread):
-    def __init__(self, topic, _conn_params, interval=10,  *args, **kwargs):
-        super(HeartbeatThread, self).__init__(*args, **kwargs)
-        self._stop_event = threading.Event()
-        self._rate_secs = interval
-        import commlib
-        self._heartbeat_pub = commlib.transports.amqp.Publisher(
-            topic=topic,
-            conn_params=_conn_params,
-            debug=False
-        )
-        self.daemon = True
-
-    def run(self):
-        try:
-            while not self._stop_event.isSet():
-                self._heartbeat_pub.publish({})
-                self._stop_event.wait(self._rate_secs)
-        except Exception as exc:
-            # print('Heartbeat Thread Ended')
-            pass
-        finally:
-            # print('Heartbeat Thread Ended')
-            pass
-
-    def force_join(self, timeout=None):
-        """ Stop the thread. """
-        self._stop_event.set()
-        threading.Thread.join(self, timeout)
-
-    def stop(self):
-        self._stop_event.set()
-
-    def stopped(self):
-        return self._stop_event.is_set()
 
 class Robot:
     def __init__(self,
@@ -65,71 +28,20 @@ class Robot:
         world = world.configuration
 
         self.configuration = configuration
-        self.logger = Logger(self.configuration["name"])
+        self.logger = logging.getLogger(__name__)
 
         self.tf_base = world['tf_base']
         self.tf_declare_rpc = CommlibFactory.getRPCClient(
             rpc_name = self.tf_base + ".declare"
         )
 
-        try:
-            self.namespace = os.environ['TEKTRAIN_NAMESPACE']
-        except:
-            self.logger.warning("No TEKTRAIN_NAMESPACE environmental variable found. Automatically setting it to robot")
-            os.environ["TEKTRAIN_NAMESPACE"] = "robot"
-            self.namespace = "robot"
+        self.logger.warning("Setting namespace to robot")
+        os.environ["TEKTRAIN_NAMESPACE"] = "robot"
+        self.namespace = "robot"
 
         self.common_logging = False
 
         self.motion_controller = None
-
-        try: # Get config for remote logging and heartbeat
-            cfg_file = os.path.expanduser("~/.config/streamsim/config")
-            if not os.path.isfile(cfg_file):
-                self.logger = Logger(self.configuration["name"])
-                self.logger.warn('Config file does not exist')
-            config = configparser.ConfigParser()
-            config.read(cfg_file)
-
-            self._username = config.get('broker', 'username')
-            self._password = config.get('broker', 'password')
-            self._host = config.get('broker', 'host')
-            self._port = config.get('broker', 'port')
-            self._vhost = config.get('broker', 'vhost')
-
-            self._device = config.get('core', 'device_name')
-            self._heartbeat_topic = config.get('interfaces', 'heartbeat').replace("DEVICE", self._device)
-            self._logs_topic = config.get('interfaces', 'logs').replace("DEVICE", self._device)
-
-            self.server_params = acomm.ConnectionParameters(
-                host=self._host,
-                port=self._port,
-                vhost=self._vhost)
-            self.server_params.credentials.username = self._username
-            self.server_params.credentials.password = self._password
-
-            if config.get('core', 'remote_logging') == "1":
-                self.logger = RemoteLogger(
-                    self.__class__.__name__,
-                    TransportType.AMQP,
-                    self.server_params,
-                    remote_topic=self._logs_topic
-                )
-                self.logger.info("Created remote logger")
-
-            # Heartbeat
-            self._heartbeat_thread = HeartbeatThread(
-                self._heartbeat_topic,
-                self.server_params
-            )
-            self.logger.info(f"{Fore.RED}Created amqp Publisher {self._heartbeat_topic}{Style.RESET_ALL} ")
-            self._heartbeat_thread.start()
-            self.logger.warning("Setting remote connections successful")
-
-            self.common_logging = True
-
-        except Exception as e:
-            self.logger.warning(f"Error in streamsim system configuration file: {str(e)}")
 
         self.raw_name = self.configuration["name"]
         self.name = self.namespace + "." + self.configuration["name"]
@@ -207,7 +119,7 @@ class Robot:
         )
 
         # SIMULATOR ------------------------------------------------------------
-        if self.configuration['amqp_inform'] is True:
+        if self.configuration['remote_inform'] is True:
             import commlib
 
             final_t = self.name
@@ -220,36 +132,36 @@ class Robot:
 
             # AMQP Publishers  -----------------------------------------------
             self.pose_pub = CommlibFactory.getPublisher(
-                broker = "amqp",
+                broker = "mqtt",
                 topic = final_top
             )
             self.detects_pub = CommlibFactory.getPublisher(
-                broker = "amqp",
+                broker = "mqtt",
                 topic = final_dete_top
             )
             self.leds_pub = CommlibFactory.getPublisher(
-                broker = "amqp",
+                broker = "mqtt",
                 topic = final_leds_top
             )
             self.leds_wipe_pub = CommlibFactory.getPublisher(
-                broker = "amqp",
+                broker = "mqtt",
                 topic = final_leds_wipe_top
             )
             self.execution_pub = CommlibFactory.getPublisher(
-                broker = "amqp",
+                broker = "mqtt",
                 topic = final_exec
             )
 
             # AMQP Subscribers  -----------------------------------------------
             self.buttons_amqp_sub = CommlibFactory.getSubscriber(
-                broker = "amqp",
+                broker = "mqtt",
                 topic = final_t + ".buttons",
                 callback = self.button_amqp
             )
 
             if self.step_by_step_execution:
                 self.step_by_step_amqp_sub = CommlibFactory.getSubscriber(
-                    broker = "amqp",
+                    broker = "mqtt",
                     topic = final_t + ".step_by_step",
                     callback = self.step_by_step_amqp
                 )
@@ -363,10 +275,6 @@ class Robot:
                     if 'theta' not in m['pose']:
                         m['pose']['theta'] = None
 
-                # Handle sensor configuration
-                if 'sensor_configuration' not in m and \
-                    self.mode is "real":
-                    self.logger.error(f"Device {m} lacks real sensor configuration!")
                 self.register_controller(map[s](conf = m, package = p))
 
         # Handle the buttons
@@ -390,29 +298,30 @@ class Robot:
             }
             self.register_controller(map["button_array"](conf = m, package = p))
 
-    def leds_redis(self, message, meta):
+    def leds_redis(self, message):
         self.logger.debug("Got leds from redis " + str(message))
         self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.leds_pub.publish(message)
 
-    def leds_wipe_redis(self, message, meta):
+    def leds_wipe_redis(self, message):
         self.logger.debug("Got leds wipe from redis " + str(message))
         self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.leds_wipe_pub.publish(message)
 
-    def execution_nodes_redis(self, message, meta):
+    def execution_nodes_redis(self, message):
         self.logger.debug("Got execution node from redis " + str(message))
         self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         message["device"] = self.raw_name
         self.execution_pub.publish(message)
 
-    def detects_redis(self, message, meta):
+    def detects_redis(self, message):
         self.logger.warning("Got detect from redis " + str(message))
         # Wait for source
         done = False
         while not done:
             try:
-                v2 = CommlibFactory.derp_client.lget(self.name + ".detect.source", 0, 0)['val'][0]
+                v2 = "" ## Change this!
+                # v2 = CommlibFactory.derp_client.lget(self.name + ".detect.source", 0, 0)['val'][0]
                 self.logger.info("Got the source!")
                 done = True
             except:
@@ -426,13 +335,13 @@ class Robot:
         self.logger.warning(f"{Fore.CYAN}Sending to amqp notifier: {message}{Style.RESET_ALL}")
         self.detects_pub.publish(message)
 
-    def button_amqp(self, message, meta):
+    def button_amqp(self, message):
         self.logger.warning("Got button press from amqp " + str(message))
         self.buttons_sim_pub.publish({
             "button": message["button"]
         })
 
-    def step_by_step_amqp(self, message, meta):
+    def step_by_step_amqp(self, message):
         self.logger.info(f"Got next step from amqp")
         self.next_step_pub.publish({})
 
@@ -440,7 +349,7 @@ class Robot:
         for c in self.controllers:
             self.controllers[c].start()
 
-        if self.configuration['amqp_inform'] is True:
+        if self.configuration['remote_inform'] is True:
             self.buttons_amqp_sub.run()
             self.execution_nodes_redis_sub.run()
             self.detects_redis_sub.run()
@@ -453,21 +362,6 @@ class Robot:
         self.reset_pose_rpc_server.run()
         self.stopped = False
         self.simulator_thread.start()
-
-        r = CommlibFactory.derp_client.lset(
-            "stream_sim/state",
-            [{
-                "state": "ACTIVE",
-                "device": self.name,
-                "timestamp": time.time()
-            }])
-        self.logger.warning(f"Notified for being ready")
-        r = CommlibFactory.derp_client.lset(
-            f"{self.name}/step_by_step_status",
-            [{
-                "value": self.step_by_step_execution,
-                "timestamp": time.time()
-            }])
 
     def stop(self):
         for c in self.controllers:
@@ -487,7 +381,7 @@ class Robot:
         self.logger.warning("Trying to stop simulation_thread")
         self.stopped = True
 
-    def devices_callback(self, message, meta):
+    def devices_callback(self, message):
         self.logger.warning("Getting devices")
         timestamp = time.time()
         secs = int(timestamp)
@@ -497,7 +391,7 @@ class Robot:
                 "timestamp": time.time()
         }
 
-    def reset_pose_callback(self, message, meta):
+    def reset_pose_callback(self, message):
         self.logger.warning("Resetting robot pose")
         self._x = self._init_x
         self._y = self._init_y

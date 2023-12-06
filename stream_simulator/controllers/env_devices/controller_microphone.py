@@ -13,7 +13,6 @@ import base64
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
@@ -24,7 +23,7 @@ class EnvMicrophoneController(BaseThing):
                  ):
 
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 

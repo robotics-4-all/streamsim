@@ -8,14 +8,13 @@ import logging
 import threading
 import random
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class EncoderController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -87,14 +86,6 @@ class EncoderController(BaseThing):
             broker = "redis",
             topic = self.base_topic + ".data"
         )
-
-        if self.info["mode"] == "real":
-            from pidevices import DfRobotWheelEncoderPiGPIO
-
-            self.sensor = DfRobotWheelEncoderPiGPIO(gpio=self.conf["pin"],
-                                                      pulses_per_rev = 10,
-                                                      name=self.name,
-                                                      max_data_length=self.conf["max_data_length"])
 
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -191,11 +182,6 @@ class EncoderController(BaseThing):
                                 rot_factor = self.angular_coeff * t_p * data['angular']
                             self.data += lin_factor + rot_factor
 
-                            # print("Case 3.2", t_p, lin_factor, rot_factor, self.data, self.name)
-
-            else: # The real deal
-                self.data = self.sensor.read_rpm()
-
             time.sleep(period)
 
             # Publishing value:
@@ -203,20 +189,10 @@ class EncoderController(BaseThing):
                 "rpm": self.data,
                 "timestamp": time.time()
             })
-            # print("storing", self.data, self.place)
-
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "rpm": self.data,
-                    "timestamp": time.time()
-                }]
-            )
 
         self.logger.info("Encoder {} sensor read thread stopped".format(self.info["id"]))
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -225,7 +201,7 @@ class EncoderController(BaseThing):
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         self.logger.info("Encoder {} stops reading".format(self.info["id"]))
         return {"enabled": False}

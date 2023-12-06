@@ -10,14 +10,13 @@ import random
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class PanTiltController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -117,11 +116,11 @@ class PanTiltController(BaseThing):
             topic = info["base_topic"] + ".data"
         )
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 
@@ -131,53 +130,30 @@ class PanTiltController(BaseThing):
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
 
-        if self.info["mode"] == "real":
-            self.pan_tilt.start()
-
     def stop(self):
         self.pan_tilt_set_sub.stop()
         self.pan_tilt_get_rpc_server.stop()
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
-        # stop servos
-        if self.info["mode"] == "real":
-            self.pan_tilt.stop()
-
-    def get_pan_tilt_callback(self, message, meta):
+    def get_pan_tilt_callback(self, message):
         return {
             "pan": self._yaw,
             "tilt": self._pitch
         }
 
 
-    def pan_tilt_set_callback(self, message, meta):
+    def pan_tilt_set_callback(self, message):
         try:
             response = message
             self._yaw = response['pan']
             self._pitch = response['tilt']
 
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "data": {
-                        "pan": self._yaw,
-                        "tilt": self._pitch
-                    },
-                    "timestamp": time.time()
-                }]
-            )
-
             if self.info["mode"] == "mock":
                 pass
             elif self.info["mode"] == "simulation":
                 pass
-            else: # The real deal
-                #self.logger.warning("{} mode not implemented for {}".format(self.info["mode"], self.name))
-                self.pan_tilt.write(self.yaw_channel, self._yaw, degrees=True)
-                self.pan_tilt.write(self.pitch_channel, self._pitch, degrees=True)
-
+          
             self.data_publisher.publish({
                 'pan': self._yaw,
                 'tilt': self._pitch,

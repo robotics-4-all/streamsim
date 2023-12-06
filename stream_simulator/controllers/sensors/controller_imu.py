@@ -10,14 +10,13 @@ import random
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class ImuController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -89,12 +88,6 @@ class ImuController(BaseThing):
             topic = self.base_topic + ".data"
         )
 
-        if self.info["mode"] == "real":
-            from pidevices import ICM_20948
-            from .imu_calibration import IMUCalibration
-
-            self._sensor = ICM_20948(self.conf["bus"]) # connect to bus (1)
-            self._imu_calibrator = IMUCalibration(calib_time=5, buf_size=5)
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = CommlibFactory.getSubscriber(
                 broker = "redis",
@@ -119,7 +112,7 @@ class ImuController(BaseThing):
             rpc_name = info["base_topic"] + ".disable"
         )
 
-    def robot_pose_update(self, message, meta):
+    def robot_pose_update(self, message):
         if self.prev_robot_pose == None:
             self.prev_robot_pose = message
             self.prev_robot_pose['timestamp'] = time.time()
@@ -154,12 +147,12 @@ class ImuController(BaseThing):
                 }
 
             elif self.info["mode"] == "simulation":
-                moving = 0
-                if time.time() - self.robot_pose['timestamp'] < 1.5:
-                    # this means the pose is old and the robot has stopped
-                    # print("moving")
-                    moving = 1
                 try:
+                    moving = 0
+                    if time.time() - self.robot_pose['timestamp'] < 1.5:
+                        # this means the pose is old and the robot has stopped
+                        # print("moving")
+                        moving = 1
                     val = {
                         "acceleration": {
                             "x": random.uniform(0.03, -0.03) + moving * 0.1,
@@ -177,17 +170,8 @@ class ImuController(BaseThing):
                             "roll": random.uniform(0.03, -0.03)
                         }
                     }
-                    # import pprint
-                    # pprint.pprint(val)
-                    # print("")
                 except:
                     self.logger.warning("Pose not got yet..")
-            else: # The real deal
-                data = self._sensor.read()
-
-                self._imu_calibrator.update(data)
-
-                val = self._imu_calibrator.getCalibData()
 
             # Publish data to sensor stream
             self.publisher.publish({
@@ -195,18 +179,9 @@ class ImuController(BaseThing):
                 "timestamp": time.time()
             })
 
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "data": val,
-                    "timestamp": time.time()
-                }]
-            )
-
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -216,7 +191,7 @@ class ImuController(BaseThing):
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         self.logger.info("IMU {} stops reading".format(self.info["id"]))
         return {"enabled": False}

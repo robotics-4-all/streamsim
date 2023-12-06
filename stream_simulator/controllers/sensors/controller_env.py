@@ -10,14 +10,13 @@ import random
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class EnvController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -86,20 +85,6 @@ class EnvController(BaseThing):
             broker = "redis",
             topic = self.base_topic + ".data"
         )
-
-        if self.info["mode"] == "real":
-            from pidevices import BME680
-            self.sensor = BME680(self.conf["bus"], self.conf["slave"],
-                                 t_oversample=self.conf["t_over"],
-                                 h_oversample=self.conf["h_over"],
-                                 p_oversample=self.conf["p_over"],
-                                 iir_coef=self.conf["iir_coef"],
-                                 gas_status=self.conf["g_status"],
-                                 name=self.name,
-                                 max_data_length=self.conf["max_data_length"])
-            self.sensor.set_heating_temp([0], [320])
-            self.sensor.set_heating_time([0], [100])
-            self.sensor.set_nb_conv(0)
 
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
@@ -181,13 +166,6 @@ class EnvController(BaseThing):
 
                 # pressure
                 val["pressure"] = 27.3 + random.uniform(-3, 3)
-            else: # The real deal
-                data = self.sensor.read()
-
-                val["temperature"] = data.temp
-                val["pressure"] = data.pres
-                val["humidity"] = data.hum
-                val["gas"] = data.gas
 
             # Publishing value:
             self.publisher.publish({
@@ -195,18 +173,9 @@ class EnvController(BaseThing):
                 "timestamp": time.time()
             })
 
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "data": val,
-                    "timestamp": time.time()
-                }]
-            )
-
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -215,7 +184,7 @@ class EnvController(BaseThing):
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         self.logger.info("Env {} stops reading".format(self.info["id"]))
         return {"enabled": False}

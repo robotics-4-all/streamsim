@@ -12,7 +12,6 @@ import pprint as pp
 from .robot import Robot
 from .world import World
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import ConnParams
 if ConnParams.type == "amqp":
     from commlib.transports.amqp import Subscriber
@@ -34,11 +33,7 @@ class Simulator:
                  ):
 
         self.tick = tick
-        self.logger = Logger("simulator")
-
-        logging.getLogger("pika").setLevel(logging.WARNING)
-        logging.getLogger("Adafruit_I2C").setLevel(logging.INFO)
-        logging.getLogger().setLevel(logging.WARNING)
+        self.logger = logging.getLogger(__name__)
 
         self.configuration = self.parseConfiguration(conf_file, configuration)
         if "simulation" in self.configuration:
@@ -70,7 +65,7 @@ class Simulator:
             # Setup notification channel
             self.logger.info(f"Created {self.name}.notifications publisher!")
             CommlibFactory.notify = CommlibFactory.getPublisher(
-                broker = 'amqp',
+                broker = 'mqtt',
                 topic = f"{self.name}.notifications"
             )
         else:
@@ -103,7 +98,7 @@ class Simulator:
         )
         self.devices_rpc_server.run()
 
-    def devices_callback(self, message, meta):
+    def devices_callback(self, message):
         return {
                 "robots": self.robot_names,
                 "world": self.world_name

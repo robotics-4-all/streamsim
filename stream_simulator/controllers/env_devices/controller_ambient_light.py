@@ -10,7 +10,6 @@ import random
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
@@ -21,7 +20,7 @@ class EnvAmbientLightController(BaseThing):
                  ):
 
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -220,15 +219,6 @@ class EnvAmbientLightController(BaseThing):
                 "value": lum,
                 "timestamp": time.time()
             })
-
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "value": lum,
-                    "timestamp": time.time()
-                }]
-            )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

@@ -13,7 +13,6 @@ import base64
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
@@ -24,7 +23,7 @@ class EnvCameraController(BaseThing):
                  ):
 
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -234,22 +233,6 @@ class EnvCameraController(BaseThing):
                 },
                 "timestamp": time.time()
             })
-
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "value": {
-                        "timestamp": time.time(),
-                        "format": "RGB",
-                        "per_rows": True,
-                        "width": width,
-                        "height": height,
-                        "image": data
-                    },
-                    "timestamp": time.time()
-                }]
-            )
 
     def enable_callback(self, message, meta):
         self.info["enabled"] = True

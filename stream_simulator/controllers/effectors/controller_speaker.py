@@ -11,14 +11,13 @@ import base64
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class SpeakerController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -83,27 +82,6 @@ class SpeakerController(BaseThing):
         self.global_volume = None
         self.blocked = False
 
-        if self.info["mode"] == "real":
-            from pidevices import Speaker
-            self.speaker = Speaker(dev_name = self.conf["dev_name"], name = self.name, max_data_length = self.conf["max_data_length"])
-
-            if self.info["speak_mode"] == "espeak":
-                from espeakng import ESpeakNG
-
-                self.esng = ESpeakNG()
-                #self.esng.pitch = 32
-                #self.esng.speed = 150
-
-            elif self.info["speak_mode"] == "google":
-                import os
-                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
-
-                from google.cloud import texttospeech
-                self.client = texttospeech.TextToSpeechClient()
-                self.audio_config = texttospeech.AudioConfig(
-                    audio_encoding = texttospeech.AudioEncoding.LINEAR16,
-                    sample_rate_hertz = 44100)
-
         self.play_action_server = CommlibFactory.getActionServer(
             broker = "redis",
             callback = self.on_goal_play,
@@ -136,15 +114,6 @@ class SpeakerController(BaseThing):
         self.speak_pub = CommlibFactory.getPublisher(
             topic = info["base_topic"] + ".speak.notify"
         )
-
-        # Try to get global volume:
-        res = CommlibFactory.derp_client.get(
-            "device.global_volume.persistent",
-            persistent = True
-        )
-        if res['val'] is not None:
-            self.global_volume = int(res['val'])
-            self.set_global_volume()
 
     def on_goal_speak(self, goalh):
         self.logger.info("{} speak started".format(self.name))
@@ -217,54 +186,9 @@ class SpeakerController(BaseThing):
                 time.sleep(0.1)
             self.logger.info("Speaking done")
 
-        else: # The real deal
-            if self.info["speak_mode"] == "espeak":
-                path = "/home/pi/tektrain-robot-sw/wav_sounds/file_example_WAV_1MG.wav"
-                self.esng.voice = language
-                self.esng._espeak_exe([texts, "-w", path], sync = True)
-                self.speaker.volume = volume
-                self.speaker.async_write(path, file_flag=True)
-                while self.speaker.playing:
-                    if goalh.cancel_event.is_set():
-                        self.logger.info("Cancel got")
-                        self.blocked = False
-                        return ret
-                    time.sleep(0.1)
-            else: # google
-                from google.cloud import texttospeech
-                self.voice = texttospeech.VoiceSelectionParams(\
-                    language_code = language,\
-                    ssml_gender = texttospeech.SsmlVoiceGender.FEMALE)
-
-                synthesis_input = texttospeech.SynthesisInput(text = texts)
-                response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
-
-                self.speaker.volume = volume
-                self.speaker.async_write(response.audio_content, file_flag=False)
-                self.logger.info("Speaking...")
-                while self.speaker.playing:
-                    time.sleep(0.1)
-                self.logger.info("Speaking done")
-
         self.logger.info("{} Speak finished".format(self.name))
         self.blocked = False
         return ret
-
-    def google_speak(self, language = None, texts = None, volume = None):
-        from google.cloud import texttospeech
-        self.voice = texttospeech.VoiceSelectionParams(\
-            language_code = language,\
-            ssml_gender = texttospeech.SsmlVoiceGender.FEMALE)
-
-        synthesis_input = texttospeech.SynthesisInput(text = texts)
-        response = self.client.synthesize_speech(input = synthesis_input, voice = self.voice, audio_config = self.audio_config)
-
-        self.speaker.volume = volume
-        self.speaker.async_write(response.audio_content, file_flag=False)
-        self.logger.info("Speaking...")
-        while self.speaker.playing:
-            time.sleep(0.1)
-        self.logger.info("Speaking done")
 
     def on_goal_play(self, goalh):
         self.logger.info("{} play started".format(self.name))
@@ -324,17 +248,11 @@ class SpeakerController(BaseThing):
                 time.sleep(0.1)
             self.logger.info("Playing done")
 
-        else: # The real deal
-            source = base64.b64decode(string.encode("ascii"))
-            self.speaker.async_write(source, file_flag = False)
-            while self.speaker.playing:
-                print("Playing...")
-                time.sleep(0.1)
-
         self.logger.info("{} Playing finished".format(self.name))
         self.blocked = False
         return ret
 
+    # check if this is needed
     def set_global_volume(self):
         try:
             import alsaaudio
@@ -359,7 +277,7 @@ class SpeakerController(BaseThing):
             self.logger.error(err)
             raise ValueError(err)
 
-    def set_global_volume_callback(self, message, meta):
+    def set_global_volume_callback(self, message):
         try:
             _vol = message["volume"]
             if _vol < 0 or _vol > 100:
@@ -382,11 +300,11 @@ class SpeakerController(BaseThing):
 
         return {}
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 

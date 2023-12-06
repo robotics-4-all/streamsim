@@ -8,14 +8,13 @@ import logging
 import threading
 import random
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class IrController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -103,15 +102,8 @@ class IrController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose",
                 callback = self.robot_pose_update
             )
-        elif self.info["mode"] == "real":
-            from pidevices import ADS1X15
-            from pidevices import GP2Y0A41SK0F
 
-            self.adc = ADS1X15(v_ref=self.conf["v_ref"], averages=self.conf["averages"])
-            self.sensor = GP2Y0A41SK0F(adc=self.adc)
-            self.sensor.set_channel(self.conf["channel"])
-
-    def robot_pose_update(self, message, meta):
+    def robot_pose_update(self, message):
         self.robot_pose = message
 
     def sensor_read(self):
@@ -139,9 +131,6 @@ class IrController(BaseThing):
                     val = d * self.robot_pose["resolution"]
                 except:
                     self.logger.warning("Pose not got yet..")
-            else: # The real deal
-                """Already read() acculturate moving average"""
-                val = self.sensor.read()
 
             # Publishing value:
             self.publisher.publish({
@@ -149,18 +138,9 @@ class IrController(BaseThing):
                 "timestamp": time.time()
             })
 
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "distance": val,
-                    "timestamp": time.time()
-                }]
-            )
-
         self.logger.info("Ir {} sensor read thread stopped".format(self.info["id"]))
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -170,7 +150,7 @@ class IrController(BaseThing):
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         self.logger.info("Ir {} stops reading".format(self.info["id"]))
         return {"enabled": False}

@@ -10,12 +10,11 @@ import random
 from colorama import Fore, Style
 import pprint
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 
 class TfController:
     def __init__(self, base = None, resolution = None, logger = None):
-        self.logger = Logger("tf") if logger is None else logger
+        self.logger = logging.getLogger(__name__) if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
         self.resolution = resolution
@@ -143,10 +142,10 @@ class TfController:
     def stop(self):
         self.declare_rpc_server.stop()
 
-    def get_declarations_callback(self, message, meta):
+    def get_declarations_callback(self, message):
         return {"declarations": self.declarations}
 
-    def get_tf_callback(self, message, meta):
+    def get_tf_callback(self, message):
         name = message['name']
         if name not in self.items_hosts_dict:
             self.logger.error(f"TF: Requested transformation of missing device: {name}")
@@ -297,7 +296,7 @@ class TfController:
         for s in self.subs:
             self.subs[s].run()
 
-    def speak_callback(self, message, meta):
+    def speak_callback(self, message):
         # {'text': 'This is an example', 'volume': 100, 'language': 'el', 'speaker': 'speaker_X'}
         name = message['speaker']
         pose = self.places_absolute[name]
@@ -324,7 +323,7 @@ class TfController:
                         'language': message['language']
                     })
 
-    def robot_pose_callback(self, message, meta):
+    def robot_pose_callback(self, message):
         nm = message['name'].split(".")[-1]
         # self.logger.info(f"Updating {nm}: {message}")
         if nm not in self.places_absolute:
@@ -404,7 +403,7 @@ class TfController:
                     # )
                     # self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
 
-    def pan_tilt_callback(self, message, meta):
+    def pan_tilt_callback(self, message):
         self.pantilts[message['name']]['pan'] = message['pan']
         self.update_pan_tilt(message['name'], message['pan'])
 
@@ -412,7 +411,7 @@ class TfController:
     #     'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
     #      'host', 'host_type'
     # }
-    def declare_callback(self, message, meta):
+    def declare_callback(self, message):
         m = message
 
         # sanity checks
@@ -477,7 +476,7 @@ class TfController:
             else:
                 self.per_type[type][category][subclass].append(d['name'])
 
-    def get_affections_callback(self, message, meta):
+    def get_affections_callback(self, message):
         try:
             return self.check_affectability(message['name'])
         except Exception as e:
@@ -940,7 +939,7 @@ class TfController:
 
         return ret
 
-    def get_sim_detection_callback(self, message, meta):
+    def get_sim_detection_callback(self, message):
         try:
             name = message['name']
             type = message['type']

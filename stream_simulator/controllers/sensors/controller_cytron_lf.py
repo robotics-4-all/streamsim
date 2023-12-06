@@ -9,14 +9,13 @@ import threading
 import random
 
 from colorama import Fore, Style
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class CytronLFController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -87,21 +86,6 @@ class CytronLFController(BaseThing):
             topic = self.base_topic + ".data"
         )
 
-        if self.info["mode"] == "real":
-            from pidevices import CytronLfLSS05Mcp23017
-
-            self.lf_sensor = CytronLfLSS05Mcp23017(bus=self.conf["bus"],
-                                                address=self.conf["address"],
-                                                mode=self.conf["mode"],
-                                                so_1=self.conf["so_1"],
-                                                so_2=self.conf["so_2"],
-                                                so_3=self.conf["so_3"],
-                                                so_4=self.conf["so_4"],
-                                                so_5=self.conf["so_5"],
-                                                cal=self.conf["cal"],
-                                                name=self.name,
-                                                max_data_length=self.conf["max_data_length"])
-
         self.enable_rpc_server = CommlibFactory.getRPCService(
             broker = "redis",
             callback = self.enable_callback,
@@ -141,10 +125,6 @@ class CytronLFController(BaseThing):
                     }
                 except:
                     self.logger.warning("Pose not got yet..")
-            else: # The real deal
-                data = self.lf_sensor.read()
-
-                val = data._asdict()
 
             # Publishing value:
             self.publisher.publish({
@@ -155,24 +135,9 @@ class CytronLFController(BaseThing):
                 'so_5': val['so_5']
             })
 
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "data": {
-                        'so_1': val['so_1'],
-                        'so_2': val['so_2'],
-                        'so_3': val['so_3'],
-                        'so_4': val['so_4'],
-                        'so_5': val['so_5']
-                    },
-                    "timestamp": time.time()
-                }]
-            )
-
         self.logger.info("Cytron-LF {} sensor read thread stopped".format(self.info["id"]))
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -182,7 +147,7 @@ class CytronLFController(BaseThing):
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         self.logger.info("Cytron-LF {} stops reading".format(self.info["id"]))
         return {"enabled": False}

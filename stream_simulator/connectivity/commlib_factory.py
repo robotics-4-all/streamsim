@@ -3,17 +3,15 @@
 
 import importlib
 from colorama import Fore, Back, Style
+import logging
 
 from stream_simulator.connectivity import ConnParams
 
-from commlib.logger import Logger
-from derp_me.client import DerpMeClient
-
 class CommlibFactory:
-    logger = Logger("commlib_factory")
+    logger = logging.getLogger(__name__)
     colors = {
         "redis": Fore.GREEN,
-        "amqp": Fore.RED,
+        "mqtt": Fore.RED,
         "RPCService": Fore.YELLOW,
         "RPCClient": Fore.BLUE,
         "Subscriber": Fore.MAGENTA,
@@ -22,7 +20,6 @@ class CommlibFactory:
         "ActionClient": Back.RED + Fore.WHITE
     }
     reset = Style.RESET_ALL
-    derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
     notify = None
     get_tf_affection = None
     get_tf = None
@@ -34,10 +31,10 @@ class CommlibFactory:
                 'type': type,
                 'data': data
             })
-            CommlibFactory.logger.info(f"{Fore.MAGENTA}AMQP inform {type}: {data}{Style.RESET_ALL}")
+            CommlibFactory.logger.info(f"{Fore.MAGENTA}UI inform {type}: {data}{Style.RESET_ALL}")
 
     stats = {
-        'amqp': {
+        'mqtt': {
             'publishers': 0,
             'subscribers': 0,
             'rpc servers': 0,
@@ -128,7 +125,7 @@ class CommlibFactory:
         module = importlib.import_module(
             f"commlib.transports.{broker}"
         )
-        ret = module.ActionServer(
+        ret = module.ActionService(
             conn_params = ConnParams.get(broker),
             on_goal = callback,
             action_name = action_name

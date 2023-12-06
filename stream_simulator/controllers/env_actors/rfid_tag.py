@@ -1,14 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from commlib.logger import Logger
+import logging
 from stream_simulator.base_classes import BaseThing
 from stream_simulator.connectivity import CommlibFactory
 
 class RfidTagActor(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger("rfid_tag_" + str(conf["id"]))
+            self.logger = logging.getLogger("rfid_tag_" + str(conf["id"]))
         else:
             self.logger = package["logger"]
 

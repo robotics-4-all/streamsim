@@ -11,14 +11,13 @@ import base64
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class MicrophoneController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -128,7 +127,7 @@ class MicrophoneController(BaseThing):
         )
         self.detect_speech_sub.run()
 
-    def speech_detected(self, message, meta):
+    def speech_detected(self, message):
         source = message["speaker"]
         text = message["text"]
         language = message["language"]
@@ -243,17 +242,6 @@ class MicrophoneController(BaseThing):
             ret["record"] = self.load_wav(wav)
             ret["volume"] = 100
 
-        else: # The real deal
-            self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
-            now = time.time()
-            while time.time() - now < duration + 0.2:
-                if goalh.cancel_event.is_set():
-                    self.logger.info("Cancel got")
-                    self.blocked = False
-                    return ret
-                time.sleep(0.1)
-            ret["record"] = base64.b64encode(self.sensor.record).decode("ascii")
-
         self.logger.info("{} recording finished".format(self.name))
         self.blocked = False
         return ret
@@ -262,10 +250,6 @@ class MicrophoneController(BaseThing):
         self.logger.info("{} listening started".format(self.name))
         if self.info["enabled"] == False:
             return {}
-
-        # ELSA stuff
-        import os
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/pi/google_ttsp.json"
 
         # Concurrent speaker calls handling
         while self.blocked:
@@ -279,48 +263,15 @@ class MicrophoneController(BaseThing):
         except Exception as e:
             self.logger.error("{} goal had no duration and language as parameter".format(self.name))
 
-        if self.info["mode"] == "real": # The real deal
-            self.sensor.async_read(secs = duration, volume = 100, framerate = self.conf["framerate"])
-            now = time.time()
-            while time.time() - now < duration + 0.2:
-                if goalh.cancel_event.is_set():
-                    self.logger.info("Cancel got")
-                    self.blocked = False
-                    return ret
-                time.sleep(0.1)
-
-            rec = base64.b64encode(self.sensor.record).decode("ascii")
-            rec = base64.b64decode(rec)
-
-            from google.cloud import speech
-            from google.cloud.speech import enums
-            from google.cloud.speech import types
-            self.client = speech.SpeechClient()
-            speech_config = types.RecognitionConfig(
-                encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
-                sample_rate_hertz=44100,
-                language_code='el-GR'
-            )
-
-            text = self.client.recognize(
-                config = speech_config,
-                audio = types.RecognitionAudio(content = rec)
-            )
-            self.logger.info(f"Results: {text}")
-            if len(text.results):
-                text = text.results[0].alternatives[0].transcript
-            else:
-                text = ''
-
         self.logger.info("Listening finished: " + str(text))
         self.blocked = False
         return {'text': text}
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 

@@ -10,14 +10,13 @@ import random
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class GstreamerServerController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -81,30 +80,4 @@ class GstreamerServerController(BaseThing):
         pass
 
     def start(self):
-        if self.info["mode"] == "real":
-            import gi
-            gi.require_version("Gst", "1.0")
-            from gi.repository import Gst  # noqaE402
-
-            self.conf["alsa_device"] = \
-                "alsasrc device=dsnoop:CARD={},DEV=0".format(\
-                self.conf["alsa_device"])
-
-            # Concat hosts and ports
-            # TODO check if the ports and hosts haven't the same lenght.
-            hosts_ports = ""
-            for h, p in zip(self.conf["hosts"][:-1], self.conf["ports"][:-1]):
-                hosts_ports += "{}:{},".format(h, p)
-            hosts_ports += "{}:{}".format(self.conf["hosts"][-1], self.conf["ports"][-1])
-
-            # Create gstreamer stream pipeline
-            Gst.init()
-            self.stream = Gst.parse_launch("{} ! audioconvert ! audioresample !"
-                                           "audio/x-raw, rate=16000, channels=1,"
-                                           " format=S16LE !"
-                                           " multiudpsink clients={}".format(
-                                               self.conf["alsa_device"], hosts_ports))
-
-            self.logger.info("GStreamer Server is up (?)")
-
-            self.stream.set_state(Gst.State.PLAYING)
+        pass

@@ -14,14 +14,13 @@ import base64
 
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class CameraController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -107,13 +106,6 @@ class CameraController(BaseThing):
                 h["type"] = i
                 self.actors.append(k)
 
-        if self.info["mode"] == "real":
-            from pidevices import Camera, Dims
-            self.sensor = Camera(framerate=self.conf["framerate"],
-                                 resolution=Dims(self.conf["width"], self.conf["height"]),
-                                 name=self.name,
-                                 max_data_length=self.conf["max_data_length"])
-            self.sensor.stop()
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = CommlibFactory.getSubscriber(
                 broker = "redis",
@@ -149,16 +141,16 @@ class CameraController(BaseThing):
             "superman": "all.png"
         }
 
-    def robot_pose_update(self, message, meta):
+    def robot_pose_update(self, message):
         self.robot_pose = message
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 
@@ -196,7 +188,7 @@ class CameraController(BaseThing):
         except Exception as e:
             self.logger.error(str(e))
 
-    def video_callback(self, message, meta):
+    def video_callback(self, message):
         self.logger.info(f"Video requested with input {message}")
         duration = message["duration"]
         width = 640
@@ -263,15 +255,6 @@ class CameraController(BaseThing):
                 "timestamp": time.time()
             })
 
-            # Storing value:
-            r = CommlibFactory.derp_client.lset(
-                self.derp_data_key,
-                [{
-                    "data": self.img,
-                    "timestamp": time.time()
-                }]
-            )
-
     def get_image(self, message):
         self.logger.debug("Robot {}: get image callback: {}".format(self.name, message))
         try:
@@ -297,9 +280,6 @@ class CameraController(BaseThing):
             res = CommlibFactory.get_tf_affection.call({
                 'name': self.name
             })
-            # import pprint
-            # pprint.pprint(res)
-            # print('\n')
 
             # Get the closest:
             clos = None
@@ -372,12 +352,6 @@ class CameraController(BaseThing):
             image = cv2.resize(im, dsize=(width, height))
             data = [int(d) for row in image for c in row for d in c]
             data = base64.b64encode(bytes(data)).decode("ascii")
-
-        else: # The real deal
-            self.sensor.start()
-            img = self.sensor.read(image_dims=(width, height))[-1].frame
-            self.sensor.stop()
-            data = base64.b64encode(img).decode("ascii")
 
         timestamp = time.time()
         secs = int(timestamp)

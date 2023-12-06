@@ -9,7 +9,6 @@ import threading
 import random
 from colorama import Fore, Style
 
-from commlib.logger import Logger
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
@@ -18,7 +17,7 @@ current_milli_time = lambda: int(round(time.time() * 1000))
 class ButtonArrayController(BaseThing):
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = Logger(conf["name"])
+            self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
@@ -80,17 +79,7 @@ class ButtonArrayController(BaseThing):
             rpc_name = info["base_topic"] + ".disable"
         )
 
-        if self.info["mode"] == "real":
-            from pidevices import ButtonArrayMcp23017
-            self.sensor = ButtonArrayMcp23017(
-                pin_nums=self.conf["pin_nums"],
-                direction=self.conf["direction"],
-                bounce=self.conf["bounce"],
-                name=self.name,
-                max_data_length=10
-            )
-
-        elif self.info["mode"] == "simulation":
+        if self.info["mode"] == "simulation":
             self.sim_button_pressed_sub = CommlibFactory.getSubscriber(
                 broker = "redis",
                 topic = self.info['device_name'] + ".buttons_sim",
@@ -104,17 +93,9 @@ class ButtonArrayController(BaseThing):
             "data": _data,
             "timestamp": time.time()
         })
-        # Set in memory
-        r = CommlibFactory.derp_client.lset(
-            self.derp_data_keys[_button],
-            [{
-                "data": _data,
-                "timestamp": time.time()
-            }]
-        )
 
     # Untested!!!
-    def sim_button_pressed(self, data, meta):
+    def sim_button_pressed(self, data):
         self.dispatch_information(1, data["button"])
         time.sleep(0.1)
         # Simulated release
@@ -166,7 +147,7 @@ class ButtonArrayController(BaseThing):
 
         self.sensor.stop()
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -177,7 +158,7 @@ class ButtonArrayController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         self.logger.info(f"Button {self.info['id']} stops reading")
         return {"enabled": False}
