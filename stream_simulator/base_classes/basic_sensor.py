@@ -28,7 +28,7 @@ class BasicSensor(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(BasicSensor, self).__init__()
+        super(BasicSensor, self).__init__(conf["name"])
 
         _name = conf["name"]
         _pack = package["base"]
@@ -51,9 +51,6 @@ class BasicSensor(BaseThing):
                 "name": _name
             }
         }
-
-        self.commlib_factory = CommlibFactory(node_name = _name)
-        self.commlib_factory.run()
 
         self.info = info
         self.name = info["name"]

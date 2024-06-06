@@ -27,18 +27,18 @@ env_devices:
   # relays:
   #   -
   #     source: "sfhmmy/relay"
-  # ph_sensors:
-  #   -
-  #     source: "sfhmmy/ph_sensor"
-  # temperature_sensors:
-  #   -
-  #     source: "sfhmmy/temperature"
-  # humidity_sensors:
-  #   -
-  #     source: "sfhmmy/humidity"
-  # gas_sensors:
-  #   -
-  #     source: "sfhmmy/gas"
+  ph_sensors:
+    -
+      source: "sfhmmy/ph_sensor"
+  temperature_sensors:
+    -
+      source: "sfhmmy/temperature"
+  humidity_sensors:
+    -
+      source: "sfhmmy/humidity"
+  gas_sensors:
+    -
+      source: "sfhmmy/gas"
   # camera_sensors:
   #   -
   #     source: "sfhmmy/camera"
