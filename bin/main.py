@@ -24,3 +24,12 @@ if len(sys.argv) == 3:
 
 s = Simulator(conf_file = c, device = _device_name)
 s.start()
+
+# While keyboard interrupt is not received, keep the simulator running
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    s.stop()
+    print("Bye!")
+    exit(0)

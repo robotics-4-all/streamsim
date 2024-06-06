@@ -52,6 +52,9 @@ class BasicSensor(BaseThing):
             }
         }
 
+        self.commlib_factory = CommlibFactory(node_name = _name)
+        self.commlib_factory.run()
+
         self.info = info
         self.name = info["name"]
         self.base_topic = info["base_topic"]
@@ -64,27 +67,22 @@ class BasicSensor(BaseThing):
         self.derp_data_key = info["base_topic"] + ".raw"
 
         # Communication
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
+        self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
             rpc_name = self.base_topic + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
             rpc_name = self.base_topic + ".disable"
         )
-        self.set_mode_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.set_mode_rpc_server = self.commlib_factory.getRPCService(
             callback = self.set_mode_callback,
             rpc_name = self.base_topic + ".set_mode"
         )
-        self.get_mode_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.get_mode_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_mode_callback,
             rpc_name = self.base_topic + ".get_mode"
         )
@@ -101,6 +99,8 @@ class BasicSensor(BaseThing):
             self.prev = 0
         else:
             self.prev = None
+
+        # Do not execute the factory yet, wait for the sensor to be initialized
 
     def get_mode_callback(self, message, meta):
         return {
@@ -121,10 +121,6 @@ class BasicSensor(BaseThing):
         return {}
 
     def sensor_read(self):
-        # Wait till commlib_factory is up
-        while CommlibFactory.get_tf_affection == None:
-            time.sleep(0.1)
-
         self.logger.info(f"Sensor {self.name} read thread started")
         # Operation parameters
 
@@ -175,6 +171,7 @@ class BasicSensor(BaseThing):
                 val = self.get_simulation_value()
 
             # Publishing value:
+            self.logger.info(f"{self.name} - {val}")
             self.publisher.publish({
                 "value": val,
                 "timestamp": time.time()

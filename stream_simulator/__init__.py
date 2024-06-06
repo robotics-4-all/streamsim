@@ -3,4 +3,4 @@
 
 from __future__ import absolute_import
 
-from .simulator import ConnParams, Robot, World, Simulator
+from .simulator import Robot, World, Simulator

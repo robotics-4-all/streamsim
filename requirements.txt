@@ -1,9 +1,9 @@
-commlib-py==0.11.2
+commlib-py==0.11.4
 redis
-logging
 pyyaml
 numpy
 wave
 pillow
 qrcode[pil]
 opencv-python
+colorama

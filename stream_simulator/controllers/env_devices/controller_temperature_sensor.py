@@ -3,8 +3,8 @@
 
 import time
 from stream_simulator.base_classes import BasicSensor
-from stream_simulator.connectivity import CommlibFactory
 import statistics
+import pprint
 
 class EnvTemperatureSensorController(BasicSensor):
     def __init__(self, conf = None, package = None):
@@ -20,10 +20,19 @@ class EnvTemperatureSensorController(BasicSensor):
             _type = _type,
             _category = _category,
             _class = _class,
-            _subclass = _subclass
+            _subclass = _subclass        
         )
 
         self.env_properties = package['env']
+
+        # Create the RPC client to declare to tf
+        self.tf_declare_rpc = self.commlib_factory.getRPCClient(
+            rpc_name = package["tf_declare_rpc_topic"]
+        )
+
+        self.tf_affection_rpc = self.commlib_factory.getRPCClient(
+            rpc_name = package["tf_affection_rpc_topic"]
+        )
 
         # tf handling
         tf_package = {
@@ -45,17 +54,19 @@ class EnvTemperatureSensorController(BasicSensor):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
+        self.tf_declare_rpc.call(tf_package)
 
     def get_simulation_value(self):
-        while CommlibFactory.get_tf_affection == None:
-            time.sleep(0.1)
-        res = CommlibFactory.get_tf_affection.call({
+        res = self.tf_affection_rpc.call({
             'name': self.name
         })
+
         # Logic
         amb = self.env_properties['temperature']
         temps = []
+        if res == None:
+            return amb
+
         for a in res:
             r = (1 - res[a]['distance'] / res[a]['range']) * res[a]['info']['temperature']
             temps.append(r)

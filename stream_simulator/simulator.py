@@ -12,12 +12,6 @@ import pprint as pp
 from .robot import Robot
 from .world import World
 
-from stream_simulator.connectivity import ConnParams
-if ConnParams.type == "amqp":
-    from commlib.transports.amqp import Subscriber
-elif ConnParams.type == "redis":
-    from commlib.transports.redis import Subscriber
-
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.transformations import TfController
 
@@ -36,22 +30,21 @@ class Simulator:
         self.logger = logging.getLogger(__name__)
 
         self.configuration = self.parseConfiguration(conf_file, configuration)
+        
         if "simulation" in self.configuration:
             self.name = self.configuration["simulation"]["name"]
         else:
             self.name = "streamsim"
+        
+        self.configuration['tf_base'] = self.name + ".tf"
 
         resolution = 0.2
         if 'map' in self.configuration and 'resolution' in self.configuration['map']:
             resolution = self.configuration['map']['resolution']
 
-        # Declaring tf controller and setting basetopic
-        self.tf = TfController(
-            base = self.name,
-            resolution = resolution
-        )
-        self.configuration['tf_base'] = self.tf.base_topic
-        time.sleep(0.5)
+        # Create the CommlibFactory
+        self.commlib_factory = CommlibFactory(node_name = "Simulator")
+        self.commlib_factory.run()
 
         real_mode_exists = False
         if "robots" in self.configuration:
@@ -64,13 +57,24 @@ class Simulator:
         if not real_mode_exists:
             # Setup notification channel
             self.logger.info(f"Created {self.name}.notifications publisher!")
-            CommlibFactory.notify = CommlibFactory.getPublisher(
+            self.commlib_factory.notify = self.commlib_factory.getPublisher(
                 broker = 'mqtt',
                 topic = f"{self.name}.notifications"
             )
         else:
             self.logger.warning("Robot with real mode detected. Skipping notifications publisher!")
 
+        self.devices_rpc_server = self.commlib_factory.getRPCService(
+            callback = self.devices_callback,
+            rpc_name = self.name + '.get_device_groups'
+        )
+
+        # Initializing tf
+        self.tf = TfController(
+            base = self.name,
+            resolution = resolution,
+        )
+        
         # Initializing world
         self.world = World()
         self.world.load_environment(configuration = self.configuration)
@@ -91,12 +95,8 @@ class Simulator:
                 )
                 self.robot_names.append(r["name"])
 
-        self.devices_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.devices_callback,
-            rpc_name = self.name + '.get_device_groups'
-        )
-        self.devices_rpc_server.run()
+        # Initializing tf
+        self.tf.setup()
 
     def devices_callback(self, message):
         return {
@@ -159,12 +159,13 @@ class Simulator:
         self.logger.warning("Simulation stopped")
 
     def start(self):
+        self.logger.info("******** Simulator starting *********")
         # Create robots
         for i in range(0, len(self.robots)):
             _robot = self.robots[i]
             _robot.start()
 
-            CommlibFactory.notify_ui(
+            self.commlib_factory.notify_ui(
                 type = "new_message",
                 data = {
                     "type": "logs",
@@ -172,57 +173,12 @@ class Simulator:
                 }
             )
 
-            self.logger.warning("Simulation started")
-            if _robot.world['robots'][i]['mode'] == 'real' and _robot.world['robots'][i]['speak_mode'] == "google":
-                # Wait for rhasspy
-                from derp_me.client import DerpMeClient
-                self.derp_client = DerpMeClient(conn_params=ConnParams.get("redis"))
-                self.logger.warning(f"New derp-me client from simulator.py")
-
-                wait_for = _robot.world['robots'][i]['wait_for']
-
-                if "rhasspy" in wait_for:
-                    rhasspy_ok = False
-                    self.logger.warning("Waiting for rhasspy")
-                    while not rhasspy_ok:
-                        time.sleep(0.3)
-                        r = self.derp_client.lget("rhasspy/state", 0, 0)
-                        self.logger.info(r)
-                        if r['status'] == 1:
-                            self.logger.warning("Rhasspy is up!")
-                            rhasspy_ok = True
-
-                # Get the speaker
-                sp_con = None
-                for c in _robot.controllers:
-                    if _robot.controllers[c].info['categorization']['subclass'][0] == "speaker":
-                        sp_con = _robot.controllers[c]
-                        break
-
-                if sp_con != None:
-                    sp_con.google_speak(
-                            language="el",
-                            texts='Η συσκευή σας είναι έτοιμη προς χρήση!',
-                            volume=50
-                    )
-
-        self.tf.setup()
-
-        # Setup tf affectability channel
-        CommlibFactory.get_tf_affection = CommlibFactory.getRPCClient(
-            rpc_name = f"{self.name}.tf.get_affections"
-        )
-        # Setup tf channel
-        CommlibFactory.get_tf = CommlibFactory.getRPCClient(
-            rpc_name = f"{self.name}.tf.get_tf"
-        )
-
         # Communications report
         self.logger.info("Communications report:")
         total = 0
-        for t in CommlibFactory.stats:
-            for k in CommlibFactory.stats[t]:
-                n = CommlibFactory.stats[t][k]
+        for t in self.commlib_factory.stats:
+            for k in self.commlib_factory.stats[t]:
+                n = self.commlib_factory.stats[t][k]
                 total += n
                 if n == 0:
                     continue
@@ -233,10 +189,12 @@ class Simulator:
         for i in range(0, len(self.robots)):
             self.robots[i].dispatch_pose_local()
 
-        CommlibFactory.notify_ui(
+        self.commlib_factory.notify_ui(
             type = "new_message",
             data = {
                 "type": "logs",
                 "message": f"Simulator started"
             }
         )
+
+        self.logger.warning("Simulation started")

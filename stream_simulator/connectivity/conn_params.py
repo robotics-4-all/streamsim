@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 class ConnParams:
-    type = "redis"
+    type = "mqtt"
 
     @staticmethod
     def get(type):
@@ -10,7 +10,7 @@ class ConnParams:
             from commlib.transports.mqtt import ConnectionParameters
             conn_params = ConnectionParameters(
                 host='locsys.issel.ee.auth.gr',
-                port=1883,
+                port=8883,
                 username='sensors',
                 password='issel.sensors',
             )

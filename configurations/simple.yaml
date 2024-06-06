@@ -1,0 +1,100 @@
+simulation:
+  name: "6569d9fd137514fe16b106dc"
+
+map:
+  width: 1000
+  height: 800
+  resolution: 0.05
+  obstacles:
+    lines:
+      - {x1: 330, y1: 250, x2: 330, y2: 350}
+      - {x1: 510, y1: 510, x2: 500, y2: 500}
+      #- {x1: 5, y1: 4, x2: 8, y2: 4}
+
+world:
+  name: "6569d9fd137514fe16b106dc_simple_world"
+  places: []
+  properties:
+    temperature: 22 # celcius
+    humidity: 60 # out of 100
+    luminosity: 40 # out of 100
+
+# robots:
+  # - source: "sfhmmy/robot_1"
+  #- source: "sfhmmy/robot_2"
+
+env_devices:
+  # relays:
+  #   -
+  #     source: "sfhmmy/relay"
+  # ph_sensors:
+  #   -
+  #     source: "sfhmmy/ph_sensor"
+  temperature_sensors:
+    -
+      source: "sfhmmy/temperature"
+  # humidity_sensors:
+  #   -
+  #     source: "sfhmmy/humidity"
+  # gas_sensors:
+  #   -
+  #     source: "sfhmmy/gas"
+  # camera_sensors:
+  #   -
+  #     source: "sfhmmy/camera"
+  # distance_sensors:
+  #   -
+  #     source: "sfhmmy/distance_sensor"
+  # alarms_linear:
+  #   -
+  #     source: "sfhmmy/alarm_linear"
+  # alarms_area:
+  #   -
+  #     source: "sfhmmy/alarm_area"
+  # ambient_light_sensor:
+  #   -
+  #     source: "sfhmmy/ambient_light_sensor"
+  # pan_tilt:
+  #   -
+  #     source: "sfhmmy/pan_tilt"
+  #   -
+  #     source: "sfhmmy/pan_tilt_dist_X"
+  # speakers:
+  #   -
+  #     source: "sfhmmy/speaker"
+  # lights:
+  #   -
+  #     source: "sfhmmy/light"
+  # thermostats:
+  #   -
+  #     source: "sfhmmy/thermostat"
+  # microphones:
+  #   -
+  #     source: "sfhmmy/microphone"
+  # humidifiers:
+  #   -
+  #     source: "sfhmmy/humidifier"
+
+# actors:
+#   humans:
+#     - {id: 0, x: 120, y: 150, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
+#   superman:
+#     - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
+#   sound_sources:
+#     - {id: 4, x: 100, y: 100, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
+#   qrs:
+#     - {id: 5, x: 100, y: 150, message: test}
+#   barcodes:
+#     - {id: 6, x: 80, y: 150, message: EL3341}
+#     - {id: 60, x: 80, y: 60, message: EL3DD341}
+#   colors:
+#     - {id: 7, x: 60, y: 130, r: 0, g: 255, b: 0} # for dominant color
+#   texts:
+#     - {id: 8, x: 140, y: 130, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
+#   rfid_tags:
+#     - {id: RF432423, x: 100, y: 100, message: test}
+#     - {id: RF432425, x: 80, y: 100, message: test_2}
+#   fires:
+#     - {id: 11, x: 110, y: 180, temperature: 140, range: 100}
+#   waters:
+#     - {id: 12, x: 160, y: 100, range: 100}

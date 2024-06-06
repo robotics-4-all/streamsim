@@ -13,8 +13,6 @@ import os
 from colorama import Fore, Style, Back
 import configparser
 
-from commlib.node import TransportType
-import commlib.transports.amqp as acomm
 from stream_simulator.connectivity import CommlibFactory
 
 class Robot:

@@ -12,14 +12,15 @@ from stream_simulator.connectivity import CommlibFactory
 
 class World:
     def __init__(self):
-        pass
+        self.commlib_factory = CommlibFactory(node_name = "World")
+        self.commlib_factory.run()
         self.logger = logging.getLogger(__name__)
 
     def load_environment(self, configuration = None):
         self.configuration = configuration
 
         self.tf_base = self.configuration['tf_base']
-        self.tf_declare_rpc = CommlibFactory.getRPCClient(
+        self.tf_declare_rpc = self.commlib_factory.getRPCClient(
             rpc_name = self.tf_base + ".declare"
         )
 
@@ -51,11 +52,10 @@ class World:
         self.devices = []
         self.controllers = {}
 
-        self.devices_rpc_server = CommlibFactory.getRPCService(
+        self.devices_rpc_server = self.commlib_factory.getRPCService(
             callback = self.devices_callback,
             rpc_name = self.name + '.nodes_detector.get_connected_devices'
         )
-        self.devices_rpc_server.run()
 
         self.setup()
         self.device_lookup()
@@ -134,6 +134,8 @@ class World:
             "base": "world",
             "logger": None,
             'tf_declare': self.tf_declare_rpc,
+            'tf_declare_rpc_topic': self.tf_base + '.declare',
+            'tf_affection_rpc_topic': self.tf_base + '.get_affections',
             'env': self.env_properties,
             "map": self.map,
             "resolution": self.resolution

@@ -18,39 +18,38 @@ class TfController:
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
         self.resolution = resolution
+
+        self.commlib_factory = CommlibFactory(node_name = "Tf")
+        self.commlib_factory.run()
+        
         self.lin_alarms_robots = {}
 
-        self.declare_rpc_server = CommlibFactory.getRPCService(
+        self.declare_rpc_server = self.commlib_factory.getRPCService(
             callback = self.declare_callback,
             rpc_name = self.base_topic + ".declare"
         )
-        self.declare_rpc_server.run()
 
-        self.get_declarations_rpc_server = CommlibFactory.getRPCService(
+        self.get_declarations_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_declarations_callback,
             rpc_name = self.base_topic + ".get_declarations"
         )
-        self.get_declarations_rpc_server.run()
 
-        self.get_tf_rpc_server = CommlibFactory.getRPCService(
+        self.get_tf_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_tf_callback,
             rpc_name = self.base_topic + ".get_tf"
         )
-        self.get_tf_rpc_server.run()
 
-        self.get_affectability_rpc_server = CommlibFactory.getRPCService(
+        self.get_affectability_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_affections_callback,
             rpc_name = self.base_topic + ".get_affections"
         )
-        self.get_affectability_rpc_server.run()
 
-        self.get_sim_detection_rpc_server = CommlibFactory.getRPCService(
+        self.get_sim_detection_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_sim_detection_callback,
             rpc_name = self.base_topic + ".simulated_detection"
         )
-        self.get_sim_detection_rpc_server.run()
 
-        self.detections_publisher = CommlibFactory.getPublisher(
+        self.detections_publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".detections.notify"
         )
 
@@ -136,11 +135,11 @@ class TfController:
             }
         }
 
-    def start(self):
-        self.declare_rpc_server.run()
+    # def start(self):
+    #     self.declare_rpc_server.run()
 
-    def stop(self):
-        self.declare_rpc_server.stop()
+    # def stop(self):
+    #     self.declare_rpc_server.stop()
 
     def get_declarations_callback(self, message):
         return {"declarations": self.declarations}
@@ -165,7 +164,7 @@ class TfController:
             return self.places_absolute[name]
 
     def setup(self):
-        self.logger.info("*************** TF status ***************")
+        self.logger.info("*************** TF setup ***************")
 
         # Fill tree
         for d in self.declarations:
@@ -186,14 +185,14 @@ class TfController:
             #     d['range'] *= self.resolution
 
         # Get all devices and check pan-tilts exist
-        get_devices_rpc = CommlibFactory.getRPCClient(
+        get_devices_rpc = self.commlib_factory.getRPCClient(
             rpc_name = self.base + ".get_device_groups"
         )
         res = get_devices_rpc.call({})
 
         # Pan tilts on robots
         for r in res['robots']:
-            cl = CommlibFactory.getRPCClient(
+            cl = self.commlib_factory.getRPCClient(
                 broker = "redis",
                 rpc_name = f"robot.{r}.nodes_detector.get_connected_devices"
             )
@@ -207,7 +206,7 @@ class TfController:
                     }
 
         # Pan tilts in environment
-        cl = CommlibFactory.getRPCClient(
+        cl = self.commlib_factory.getRPCClient(
             rpc_name = f"{res['world']}.nodes_detector.get_connected_devices"
         )
         rr = cl.call({})
@@ -226,7 +225,7 @@ class TfController:
             self.existing_hosts.append(p)
 
             topic = self.pantilts[p]['base_topic'] + '.data'
-            self.subs[p] = CommlibFactory.getSubscriber(
+            self.subs[p] = self.commlib_factory.getSubscriber(
                 topic = topic,
                 callback = self.pan_tilt_callback
             )
@@ -239,7 +238,7 @@ class TfController:
                     self.existing_hosts.append(d['host'])
 
                     topic = d['host_type'] + "." + d["host"] + ".pose"
-                    self.subs[d['host']] = CommlibFactory.getSubscriber(
+                    self.subs[d['host']] = self.commlib_factory.getSubscriber(
                         topic = topic,
                         callback = self.robot_pose_callback
                     )
@@ -271,8 +270,6 @@ class TfController:
                     # self.logger.info(f"\tRelative: {self.places_relative[i]}")
                     # self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
 
-
-
         for n in self.declarations_info:
             d_i = self.declarations_info[n]
             if d_i["type"] == "actor":
@@ -280,21 +277,16 @@ class TfController:
 
             # subscribers for speakers
             if "speaker" in d_i['subtype']['subclass']:
-                self.speaker_subs[d_i['name']] = CommlibFactory.getSubscriber(
+                self.speaker_subs[d_i['name']] = self.commlib_factory.getSubscriber(
                     topic = d_i["base_topic"] + ".speak.notify",
                     callback = self.speak_callback
                 )
-                self.speaker_subs[d_i['name']].run()
             # publishers for microphones
             if "microphone" in d_i['subtype']['subclass']:
-                self.microphone_pubs[d_i['name']] = CommlibFactory.getPublisher(
+                self.microphone_pubs[d_i['name']] = self.commlib_factory.getPublisher(
                     topic = d_i["base_topic"] + ".speech_detected"
                 )
-        self.logger.info("*****************************************")
-
-        # starting subs
-        for s in self.subs:
-            self.subs[s].run()
+        self.logger.info("*************** TF setup end ***************")
 
     def speak_callback(self, message):
         # {'text': 'This is an example', 'volume': 100, 'language': 'el', 'speaker': 'speaker_X'}
@@ -332,7 +324,7 @@ class TfController:
         self.places_absolute[nm]['y'] = message['y']
         self.places_absolute[nm]['theta'] = message['theta']
 
-        CommlibFactory.notify_ui(
+        self.commlib_factory.notify_ui(
             type = "robot_pose",
             data = {
                 "name": nm,
@@ -382,7 +374,7 @@ class TfController:
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
 
-                    CommlibFactory.notify.publish({
+                    self.commlib_factory.notify.publish({
                         'type': 'sensor_pose',
                         'data': {
                             "name": i,
@@ -391,17 +383,6 @@ class TfController:
                             "theta": self.places_absolute[i]['theta']
                         }
                     })
-                    #
-                    # CommlibFactory.notify_ui(
-                    #     type = "sensor_pose",
-                    #     data = {
-                    #         "name": i,
-                    #         "x": self.places_absolute[i]['x'],
-                    #         "y": self.places_absolute[i]['y'],
-                    #         "theta": self.places_absolute[i]['theta']
-                    #     }
-                    # )
-                    # self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
 
     def pan_tilt_callback(self, message):
         self.pantilts[message['name']]['pan'] = message['pan']
@@ -432,7 +413,7 @@ class TfController:
             if message['host_type'] not in ['robot', 'pan_tilt']:
                 self.logger.error(f"tf: Invalid host type for {message['name']}: {message['host_type']}")
 
-        self.logger.info(f"{Style.DIM}{temp['name']}::{temp['type']}::{temp['subtype']} @ {temp['pose']} {host_msg}{Style.RESET_ALL}")
+        self.logger.info(f"{temp['name']}::{temp['type']}::{temp['subtype']} @ {temp['pose']} {host_msg}")
 
         # Fix thetas if exist:
         if temp['pose']['theta'] != None:
@@ -463,7 +444,7 @@ class TfController:
             self.per_type[type][category][subclass].append(d['name'])
 
             if subclass in ["thermostat", "humidifier", "leds"]:
-                self.effectors_get_rpcs[d['name']] = CommlibFactory.getRPCClient(
+                self.effectors_get_rpcs[d['name']] = self.commlib_factory.getRPCClient(
                     rpc_name = d['base_topic'] + ".get"
                 )
 
@@ -1126,7 +1107,7 @@ class TfController:
             "result": decision
         })
 
-        CommlibFactory.notify.publish({
+        self.commlib_factory.notify.publish({
             "type": "detection",
             "data": {
                 "name": name,
