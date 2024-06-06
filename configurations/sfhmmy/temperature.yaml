@@ -1,8 +1,8 @@
 pose: {x: 150, y: 150, theta: 0}
 name: temperature_X
 place: office
-hz: 0.5
-mode: simulation # mock, simulation, real
+hz: 1
+mode: mock # mock, simulation, real
 operation: sinus # constant, triangle, random, normal, sinus
 operation_parameters:
   constant:

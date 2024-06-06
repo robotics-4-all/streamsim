@@ -43,7 +43,10 @@ class EnvPhSensorController(BasicSensor):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
-        # 
-        # while CommlibFactory.get_tf_affection == None:
-        #     time.sleep(0.1)
+        # Create the RPC client to declare to tf
+        self.tf_declare_rpc = self.commlib_factory.getRPCClient(
+            rpc_name = package["tf_declare_rpc_topic"]
+        )
+
+        self.tf_declare_rpc.call(tf_package)
+

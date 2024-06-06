@@ -30,9 +30,9 @@ env_devices:
   # ph_sensors:
   #   -
   #     source: "sfhmmy/ph_sensor"
-  temperature_sensors:
-    -
-      source: "sfhmmy/temperature"
+  # temperature_sensors:
+  #   -
+  #     source: "sfhmmy/temperature"
   # humidity_sensors:
   #   -
   #     source: "sfhmmy/humidity"
