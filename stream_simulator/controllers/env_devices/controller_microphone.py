@@ -14,7 +14,6 @@ import base64
 from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class EnvMicrophoneController(BaseThing):
     def __init__(self,
@@ -27,7 +26,7 @@ class EnvMicrophoneController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__(conf["name"])
 
         _type = "MICROPHONE"
         _category = "sensor"
@@ -37,10 +36,11 @@ class EnvMicrophoneController(BaseThing):
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
+        _namespace = package["namespace"]
         id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
             "name": _name,
             "place": conf["place"],
             "enabled": True,
@@ -83,44 +83,35 @@ class EnvMicrophoneController(BaseThing):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
+        self.set_communication_layer(package)
+
+        self.tf_declare_rpc.call(tf_package)
 
         self.blocked = False
 
-        # Communication
-        self.record_action_server = CommlibFactory.getActionServer(
-            broker = "redis",
+    def set_communication_layer(self, package):
+        self.set_tf_communication(package)
+        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
+        
+        self.record_action_server = self.commlib_factory.getActionServer(
             callback = self.on_goal_record,
-            action_name = info["base_topic"] + ".record"
+            action_name = self.base_topic + ".record"
         )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
-        )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
-        )
-
-        self.record_pub = CommlibFactory.getPublisher(
+        self.record_pub = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".record.notify"
         )
-
-        self.detect_speech_sub = CommlibFactory.getSubscriber(
+        self.detect_speech_sub = self.commlib_factory.getSubscriber(
             topic = self.base_topic + ".speech_detected",
             callback = self.speech_detected
         )
-        self.detect_speech_sub.run()
 
-    def speech_detected(self, message, meta):
+    def speech_detected(self, message):
         source = message["speaker"]
         text = message["text"]
         language = message["language"]
         self.logger.info(f"Speech detected from {source} [{language}]: {text}")
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
 
         self.enable_rpc_server.run()
@@ -130,7 +121,7 @@ class EnvMicrophoneController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 
@@ -186,11 +177,8 @@ class EnvMicrophoneController(BaseThing):
             ret["volume"] = 100
 
         elif self.info["mode"] == "simulation":
-            while CommlibFactory.get_tf_affection == None:
-                time.sleep(0.1)
-
             # Ask tf for proximity sound sources or humans
-            res = CommlibFactory.get_tf_affection.call({
+            res = self.tf_affection_rpc.call({
                 'name': self.name
             })
             # Get the closest:

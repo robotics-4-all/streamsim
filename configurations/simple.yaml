@@ -24,56 +24,39 @@ world:
   #- source: "sfhmmy/robot_2"
 
 env_devices:
-  # relays:
-  #   -
-  #     source: "sfhmmy/relay"
+  relays:
+    - source: "sfhmmy/relay"
   ph_sensors:
-    -
-      source: "sfhmmy/ph_sensor"
+    - source: "sfhmmy/ph_sensor"
   temperature_sensors:
-    -
-      source: "sfhmmy/temperature"
+    - source: "sfhmmy/temperature"
   humidity_sensors:
-    -
-      source: "sfhmmy/humidity"
+    - source: "sfhmmy/humidity"
   gas_sensors:
-    -
-      source: "sfhmmy/gas"
-  # camera_sensors:
-  #   -
-  #     source: "sfhmmy/camera"
-  # distance_sensors:
-  #   -
-  #     source: "sfhmmy/distance_sensor"
-  # alarms_linear:
-  #   -
-  #     source: "sfhmmy/alarm_linear"
-  # alarms_area:
-  #   -
-  #     source: "sfhmmy/alarm_area"
-  # ambient_light_sensor:
-  #   -
-  #     source: "sfhmmy/ambient_light_sensor"
-  # pan_tilt:
-  #   -
-  #     source: "sfhmmy/pan_tilt"
-  #   -
-  #     source: "sfhmmy/pan_tilt_dist_X"
-  # speakers:
-  #   -
-  #     source: "sfhmmy/speaker"
-  # lights:
-  #   -
-  #     source: "sfhmmy/light"
-  # thermostats:
-  #   -
-  #     source: "sfhmmy/thermostat"
-  # microphones:
-  #   -
-  #     source: "sfhmmy/microphone"
-  # humidifiers:
-  #   -
-  #     source: "sfhmmy/humidifier"
+    - source: "sfhmmy/gas"
+  camera_sensors:
+    - source: "sfhmmy/camera"
+  distance_sensors:
+    - source: "sfhmmy/distance_sensor"
+  ambient_light_sensor:
+    - source: "sfhmmy/ambient_light_sensor"
+  pan_tilt:
+    - source: "sfhmmy/pan_tilt"
+    - source: "sfhmmy/pan_tilt_dist_X"
+  speakers:
+    - source: "sfhmmy/speaker"
+  lights:
+    - source: "sfhmmy/light"
+  thermostats:
+    - source: "sfhmmy/thermostat"
+  microphones:
+    - source: "sfhmmy/microphone"
+  humidifiers:
+    - source: "sfhmmy/humidifier"
+  alarms_area:
+    - source: "sfhmmy/alarm_area"
+  alarms_linear:
+    - source: "sfhmmy/alarm_linear"
 
 # actors:
 #   humans:

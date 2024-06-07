@@ -13,6 +13,25 @@ from commlib.node import Node
 from commlib.transports.mqtt import ConnectionParameters
 
 class CommlibFactory(Node):
+    stats = {
+        'mqtt': {
+            'publishers': 0,
+            'subscribers': 0,
+            'rpc servers': 0,
+            'rpc clients': 0,
+            'action servers': 0,
+            'action clients': 0
+        },
+        'redis': {
+            'publishers': 0,
+            'subscribers': 0,
+            'rpc servers': 0,
+            'rpc clients': 0,
+            'action servers': 0,
+            'action clients': 0
+        }
+    }
+
     def __init__(self, *args, **kwargs):
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
@@ -22,25 +41,6 @@ class CommlibFactory(Node):
         self.notify = None
         self.get_tf_affection = None
         self.get_tf = None
-
-        self.stats = {
-            'mqtt': {
-                'publishers': 0,
-                'subscribers': 0,
-                'rpc servers': 0,
-                'rpc clients': 0,
-                'action servers': 0,
-                'action clients': 0
-            },
-            'redis': {
-                'publishers': 0,
-                'subscribers': 0,
-                'rpc servers': 0,
-                'rpc clients': 0,
-                'action servers': 0,
-                'action clients': 0
-            }
-        }
 
         self.conn_params = ConnectionParameters(
             host='locsys.issel.ee.auth.gr',
@@ -74,7 +74,7 @@ class CommlibFactory(Node):
         )
         ret.run()
         self.inform(broker, topic, "Publisher")
-        self.stats[broker]['publishers'] += 1
+        CommlibFactory.stats[broker]['publishers'] += 1
         return ret
 
     def getSubscriber(self, broker = "mqtt", topic = None, callback = None):
@@ -84,7 +84,7 @@ class CommlibFactory(Node):
         )
         ret.run()
         self.inform(broker, topic, "Subscriber")
-        self.stats[broker]['subscribers'] += 1
+        CommlibFactory.stats[broker]['subscribers'] += 1
         return ret
 
     def getRPCService(self, broker = "mqtt", rpc_name = None, callback = None):
@@ -94,7 +94,7 @@ class CommlibFactory(Node):
         )
         ret.run()
         self.inform(broker, rpc_name, "RPCService")
-        self.stats[broker]['rpc servers'] += 1
+        CommlibFactory.stats[broker]['rpc servers'] += 1
         return ret
 
     def getRPCClient(self, broker = "mqtt", rpc_name = None):
@@ -103,7 +103,7 @@ class CommlibFactory(Node):
         )
         ret.run()
         self.inform(broker, rpc_name, "RPCClient")
-        self.stats[broker]['rpc clients'] += 1
+        CommlibFactory.stats[broker]['rpc clients'] += 1
         return ret
 
     def getActionServer(self, broker = "mqtt", action_name = None, callback = None):
@@ -113,7 +113,7 @@ class CommlibFactory(Node):
         )
         ret.run()
         self.inform(broker, action_name, "ActionServer")
-        self.stats[broker]['action servers'] += 1
+        CommlibFactory.stats[broker]['action servers'] += 1
         return ret
 
     def getActionClient(self, broker = "mqtt", action_name = None):
@@ -122,5 +122,5 @@ class CommlibFactory(Node):
         )
         ret.run()
         self.inform(broker, action_name, "ActionClient")
-        self.stats[broker]['action clients'] += 1
+        CommlibFactory.stats[broker]['action clients'] += 1
         return ret

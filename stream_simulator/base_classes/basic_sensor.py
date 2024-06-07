@@ -30,6 +30,8 @@ class BasicSensor(BaseThing):
 
         super(BasicSensor, self).__init__(conf["name"])
 
+        self.set_tf_communication(package)
+
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
@@ -64,25 +66,9 @@ class BasicSensor(BaseThing):
         self.derp_data_key = info["base_topic"] + ".raw"
 
         # Communication
-        self.publisher = self.commlib_factory.getPublisher(
-            topic = self.base_topic + ".data"
-        )
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
-        )
-        self.set_mode_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.set_mode_callback,
-            rpc_name = self.base_topic + ".set_mode"
-        )
-        self.get_mode_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.get_mode_callback,
-            rpc_name = self.base_topic + ".get_mode"
-        )
+        self.set_data_publisher(self.base_topic)
+        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
+        self.set_mode_get_set_rpcs(self.base_topic, self.set_mode_callback, self.get_mode_callback)
 
         if self.mode == 'mock':
             if self.operation not in self.operation_parameters:
@@ -99,13 +85,13 @@ class BasicSensor(BaseThing):
 
         # Do not execute the factory yet, wait for the sensor to be initialized
 
-    def get_mode_callback(self, message, meta):
+    def get_mode_callback(self, message):
         return {
                 "mode": self.operation,
                 "parameters": self.operation_parameters[self.operation]
         }
 
-    def set_mode_callback(self, message, meta):
+    def set_mode_callback(self, message):
         if message["mode"] == "triangle":
             self.prev = self.operation_parameters["triangle"]['min']
             self.way = 1
@@ -168,7 +154,7 @@ class BasicSensor(BaseThing):
                 val = self.get_simulation_value()
 
             # Publishing value:
-            self.logger.info(f"{self.name} - {val}")
+            # self.logger.info(f"{self.name} - {val}")
             self.publisher.publish({
                 "value": val,
                 "timestamp": time.time()
@@ -178,7 +164,7 @@ class BasicSensor(BaseThing):
     def get_simulation_value(self):
         return None
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
 
         self.enable_rpc_server.run()
@@ -191,14 +177,14 @@ class BasicSensor(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 
-    def get_callback(self, message, meta):
+    def get_callback(self, message):
         return {"state": self.state}
 
-    def set_callback(self, message, meta):
+    def set_callback(self, message):
         state = message["state"]
         if state not in self.allowed_states:
             raise Exception(f"{self.name} does not allow {state} state")

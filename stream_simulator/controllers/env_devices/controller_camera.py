@@ -14,7 +14,6 @@ import base64
 from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class EnvCameraController(BaseThing):
     def __init__(self,
@@ -27,7 +26,7 @@ class EnvCameraController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__(conf["name"])
 
         _type = "CAMERA"
         _category = "sensor"
@@ -94,7 +93,9 @@ class EnvCameraController(BaseThing):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
+        self.set_communication_layer(package)
+
+        self.tf_declare_rpc.call(tf_package)
 
         # The images
         self.images = {
@@ -106,26 +107,16 @@ class EnvCameraController(BaseThing):
             "empty": "empty.png"
         }
 
-        # Communication
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self.base_topic + ".data"
-        )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
-        )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
+    def set_communication_layer(self, package):
+        self.set_tf_communication(package)
+        self.set_data_publisher(self.base_topic)
+        self.set_enable_disable_rpcs(
+            self.base_topic,
+            self.enable_callback,
+            self.disable_callback
         )
 
     def sensor_read(self):
-        while CommlibFactory.get_tf_affection == None:
-            time.sleep(0.1)
-
         self.logger.info(f"Sensor {self.name} read thread started")
         width = self.width
         height = self.height
@@ -139,16 +130,13 @@ class EnvCameraController(BaseThing):
                 im = cv2.imread(dirname + '/resources/all.png')
                 im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
                 image = cv2.resize(im, dsize=(width, height))
-                data = [int(d) for row in image for c in row for d in c]
-                data = base64.b64encode(bytes(data)).decode("ascii")
+                _, buffer = cv2.imencode('.jpg', image)
+                data = base64.b64encode(buffer).decode()
             elif self.mode == "simulation":
                 # Ask tf for proximity sound sources or humans
-                res = CommlibFactory.get_tf_affection.call({
+                res = self.commlib_factory.get_tf_affection.call({
                     'name': self.name
                 })
-                # import pprint
-                # pprint.pprint(res)
-                # print('\n')
 
                 # Get the closest:
                 clos = None
@@ -219,7 +207,7 @@ class EnvCameraController(BaseThing):
                 im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
                 image = cv2.resize(im, dsize=(width, height))
                 data = [int(d) for row in image for c in row for d in c]
-                data = base64.b64encode(bytes(data)).decode("ascii")
+                data = base64.b64encode(bytes(data)).decode()
 
             # Publishing value:
             self.publisher.publish({
@@ -234,18 +222,14 @@ class EnvCameraController(BaseThing):
                 "timestamp": time.time()
             })
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
-
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
 
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 

@@ -11,7 +11,6 @@ import random
 from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class EnvPanTiltController(BaseThing):
     def __init__(self, conf = None, package = None):
@@ -20,7 +19,7 @@ class EnvPanTiltController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__(conf["name"])
 
         _type = "PAN_TILT"
         _category = "actuator"
@@ -30,10 +29,11 @@ class EnvPanTiltController(BaseThing):
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
+        _namespace = package["namespace"]
         id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
             "name": _name,
             "place": conf["place"],
             "enabled": True,
@@ -92,43 +92,29 @@ class EnvPanTiltController(BaseThing):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
+        self.set_communication_layer(package)
+
+        self.tf_declare_rpc.call(tf_package)
 
         self.operation = info['conf']['operation']
         self.operation_parameters = info['conf']['operation_parameters']
 
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
-        )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
-        )
-        self.set_subscriber = CommlibFactory.getSubscriber(
-            broker = "redis",
-            callback = self.set_callback,
-            topic = info["base_topic"] + ".set"
-        )
-        self.data_publisher = CommlibFactory.getPublisher(
-            topic = info["base_topic"] + ".data"
-        )
-        self.get_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.get_callback,
-            rpc_name = info["base_topic"] + ".get"
-        )
-        self.set_operation_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.set_mode_callback,
-            rpc_name = info["base_topic"] + ".set_mode"
-        )
+    def set_communication_layer(self, package):
+        self.set_tf_communication(package)
+        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
+        self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
+        self.set_data_publisher(self.base_topic)
+        self.set_mode_get_set_rpcs(self.base_topic, self.set_mode_callback, self.get_mode_callback)
 
-    def set_mode_callback(self, message, meta):
+    def set_mode_callback(self, message):
         self.operation = message["mode"]
         return {}
+    
+    def get_mode_callback(self, message):
+        return {
+            "mode": self.operation,
+            "parameters": self.operation_parameters[self.operation]
+        }
 
     # Only for mock mode
     def thread_fun(self):
@@ -141,13 +127,13 @@ class EnvPanTiltController(BaseThing):
                 self.pan = self.pan_dc + self.pan_range / 2.0 * math.sin(self.prev)
                 self.prev += self.sinus_step
 
-            self.data_publisher.publish({
+            self.publisher.publish({
                 'pan': self.pan,
                 'tilt': self.tilt,
                 'name': self.name
             })
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
 
         self.enable_rpc_server.run()
@@ -161,20 +147,20 @@ class EnvPanTiltController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 
-    def get_callback(self, message, meta):
+    def get_callback(self, message):
         return {
             'pan': self.pan,
             'tilt': self.tilt
         }
 
-    def set_callback(self, message, meta):
+    def set_callback(self, message):
         self.pan = message['pan']
         self.tilt = message['tilt']
-        self.data_publisher.publish({
+        self.publisher.publish({
             'pan': self.pan,
             'tilt': self.tilt,
             'name': self.name
@@ -185,7 +171,7 @@ class EnvPanTiltController(BaseThing):
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
         self.get_rpc_server.run()
-        self.set_subscriber.run()
+        self.set_rpc_server.run()
 
         if self.mode == "mock":
             if self.info['enabled']:
@@ -197,4 +183,4 @@ class EnvPanTiltController(BaseThing):
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
         self.get_rpc_server.stop()
-        self.set_subscriber.stop()
+        self.set_rpc_server.stop()

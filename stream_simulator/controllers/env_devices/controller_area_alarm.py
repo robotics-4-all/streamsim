@@ -11,7 +11,6 @@ import random
 from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class EnvAreaAlarmController(BaseThing):
     def __init__(self,
@@ -24,7 +23,7 @@ class EnvAreaAlarmController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__(conf["name"])
 
         _type = "AREA_ALARM"
         _category = "sensor"
@@ -83,39 +82,20 @@ class EnvAreaAlarmController(BaseThing):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
+        self.set_communication_layer(package)
 
-        # Communication
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self.base_topic + ".data"
-        )
-        self.publisher_triggers = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self.base_topic + ".triggers"
-        )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
-        )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
-        )
+        self.tf_declare_rpc.call(tf_package)
+
+    def set_communication_layer(self, package):
+        self.set_tf_communication(package)
+        self.set_data_publisher(self.base_topic)
+        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
+        self.set_triggers_publisher(self.base_topic)
 
     def sensor_read(self):
-        while CommlibFactory.get_tf_affection == None:
-            time.sleep(0.1)
-
         self.logger.info(f"Sensor {self.name} read thread started")
         prev = None
         triggers = 0
-
-        # wait for tf
-        while CommlibFactory.get_tf_affection == None:
-            time.sleep(0.1)
 
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
@@ -124,7 +104,7 @@ class EnvAreaAlarmController(BaseThing):
             if self.mode == "mock":
                 val = random.choice([None, "gn_robot_1"])
             elif self.mode == "simulation":
-                res = CommlibFactory.get_tf_affection.call({
+                res = self.commlib_factory.get_tf_affection.call({
                     'name': self.name
                 })
                 val = [x for x in res]
@@ -134,6 +114,7 @@ class EnvAreaAlarmController(BaseThing):
                 "value": val,
                 "timestamp": time.time()
             })
+            # print(f"{Fore.GREEN}Sensor {self.name} value: {val}{Style.RESET_ALL}")
 
             if prev == None and val not in [None, []]:
                 triggers += 1
@@ -142,7 +123,7 @@ class EnvAreaAlarmController(BaseThing):
                     "timestamp": time.time()
                 })
 
-                CommlibFactory.notify_ui(
+                self.commlib_factory.notify_ui(
                     type = "alarm",
                     data = {
                         "name": self.name,
@@ -152,18 +133,15 @@ class EnvAreaAlarmController(BaseThing):
 
             prev = val
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
-
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
 
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
 
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 

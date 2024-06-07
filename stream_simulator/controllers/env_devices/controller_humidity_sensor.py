@@ -26,15 +26,6 @@ class EnvHumiditySensorController(BasicSensor):
 
         self.env_properties = package['env']
 
-        # Create the RPC client to declare to tf
-        self.tf_declare_rpc = self.commlib_factory.getRPCClient(
-            rpc_name = package["tf_declare_rpc_topic"]
-        )
-
-        self.tf_affection_rpc = self.commlib_factory.getRPCClient(
-            rpc_name = package["tf_affection_rpc_topic"]
-        )
-
         # tf handling
         tf_package = {
             "type": "env",

@@ -11,7 +11,6 @@ import random
 from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class EnvAmbientLightController(BaseThing):
     def __init__(self,
@@ -24,7 +23,7 @@ class EnvAmbientLightController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__(conf["name"])
 
         _type = "AMBIENT_LIGHT"
         _category = "sensor"
@@ -66,6 +65,8 @@ class EnvAmbientLightController(BaseThing):
         self.derp_data_key = info["base_topic"] + ".raw"
         self.env_properties = package["env"]
 
+        self.set_communication_layer(package)
+
         tf_package = {
             "type": "env",
             "subtype": {
@@ -85,33 +86,7 @@ class EnvAmbientLightController(BaseThing):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
-
-        # Communication
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self.base_topic + ".data"
-        )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
-        )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
-        )
-        self.set_mode_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.set_mode_callback,
-            rpc_name = self.base_topic + ".set_mode"
-        )
-        self.get_mode_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.get_mode_callback,
-            rpc_name = self.base_topic + ".get_mode"
-        )
+        self.tf_declare_rpc.call(tf_package)
 
         if self.operation == "triangle":
             self.prev = self.operation_parameters["triangle"]['min']
@@ -121,13 +96,19 @@ class EnvAmbientLightController(BaseThing):
         else:
             self.prev = None
 
-    def get_mode_callback(self, message, meta):
+    def set_communication_layer(self, package):
+        self.set_tf_communication(package)
+        self.set_data_publisher(self.base_topic)
+        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
+        self.set_mode_get_set_rpcs(self.base_topic, self.set_mode_callback, self.get_mode_callback)
+
+    def get_mode_callback(self, message):
         return {
-                "mode": self.operation,
-                "parameters": self.operation_parameters[self.operation]
+            "mode": self.operation,
+            "parameters": self.operation_parameters[self.operation]
         }
 
-    def set_mode_callback(self, message, meta):
+    def set_mode_callback(self, message):
         if message["mode"] == "triangle":
             self.prev = self.operation_parameters["triangle"]['min']
             self.way = 1
@@ -140,9 +121,6 @@ class EnvAmbientLightController(BaseThing):
         return {}
 
     def sensor_read(self):
-        while CommlibFactory.get_tf_affection == None:
-            time.sleep(0.1)
-
         self.logger.info(f"Sensor {self.name} read thread started")
 
         # Operation parameters
@@ -189,13 +167,10 @@ class EnvAmbientLightController(BaseThing):
                 lum = val
 
             elif self.mode == "simulation":
-                res = CommlibFactory.get_tf_affection.call({
+                res = self.tf_affection_rpc.call({
                     'name': self.name
                 })
-                # import pprint
-                # pprint.pprint(res)
-                # print("\n")
-                # print(res)
+
                 lum = self.env_properties['luminosity']
                 add_lum = 0
                 for a in res:
@@ -220,27 +195,22 @@ class EnvAmbientLightController(BaseThing):
                 "timestamp": time.time()
             })
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
-
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_mode_rpc_server.run()
-        self.set_mode_rpc_server.run()
 
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
 
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 
-    def get_callback(self, message, meta):
+    def get_callback(self, message):
         return {"state": self.state}
 
-    def set_callback(self, message, meta):
+    def set_callback(self, message):
         state = message["state"]
         if state not in self.allowed_states:
             raise Exception(f"{self.name} does not allow {state} state")

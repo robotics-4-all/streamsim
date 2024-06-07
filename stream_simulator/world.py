@@ -133,6 +133,7 @@ class World:
         p = {
             "base": "world",
             "logger": None,
+            "namespace": self.configuration["simulation"]["name"],
             'tf_declare': self.tf_declare_rpc,
             'tf_declare_rpc_topic': self.tf_base + '.declare',
             'tf_affection_rpc_topic': self.tf_base + '.get_affections',

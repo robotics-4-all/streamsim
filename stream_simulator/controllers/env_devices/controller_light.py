@@ -11,7 +11,6 @@ import random
 from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class EnvLightController(BaseThing):
     def __init__(self, conf = None, package = None):
@@ -20,7 +19,7 @@ class EnvLightController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__(conf["name"])
 
         _type = "LIGHTS"
         _category = "actuator"
@@ -30,10 +29,11 @@ class EnvLightController(BaseThing):
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
+        _namespace = package["namespace"]
         id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
             "name": _name,
             "place": conf["place"],
             "enabled": True,
@@ -88,35 +88,17 @@ class EnvLightController(BaseThing):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
+        self.set_communication_layer(package)
 
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
-        )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
-        )
-        self.set_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.set_callback,
-            rpc_name = info["base_topic"] + ".set"
-        )
-        self.get_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.get_callback,
-            rpc_name = info["base_topic"] + ".get"
-        )
+        self.tf_declare_rpc.call(tf_package)
 
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = info["base_topic"] + ".data"
-        )
+    def set_communication_layer(self, package):
+        self.set_tf_communication(package)
+        self.set_data_publisher(self.base_topic)
+        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
+        self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
 
         self.enable_rpc_server.run()
@@ -126,17 +108,17 @@ class EnvLightController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 
-    def get_callback(self, message, meta):
+    def get_callback(self, message):
         return {
             "color": self.color,
             "luminosity": self.luminosity
         }
 
-    def set_callback(self, message, meta):
+    def set_callback(self, message):
         if "r" in message:
             self.color['r'] = message["r"]
         if "g" in message:
@@ -147,7 +129,7 @@ class EnvLightController(BaseThing):
             self.luminosity = message["luminosity"]
             self.color['a'] = self.luminosity * 255.0 / 100.0
 
-        CommlibFactory.notify_ui(
+        self.commlib_factory.notify_ui(
             type = "effector_command",
             data = {
                 "name": self.name,

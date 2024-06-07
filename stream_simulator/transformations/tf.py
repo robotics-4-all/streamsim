@@ -164,7 +164,7 @@ class TfController:
             return self.places_absolute[name]
 
     def setup(self):
-        self.logger.info("*************** TF setup ***************")
+        # self.logger.info("*************** TF setup ***************")
 
         # Fill tree
         for d in self.declarations:
@@ -286,7 +286,7 @@ class TfController:
                 self.microphone_pubs[d_i['name']] = self.commlib_factory.getPublisher(
                     topic = d_i["base_topic"] + ".speech_detected"
                 )
-        self.logger.info("*************** TF setup end ***************")
+        # self.logger.info("*************** TF setup end ***************")
 
     def speak_callback(self, message):
         # {'text': 'This is an example', 'volume': 100, 'language': 'el', 'speaker': 'speaker_X'}
@@ -413,7 +413,7 @@ class TfController:
             if message['host_type'] not in ['robot', 'pan_tilt']:
                 self.logger.error(f"tf: Invalid host type for {message['name']}: {message['host_type']}")
 
-        self.logger.info(f"{temp['name']}::{temp['type']}::{temp['subtype']} @ {temp['pose']} {host_msg}")
+        self.logger.info(f"TF declaration: {temp['name']}::{temp['type']}::{temp['subtype']}\n\t @ {temp['pose']} {host_msg}")
 
         # Fix thetas if exist:
         if temp['pose']['theta'] != None:

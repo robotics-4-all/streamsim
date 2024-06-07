@@ -11,7 +11,6 @@ import random
 from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class EnvDistanceController(BaseThing):
     def __init__(self,
@@ -24,7 +23,7 @@ class EnvDistanceController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__(conf["name"])
 
         _type = "DISTANCE"
         _category = "sensor"
@@ -67,6 +66,7 @@ class EnvDistanceController(BaseThing):
         self.map = package["map"]
         self.resolution = package["resolution"]
         self.max_range = info['conf']['max_range']
+        self.get_device_groups_rpc_topic = package["namespace"] + ".get_device_groups"
 
         # tf handling
         tf_package = {
@@ -88,33 +88,9 @@ class EnvDistanceController(BaseThing):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
+        self.set_communication_layer(package)
 
-        # Communication
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self.base_topic + ".data"
-        )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
-        )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
-        )
-        self.set_mode_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.set_mode_callback,
-            rpc_name = self.base_topic + ".set_mode"
-        )
-        self.get_mode_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.get_mode_callback,
-            rpc_name = self.base_topic + ".get_mode"
-        )
+        self.tf_declare_rpc.call(tf_package)
 
         if self.operation == "triangle":
             self.prev = self.operation_parameters["triangle"]['min']
@@ -124,7 +100,13 @@ class EnvDistanceController(BaseThing):
         else:
             self.prev = None
 
-    def robot_pose_callback(self, message, meta):
+    def set_communication_layer(self, package):
+        self.set_tf_communication(package)
+        self.set_data_publisher(self.base_topic)
+        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
+        self.set_mode_get_set_rpcs(self.base_topic, self.set_mode_callback, self.get_mode_callback)
+
+    def robot_pose_callback(self, message):
         nm = message['name'].split(".")[-1]
         if nm not in self.robots_poses:
             self.robots_poses[nm] = {
@@ -134,13 +116,13 @@ class EnvDistanceController(BaseThing):
         self.robots_poses[nm]['x'] = message['x'] / self.resolution
         self.robots_poses[nm]['y'] = message['y'] / self.resolution
 
-    def get_mode_callback(self, message, meta):
+    def get_mode_callback(self, message):
         return {
                 "mode": self.operation,
                 "parameters": self.operation_parameters[self.operation]
         }
 
-    def set_mode_callback(self, message, meta):
+    def set_mode_callback(self, message):
         if message["mode"] == "triangle":
             self.prev = self.operation_parameters["triangle"]['min']
             self.way = 1
@@ -153,18 +135,15 @@ class EnvDistanceController(BaseThing):
         return {}
 
     def sensor_read(self):
-        while CommlibFactory.get_tf == None:
-            time.sleep(0.1)
-
         # Get all devices and check pan-tilts exist
-        get_devices_rpc = CommlibFactory.getRPCClient(
-            rpc_name = "streamsim.get_device_groups"
+        get_devices_rpc = self.commlib_factory.getRPCClient(
+            rpc_name = self.get_device_groups_rpc_topic
         )
         res = get_devices_rpc.call({})
         # create subscribers
         self.robots_subscribers = {}
         for r in res['robots']:
-            self.robots_subscribers[r] = CommlibFactory.getSubscriber(
+            self.robots_subscribers[r] = self.commlib_factory.getSubscriber(
                 topic = f"robot.{r}.pose", # get poses from all robots
                 callback = self.robot_pose_callback
             )
@@ -215,7 +194,7 @@ class EnvDistanceController(BaseThing):
 
             elif self.mode == "simulation":
                 # Get pose of the sensor (in case it is on a pan-tilt)
-                pp = CommlibFactory.get_tf.call({
+                pp = self.commlib_factory.get_tf.call({
                     "name": self.name
                 })
                 xx = pp['x'] / self.resolution
@@ -252,7 +231,7 @@ class EnvDistanceController(BaseThing):
                 "timestamp": time.time()
             })
 
-    def enable_callback(self, message, meta):
+    def enable_callback(self, message):
         self.info["enabled"] = True
 
         self.enable_rpc_server.run()
@@ -265,14 +244,14 @@ class EnvDistanceController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message, meta):
+    def disable_callback(self, message):
         self.info["enabled"] = False
         return {"enabled": False}
 
-    def get_callback(self, message, meta):
+    def get_callback(self, message):
         return {"state": self.state}
 
-    def set_callback(self, message, meta):
+    def set_callback(self, message):
         state = message["state"]
         if state not in self.allowed_states:
             raise Exception(f"{self.name} does not allow {state} state")
