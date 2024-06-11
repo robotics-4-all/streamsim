@@ -134,7 +134,6 @@ class World:
             "base": "world",
             "logger": None,
             "namespace": self.configuration["simulation"]["name"],
-            'tf_declare': self.tf_declare_rpc,
             'tf_declare_rpc_topic': self.tf_base + '.declare',
             'tf_affection_rpc_topic': self.tf_base + '.get_affections',
             'env': self.env_properties,
@@ -173,7 +172,8 @@ class World:
     def actors_lookup(self):
         p = {
             "logger": None,
-            'tf_declare': self.tf_declare_rpc
+            'tf_declare_rpc_topic': self.tf_base + '.declare',
+            'tf_affection_rpc_topic': self.tf_base + '.get_affections',
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")

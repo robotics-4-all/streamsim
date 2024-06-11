@@ -12,8 +12,10 @@ class TextActor(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
+        super(self.__class__, self).__init__("text_" + str(conf["id"]))
         id = BaseThing.id
+
+        self.set_tf_communication(package)
 
         info = {
             "type": "TEXT",
@@ -51,4 +53,4 @@ class TextActor(BaseThing):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
-        package["tf_declare"].call(tf_package)
+        self.tf_declare_rpc.call(tf_package)
