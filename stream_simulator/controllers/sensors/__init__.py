@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from .controller_ir import IrController
 from .controller_button_array import ButtonArrayController
 from .controller_camera import CameraController
-from .controller_cytron_lf import CytronLFController
 from .controller_encoder import EncoderController
 from .controller_env import EnvController
 from .controller_imu import ImuController
