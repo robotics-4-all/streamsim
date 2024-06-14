@@ -7,7 +7,6 @@ from .sensors import \
     IrController, \
     ButtonArrayController, \
     CameraController, \
-    CytronLFController, \
     EncoderController, \
     EnvController, \
     ImuController, \
@@ -24,7 +23,6 @@ from .effectors import \
     SpeakerController
 
 from .composite import \
-    GstreamerServerController, \
     TouchScreenController
 
 from .env_devices import \

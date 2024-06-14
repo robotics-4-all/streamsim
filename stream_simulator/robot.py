@@ -237,7 +237,6 @@ class Robot:
            "pan_tilt": getattr(str_contro, "PanTiltController"),
            "touch_screen": getattr(str_contro, "TouchScreenController"),
            "encoder": getattr(str_contro, "EncoderController"),
-           "gstreamer_server": getattr(str_contro, "GstreamerServerController"),
            "button": getattr(str_contro, "ButtonController"),
            "button_array": getattr(str_contro, "ButtonArrayController"),
            "rfid_reader": getattr(str_contro, "RfidReaderController"),
