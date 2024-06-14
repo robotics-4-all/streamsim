@@ -20,22 +20,24 @@ class Robot:
                  configuration = None,
                  world = None,
                  map = None,
-                 tick = 0.1):
+                 tick = 0.1,
+                 namespace = "_default_"):
 
         self.env_properties = world.env_properties
         world = world.configuration
 
         self.configuration = configuration
         self.logger = logging.getLogger(__name__)
+        self.namespace = namespace
+
+        # Create the CommlibFactory
+        self.commlib_factory = CommlibFactory(node_name = self.configuration["name"])
+        self.commlib_factory.run()
 
         self.tf_base = world['tf_base']
-        self.tf_declare_rpc = CommlibFactory.getRPCClient(
-            rpc_name = self.tf_base + ".declare"
+        self.tf_declare_rpc = self.commlib_factory.getRPCClient(
+            rpc_name=self.tf_base + ".declare"
         )
-
-        self.logger.warning("Setting namespace to robot")
-        os.environ["TEKTRAIN_NAMESPACE"] = "robot"
-        self.namespace = "robot"
 
         self.common_logging = False
 
@@ -88,7 +90,7 @@ class Robot:
         # Devices set
         self.speak_mode = self.configuration["speak_mode"]
         self.mode = self.configuration["mode"]
-        if self.mode not in ["real", "mock", "simulation"]:
+        if self.mode not in ["mock", "simulation"]:
             self.logger.error("Selected mode is invalid: {}".format(self.mode))
             exit(1)
 
@@ -101,100 +103,80 @@ class Robot:
         self.device_lookup()
 
         # rpc service which resets the robot pose to the initial given values
-        self.reset_pose_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.reset_pose_rpc_server = self.commlib_factory.getRPCService(
             callback = self.reset_pose_callback,
             rpc_name = self.name + '.reset_robot_pose'
         )
-        self.devices_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.devices_rpc_server = self.commlib_factory.getRPCService(
             callback = self.devices_callback,
             rpc_name = self.name + '.nodes_detector.get_connected_devices'
         )
-        self.internal_pose_pub = CommlibFactory.getPublisher(
-            broker = "redis",
-            topic = self.name + ".pose"
+        self.internal_pose_pub = self.commlib_factory.getPublisher(
+            topic = self.name + ".pose.internal"
         )
 
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['remote_inform'] is True:
-            import commlib
-
-            final_t = self.name
-            final_t = final_t[final_t.find(".") + 1:]
-            final_top = final_t + ".pose"
-            final_dete_top = final_t + ".detect"
-            final_leds_top = final_t + ".leds"
-            final_leds_wipe_top = final_t + ".leds.wipe"
-            final_exec = final_t + ".execution"
+            final_top = self.name + ".pose"
+            final_dete_top = self.name + ".detect"
+            final_leds_top = self.name + ".leds"
+            final_leds_wipe_top = self.name + ".leds.wipe"
+            final_exec = self.name + ".execution"
 
             # AMQP Publishers  -----------------------------------------------
-            self.pose_pub = CommlibFactory.getPublisher(
-                broker = "mqtt",
+            self.pose_pub = self.commlib_factory.getPublisher(
                 topic = final_top
             )
-            self.detects_pub = CommlibFactory.getPublisher(
-                broker = "mqtt",
+            self.detects_pub = self.commlib_factory.getPublisher(
                 topic = final_dete_top
             )
-            self.leds_pub = CommlibFactory.getPublisher(
-                broker = "mqtt",
+            self.leds_pub = self.commlib_factory.getPublisher(
                 topic = final_leds_top
             )
-            self.leds_wipe_pub = CommlibFactory.getPublisher(
-                broker = "mqtt",
+            self.leds_wipe_pub = self.commlib_factory.getPublisher(
                 topic = final_leds_wipe_top
             )
-            self.execution_pub = CommlibFactory.getPublisher(
-                broker = "mqtt",
+            self.execution_pub = self.commlib_factory.getPublisher(
                 topic = final_exec
             )
 
             # AMQP Subscribers  -----------------------------------------------
-            self.buttons_amqp_sub = CommlibFactory.getSubscriber(
-                broker = "mqtt",
-                topic = final_t + ".buttons",
+            self.buttons_amqp_sub = self.commlib_factory.getSubscriber(
+                topic = self.name + ".buttons",
                 callback = self.button_amqp
             )
 
             if self.step_by_step_execution:
-                self.step_by_step_amqp_sub = CommlibFactory.getSubscriber(
-                    broker = "mqtt",
-                    topic = final_t + ".step_by_step",
+                self.step_by_step_amqp_sub = self.commlib_factory.getSubscriber(
+                    topic = self.name + ".step_by_step",
                     callback = self.step_by_step_amqp
                 )
 
             # REDIS Publishers  -----------------------------------------------
 
-            self.buttons_sim_pub = CommlibFactory.getPublisher(
-                broker = "redis",
-                topic = self.configuration["name"] + ".buttons_sim"
+            self.buttons_sim_pub = self.commlib_factory.getPublisher(
+                topic = self.name + ".buttons_sim.internal"
             )
-            self.next_step_pub = CommlibFactory.getPublisher(
-                broker = "redis",
-                topic = self.configuration["name"] + ".next_step"
+            self.next_step_pub = self.commlib_factory.getPublisher(
+                topic = self.name + ".next_step.internal"
             )
 
             # REDIS Subscribers -----------------------------------------------
 
-            self.execution_nodes_redis_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = final_t + ".execution.nodes",
+            self.execution_nodes_redis_sub = self.commlib_factory.getSubscriber(
+                topic = self.name + ".execution.nodes.internal",
                 callback = self.execution_nodes_redis
             )
-            self.detects_redis_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = final_t + ".detects",
+            self.detects_redis_sub = self.commlib_factory.getSubscriber(
+                topic = self.name + ".detects.internal",
                 callback = self.detects_redis
             )
-            self.leds_redis_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = final_t + ".leds",
+            self.leds_redis_sub = self.commlib_factory.getSubscriber(
+                topic = self.name + ".leds.internal",
                 callback = self.leds_redis
             )
-            self.leds_wipe_redis_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = final_t + ".leds.wipe",
+            self.leds_wipe_redis_sub = self.commlib_factory.getSubscriber(
+                topic = self.name + ".leds.wipe.internal",
                 callback = self.leds_wipe_redis
             )
 
@@ -236,7 +218,9 @@ class Robot:
             "map": self.map,
             "actors": actors,
             'tf_declare': self.tf_declare_rpc,
-            "env_properties": self.env_properties
+            "env_properties": self.env_properties,
+            'tf_declare_rpc_topic': self.tf_base + '.declare',
+            'tf_affection_rpc_topic': self.tf_base + '.get_affections',
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
@@ -260,6 +244,8 @@ class Robot:
            "button_array": getattr(str_contro, "ButtonArrayController"),
            "rfid_reader": getattr(str_contro, "RfidReaderController"),
         }
+        if "devices" not in self.configuration:
+            return
         for s in self.configuration["devices"]:
             for m in self.configuration["devices"][s]:
                 # Handle pose
@@ -319,7 +305,6 @@ class Robot:
         while not done:
             try:
                 v2 = "" ## Change this!
-                # v2 = CommlibFactory.derp_client.lget(self.name + ".detect.source", 0, 0)['val'][0]
                 self.logger.info("Got the source!")
                 done = True
             except:
@@ -347,17 +332,6 @@ class Robot:
         for c in self.controllers:
             self.controllers[c].start()
 
-        if self.configuration['remote_inform'] is True:
-            self.buttons_amqp_sub.run()
-            self.execution_nodes_redis_sub.run()
-            self.detects_redis_sub.run()
-            self.leds_redis_sub.run()
-            self.leds_wipe_redis_sub.run()
-            if self.step_by_step_execution:
-                self.step_by_step_amqp_sub.run()
-
-        self.devices_rpc_server.run()
-        self.reset_pose_rpc_server.run()
         self.stopped = False
         self.simulator_thread.start()
 
@@ -366,21 +340,12 @@ class Robot:
             self.logger.warning("Trying to stop controller {}".format(c))
             self.controllers[c].stop()
 
-        if self.configuration['amqp_inform'] is True:
-            self.buttons_sub.stop()
-            if self.step_by_step_execution:
-                self.step_by_step_sub.stop()
+        self.commlib_factory.stop()
 
-        self.logger.warning("Trying to stop devices_rpc_server")
-        self.devices_rpc_server.stop()
-        self.logger.warning("Trying to stop reset_pose_rpc_server")
-        self.reset_pose_rpc_server.stop()
-
-        self.logger.warning("Trying to stop simulation_thread")
+        self.logger.warning("Trying to stop robot thread")
         self.stopped = True
 
     def devices_callback(self, message):
-        self.logger.warning("Getting devices")
         timestamp = time.time()
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))
@@ -451,6 +416,7 @@ class Robot:
 
     def dispatch_pose_local(self):
         # Send initial pose
+        print("Dispatching local pose", self._x, self._y, self._theta)
         self.internal_pose_pub.publish({
             "x": self._x,
             "y": self._y,
@@ -460,6 +426,7 @@ class Robot:
         })
 
     def simulation_thread(self):
+        self.logger.warning(f"Started {self.name} simulation thread")
         t = time.time()
 
         self.dispatch_pose_local()
@@ -489,14 +456,13 @@ class Robot:
                 theta2 = float("{:.2f}".format(self._theta))
 
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
-                    if self.configuration['amqp_inform'] is True:
-                        self.logger.info("AMQP pose updated")
-                        self.pose_pub.publish({
-                            "x": xx,
-                            "y": yy,
-                            "theta": theta2,
-                            "resolution": self.resolution
-                        })
+                    self.logger.info("AMQP pose updated")
+                    self.pose_pub.publish({
+                        "x": xx,
+                        "y": yy,
+                        "theta": theta2,
+                        "resolution": self.resolution
+                    })
                     self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
 
                     # Send internal pose for distance sensors
@@ -514,7 +480,7 @@ class Robot:
                     self._theta = prev_th
 
                     # notify ui about the error in robot's position
-                    CommlibFactory.notify_ui(
+                    self.commlib_factory.notify_ui(
                         type = "new_message",
                         data = {
                             "type": "logs",

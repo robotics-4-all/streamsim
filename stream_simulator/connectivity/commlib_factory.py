@@ -63,9 +63,9 @@ class CommlibFactory(Node):
             })
             self._logger.info(f"UI inform {type}: {data}")
 
-    def inform(self, broker, topic, type):
+    def inform(self, broker, topic, type, extras = ""):
         self._logger.info(
-            f"{broker}::{type} <{topic}>"
+            f"{broker}::{type} <{topic}> @ {extras if extras != '' else '-'}"
         )
 
     def getPublisher(self, broker = "mqtt", topic = None):
@@ -73,7 +73,10 @@ class CommlibFactory(Node):
             topic = topic
         )
         ret.run()
-        self.inform(broker, topic, "Publisher")
+
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        self.inform(broker, topic, "Publisher", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['publishers'] += 1
         return ret
 
@@ -83,7 +86,9 @@ class CommlibFactory(Node):
             on_message = callback
         )
         ret.run()
-        self.inform(broker, topic, "Subscriber")
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        self.inform(broker, topic, "Subscriber", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['subscribers'] += 1
         return ret
 
@@ -93,7 +98,9 @@ class CommlibFactory(Node):
             rpc_name = rpc_name
         )
         ret.run()
-        self.inform(broker, rpc_name, "RPCService")
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        self.inform(broker, rpc_name, "RPCService", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['rpc servers'] += 1
         return ret
 
@@ -102,7 +109,9 @@ class CommlibFactory(Node):
             rpc_name = rpc_name
         )
         ret.run()
-        self.inform(broker, rpc_name, "RPCClient")
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        self.inform(broker, rpc_name, "RPCClient", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['rpc clients'] += 1
         return ret
 
@@ -112,7 +121,9 @@ class CommlibFactory(Node):
             action_name = action_name
         )
         ret.run()
-        self.inform(broker, action_name, "ActionServer")
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        self.inform(broker, action_name, "ActionServer", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['action servers'] += 1
         return ret
 
@@ -121,6 +132,8 @@ class CommlibFactory(Node):
             action_name = action_name
         )
         ret.run()
-        self.inform(broker, action_name, "ActionClient")
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        self.inform(broker, action_name, "ActionClient", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['action clients'] += 1
         return ret

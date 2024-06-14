@@ -54,7 +54,7 @@ class World:
 
         self.devices_rpc_server = self.commlib_factory.getRPCService(
             callback = self.devices_callback,
-            rpc_name = self.name + '.nodes_detector.get_connected_devices'
+            rpc_name = f"{self.tf_base.split('.')[0]}.{self.name}.nodes_detector.get_connected_devices"
         )
 
         self.setup()
@@ -84,8 +84,10 @@ class World:
             self.resolution = self.configuration['map']['resolution']
             self.width = int(self.configuration['map']['width'] / self.resolution)
             self.height = int(self.configuration['map']['height'] / self.resolution)
-            self.map = numpy.zeros((self.width, self.height))
-            
+            self.map = numpy.zeros((self.width, self.height))            
+
+            if 'obstacles' not in self.configuration['map']:
+                return
 
             # Add obstacles information in map
             self.obstacles = self.configuration['map']['obstacles']['lines']
@@ -199,3 +201,6 @@ class World:
                     self.actors_configurations.append(c.info)
                     self.actors_controllers[c.name] = c
                     self.logger.info(f"Actor {c.name} declared")
+
+    def stop(self):
+        self.commlib_factory.stop()

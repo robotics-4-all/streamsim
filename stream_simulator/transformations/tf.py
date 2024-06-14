@@ -193,10 +193,10 @@ class TfController:
         # Pan tilts on robots
         for r in res['robots']:
             cl = self.commlib_factory.getRPCClient(
-                broker = "redis",
-                rpc_name = f"robot.{r}.nodes_detector.get_connected_devices"
+                rpc_name = f"{self.base}.{r}.nodes_detector.get_connected_devices"
             )
             rr = cl.call({})
+            self.logger.info(f"Devices in {r}: {len(rr['devices'])}")
             for d in rr['devices']:
                 if d['type'] == 'PAN_TILT':
                     self.pantilts[d['name']] = {
@@ -207,9 +207,10 @@ class TfController:
 
         # Pan tilts in environment
         cl = self.commlib_factory.getRPCClient(
-            rpc_name = f"{res['world']}.nodes_detector.get_connected_devices"
+            rpc_name = f"{self.base}.{res['world']}.nodes_detector.get_connected_devices"
         )
         rr = cl.call({})
+        self.logger.info(f"Devices in world: {len(rr['devices'])}")
         for d in rr['devices']:
             if d['type'] == 'PAN_TILT':
                 self.pantilts[d['name']] = {
@@ -237,7 +238,7 @@ class TfController:
                     self.robots.append(d['host'])
                     self.existing_hosts.append(d['host'])
 
-                    topic = d['host_type'] + "." + d["host"] + ".pose"
+                    topic = d['host_type'] + "." + d["host"] + ".pose.internal"
                     self.subs[d['host']] = self.commlib_factory.getSubscriber(
                         topic = topic,
                         callback = self.robot_pose_callback
@@ -317,7 +318,7 @@ class TfController:
 
     def robot_pose_callback(self, message):
         nm = message['name'].split(".")[-1]
-        # self.logger.info(f"Updating {nm}: {message}")
+        print(f"Updating {nm}: {message}")
         if nm not in self.places_absolute:
             self.places_absolute[nm] = {'x': 0, 'y': 0, 'theta': 0}
         self.places_absolute[nm]['x'] = message['x']
@@ -1126,3 +1127,6 @@ class TfController:
             "info": info,
             "frm": frm
         }
+    
+    def stop(self):
+        self.commlib_factory.stop()

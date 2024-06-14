@@ -11,7 +11,6 @@ import base64
 
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class MicrophoneController(BaseThing):
@@ -21,15 +20,19 @@ class MicrophoneController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_microphone_" + str(BaseThing.id + 1)
         name = id
+        self.name = name
         if 'name' in conf:
             name = conf['name']
+
         _category = "sensor"
         _class = "audio"
         _subclass = "microphone"
         _pack = package["name"]
+
+        # BaseThing initialization
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "MICROPHONE",
@@ -58,8 +61,11 @@ class MicrophoneController(BaseThing):
         }
 
         self.info = info
+        self.base_topic = info["base_topic"]
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+
+        self.set_tf_communication(package)
 
         # tf handling
         tf_package = {
@@ -78,7 +84,8 @@ class MicrophoneController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        package["tf_declare"].call(tf_package)
+        
+        self.tf_declare_rpc.call(tf_package)
 
         self.blocked = False
 
@@ -90,42 +97,31 @@ class MicrophoneController(BaseThing):
                 h["type"] = i
                 self.actors.append(k)
 
-        if self.info["mode"] == "real":
-            from pidevices import Microphone
-            self.sensor = Microphone(dev_name=self.conf["dev_name"],
-                                     channels=self.conf["channels"],
-                                     name=self.name,
-                                     max_data_length=self.conf["max_data_length"])
-
-        self.record_action_server = CommlibFactory.getActionServer(
-            broker = "redis",
+        self.record_action_server = self.commlib_factory.getActionServer(
             callback = self.on_goal,
-            action_name = info["base_topic"] + ".record"
+            action_name = self.base_topic + ".record"
         )
-        self.listen_action_server = CommlibFactory.getActionServer(
+        self.listen_action_server = self.commlib_factory.getActionServer(
             callback = self.on_goal_listen,
-            action_name = info["base_topic"] + ".listen"
+            action_name = self.base_topic  + ".listen"
         )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
+            rpc_name = self.base_topic  + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
+            rpc_name = self.base_topic  + ".disable"
         )
 
-        self.record_pub = CommlibFactory.getPublisher(
-            topic = info["base_topic"] + ".record.notify"
+        self.record_pub = self.commlib_factory.getPublisher(
+            topic = self.base_topic  + ".record.notify"
         )
 
-        self.detect_speech_sub = CommlibFactory.getSubscriber(
-            topic = info["base_topic"] + ".speech_detected",
+        self.detect_speech_sub = self.commlib_factory.getSubscriber(
+            topic = self.base_topic  + ".speech_detected",
             callback = self.speech_detected
         )
-        self.detect_speech_sub.run()
 
     def speech_detected(self, message):
         source = message["speaker"]
@@ -202,10 +198,8 @@ class MicrophoneController(BaseThing):
             ret["volume"] = 100
 
         elif self.info["mode"] == "simulation":
-            while CommlibFactory.get_tf_affection == None:
-                time.sleep(0.1)
             # Ask tf for proximity sound sources or humans
-            res = CommlibFactory.get_tf_affection.call({
+            res = self.tf_affection_rpc.call({
                 'name': self.name
             })
             # Get the closest:
@@ -257,6 +251,9 @@ class MicrophoneController(BaseThing):
         self.logger.info("Microphone unlocked")
         self.blocked = True
 
+        # NOTE!!! This is a dummy implementation
+        text = "IMPLEMENT THIS FUNCTIONALITY!"
+
         try:
             duration = goalh.data["duration"]
             language = goalh.data["language"]
@@ -276,17 +273,7 @@ class MicrophoneController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.record_action_server.run()
-        self.listen_action_server.run()
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
+        pass
 
     def stop(self):
-        self.record_action_server._goal_rpc.stop()
-        self.record_action_server._cancel_rpc.stop()
-        self.record_action_server._result_rpc.stop()
-        self.listen_action_server._goal_rpc.stop()
-        self.listen_action_server._cancel_rpc.stop()
-        self.listen_action_server._result_rpc.stop()
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
+        self.commlib_factory.stop()

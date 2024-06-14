@@ -45,24 +45,11 @@ class Simulator:
         # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = "Simulator")
         self.commlib_factory.run()
-
-        real_mode_exists = False
-        if "robots" in self.configuration:
-            for robot in self.configuration["robots"]:
-                if "mode" in robot:
-                    if robot["mode"] == "real":
-                        real_mode_exists = True
-                        break
         
-        if not real_mode_exists:
-            # Setup notification channel
-            self.logger.info(f"Created {self.name}.notifications publisher!")
-            self.commlib_factory.notify = self.commlib_factory.getPublisher(
-                broker = 'mqtt',
-                topic = f"{self.name}.notifications"
-            )
-        else:
-            self.logger.warning("Robot with real mode detected. Skipping notifications publisher!")
+        self.logger.info(f"Created {self.name}.notifications publisher!")
+        self.commlib_factory.notify = self.commlib_factory.getPublisher(
+            topic = f"{self.name}.notifications"
+        )
 
         self.devices_rpc_server = self.commlib_factory.getRPCService(
             callback = self.devices_callback,
@@ -90,7 +77,8 @@ class Simulator:
                         configuration = r,
                         world = self.world,
                         map = self.world.map,
-                        tick = self.tick
+                        tick = self.tick,
+                        namespace = self.name,
                     )
                 )
                 self.robot_names.append(r["name"])
@@ -156,6 +144,9 @@ class Simulator:
     def stop(self):
         for r in self.robots:
             r.stop()
+        self.world.stop()
+        self.tf.stop()
+        self.commlib_factory.stop()
         self.logger.warning("Simulation stopped")
 
     def start(self):
