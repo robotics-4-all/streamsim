@@ -10,7 +10,6 @@ import random
 
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class ImuController(BaseThing):
@@ -20,8 +19,7 @@ class ImuController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_imu_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -29,6 +27,8 @@ class ImuController(BaseThing):
         _class = "imu"
         _subclass = "accel_gyro_magne_temp"
         _pack = package["name"]
+
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "IMU",
@@ -64,6 +64,8 @@ class ImuController(BaseThing):
         self.robot = _pack.split(".")[-1]
         self.prev_robot_pose = None
 
+        self.set_tf_communication(package)
+
         # tf handling
         tf_package = {
             "type": "robot",
@@ -81,17 +83,16 @@ class ImuController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        package["tf_declare"].call(tf_package)
+        
+        self.tf_declare_rpc.call(tf_package)
 
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
+        self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose",
+            self.robot_pose_sub = self.commlib_factory.getSubscriber(
+                topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
 
@@ -101,13 +102,11 @@ class ImuController(BaseThing):
                 "theta": 0
             }
 
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
             rpc_name = info["base_topic"] + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
             rpc_name = info["base_topic"] + ".disable"
         )
@@ -186,7 +185,6 @@ class ImuController(BaseThing):
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
 
-        self.memory = self.info["queue_size"] * [0]
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
         return {"enabled": True}
@@ -197,24 +195,11 @@ class ImuController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-
-        if self.info["mode"] == "simulation":
-            self.robot_pose_sub.run()
-
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("IMU {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
-            if self.info["mode"] == "real":
-                # it the mode is real enable the calibration
-                self._imu_calibrator.start()
-
     def stop(self):
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-        if self.info["mode"] == "simulation":
-            self.robot_pose_sub.stop()
+        self.commlib_factory.stop()

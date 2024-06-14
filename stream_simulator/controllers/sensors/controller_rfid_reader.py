@@ -10,7 +10,6 @@ import random
 
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class RfidReaderController(BaseThing):
@@ -20,8 +19,7 @@ class RfidReaderController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_rfid_reader_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -29,6 +27,8 @@ class RfidReaderController(BaseThing):
         _class = "rf"
         _subclass = "rfid_reader"
         _pack = package["name"]
+
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "RFID_READER",
@@ -61,6 +61,8 @@ class RfidReaderController(BaseThing):
         self.range = 150 if 'range' not in conf else conf['range']
         self.fov = 180 if 'fov' not in conf else conf['fov']
 
+        self.set_tf_communication(package)
+
         # tf handling
         tf_package = {
             "type": "robot",
@@ -82,21 +84,19 @@ class RfidReaderController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        package["tf_declare"].call(tf_package)
+        
+        self.tf_declare_rpc.call(tf_package)
 
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
+        self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
+            rpc_name = self.base_topic + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
+            rpc_name = self.base_topic + ".disable"
         )
 
     def sensor_read(self):
@@ -110,10 +110,8 @@ class RfidReaderController(BaseThing):
                 if random.uniform(0, 10) < 3:
                     tags["RF432423"] = "lorem_ipsum"
             elif self.info["mode"] == "simulation":
-                while CommlibFactory.get_tf_affection == None:
-                    time.sleep(0.1)
                 # Ask tf for proximity sound sources or humans
-                res = CommlibFactory.get_tf_affection.call({
+                res = self.tf_affection_rpc.call({
                     'name': self.name
                 })
                 for t in res:
@@ -130,7 +128,7 @@ class RfidReaderController(BaseThing):
             })
 
             if len(tags) > 0:
-                CommlibFactory.notify_ui(
+                self.commlib_factory.notify_ui(
                     type = "rfid_tags",
                     data = {
                         "name": self.name,
@@ -156,14 +154,10 @@ class RfidReaderController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
 
     def stop(self):
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
+        self.commlib_factory.stop()

@@ -11,7 +11,6 @@ import random
 from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class TofController(BaseThing):
     def __init__(self, conf = None, package = None):
@@ -20,8 +19,7 @@ class TofController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_tof_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -29,6 +27,8 @@ class TofController(BaseThing):
         _class = "distance"
         _subclass = "tof"
         _pack = package["name"]
+
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "TOF",
@@ -63,6 +63,8 @@ class TofController(BaseThing):
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
+        self.set_tf_communication(package)
+
         # tf handling
         tf_package = {
             "type": "robot",
@@ -80,30 +82,25 @@ class TofController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        package["tf_declare"].call(tf_package)
+        
+        
+        self.tf_declare_rpc.call(tf_package)
 
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
+        self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
             rpc_name = info["base_topic"] + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
             rpc_name = info["base_topic"] + ".disable"
         )
 
-        if self.info["mode"] == "real":
-            from pidevices.sensors.vl53l1x import VL53L1X
-            self.sensor = VL53L1X(bus=1)
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose",
+            self.robot_pose_sub = self.commlib_factory.getSubscriber(
+                topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
 
@@ -135,8 +132,6 @@ class TofController(BaseThing):
                     val = d * self.robot_pose["resolution"]
                 except:
                     self.logger.warning("Pose not got yet..")
-            else: # The real deal
-                val = self.sensor.read()
 
             # Publishing value:
             self.publisher.publish({
@@ -151,7 +146,6 @@ class TofController(BaseThing):
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
 
-        self.memory = self.info["queue_size"] * [0]
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
         return {"enabled": True}
@@ -162,22 +156,11 @@ class TofController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-
-        if self.info["mode"] == "simulation":
-            self.robot_pose_sub.run()
-
         if self.info["enabled"]:
-            self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("TOF {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
     def stop(self):
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-
-        if self.info["mode"] == "simulation":
-            self.robot_pose_sub.stop()
+        self.commlib_factory.stop()

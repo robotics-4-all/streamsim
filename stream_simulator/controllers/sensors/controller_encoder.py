@@ -8,7 +8,6 @@ import logging
 import threading
 import random
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class EncoderController(BaseThing):
@@ -18,8 +17,7 @@ class EncoderController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_encoder_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -27,6 +25,8 @@ class EncoderController(BaseThing):
         _class = "encoder"
         _subclass = "absolute"
         _pack = package["name"]
+        
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "ENCODER",
@@ -62,6 +62,8 @@ class EncoderController(BaseThing):
         self.place = conf["place"]
         self.motion_derpme_topic = None
 
+        self.set_tf_communication(package)
+
         self.wheel_radius = 0.02
         self.linear_coeff = 1.0 / (2 * math.pi * self.wheel_radius)
         self.angular_coeff = 3.0 # this should change
@@ -80,22 +82,20 @@ class EncoderController(BaseThing):
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
-        package["tf_declare"].call(tf_package)
+        
+        self.tf_declare_rpc.call(tf_package)
 
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
+        self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
 
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
+            rpc_name = self.base_topic + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
+            rpc_name = self.base_topic + ".disable"
         )
 
     def sensor_read(self):
@@ -106,22 +106,15 @@ class EncoderController(BaseThing):
             if self.info["mode"] == "mock":
                 self.data = float(random.uniform(1000,2000))
             elif self.info["mode"] == "simulation":
+                return
                 time.sleep(1)
-                if self.motion_derpme_topic == None:
-                    rpc_cl = CommlibFactory.getRPCClient(
-                        rpc_name = f"robot.{self.robot}.nodes_detector.get_connected_devices"
-                    )
-                    res = None
-                    while res == None: # if server is unready
-                        res = rpc_cl.call({})
-                    for d in res['devices']:
-                        if d['type'] == "SKID_STEER":
-                            self.motion_derpme_topic = d['base_topic'] + '.raw'
+                # if self.motion_derpme_topic == None:
+                #     rpc_cl = self.commlib_factory.getRPCClient(
+                #         rpc_name = f"robot.{self.robot}.nodes_detector.get_connected_devices"
+                #     )
 
                 # get the two last velocities
-                rl = CommlibFactory.derp_client.lget(
-                    self.motion_derpme_topic, 0, -1
-                )
+                rl = {'val': [0, 0]} # this should change
                 self.data = 0
                 if len(rl['val']) == 0:
                     pass
@@ -207,22 +200,11 @@ class EncoderController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("Encoder {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
-
-            if self.info["mode"] == "real":
-                self.sensor.start()
-
+    
     def stop(self):
         self.info["enabled"] = False
-
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-
-        if self.info["mode"] == "real":
-            self.sensor.stop()
+        self.commlib_factory.stop()

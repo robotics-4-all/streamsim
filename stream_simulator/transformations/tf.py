@@ -418,6 +418,7 @@ class TfController:
 
         # Fix thetas if exist:
         if temp['pose']['theta'] != None:
+            temp['pose']['theta'] = float(temp['pose']['theta'])
             temp['pose']['theta'] *= math.pi/180.0
 
         self.declarations.append(temp)

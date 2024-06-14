@@ -201,8 +201,7 @@ class Robot:
         if c.info["type"] == "SKID_STEER":
             self.motion_controller = c
 
-        self.logger.info(\
-            f"{Fore.WHITE + Style.BRIGHT}{c.name} controller created {Style.RESET_ALL}")
+        self.logger.info(f"{c.name} controller created")
 
     def device_lookup(self):
         actors = {}
@@ -231,7 +230,6 @@ class Robot:
            "camera": getattr(str_contro, "CameraController"),
            "skid_steer": getattr(str_contro, "MotionController"),
            "microphone": getattr(str_contro, "MicrophoneController"),
-           "cytron_lf": getattr(str_contro, "CytronLFController"),
            "imu": getattr(str_contro, "ImuController"),
            "env": getattr(str_contro, "EnvController"),
            "speaker": getattr(str_contro, "SpeakerController"),
@@ -415,8 +413,6 @@ class Robot:
         return False
 
     def dispatch_pose_local(self):
-        # Send initial pose
-        print("Dispatching local pose", self._x, self._y, self._theta)
         self.internal_pose_pub.publish({
             "x": self._x,
             "y": self._y,
@@ -465,15 +461,6 @@ class Robot:
                     })
                     self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
 
-                    # Send internal pose for distance sensors
-                    self.internal_pose_pub.publish({
-                        "x": xx,
-                        "y": yy,
-                        "theta": theta2,
-                        "resolution": self.resolution,
-                        "name": self.name
-                    })
-
                 if self.check_ok(self._x, self._y, prev_x, prev_y):
                     self._x = prev_x
                     self._y = prev_y
@@ -487,5 +474,14 @@ class Robot:
                             "message": f"Robot: {self.raw_name} {self.error_log_msg}"
                         }
                     )
+
+                    # Send internal pose for distance sensors
+                    self.internal_pose_pub.publish({
+                        "x": xx,
+                        "y": yy,
+                        "theta": theta2,
+                        "resolution": self.resolution,
+                        "name": self.name
+                    })
 
             time.sleep(self.dt)

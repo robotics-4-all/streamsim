@@ -10,7 +10,6 @@ import random
 
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class MotionController(BaseThing):
@@ -20,8 +19,7 @@ class MotionController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_skid_steering_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -29,6 +27,8 @@ class MotionController(BaseThing):
         _class = "motion"
         _subclass = "twist"
         _pack = package["name"]
+
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "SKID_STEER",
@@ -60,6 +60,8 @@ class MotionController(BaseThing):
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
+        self.set_tf_communication(package)
+
         # tf handling
         tf_package = {
             "type": "robot",
@@ -74,25 +76,23 @@ class MotionController(BaseThing):
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
-        package["tf_declare"].call(tf_package)
+        
+        self.tf_declare_rpc.call(tf_package)
 
         self._linear = 0
         self._angular = 0
 
-        self.vel_sub = CommlibFactory.getSubscriber(
-            broker = "redis",
-            topic = info["base_topic"] + ".set",
+        self.vel_sub = self.commlib_factory.getSubscriber(
+            topic = self.base_topic + ".set",
             callback = self.cmd_vel
         )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
+            rpc_name = self.base_topic + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
+            rpc_name = self.base_topic + ".disable"
         )
 
     def enable_callback(self, message):
@@ -104,16 +104,10 @@ class MotionController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.vel_sub.run()
-
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
+        pass
 
     def stop(self):
-        self.vel_sub.stop()
-
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
+        self.commlib_factory.stop()
 
     def cmd_vel(self, message):
         try:

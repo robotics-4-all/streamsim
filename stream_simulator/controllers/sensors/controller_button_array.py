@@ -9,7 +9,6 @@ import threading
 import random
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 current_milli_time = lambda: int(round(time.time() * 1000))
@@ -21,14 +20,15 @@ class ButtonArrayController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_button_array_" + str(BaseThing.id + 1)
 
         name = id
         _category = "sensor"
         _class = "button_array"
         _subclass = "tactile"
         _pack = package["name"]
+        
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "BUTTON_ARRAY",
@@ -47,6 +47,8 @@ class ButtonArrayController(BaseThing):
             "device_name": package["device_name"]
         }
 
+        self.set_tf_communication(package)
+
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
@@ -62,30 +64,25 @@ class ButtonArrayController(BaseThing):
         self.prev = 0
 
         for b in self.buttons_base_topics:
-            self.publishers[b] = CommlibFactory.getPublisher(
-                broker = "redis",
+            self.publishers[b] = self.commlib_factory.getPublisher(
                 topic = self.buttons_base_topics[b] + ".data"
             )
             self.derp_data_keys[b] = self.buttons_base_topics[b] + ".raw"
 
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
             rpc_name = info["base_topic"] + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
             rpc_name = info["base_topic"] + ".disable"
         )
 
         if self.info["mode"] == "simulation":
-            self.sim_button_pressed_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = self.info['device_name'] + ".buttons_sim",
+            self.sim_button_pressed_sub = self.commlib_factory.getSubscriber(
+                topic = self.info['device_name'] + ".buttons_sim.internal",
                 callback = self.sim_button_pressed
             )
-            self.sim_button_pressed_sub.run()
 
     def dispatch_information(self, _data, _button):
         # Publish to stream
@@ -126,15 +123,6 @@ class ButtonArrayController(BaseThing):
         self.values[button] = True
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-
-        if self.info["mode"] == "real":
-            for pin_num in range(self.number_of_buttons):
-                self.sensor.when_pressed(pin_num, self.real_button_pressed, pin_num)
-
-            buttons = [i for i in range(self.number_of_buttons)]
-            self.sensor.enable_pressed(buttons)
         if self.info["mode"] == "mock":
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
@@ -142,10 +130,7 @@ class ButtonArrayController(BaseThing):
 
     def stop(self):
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-
-        self.sensor.stop()
+        self.commlib_factory.stop()
 
     def enable_callback(self, message):
         self.info["enabled"] = True

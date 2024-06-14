@@ -8,14 +8,12 @@ import logging
 import threading
 import random
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class ButtonController(BaseThing):
     def __init__(self, conf = None, package = None):
-        super(self.__class__, self).__init__()
 
-        id = "d_" + str(BaseThing.id)
+        id = "d_button_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -23,6 +21,8 @@ class ButtonController(BaseThing):
         _class = "button"
         _subclass = "tactile"
         _pack = package["name"]
+
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "BUTTON",
@@ -52,6 +52,8 @@ class ButtonController(BaseThing):
         self.info = info
         self.name = info["name"]
 
+        self.set_tf_communication(package)
+
         # tf handling
         tf_package = {
             "type": "robot",
@@ -69,4 +71,5 @@ class ButtonController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        package["tf_declare"].call(tf_package)
+
+        self.tf_declare_rpc.call(tf_package)
