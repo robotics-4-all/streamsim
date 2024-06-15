@@ -22,9 +22,6 @@ from .effectors import \
     PanTiltController, \
     SpeakerController
 
-from .composite import \
-    TouchScreenController
-
 from .env_devices import \
     EnvRelayController, \
     EnvPhSensorController, \

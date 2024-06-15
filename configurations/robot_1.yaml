@@ -42,18 +42,12 @@ devices:
     - source: "tektrain/buttons/button_G4"
   env:
     - source: "tektrain/env"
-  # speaker:
-  #   -
-  #     source: "tektrain/speaker"
-  # leds:
-  #   -
-  #     source: "tektrain/leds"
-  # pan_tilt:
-  #   -
-  #     source: "tektrain/pan_tilt"
-  # touch_screen:
-  #   -
-  #     source: "tektrain/touch_screen"
+  speaker:
+    - source: "tektrain/speaker"
+  leds:
+    - source: "tektrain/leds"
+  pan_tilt:
+    - source: "tektrain/pan_tilt"
   encoder:
     - source: "tektrain/encoders/encoder_BR"
     - source: "tektrain/encoders/encoder_BL"

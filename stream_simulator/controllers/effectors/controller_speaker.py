@@ -11,7 +11,6 @@ import base64
 
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class SpeakerController(BaseThing):
@@ -21,8 +20,7 @@ class SpeakerController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_speaker_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -30,6 +28,7 @@ class SpeakerController(BaseThing):
         _class = "audio"
         _subclass = "speaker"
         _pack = package["name"]
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "SPEAKERS",
@@ -59,6 +58,9 @@ class SpeakerController(BaseThing):
         self.info = info
         self.name = info["name"]
         self.conf = info["sensor_configuration"]
+        self.base_topic = info["base_topic"]
+
+        self.set_tf_communication(package)
 
         # tf handling
         tf_package = {
@@ -77,42 +79,34 @@ class SpeakerController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        package["tf_declare"].call(tf_package)
+        
+        self.tf_declare_rpc.call(tf_package)
 
         self.global_volume = None
         self.blocked = False
 
-        self.play_action_server = CommlibFactory.getActionServer(
-            broker = "redis",
+        self.play_action_server = self.commlib_factory.getActionServer(
             callback = self.on_goal_play,
-            action_name = info["base_topic"] + ".play"
+            action_name = self.base_topic + ".play"
         )
-        self.speak_action_server = CommlibFactory.getActionServer(
-            broker = "redis",
+        self.speak_action_server = self.commlib_factory.getActionServer(
             callback = self.on_goal_speak,
-            action_name = info["base_topic"] + ".speak"
+            action_name = self.base_topic + ".speak"
         )
-        self.global_volume_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
-            callback = self.set_global_volume_callback,
-            rpc_name = "device.global.volume"
-        )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
+            rpc_name = self.base_topic + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
+            rpc_name = self.base_topic + ".disable"
         )
 
-        self.play_pub = CommlibFactory.getPublisher(
-            topic = info["base_topic"] + ".play.notify"
+        self.play_pub = self.commlib_factory.getPublisher(
+            topic = self.base_topic + ".play.notify"
         )
-        self.speak_pub = CommlibFactory.getPublisher(
-            topic = info["base_topic"] + ".speak.notify"
+        self.speak_pub = self.commlib_factory.getPublisher(
+            topic = self.base_topic + ".speak.notify"
         )
 
     def on_goal_speak(self, goalh):
@@ -126,7 +120,7 @@ class SpeakerController(BaseThing):
         self.logger.info("Speaker unlocked")
         self.blocked = True
 
-        CommlibFactory.notify_ui(
+        self.commlib_factory.notify_ui(
             type = "effector_command",
             data = {
                 "name": self.name,
@@ -252,54 +246,6 @@ class SpeakerController(BaseThing):
         self.blocked = False
         return ret
 
-    # check if this is needed
-    def set_global_volume(self):
-        try:
-            import alsaaudio
-            m = alsaaudio.Mixer("PCM")
-            m.setvolume(int(self.global_volume))
-            self.logger.info(f"{Fore.MAGENTA}Alsamixer audio set to {self.global_volume}{Style.RESET_ALL}")
-        except Exception as e:
-            err = f"Something went wrong with global volume set: {str(e)}. Is the alsaaudio python library installed?"
-            self.logger.error(err)
-            raise ValueError(err)
-
-        try:
-            #Write global volume to persistent storage
-            CommlibFactory.derp_client.set(
-                "device.global_volume.persistent",
-                self.global_volume,
-                persistent = True
-            )
-            self.logger.info(f"{Fore.MAGENTA}Derpme updated for global volume{Style.RESET_ALL}")
-        except Exception as e:
-            err = f"Could not store volume in persistent derp me"
-            self.logger.error(err)
-            raise ValueError(err)
-
-    def set_global_volume_callback(self, message):
-        try:
-            _vol = message["volume"]
-            if _vol < 0 or _vol > 100:
-                err = f"Global volume must be between 0 and 100"
-                self.logger.error(err)
-                raise ValueError(err)
-            self.global_volume = _vol
-            self.logger.info(f"{Fore.MAGENTA}Global volume set to {self.global_volume}{Style.RESET_ALL}")
-        except Exception as e:
-            err = f"Global volume message is erroneous: {message}"
-            self.logger.error(err)
-            raise ValueError(err)
-
-        try:
-            self.set_global_volume()
-        except Exception as e:
-            err = f"Something went wrong with global volume set: {str(e)}"
-            self.logger.error(err)
-            raise ValueError(err)
-
-        return {}
-
     def enable_callback(self, message):
         self.info["enabled"] = True
         return {"enabled": True}
@@ -309,19 +255,7 @@ class SpeakerController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.play_action_server.run()
-        self.speak_action_server.run()
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.global_volume_rpc_server.run()
+        pass
 
     def stop(self):
-        self.play_action_server._goal_rpc.stop()
-        self.play_action_server._cancel_rpc.stop()
-        self.play_action_server._result_rpc.stop()
-        self.speak_action_server._goal_rpc.stop()
-        self.speak_action_server._cancel_rpc.stop()
-        self.speak_action_server._result_rpc.stop()
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-        self.global_volume_rpc_server.stop()
+        self.commlib_factory.stop()

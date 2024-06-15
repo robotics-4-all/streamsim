@@ -10,7 +10,6 @@ import random
 
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class LedsController(BaseThing):
@@ -20,8 +19,7 @@ class LedsController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_leds_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -29,6 +27,8 @@ class LedsController(BaseThing):
         _class = "visual"
         _subclass = "leds"
         _pack = package["name"]
+
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "LED",
@@ -61,6 +61,8 @@ class LedsController(BaseThing):
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
+        self.set_tf_communication(package)
+
         # tf handling
         tf_package = {
             "type": "robot",
@@ -78,8 +80,8 @@ class LedsController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        package["tf_declare"].call(tf_package)
-
+        
+        self.tf_declare_rpc.call(tf_package)
 
         self._color = {
                 'r': 0.0,
@@ -88,50 +90,32 @@ class LedsController(BaseThing):
         }
         self._luminosity = 0
 
-
-        if self.info["mode"] == "real":
-            from pidevices import LedController
-            self.led_strip = LedController(led_count=self.conf["led_count"],
-                                            led_pin=self.conf["led_pin"],
-                                            led_freq_hz=self.conf["led_freq_hz"],
-                                            led_brightness=self.conf["led_brightness"],
-                                            led_channel=self.conf["led_channel"])
-
-        # These are to inform amqp###################
-        self.leds_pub = CommlibFactory.getPublisher(
-            broker = "redis",
+        self.leds_pub = self.commlib_factory.getPublisher(
             topic = self.info['device_name'] + ".leds"
         )
-        self.leds_wipe_pub = CommlibFactory.getPublisher(
-            broker = "redis",
+        self.leds_wipe_pub = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".wipe"
         )
-        #############################################
 
-        self.set_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.set_rpc_server = self.commlib_factory.getRPCService(
             callback = self.leds_set_callback,
-            rpc_name = info["base_topic"] + ".set"
+            rpc_name = self.base_topic + ".set"
         )
-        self.get_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.get_rpc_server = self.commlib_factory.getRPCService(
             callback = self.leds_get_callback,
-            rpc_name = info["base_topic"] + ".get"
+            rpc_name = self.base_topic + ".get"
         )
-        self.leds_wipe_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.leds_wipe_server = self.commlib_factory.getRPCService(
             callback = self.leds_wipe_callback,
-            rpc_name = info["base_topic"] + ".wipe"
+            rpc_name = self.base_topic + ".wipe"
         )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
+            rpc_name = self.base_topic + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
+            rpc_name = self.base_topic + ".disable"
         )
 
     def enable_callback(self, message):
@@ -143,18 +127,10 @@ class LedsController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.set_rpc_server.run()
-        self.get_rpc_server.run()
-        self.leds_wipe_server.run()
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
+        pass
 
     def stop(self):
-        self.set_rpc_server.stop()
-        self.get_rpc_server.stop()
-        self.leds_wipe_server.stop()
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
+        self.commlib_factory.stop()
 
     def leds_get_callback(self, message):
         self.logger.info(f"Getting led state!")
@@ -181,7 +157,7 @@ class LedsController(BaseThing):
                 'luminosity': intensity,
             }
 
-            CommlibFactory.notify_ui(
+            self.commlib_factory.notify_ui(
                 type = "effector_command",
                 data = {
                     "name": self.name,
@@ -214,7 +190,7 @@ class LedsController(BaseThing):
             ms = response["wait_ms"]
             self._color = [r, g, b, intensity]
 
-            CommlibFactory.notify_ui(
+            self.commlib_factory.notify_ui(
                 type = "effector_command",
                 data = {
                     "name": self.name,

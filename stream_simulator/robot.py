@@ -235,7 +235,6 @@ class Robot:
            "speaker": getattr(str_contro, "SpeakerController"),
            "leds": getattr(str_contro, "LedsController"),
            "pan_tilt": getattr(str_contro, "PanTiltController"),
-           "touch_screen": getattr(str_contro, "TouchScreenController"),
            "encoder": getattr(str_contro, "EncoderController"),
            "button": getattr(str_contro, "ButtonController"),
            "button_array": getattr(str_contro, "ButtonArrayController"),

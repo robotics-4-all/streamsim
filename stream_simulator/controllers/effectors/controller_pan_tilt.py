@@ -10,7 +10,6 @@ import random
 
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class PanTiltController(BaseThing):
@@ -20,8 +19,7 @@ class PanTiltController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_pan_tilt_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -29,6 +27,7 @@ class PanTiltController(BaseThing):
         _class = "motion"
         _subclass = "pan_tilt"
         _pack = package["name"]
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "PAN_TILT",
@@ -60,6 +59,8 @@ class PanTiltController(BaseThing):
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
+        self.set_tf_communication(package)
+
         # tf handling
         tf_package = {
             "type": "robot",
@@ -77,43 +78,31 @@ class PanTiltController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        package["tf_declare"].call(tf_package)
+        
+        self.tf_declare_rpc.call(tf_package)
 
         # init values
         self._yaw = 0.0
         self._pitch = 0.0
 
-        # create object
-        if self.info["mode"] == "real":
-            from pidevices import PCA9685
-            self.pan_tilt = PCA9685(bus=self.conf["bus"],
-                                    frequency=self.conf["frequency"],
-                                    max_data_length=self.conf["max_data_length"])
-            self.yaw_channel = 0
-            self.pitch_channel = 1
-
-        self.pan_tilt_set_sub = CommlibFactory.getSubscriber(
-            broker = "redis",
-            topic = info["base_topic"] + ".set",
+        self.pan_tilt_set_sub = self.commlib_factory.getSubscriber(
+            topic = self.base_topic + ".set",
             callback = self.pan_tilt_set_callback
         )
-        self.pan_tilt_get_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.pan_tilt_get_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_pan_tilt_callback,
-            rpc_name = info["base_topic"] + ".get"
+            rpc_name = self.base_topic + ".get"
         )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
+            rpc_name = self.base_topic + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
+            rpc_name = self.base_topic + ".disable"
         )
-        self.data_publisher = CommlibFactory.getPublisher(
-            topic = info["base_topic"] + ".data"
+        self.data_publisher = self.commlib_factory.getPublisher(
+            topic = self.base_topic + ".data"
         )
 
     def enable_callback(self, message):
@@ -125,16 +114,10 @@ class PanTiltController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.pan_tilt_set_sub.run()
-        self.pan_tilt_get_rpc_server.run()
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
+        pass
 
     def stop(self):
-        self.pan_tilt_set_sub.stop()
-        self.pan_tilt_get_rpc_server.stop()
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
+        self.commlib_factory.stop()
 
     def get_pan_tilt_callback(self, message):
         return {
