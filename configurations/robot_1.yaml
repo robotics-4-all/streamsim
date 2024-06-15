@@ -23,9 +23,8 @@ devices:
     - source: "tektrain/irs/ir_bl"
   tof:
     - source: "tektrain/tof"
-  # camera:
-  #   -
-  #     source: "tektrain/camera"
+  camera:
+    - source: "tektrain/camera"
   imu:
     - source: "tektrain/imu"
   button:

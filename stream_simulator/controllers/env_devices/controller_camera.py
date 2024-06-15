@@ -134,7 +134,7 @@ class EnvCameraController(BaseThing):
                 data = base64.b64encode(buffer).decode()
             elif self.mode == "simulation":
                 # Ask tf for proximity sound sources or humans
-                res = self.commlib_factory.get_tf_affection.call({
+                res = self.tf_affection_rpc.call({
                     'name': self.name
                 })
 

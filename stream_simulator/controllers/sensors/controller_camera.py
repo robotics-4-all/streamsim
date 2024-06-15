@@ -14,7 +14,6 @@ import base64
 
 from colorama import Fore, Style
 
-from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.base_classes import BaseThing
 
 class CameraController(BaseThing):
@@ -24,8 +23,7 @@ class CameraController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__()
-        id = "d_" + str(BaseThing.id)
+        id = "d_camera_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -33,6 +31,8 @@ class CameraController(BaseThing):
         _class = "visual"
         _subclass = "camera"
         _pack = package["name"]
+
+        super(self.__class__, self).__init__(id)
 
         info = {
             "type": "CAMERA",
@@ -69,6 +69,8 @@ class CameraController(BaseThing):
         self.fov = 60 if 'fov' not in conf else conf['fov']
         self.env_properties = package["env_properties"]
 
+        self.set_tf_communication(package)
+
         # tf handling
         tf_package = {
             "type": "robot",
@@ -91,10 +93,10 @@ class CameraController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        package["tf_declare"].call(tf_package)
+        
+        self.tf_declare_rpc.call(tf_package)
 
-        self.publisher = CommlibFactory.getPublisher(
-            broker = "redis",
+        self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
 
@@ -107,27 +109,22 @@ class CameraController(BaseThing):
                 self.actors.append(k)
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = CommlibFactory.getSubscriber(
-                broker = "redis",
-                topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose",
+            self.robot_pose_sub = self.commlib_factory.getSubscriber(
+                topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.inernal",
                 callback = self.robot_pose_update
             )
-            self.robot_pose_sub.run()
 
-        self.video_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.video_rpc_server = self.commlib_factory.getRPCService(
             callback = self.video_callback,
-            rpc_name = info["base_topic"] + ".video"
+            rpc_name = self.base_topic + ".video"
         )
-        self.enable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
+            rpc_name = self.base_topic + ".enable"
         )
-        self.disable_rpc_server = CommlibFactory.getRPCService(
-            broker = "redis",
+        self.disable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
+            rpc_name = self.base_topic + ".disable"
         )
 
         # The images
@@ -155,19 +152,13 @@ class CameraController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.video_rpc_server.run()
-
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("Camera {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
 
     def stop(self):
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-        self.video_rpc_server.stop()
+        self.commlib_factory.stop()
 
     def writeImageToFile(self, path = None, image = None, w = None, h = None):
         try:
@@ -270,14 +261,12 @@ class CameraController(BaseThing):
             im = cv2.imread(dirname + '/resources/all.png')
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             image = cv2.resize(im, dsize=(width, height))
-            data = [int(d) for row in image for c in row for d in c]
-            data = base64.b64encode(bytes(data)).decode("ascii")
+            _, buffer = cv2.imencode('.jpg', image)
+            data = base64.b64encode(buffer).decode()
 
         elif self.info["mode"] == "simulation":
-            while CommlibFactory.get_tf_affection == None:
-                time.sleep(0.1)
             # Ask tf for proximity sound sources or humans
-            res = CommlibFactory.get_tf_affection.call({
+            res = self.tf_affection_rpc.call({
                 'name': self.name
             })
 
@@ -350,8 +339,8 @@ class CameraController(BaseThing):
             im = cv2.imread(dirname + '/resources/' + img)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             image = cv2.resize(im, dsize=(width, height))
-            data = [int(d) for row in image for c in row for d in c]
-            data = base64.b64encode(bytes(data)).decode("ascii")
+            _, buffer = cv2.imencode('.jpg', image)
+            data = base64.b64encode(buffer).decode()
 
         timestamp = time.time()
         secs = int(timestamp)

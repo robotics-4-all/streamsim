@@ -23,61 +23,61 @@ robots:
   - source: "robot_1"
   #- source: "robot_2"
 
-env_devices:
-  relays:
-    - source: "sfhmmy/relay"
-  ph_sensors:
-    - source: "sfhmmy/ph_sensor"
-  temperature_sensors:
-    - source: "sfhmmy/temperature"
-  humidity_sensors:
-    - source: "sfhmmy/humidity"
-  gas_sensors:
-    - source: "sfhmmy/gas"
-  camera_sensors:
-    - source: "sfhmmy/camera"
-  distance_sensors:
-    - source: "sfhmmy/distance_sensor"
-  ambient_light_sensor:
-    - source: "sfhmmy/ambient_light_sensor"
-  pan_tilt:
-    - source: "sfhmmy/pan_tilt"
-    - source: "sfhmmy/pan_tilt_dist_X"
-  speakers:
-    - source: "sfhmmy/speaker"
-  lights:
-    - source: "sfhmmy/light"
-  thermostats:
-    - source: "sfhmmy/thermostat"
-  microphones:
-    - source: "sfhmmy/microphone"
-  humidifiers:
-    - source: "sfhmmy/humidifier"
-  alarms_area:
-    - source: "sfhmmy/alarm_area"
-  alarms_linear:
-    - source: "sfhmmy/alarm_linear"
+# env_devices:
+#   relays:
+#     - source: "sfhmmy/relay"
+#   ph_sensors:
+#     - source: "sfhmmy/ph_sensor"
+#   temperature_sensors:
+#     - source: "sfhmmy/temperature"
+#   humidity_sensors:
+#     - source: "sfhmmy/humidity"
+#   gas_sensors:
+#     - source: "sfhmmy/gas"
+#   camera_sensors:
+#     - source: "sfhmmy/camera"
+#   distance_sensors:
+#     - source: "sfhmmy/distance_sensor"
+#   ambient_light_sensor:
+#     - source: "sfhmmy/ambient_light_sensor"
+#   pan_tilt:
+#     - source: "sfhmmy/pan_tilt"
+#     - source: "sfhmmy/pan_tilt_dist_X"
+#   speakers:
+#     - source: "sfhmmy/speaker"
+#   lights:
+#     - source: "sfhmmy/light"
+#   thermostats:
+#     - source: "sfhmmy/thermostat"
+#   microphones:
+#     - source: "sfhmmy/microphone"
+#   humidifiers:
+#     - source: "sfhmmy/humidifier"
+#   alarms_area:
+#     - source: "sfhmmy/alarm_area"
+#   alarms_linear:
+#     - source: "sfhmmy/alarm_linear"
 
-actors:
-  humans:
-    - {id: 0, x: 120, y: 150, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
-  superman:
-    - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
-  sound_sources:
-    - {id: 4, x: 100, y: 100, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
-  qrs:
-    - {id: 5, x: 100, y: 150, message: test}
-  barcodes:
-    - {id: 6, x: 80, y: 150, message: EL3341}
-    - {id: 60, x: 80, y: 60, message: EL3DD341}
-  colors:
-    - {id: 7, x: 60, y: 130, r: 0, g: 255, b: 0} # for dominant color
-  texts:
-    - {id: 8, x: 140, y: 130, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
-  rfid_tags:
-    - {id: RF432423, x: 100, y: 100, message: test}
-    - {id: RF432425, x: 80, y: 100, message: test_2}
-  fires:
-    - {id: 11, x: 110, y: 180, temperature: 140, range: 100}
-  waters:
-    - {id: 12, x: 160, y: 100, range: 100}
+# actors:
+#   humans:
+#     - {id: 0, x: 120, y: 150, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
+#   superman:
+#     - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
+#   sound_sources:
+#     - {id: 4, x: 100, y: 100, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
+#   qrs:
+#     - {id: 5, x: 100, y: 150, message: test}
+#   barcodes:
+#     - {id: 6, x: 80, y: 150, message: EL3341}
+#     - {id: 60, x: 80, y: 60, message: EL3DD341}
+#   colors:
+#     - {id: 7, x: 60, y: 130, r: 0, g: 255, b: 0} # for dominant color
+#   texts:
+#     - {id: 8, x: 140, y: 130, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
+#   rfid_tags:
+#     - {id: RF432423, x: 100, y: 100, message: test}
+#     - {id: RF432425, x: 80, y: 100, message: test_2}
+#   fires:
+#     - {id: 11, x: 110, y: 180, temperature: 140, range: 100}
+#   waters:
+#     - {id: 12, x: 160, y: 100, range: 100}
