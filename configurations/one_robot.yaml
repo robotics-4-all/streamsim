@@ -1,0 +1,23 @@
+simulation:
+  name: "6569d9fd137514fe16b106dc"
+
+map:
+  width: 1000
+  height: 800
+  resolution: 0.05
+  # obstacles:
+  #   lines:
+      # - {x1: 330, y1: 250, x2: 330, y2: 350}
+      # - {x1: 510, y1: 510, x2: 500, y2: 500}
+      #- {x1: 5, y1: 4, x2: 8, y2: 4}
+
+world:
+  name: "simple_world"
+  places: []
+  properties:
+    temperature: 22 # celcius
+    humidity: 60 # out of 100
+    luminosity: 40 # out of 100
+
+robots:
+  - source: "robots/robot_full"

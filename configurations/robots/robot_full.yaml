@@ -1,0 +1,61 @@
+name: robot_1
+mode: simulation # [simulation, mock, real]
+speak_mode: espeak # [google, espeak] - in case of real mode
+wait_for: [] #[rhasspy] # in case of real mode
+remote_inform: true
+step_by_step_execution: false
+devices:
+  microphone:
+    - source: "robot_devices/microphone"
+  sonar:
+    - source: "robot_devices/sonars/sonar_fr"
+    - source: "robot_devices/sonars/sonar_fl"
+    - source: "robot_devices/sonars/sonar_l"
+    - source: "robot_devices/sonars/sonar_r"
+    - source: "robot_devices/sonars/sonar_bl"
+    - source: "robot_devices/sonars/sonar_br"
+  ir:
+    - source: "robot_devices/irs/ir_fr"
+    - source: "robot_devices/irs/ir_fl"
+    - source: "robot_devices/irs/ir_r"
+    - source: "robot_devices/irs/ir_l"
+    - source: "robot_devices/irs/ir_br"
+    - source: "robot_devices/irs/ir_bl"
+  tof:
+    - source: "robot_devices/tof"
+  camera:
+    - source: "robot_devices/camera"
+  imu:
+    - source: "robot_devices/imu"
+  button:
+    - source: "robot_devices/buttons/button_F"
+    - source: "robot_devices/buttons/button_FR"
+    - source: "robot_devices/buttons/button_FL"
+    - source: "robot_devices/buttons/button_R"
+    - source: "robot_devices/buttons/button_L"
+    - source: "robot_devices/buttons/button_B"
+    - source: "robot_devices/buttons/button_BR"
+    - source: "robot_devices/buttons/button_BL"
+    - source: "robot_devices/buttons/button_G1"
+    - source: "robot_devices/buttons/button_G2"
+    - source: "robot_devices/buttons/button_G3"
+    - source: "robot_devices/buttons/button_G4"
+  env:
+    - source: "robot_devices/env"
+  speaker:
+    - source: "robot_devices/speaker"
+  leds:
+    - source: "robot_devices/leds"
+  pan_tilt:
+    - source: "robot_devices/pan_tilt"
+  encoder:
+    - source: "robot_devices/encoders/encoder_BR"
+    - source: "robot_devices/encoders/encoder_BL"
+  skid_steer:
+    - source: "robot_devices/skid_steer"
+  rfid_reader:
+    - source: "robot_devices/rfid_reader"
+starting_pose:
+  x: 100 # in pixels
+  y: 120 # in pixels
+  theta: 45 # in degrees

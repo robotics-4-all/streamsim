@@ -1,0 +1,59 @@
+simulation:
+  name: "6569d9fd137514fe16b106dc"
+
+map:
+  width: 1000
+  height: 800
+  resolution: 0.05
+  # obstacles:
+  #   lines:
+      # - {x1: 330, y1: 250, x2: 330, y2: 350}
+      # - {x1: 510, y1: 510, x2: 500, y2: 500}
+      #- {x1: 5, y1: 4, x2: 8, y2: 4}
+
+world:
+  name: "simple_world"
+  places: []
+  properties:
+    temperature: 22 # celcius
+    humidity: 60 # out of 100
+    luminosity: 40 # out of 100
+
+robots:
+  - source: "robots/robot_full"
+
+env_devices:
+  relays:
+    - source: "env_devices/relay"
+  ph_sensors:
+    - source: "env_devices/ph_sensor"
+  temperature_sensors:
+    - source: "env_devices/temperature"
+  humidity_sensors:
+    - source: "env_devices/humidity"
+  gas_sensors:
+    - source: "env_devices/gas"
+  camera_sensors:
+    - source: "env_devices/camera"
+  distance_sensors:
+    - source: "env_devices/distance_sensor"
+  ambient_light_sensor:
+    - source: "env_devices/ambient_light_sensor"
+  pan_tilt:
+    - source: "env_devices/pan_tilt"
+    - source: "env_devices/pan_tilt_dist_X"
+  speakers:
+    - source: "env_devices/speaker"
+  lights:
+    - source: "env_devices/light"
+  thermostats:
+    - source: "env_devices/thermostat"
+  microphones:
+    - source: "env_devices/microphone"
+  humidifiers:
+    - source: "env_devices/humidifier"
+  alarms_area:
+    - source: "env_devices/alarm_area"
+  alarms_linear:
+    - source: "env_devices/alarm_linear"
+
