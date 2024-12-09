@@ -3,10 +3,10 @@
 
 from setuptools import setup, find_packages
 
-setup(name='stream-sim-backend',
+setup(name='streamsim',
       version='0.1.0',
-      description='Simple streaming simulator - the backend',
-      url='https://github.com/robotics-4-all/stream-sim-backend',
+      description='Simple streaming simulator',
+      url='https://github.com/robotics-4-all/streamsim',
       author='Manos Tsardoulias',
       author_email='etsardou@ece.auth.gr',
       license='Apache v2',

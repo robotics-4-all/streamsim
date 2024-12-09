@@ -29,6 +29,8 @@ class Simulator:
         self.tick = tick
         self.logger = logging.getLogger(__name__)
 
+        # Wait for configuration from broker
+
         self.configuration = self.parseConfiguration(conf_file, configuration)
         
         if "simulation" in self.configuration:
@@ -94,7 +96,7 @@ class Simulator:
 
     def parseConfiguration(self, conf_file, configuration):
         tmp_conf = {}
-        curr_dir = str(pathlib.Path().absolute()) + "/../configurations/"
+        curr_dir = str(pathlib.Path(__file__).parent.resolve()) + "/../configurations/"
         if conf_file is not None:
             # Must load and parse file here
             filename = curr_dir + conf_file + ".yaml"
