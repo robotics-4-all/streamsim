@@ -3,6 +3,8 @@
 
 import logging
 import time
+import random
+import string
 
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.transformations import TfController
@@ -57,13 +59,19 @@ class Simulator:
     """
     def __init__(self,
                  tick = 0.1,
-                 conf_file = None,
-                 configuration = None,
+                 random_uid = False
                  ):
 
         self.tick = tick
         self.logger = logging.getLogger(__name__)
-        self.name = "streamsim"
+        
+        characters = string.ascii_lowercase + string.digits
+        self.uid = "123"
+        if random_uid:
+            self.uid = ''.join(random.choice(characters) for _ in range(16))
+        self.logger.critical("Generated UID: %s", self.uid)
+
+        self.name = f"streamsim.{self.uid}"
 
         # Wait for configuration from broker
         self.configuration = None

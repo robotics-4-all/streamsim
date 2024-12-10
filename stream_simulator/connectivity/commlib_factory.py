@@ -78,7 +78,7 @@ class CommlibFactory(Node):
             *args, **kwargs
         )
 
-        self._logger.info('[*] Commlib factory initiated from %s:%s', 
+        self._logger.info('[*] Commlib factory initiated from %s:%s',
                           calframe[1][1].split('/')[-1], calframe[1][2])
 
     def notify_ui(self, type_ = None, data = None):

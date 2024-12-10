@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import time
 import sys
 import logging
 import pathlib
@@ -33,22 +32,23 @@ class SimulatorStartup:
     """
     def __init__(self,
                  conf_file = None,
-                 configuration = None,
+                 uid = None,
                  ):
 
         self.logger = logging.getLogger("Simulator Startup")
-        self.configuration = self.parse_configuration(conf_file, configuration)
+        self.configuration = self.parse_configuration(conf_file)
 
         # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = "SimulatorStartup")
         self.commlib_factory.run()
 
+        # Generate a random 10-character UID
+        
         self.devices_rpc_client = self.commlib_factory.getRPCClient(
-            # NOTE: This should be dynamic based on PC?
-            rpc_name = 'streamsim.set_configuration',
+            rpc_name = f'streamsim.{uid}.set_configuration',
         )
 
-    def parse_configuration(self, conf_file, configuration):
+    def parse_configuration(self, conf_file):
         """
         Parses the configuration from a file or a provided dictionary.
         This method loads and parses a YAML configuration file if `conf_file` is provided.
@@ -69,10 +69,10 @@ class SimulatorStartup:
             try:
                 tmp_conf = self.load_yaml(filename)
                 tmp_conf = self.recursive_conf_parse(tmp_conf, curr_dir)
-            except Exception as e:
+            except yaml.YAMLError as e:
                 self.logger.critical(str(e))
-        elif configuration is not None:
-            tmp_conf = configuration
+            except FileNotFoundError as e:
+                self.logger.critical(str(e))
 
         return tmp_conf
 
@@ -137,7 +137,8 @@ class SimulatorStartup:
         """
         Notify the simulator to start with the given configuration.
         """
-        self.devices_rpc_client.call(self.configuration)
+        response = self.devices_rpc_client.call(self.configuration)
+        self.logger.info(response)
 
 def main():
     """
@@ -151,14 +152,15 @@ def main():
     Raises:
         SystemExit: If the required arguments are not provided.
     """
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print("You must provide a valid yaml name as argument:")
-        print(">> python3 send_configuration.py everything")
+        print(">> python3 send_configuration.py everything UID")
         exit(0)
 
     c = sys.argv[1]
+    uid = sys.argv[2]
 
-    startup_obj = SimulatorStartup(conf_file = c)
+    startup_obj = SimulatorStartup(conf_file = c, uid = uid)
     startup_obj.notify_simulator_start()
 
 if __name__ == "__main__":
