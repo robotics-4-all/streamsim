@@ -11,10 +11,11 @@ import math
 from stream_simulator.connectivity import CommlibFactory
 
 class World:
-    def __init__(self):
+    def __init__(self, uid):
         self.commlib_factory = CommlibFactory(node_name = "World")
         self.commlib_factory.run()
         self.logger = logging.getLogger(__name__)
+        self.uid = uid
 
     def load_environment(self, configuration = None):
         self.configuration = configuration
@@ -24,7 +25,7 @@ class World:
             rpc_name = self.tf_base + ".declare"
         )
 
-        self.name = "world"
+        self.name = self.uid
         self.env_properties = {
             'temperature': 20,
             'humidity': 50,
@@ -32,8 +33,6 @@ class World:
         }
 
         if "world" in self.configuration:
-            self.name = self.configuration["world"]["name"]
-
             if 'properties' in self.configuration['world']:
                 prop = self.configuration['world']['properties']
                 for p in ['temperature', 'humidity', 'luminosity']:

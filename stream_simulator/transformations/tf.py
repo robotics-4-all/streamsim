@@ -140,6 +140,11 @@ class TfController:
 
     # def stop(self):
     #     self.declare_rpc_server.stop()
+    def print_tf_tree(self):
+        for h in self.tree:
+            print(f"{h}:")
+            for d in self.tree[h]:
+                print(f"\t{d}")
 
     def get_declarations_callback(self, message):
         return {"declarations": self.declarations}
@@ -207,7 +212,7 @@ class TfController:
 
         # Pan tilts in environment
         cl = self.commlib_factory.getRPCClient(
-            rpc_name = f"{self.base}.{res['world']}.nodes_detector.get_connected_devices"
+            rpc_name = f"{self.base}.nodes_detector.get_connected_devices"
         )
         rr = cl.call({})
         self.logger.info(f"Devices in world: {len(rr['devices'])}")
@@ -326,7 +331,7 @@ class TfController:
         self.places_absolute[nm]['theta'] = message['theta']
 
         self.commlib_factory.notify_ui(
-            type = "robot_pose",
+            type_ = "robot_pose",
             data = {
                 "name": nm,
                 "x": message['x'],
@@ -334,7 +339,6 @@ class TfController:
                 "theta": message['theta']
             }
         )
-
 
         # Update all thetas of devices
         for d in self.tree[nm]:

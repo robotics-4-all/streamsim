@@ -108,7 +108,7 @@ class Simulator:
                 "robots": self.robot_names,
                 "world": self.world_name
         }
-        
+
     def configuration_callback(self, message):
         self.logger.info("Received configuration")
         self.configuration = message
@@ -123,9 +123,9 @@ class Simulator:
             base = self.name,
             resolution = resolution,
         )
-        
+
         # Initializing world
-        self.world = World()
+        self.world = World(uid=self.uid)
         self.world.load_environment(configuration = self.configuration)
         self.world_name = self.world.name
 
@@ -146,8 +146,12 @@ class Simulator:
                 self.robot_names.append(r["name"])
 
         # Initializing tf
+        self.logger.info("Setting up tf")
         self.tf.setup()
+        self.logger.info("Tf setup done")
         self.start()
+        self.logger.info("Configuration setup done")
+        return {"success": True}
 
     def stop(self):
         for r in self.robots:
@@ -184,6 +188,9 @@ class Simulator:
                 self.logger.info(f"\t{t} {k}: {n}")
         self.logger.info(f"Total connections: {total}")
 
+        for topic in CommlibFactory.topics:
+            self.logger.info("Topic/RPC: %s", topic)
+
         # Just to be informed for pose
         for i in range(0, len(self.robots)):
             self.robots[i].dispatch_pose_local()
@@ -197,3 +204,4 @@ class Simulator:
         )
 
         self.logger.warning("Simulation started")
+        self.tf.print_tf_tree()

@@ -139,6 +139,7 @@ class SimulatorStartup:
         """
         response = self.devices_rpc_client.call(self.configuration)
         self.logger.info(response)
+        exit(0)
 
 def main():
     """

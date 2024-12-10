@@ -53,8 +53,9 @@ class CommlibFactory(Node):
             'action servers': 0,
             'action clients': 0
         },
-        'topics': set(),
     }
+
+    topics = set()
 
     def __init__(self, *args, **kwargs):
         curframe = inspect.currentframe()
@@ -139,6 +140,7 @@ class CommlibFactory(Node):
         calframe = inspect.getouterframes(curframe, 2)
         self.inform(broker, topic, "Publisher", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['publishers'] += 1
+        CommlibFactory.topics.add(topic)
         return ret
 
     def getSubscriber(self, broker = "mqtt", topic = None, callback = None):
@@ -168,6 +170,7 @@ class CommlibFactory(Node):
         self.inform(broker, topic, "Subscriber", 
                     f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['subscribers'] += 1
+        CommlibFactory.topics.add(topic)
         return ret
 
     def getRPCService(self, broker = "mqtt", rpc_name = None, callback = None):
@@ -192,6 +195,7 @@ class CommlibFactory(Node):
         self.inform(broker, rpc_name, "RPCService", 
                     f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['rpc servers'] += 1
+        CommlibFactory.topics.add(rpc_name)
         return ret
 
     def getRPCClient(self, broker = "mqtt", rpc_name = None):
@@ -214,6 +218,7 @@ class CommlibFactory(Node):
         self.inform(broker, rpc_name, "RPCClient", 
                     f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['rpc clients'] += 1
+        CommlibFactory.topics.add(rpc_name)
         return ret
 
     def getActionServer(self, broker = "mqtt", action_name = None, callback = None):
@@ -238,6 +243,7 @@ class CommlibFactory(Node):
         self.inform(broker, action_name, "ActionServer", 
                     f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['action servers'] += 1
+        CommlibFactory.topics.add(action_name)
         return ret
 
     def getActionClient(self, broker = "mqtt", action_name = None):
@@ -264,4 +270,5 @@ class CommlibFactory(Node):
         self.inform(broker, action_name, "ActionClient", 
                     f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['action clients'] += 1
+        CommlibFactory.topics.add(action_name)
         return ret
