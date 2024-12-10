@@ -52,7 +52,8 @@ class CommlibFactory(Node):
             'rpc clients': 0,
             'action servers': 0,
             'action clients': 0
-        }
+        },
+        'topics': set(),
     }
 
     def __init__(self, *args, **kwargs):
@@ -67,8 +68,8 @@ class CommlibFactory(Node):
 
         self.conn_params = ConnectionParameters(
             host='locsys.issel.ee.auth.gr',
-            port=1883,
-            ssl=False,
+            port=8883,
+            ssl=True,
             username='sensors',
             password='issel.sensors',
         )
