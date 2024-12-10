@@ -121,7 +121,7 @@ class EnvLinearAlarmController(BaseThing):
                 })
 
                 self.commlib_factory.notify_ui(
-                    type = "alarm",
+                    type_ = "alarm",
                     data = {
                         "name": self.name,
                         "triggers": triggers

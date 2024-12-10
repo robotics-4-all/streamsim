@@ -121,7 +121,7 @@ class SpeakerController(BaseThing):
         self.blocked = True
 
         self.commlib_factory.notify_ui(
-            type = "effector_command",
+            type_ = "effector_command",
             data = {
                 "name": self.name,
                 "value": {
@@ -138,7 +138,7 @@ class SpeakerController(BaseThing):
                 self.logger.info(f"{Fore.MAGENTA}Volume forced to {self.global_volume}{Style.RESET_ALL}")
             language = goalh.data["language"]
         except Exception as e:
-            self.logger.error("{} wrong parameters: {}".format(self.name, ))
+            self.logger.error("%s wrong parameters: %s", self.name, e)
 
         self.speak_pub.publish({
             "text": texts,
@@ -202,7 +202,7 @@ class SpeakerController(BaseThing):
                 volume = self.global_volume
                 self.logger.info(f"{Fore.MAGENTA}Volume forced to {self.global_volume}{Style.RESET_ALL}")
         except Exception as e:
-            self.logger.error("{} wrong parameters: {}".format(self.name, ))
+            self.logger.error("%s wrong parameters: %s", self.name, e)
 
         self.play_pub.publish({
             "text": string,

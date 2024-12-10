@@ -129,7 +129,7 @@ class RfidReaderController(BaseThing):
 
             if len(tags) > 0:
                 self.commlib_factory.notify_ui(
-                    type = "rfid_tags",
+                    type_ = "rfid_tags",
                     data = {
                         "name": self.name,
                         "value": {

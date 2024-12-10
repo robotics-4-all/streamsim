@@ -158,7 +158,7 @@ class LedsController(BaseThing):
             }
 
             self.commlib_factory.notify_ui(
-                type = "effector_command",
+                type_ = "effector_command",
                 data = {
                     "name": self.name,
                     "value": _values
@@ -191,7 +191,7 @@ class LedsController(BaseThing):
             self._color = [r, g, b, intensity]
 
             self.commlib_factory.notify_ui(
-                type = "effector_command",
+                type_ = "effector_command",
                 data = {
                     "name": self.name,
                     "value": {

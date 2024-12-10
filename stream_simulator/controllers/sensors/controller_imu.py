@@ -125,6 +125,7 @@ class ImuController(BaseThing):
         self.logger.info("IMU {} sensor read thread started".format(self.info["id"]))
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
+            val = {}
 
             if self.info["mode"] == "mock":
                 val = {
