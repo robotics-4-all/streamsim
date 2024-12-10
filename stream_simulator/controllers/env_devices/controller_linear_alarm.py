@@ -23,7 +23,7 @@ class EnvLinearAlarmController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__(conf["name"])
+        super().__init__(conf["name"])
 
         _type = "LINEAR_ALARM"
         _category = "sensor"

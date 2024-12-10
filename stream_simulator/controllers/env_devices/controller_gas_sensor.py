@@ -14,7 +14,7 @@ class EnvGasSensorController(BasicSensor):
         _class = "env"
         _subclass = "gas"
 
-        super(self.__class__, self).__init__(
+        super().__init__(
             conf = conf,
             package = package,
             _type = _type,

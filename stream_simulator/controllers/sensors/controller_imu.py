@@ -28,7 +28,7 @@ class ImuController(BaseThing):
         _subclass = "accel_gyro_magne_temp"
         _pack = package["name"]
 
-        super(self.__class__, self).__init__(id)
+        super().__init__(id)
 
         info = {
             "type": "IMU",

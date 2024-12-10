@@ -17,7 +17,7 @@ class EnvRelayController(BaseThing):
         self.logger = logging.getLogger(conf["name"]) if package['logger'] is None \
             else package['logger']
 
-        super(self.__class__, self).__init__(conf["name"])
+        super().__init__(conf["name"])
 
         _type = "RELAY"
         _category = "actuator"

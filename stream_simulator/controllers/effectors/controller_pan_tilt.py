@@ -27,7 +27,7 @@ class PanTiltController(BaseThing):
         _class = "motion"
         _subclass = "pan_tilt"
         _pack = package["name"]
-        super(self.__class__, self).__init__(id)
+        super().__init__(id)
 
         info = {
             "type": "PAN_TILT",

@@ -1,14 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import time
-import json
-import math
 import logging
-import threading
-import random
-
-from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
 
@@ -19,7 +12,7 @@ class EnvThermostatController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__(conf["name"])
+        super().__init__(conf["name"])
 
         _type = "THERMOSTAT"
         _category = "actuator"

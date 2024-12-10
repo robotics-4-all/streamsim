@@ -3,7 +3,6 @@
 
 import logging
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class BarcodeActor(BaseThing):
     def __init__(self, conf = None, package = None):
@@ -12,7 +11,7 @@ class BarcodeActor(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__("barcode_" + str(conf["id"]))
+        super().__init__("barcode_" + str(conf["id"]))
         id = BaseThing.id
 
         self.set_tf_communication(package)

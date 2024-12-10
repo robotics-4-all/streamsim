@@ -28,7 +28,7 @@ class ButtonArrayController(BaseThing):
         _subclass = "tactile"
         _pack = package["name"]
         
-        super(self.__class__, self).__init__(id)
+        super().__init__(id)
 
         info = {
             "type": "BUTTON_ARRAY",
