@@ -59,8 +59,7 @@ class CommlibFactory(Node):
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         self._logger = logging.getLogger(__name__)
-        self._logger.info('[*] Commlib factory initiated from %s:%s', 
-                          calframe[1][1].split('/')[-1], calframe[1][2])
+        self._logger.info('[*] Commlib factory initiating')
 
         self.notify = None
         self.get_tf_affection = None
@@ -78,6 +77,9 @@ class CommlibFactory(Node):
             connection_params=self.conn_params,
             *args, **kwargs
         )
+
+        self._logger.info('[*] Commlib factory initiated from %s:%s', 
+                          calframe[1][1].split('/')[-1], calframe[1][2])
 
     def notify_ui(self, type_ = None, data = None):
         """

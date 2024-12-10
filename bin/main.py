@@ -23,7 +23,28 @@ import logging
 
 from stream_simulator import Simulator
 
-logging.basicConfig(format='%(levelname)s : %(name)s : %(message)s', level=logging.DEBUG)
+COLAB = False
+try:
+    from google.colab import drive # type: ignore
+    COLAB = True
+except ImportError:
+    pass
+
+if COLAB:
+    # Clear any existing logging handlers
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+    logging.basicConfig(
+        format='%(levelname)s : %(name)s : %(message)s',
+        level=logging.DEBUG,
+        force=True
+    )
+else:
+    logging.basicConfig(
+        format='%(levelname)s : %(name)s : %(message)s',
+        level=logging.DEBUG
+    )
 
 s = Simulator()
 
