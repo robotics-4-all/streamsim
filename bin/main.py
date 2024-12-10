@@ -1,34 +1,36 @@
+"""
+This script initializes and starts a stream simulator.
+Modules:
+    time: Provides various time-related functions.
+    logging: Provides a flexible framework for emitting log messages from Python programs.
+    stream_simulator: Custom module that contains the Simulator class.
+Usage:
+    Run the script to start the simulator. The simulator will continue running until a keyboard interrupt (Ctrl+C) is received.
+Classes:
+    Simulator: A class from the stream_simulator module that handles the simulation process.
+Functions:
+    None
+Exceptions:
+    KeyboardInterrupt: Catches the keyboard interrupt to stop the simulator gracefully.
+Logging:
+    Configured to display log messages with the format 'LEVEL : LOGGER NAME : MESSAGE' at the DEBUG level.
+"""
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
-import sys
 import logging
 
 from stream_simulator import Simulator
 
 logging.basicConfig(format='%(levelname)s : %(name)s : %(message)s', level=logging.DEBUG)
 
-if len(sys.argv) < 2:
-    print("You must provide a valid yaml name as argument and if you want the device name. For example:")
-    print(">> python3 main.py elsa [device_0]")
-    exit(0)
-
-c = sys.argv[1]
-
-# Check if we have device name.
-# If yes, it will be assigned to the first device
-_device_name = None
-if len(sys.argv) == 3:
-    _device_name = sys.argv[2]
-
-s = Simulator(conf_file = c, device = _device_name)
-s.start()
+s = Simulator()
 
 # While keyboard interrupt is not received, keep the simulator running
 try:
     while True:
-        time.sleep(1)
+        time.sleep(0.25)
 except KeyboardInterrupt:
     s.stop()
     print("Bye!")

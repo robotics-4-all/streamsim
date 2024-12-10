@@ -1,7 +1,3 @@
 orientation: 90
 place: BL
 hz: 5
-sensor_configuration:
-  pin: 23
-  name: "Left Enc"
-  max_data_length: 10

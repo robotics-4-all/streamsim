@@ -6,8 +6,8 @@ name: tektrain_camera
 host: pt1
 range: 80 # Optional - Default is 100
 fov: 60 # Degrees - optional - default is 60
-sensor_configuration:
-  framerate: 30
-  width: 640
-  height: 480
-  max_data_length: 2
+# sensor_configuration:
+#   framerate: 30
+#   width: 640
+#   height: 480
+#   max_data_length: 2

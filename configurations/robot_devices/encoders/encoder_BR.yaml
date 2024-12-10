@@ -1,8 +1,3 @@
 orientation: -90
 place: BR
 hz: 1
-sensor_configuration:
-  bus: 1
-  address: 0x22
-  pin: "B_5"
-  max_data_length: 10

@@ -1,5 +1,2 @@
 orientation: 0
 place: UNKNOWN
-sensor_configuration:
-  param_1: 1
-  max_data_length: 10

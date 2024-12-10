@@ -1,54 +1,79 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import time
-import json
 import logging
-import pathlib
-import yaml
-import math
-import pprint as pp
-
-from .robot import Robot
-from .world import World
+import time
 
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.transformations import TfController
+
+from .robot import Robot
+from .world import World
 
 ### Dont know why but if I remove this no controllers are found
 from stream_simulator.controllers import IrController
 
 class Simulator:
+    """
+    A class to represent a simulator for stream simulation.
+    Attributes
+    ----------
+    tick : float
+        The time interval for each simulation tick.
+    logger : logging.Logger
+        Logger for the simulator.
+    configuration : dict
+        Configuration settings for the simulator.
+    name : str
+        Name of the simulation.
+    commlib_factory : CommlibFactory
+        Factory for communication library.
+    tf : TfController
+        Controller for transformation frames.
+    world : World
+        The simulation world.
+    world_name : str
+        Name of the simulation world.
+    robots : list
+        List of robots in the simulation.
+    robot_names : list
+        List of robot names in the simulation.
+    Methods
+    -------
+    __init__(tick=0.1, conf_file=None, configuration=None, device=None):
+        Initializes the simulator with given parameters.
+    devices_callback(message):
+        Callback function for device-related messages.
+    parseConfiguration(conf_file, configuration):
+        Parses the configuration from a file or dictionary.
+    loadYaml(yaml_file):
+        Loads and parses a YAML file.
+    recursiveConfParse(conf, curr_dir):
+        Recursively parses the configuration dictionary.
+    stop():
+        Stops the simulation and all its components.
+    start():
+        Starts the simulation and all its components.
+    """
     def __init__(self,
                  tick = 0.1,
                  conf_file = None,
                  configuration = None,
-                 device = None
                  ):
 
         self.tick = tick
         self.logger = logging.getLogger(__name__)
+        self.name = "streamsim"
 
         # Wait for configuration from broker
+        self.configuration = None
+        # self.configuration_setup_done = False
 
-        self.configuration = self.parseConfiguration(conf_file, configuration)
-        
-        if "simulation" in self.configuration:
-            self.name = self.configuration["simulation"]["name"]
-        else:
-            self.name = "streamsim"
-        
-        self.configuration['tf_base'] = self.name + ".tf"
-
-        resolution = 0.2
-        if 'map' in self.configuration and 'resolution' in self.configuration['map']:
-            resolution = self.configuration['map']['resolution']
-
-        # Create the CommlibFactory
+         # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = "Simulator")
         self.commlib_factory.run()
-        
-        self.logger.info(f"Created {self.name}.notifications publisher!")
+
+        self.logger.info("Created %s.notifications publisher!", self.name)
         self.commlib_factory.notify = self.commlib_factory.getPublisher(
             topic = f"{self.name}.notifications"
         )
@@ -57,6 +82,33 @@ class Simulator:
             callback = self.devices_callback,
             rpc_name = self.name + '.get_device_groups'
         )
+
+        self.devices_rpc_server = self.commlib_factory.getRPCService(
+            callback = self.configuration_callback,
+            rpc_name = self.name + '.set_configuration'
+        )
+
+        self.tf = None
+        self.world = None
+        self.world_name = None
+        self.robots = None
+        self.robot_names = None
+        self.logger.info("Simulator created. Waiting for configuration...")
+
+    def devices_callback(self, message):
+        return {
+                "robots": self.robot_names,
+                "world": self.world_name
+        }
+        
+    def configuration_callback(self, message):
+        self.logger.info("Received configuration")
+        self.configuration = message
+        self.configuration['tf_base'] = self.name + ".tf"
+
+        resolution = 0.2
+        if 'map' in self.configuration and 'resolution' in self.configuration['map']:
+            resolution = self.configuration['map']['resolution']
 
         # Initializing tf
         self.tf = TfController(
@@ -87,61 +139,7 @@ class Simulator:
 
         # Initializing tf
         self.tf.setup()
-
-    def devices_callback(self, message):
-        return {
-                "robots": self.robot_names,
-                "world": self.world_name
-        }
-
-    def parseConfiguration(self, conf_file, configuration):
-        tmp_conf = {}
-        curr_dir = str(pathlib.Path(__file__).parent.resolve()) + "/../configurations/"
-        if conf_file is not None:
-            # Must load and parse file here
-            filename = curr_dir + conf_file + ".yaml"
-            try:
-                tmp_conf = self.loadYaml(filename)
-                tmp_conf = self.recursiveConfParse(tmp_conf, curr_dir)
-            except Exception as e:
-                self.logger.critical(str(e))
-        elif configuration is not None:
-            tmp_conf = configuration
-
-        return tmp_conf
-
-    def loadYaml(self, yaml_file):
-        import yaml
-        try:
-            with open(yaml_file, 'r') as stream:
-                conf = yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            self.logger.critical(f"Yaml file {yaml_file} does not exist")
-        return conf
-
-    def recursiveConfParse(self, conf, curr_dir):
-        if isinstance(conf, dict):
-            tmp_conf = {}
-            for s in conf:
-                # Check if "source"
-                if s == "source":
-                    self.logger.warning(f"We hit a source: {conf[s]}")
-                    r = self.loadYaml(curr_dir + conf[s] + ".yaml")
-                    r = self.recursiveConfParse(r, curr_dir)
-                    tmp_conf = {**tmp_conf, **r}
-                else:
-                    r = self.recursiveConfParse(conf[s], curr_dir)
-                    tmp_conf[s] = r
-
-            return tmp_conf
-
-        elif isinstance(conf, list):
-            tmp_conf = []
-            for s in conf:
-                tmp_conf.append(self.recursiveConfParse(s, curr_dir))
-            return tmp_conf
-        else:
-            return conf
+        self.start()
 
     def stop(self):
         for r in self.robots:
@@ -159,7 +157,7 @@ class Simulator:
             _robot.start()
 
             self.commlib_factory.notify_ui(
-                type = "new_message",
+                type_ = "new_message",
                 data = {
                     "type": "logs",
                     "message": f"Robot {_robot.name} launched"
@@ -183,10 +181,10 @@ class Simulator:
             self.robots[i].dispatch_pose_local()
 
         self.commlib_factory.notify_ui(
-            type = "new_message",
+            type_ = "new_message",
             data = {
                 "type": "logs",
-                "message": f"Simulator started"
+                "message": "Simulator started"
             }
         )
 
