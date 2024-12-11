@@ -140,19 +140,45 @@ class TfController:
 
     # def stop(self):
     #     self.declare_rpc_server.stop()
+
     def print_tf_tree(self):
+        """
+        Prints the transformation tree.
+
+        This method iterates through the transformation tree and prints each node
+        along with its corresponding places in an absolute format.
+
+        The output format is:
+        <node>:
+            <child_node> @ <absolute_place>
+
+        Example:
+        root:
+            child1 @ place1
+            child2 @ place2
+        """
+        self.logger.info("Transformation tree:")
         for h in self.tree:
-            print(f"{h}:")
+            self.logger.info("%s:", h)
             for d in self.tree[h]:
-                print(f"\t{d}")
+                self.logger.info("\t%s @ %s", d, self.places_absolute[d])
 
     def get_declarations_callback(self, message):
+        """
+        Callback function to get the declarations.
+
+        Args:
+            message (Any): The message triggering the callback.
+
+        Returns:
+            dict: A dictionary containing the declarations.
+        """
         return {"declarations": self.declarations}
 
     def get_tf_callback(self, message):
         name = message['name']
         if name not in self.items_hosts_dict:
-            self.logger.error(f"TF: Requested transformation of missing device: {name}")
+            self.logger.error("TF: Requested transformation of missing device: %s", name)
             return {}
 
         if name in self.robots:

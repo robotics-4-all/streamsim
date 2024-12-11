@@ -2,22 +2,106 @@
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import yaml
-import numpy
 import logging
 import math
+import numpy
 
 from stream_simulator.connectivity import CommlibFactory
 
 class World:
+    """
+    The World class represents a simulated environment with various properties, devices, and actors.
+    Attributes:
+        commlib_factory (CommlibFactory): Factory for communication library.
+        logger (Logger): Logger for the World class.
+        uid (str): Unique identifier for the world.
+        configuration (dict): Configuration settings for the environment.
+        tf_base (str): Base topic for transformation.
+        tf_declare_rpc (RPCClient): RPC client for declaring transformations.
+        name (str): Name of the world.
+        env_properties (dict): Environmental properties such as temperature, humidity, luminosity, and pH.
+        env_devices (list): List of environmental devices.
+        actors (list): List of actors in the environment.
+        devices (list): List of devices in the environment.
+        controllers (dict): Dictionary of controllers for the devices.
+        devices_rpc_server (RPCService): RPC service for device callbacks.
+        width (int): Width of the map.
+        height (int): Height of the map.
+        map (numpy.ndarray): Map of the environment.
+        resolution (int): Resolution of the map.
+        obstacles (list): List of obstacles in the map.
+        actors_configurations (list): List of actor configurations.
+        actors_controllers (dict): Dictionary of controllers for the actors.
+    Methods:
+        __init__(uid):
+            Initializes the World instance with a unique identifier.
+        load_environment(configuration=None):
+            Loads the environment configuration and initializes properties, devices, and actors.
+        devices_callback(message):
+            Callback function for device RPC service.
+        setup():
+            Sets up the map and obstacles based on the configuration.
+        register_controller(c):
+            Registers a controller for a device.
+        device_lookup():
+            Looks up and registers all devices in the environment.
+        actors_lookup():
+            Looks up and registers all actors in the environment.
+        stop():
+            Stops the communication library factory.
+    """
     def __init__(self, uid):
         self.commlib_factory = CommlibFactory(node_name = "World")
         self.commlib_factory.run()
         self.logger = logging.getLogger(__name__)
         self.uid = uid
+        self.configuration = None
+        self.tf_base = None
+        self.tf_declare_rpc = None
+        self.env_devices = None
+        self.actors = None
+        self.devices = None
+        self.controllers = None
+        self.devices_rpc_server = None
+        self.width = None
+        self.height = None
+        self.map = None
+        self.resolution = None
+        self.obstacles = None
+        self.actors_configurations = None
+        self.actors_controllers = None
+
+        self.name = self.uid
+        self.env_properties = {
+            'temperature': 20,
+            'humidity': 50,
+            'luminosity': 100,
+            'ph': 7,
+        }
 
     def load_environment(self, configuration = None):
+        """
+        Loads the environment configuration and initializes various components.
+        Args:
+            configuration (dict, optional): The configuration dictionary containing
+                environment settings, properties, devices, and actors.
+        Attributes:
+            configuration (dict): The configuration dictionary.
+            tf_base (str): The base name for TensorFlow-related RPCs.
+            tf_declare_rpc (RPCClient): The RPC client for declaring TensorFlow-related services.
+            env_properties (dict): The properties of the environment.
+            env_devices (list): The list of environment devices.
+            actors (list): The list of actors in the environment.
+            devices (list): The list of devices in the environment.
+            controllers (dict): The dictionary of controllers in the environment.
+            devices_rpc_server (RPCService): The RPC service for handling device-related callbacks.
+            actors_configurations (list): The list of actor configurations.
+            actors_controllers (dict): The dictionary of actor controllers.
+        Methods:
+            setup(): Sets up the environment.
+            device_lookup(): Looks up and initializes devices.
+            actors_lookup(): Looks up and initializes actors.
+        """
         self.configuration = configuration
 
         self.tf_base = self.configuration['tf_base']
@@ -25,17 +109,10 @@ class World:
             rpc_name = self.tf_base + ".declare"
         )
 
-        self.name = self.uid
-        self.env_properties = {
-            'temperature': 20,
-            'humidity': 50,
-            'luminosity': 100
-        }
-
         if "world" in self.configuration:
             if 'properties' in self.configuration['world']:
                 prop = self.configuration['world']['properties']
-                for p in ['temperature', 'humidity', 'luminosity']:
+                for p, _ in self.env_properties.items():
                     if p in prop:
                         self.env_properties[p] = prop[p]
 
@@ -67,13 +144,42 @@ class World:
         for c in self.controllers:
             self.controllers[c].start()
 
-    def devices_callback(self, message):
+    def devices_callback(self, _):
+        """
+        Callback function to handle device messages.
+
+        Args:
+            message (Any): The incoming message related to devices.
+
+        Returns:
+            dict: A dictionary containing the current devices and a timestamp.
+                - "devices" (list): The list of current devices.
+                - "timestamp" (float): The current time in seconds since the epoch.
+        """
         return {
             "devices": self.devices,
             "timestamp": time.time()
         }
 
     def setup(self):
+        """
+        Sets up the world map and obstacles based on the configuration.
+        Initializes the width, height, resolution, and map attributes. If the configuration
+        contains map information, it sets the resolution, width, and height of the map and
+        creates a numpy array to represent the map. If obstacles are defined in the configuration,
+        it adds them to the map.
+        The obstacles are defined as lines with start and end coordinates (x1, y1) and (x2, y2).
+        The method handles both vertical and horizontal lines, as well as tilted lines, and marks
+        the corresponding positions in the map array.
+        Attributes:
+            width (int): The width of the map in grid cells.
+            height (int): The height of the map in grid cells.
+            map (numpy.ndarray): A 2D array representing the map grid.
+            resolution (int): The resolution of the map.
+            obstacles (list): A list of obstacles defined in the configuration.
+        Returns:
+            None
+        """
         self.width = 0
         self.height = 0
         self.map = None
@@ -124,13 +230,45 @@ class World:
                         self.map[tmpx, tmpy] = 1
 
     def register_controller(self, c):
+        """
+        Registers a controller with the world.
+
+        Args:
+            c (Controller): The controller to be registered. It must have 'name' and 'info' attributes.
+
+        Raises:
+            Logs an error if a controller with the same name is already registered.
+        """
         if c.name in self.controllers:
-            self.logger.error(f"Device {c.name} declared twice")
+            self.logger.error("Device %s declared twice", c.name)
         else:
             self.devices.append(c.info)
             self.controllers[c.name] = c
 
     def device_lookup(self):
+        """
+        Registers controllers for various environmental devices based on the configuration.
+        This method initializes a dictionary of parameters and imports the necessary
+        controllers from the `stream_simulator` module. It then iterates over the
+        environmental devices specified in `self.env_devices`, and for each device,
+        it registers the appropriate controller.
+        The method performs the following steps:
+        1. Initializes a dictionary `p` with configuration parameters.
+        2. Dynamically imports the `stream_simulator` module and retrieves the `controllers` attribute.
+        3. Creates a mapping of device types to their corresponding controller classes.
+        4. Iterates over the devices in `self.env_devices`.
+        5. For each device, ensures that the 'theta' attribute in the device's pose is set.
+        6. Registers the controller for the device using the `register_controller` method.
+        Attributes:
+            self.configuration (dict): The configuration dictionary for the simulation.
+            self.tf_base (str): The base topic for transformation-related RPCs.
+            self.env_properties (dict): The properties of the environment.
+            self.map (dict): The map of the environment.
+            self.resolution (float): The resolution of the environment.
+            self.env_devices (dict): A dictionary of environmental devices to be registered.
+        Raises:
+            AttributeError: If a required attribute is missing from the device configuration.
+        """
         p = {
             "base": "world",
             "logger": None,
@@ -143,7 +281,7 @@ class World:
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
-        map = {
+        mapping = {
            "relays": getattr(str_contro, "EnvRelayController"),
            "ph_sensors": getattr(str_contro, "EnvPhSensorController"),
            "temperature_sensors": getattr(str_contro, "EnvTemperatureSensorController"),
@@ -168,9 +306,23 @@ class World:
                 if 'theta' not in dev['pose']:
                     dev['pose']['theta'] = None
 
-                self.register_controller(map[d](conf = dev, package = p))
+                self.register_controller(mapping[d](conf = dev, package = p))
 
     def actors_lookup(self):
+        """
+        Initializes and configures actor controllers based on the provided actor types and configurations.
+
+        This method performs the following steps:
+        1. Defines a dictionary `p` with configuration parameters for the actors.
+        2. Dynamically imports the `stream_simulator` module and retrieves the `controllers` attribute.
+        3. Creates a mapping `map` of actor types to their corresponding controller classes.
+        4. Iterates over the actor types and their configurations in `self.actors`.
+        5. For each actor configuration, it instantiates the corresponding controller class with the configuration and package `p`.
+        6. Checks if the actor's name is already declared; if so, logs an error. Otherwise, it appends the actor's configuration to `self.actors_configurations`, adds the controller to `self.actors_controllers`, and logs the declaration.
+
+        Raises:
+            AttributeError: If the actor type does not exist in the `map` dictionary.
+        """
         p = {
             "logger": None,
             'tf_declare_rpc_topic': self.tf_base + '.declare',
@@ -178,7 +330,7 @@ class World:
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
-        map = {
+        mapping = {
            "humans": getattr(str_contro, "HumanActor"),
            "superman": getattr(str_contro, "SupermanActor"),
            "sound_sources": getattr(str_contro, "SoundSourceActor"),
@@ -190,16 +342,23 @@ class World:
            "fires": getattr(str_contro, "FireActor"),
            "waters": getattr(str_contro, "WaterActor"),
         }
-        for type in self.actors:
-            actors = self.actors[type]
+        for type_ in self.actors:
+            actors = self.actors[type_]
             for act in actors:
-                c = map[type](conf = act, package = p)
+                c = mapping[type_](conf = act, package = p)
                 if c.name in self.actors:
-                    self.logger.error(f"Device {c.name} declared twice")
+                    self.logger.error("Device %s declared twice", c.name)
                 else:
                     self.actors_configurations.append(c.info)
                     self.actors_controllers[c.name] = c
-                    self.logger.info(f"Actor {c.name} declared")
+                    self.logger.info("Actor %s declared", c.name)
 
     def stop(self):
+        """
+        Stops the communication library factory.
+
+        This method stops the commlib_factory, which is responsible for managing
+        communication within the simulation. It ensures that all communication
+        processes are properly terminated.
+        """
         self.commlib_factory.stop()

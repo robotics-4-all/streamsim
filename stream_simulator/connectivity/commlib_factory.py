@@ -75,6 +75,14 @@ class CommlibFactory(Node):
             password='issel.sensors',
         )
 
+        # self.conn_params = ConnectionParameters(
+        #     host='broker.emqx.io',
+        #     port=8883,
+        #     ssl=True,
+        #     username='',
+        #     password='',
+        # )
+
         super().__init__(
             connection_params=self.conn_params,
             *args, **kwargs

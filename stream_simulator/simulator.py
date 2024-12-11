@@ -64,7 +64,7 @@ class Simulator:
 
         self.tick = tick
         self.logger = logging.getLogger(__name__)
-        
+
         characters = string.ascii_lowercase + string.digits
         self.uid = "123"
         if random_uid:
@@ -113,6 +113,9 @@ class Simulator:
         self.logger.info("Received configuration")
         self.configuration = message
         self.configuration['tf_base'] = self.name + ".tf"
+        self.configuration['simulation'] = {
+            "name": self.name,
+        }
 
         resolution = 0.2
         if 'map' in self.configuration and 'resolution' in self.configuration['map']:

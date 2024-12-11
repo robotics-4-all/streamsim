@@ -139,7 +139,6 @@ class SimulatorStartup:
         """
         response = self.devices_rpc_client.call(self.configuration)
         self.logger.info(response)
-        exit(0)
 
 def main():
     """
@@ -165,4 +164,5 @@ def main():
     startup_obj.notify_simulator_start()
 
 if __name__ == "__main__":
+    print("Dispatching configuration to the simulator...")
     main()

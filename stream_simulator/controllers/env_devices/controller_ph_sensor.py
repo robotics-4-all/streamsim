@@ -1,12 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from stream_simulator.base_classes import BasicSensor
-from stream_simulator.connectivity import CommlibFactory
 import statistics
-import time
+import random
+from stream_simulator.base_classes import BasicSensor
 
 class EnvPhSensorController(BasicSensor):
+    """
+    Controller class for the environmental pH sensor.
+    Args:
+        conf (dict, optional): Configuration dictionary for the sensor. Defaults to None.
+        package (dict, optional): Package information dictionary. Defaults to None.
+    Attributes:
+        host (str): Host information for the sensor, if available.
+        tf_declare_rpc (RPCClient): RPC client for declaring the sensor to the transformation framework.
+    Methods:
+        __init__(conf=None, package=None): Initializes the EnvPhSensorController with the given configuration and package.
+    """
     def __init__(self, conf = None, package = None):
 
         _type = "PH_SENSOR"
@@ -50,3 +60,34 @@ class EnvPhSensorController(BasicSensor):
 
         self.tf_declare_rpc.call(tf_package)
 
+        # Default value management
+        if "env" not in package or "ph" not in package['env']:
+            self.env_properties = {
+                'ph': 7.0
+            }
+        else:
+            self.env_properties = package['env']
+
+    def get_simulation_value(self):
+        """
+        Gets the simulation value for the sensor.
+        Returns:
+            float: The simulated pH value.
+        """
+        res = self.tf_affection_rpc.call({
+            'name': self.name
+        })
+
+        # Logic
+        amb = self.env_properties['ph']
+        ph_values = []
+        if res is None:
+            return amb
+
+        for a in res:
+            ph_values.append(a['ph'])
+
+        if len(ph_values) == 0:
+            return amb + random.uniform(-0.1, 0.1)
+
+        return statistics.mean(ph_values)

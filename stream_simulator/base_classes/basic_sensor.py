@@ -32,13 +32,14 @@ class BasicSensor(BaseThing):
 
         self.set_tf_communication(package)
 
+        _simname = package["namespace"]
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
         id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+            "base_topic": f"{_simname}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
             "name": _name,
             "place": conf["place"],
             "enabled": True,
@@ -104,7 +105,7 @@ class BasicSensor(BaseThing):
         return {}
 
     def sensor_read(self):
-        self.logger.info(f"Sensor {self.name} read thread started")
+        self.logger.info("Sensor %s read thread started", self.name)
         # Operation parameters
 
         try:
@@ -154,7 +155,7 @@ class BasicSensor(BaseThing):
                 val = self.get_simulation_value()
 
             # Publishing value:
-            # self.logger.info(f"{self.name} - {val}")
+            self.logger.info(f"{self.name} - {val}")
             self.publisher.publish({
                 "value": val,
                 "timestamp": time.time()

@@ -2,7 +2,7 @@ pose: {x: 100, y: 100, theta: 0}
 name: ph_X
 place: field
 hz: 3
-mode: mock # mock, simulation, real
+mode: simulation # mock, simulation, real
 operation: sinus # constant, triangle, random, normal, sinus
 operation_parameters:
   constant:
