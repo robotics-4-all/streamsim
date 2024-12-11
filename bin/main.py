@@ -25,7 +25,7 @@ from stream_simulator import Simulator
 
 COLAB = False
 try:
-    from google.colab import drive # type: ignore
+    from google.colab import drive # pylint: disable=unused-import
     COLAB = True
 except ImportError:
     pass

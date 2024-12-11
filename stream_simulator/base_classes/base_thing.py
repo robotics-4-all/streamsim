@@ -40,6 +40,8 @@ class BaseThing:
         self.get_mode_rpc_server = None
         self.publisher = None
         self.publisher_triggers = None
+        self.set_rpc_server = None
+        self.get_rpc_server = None
 
         self.commlib_factory = CommlibFactory(node_name=_name)
         self.commlib_factory.run()
