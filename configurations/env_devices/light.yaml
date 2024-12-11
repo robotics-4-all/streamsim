@@ -1,6 +1,6 @@
-pose: {x: 100, y: 100, theta: 0}
+pose: {x: 110, y: 100, theta: 0}
 name: light_X
 range: 100
-luminosity: 0 # %
-mode: mock # mock, simulation, real
+luminosity: 100 # %
+mode: simulation # mock, simulation, real
 place: "office" # or "gym.bathroom" for nested

@@ -737,9 +737,11 @@ class TfController:
             # - env light
             for f in self.per_type['env']['actuator']['leds']:
                 r = self.handle_affection_ranged(x_y, f, 'light')
-                if r != None:
+                if r is not None:
                     th_t = self.effectors_get_rpcs[f].call({})
-                    ret[f] = r
+                    new_r = r
+                    new_r['info'] = th_t
+                    ret[f] = new_r
             # - actor fire
             for f in self.per_type['actor']['fire']:
                 r = self.handle_affection_ranged(x_y, f, 'fire')

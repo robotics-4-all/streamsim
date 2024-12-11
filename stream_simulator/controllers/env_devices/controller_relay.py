@@ -1,14 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import time
-import json
-import math
 import logging
-import threading
-import random
-
-from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
 
@@ -107,10 +100,11 @@ class EnvRelayController(BaseThing):
     def set_callback(self, message):
         state = message["state"]
         if state not in self.allowed_states:
-            raise Exception(f"Relay {self.name} does not allow {state} state")
+            self.logger.critical("Relay %s does not allow %s state", self.name, state)
+            return {"state": self.state}
 
         self.commlib_factory.notify_ui(
-            type = "effector_command",
+            type_ = "effector_command",
             data = {
                 "name": self.name,
                 "value": {

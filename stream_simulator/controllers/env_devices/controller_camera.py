@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import math
 import logging
 import threading
 import random
@@ -26,7 +24,7 @@ class EnvCameraController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(self.__class__, self).__init__(conf["name"])
+        super().__init__(conf["name"])
 
         _type = "CAMERA"
         _category = "sensor"
@@ -35,11 +33,12 @@ class EnvCameraController(BaseThing):
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
+        _namespace = package["namespace"]
         id = "d_" + str(BaseThing.id)
 
         info = {
             "type": _type,
-            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
             "name": _name,
             "place": conf["place"],
             "enabled": True,
@@ -54,6 +53,7 @@ class EnvCameraController(BaseThing):
                 "name": _name
             }
         }
+        
 
         self.info = info
         self.width = conf['width']
@@ -137,6 +137,7 @@ class EnvCameraController(BaseThing):
                 res = self.tf_affection_rpc.call({
                     'name': self.name
                 })
+                print("Affections: ", res)
 
                 # Get the closest:
                 clos = None
@@ -146,13 +147,13 @@ class EnvCameraController(BaseThing):
                         clos = x
                         clos_d = res[x]['distance']
 
-                if clos == None:
+                if clos is None:
                     cl_type = None
                 else:
                     cl_type = res[clos]['type']
 
                 # types: qr, barcode, color, text, human
-                if cl_type == None:
+                if cl_type is None:
                     img = "all.png"
                 elif cl_type == "human":
                     img = random.choice(["face.jpg", "face_inverted.jpg"])
@@ -203,24 +204,23 @@ class EnvCameraController(BaseThing):
                     except Exception as e:
                         self.logger.error(f"CameraController: Error with text image generation: {str(e)}")
 
-                im = cv2.imread(dirname + '/resources/' + img)
-                im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-                image = cv2.resize(im, dsize=(width, height))
-                data = [int(d) for row in image for c in row for d in c]
-                data = base64.b64encode(bytes(data)).decode()
+                with open(dirname + "/resources/" + img, "rb") as f:
+                    fdata = f.read()
+                    b64 = base64.b64encode(fdata)
+                    data = b64.decode()
 
-            # Publishing value:
-            self.publisher.publish({
-                "value": {
-                    "timestamp": time.time(),
-                    "format": "RGB",
-                    "per_rows": True,
-                    "width": width,
-                    "height": height,
-                    "image": data
-                },
-                "timestamp": time.time()
-            })
+                    # Publishing value:
+                    self.publisher.publish({
+                        "value": {
+                            "timestamp": time.time(),
+                            "format": "RGB",
+                            "per_rows": True,
+                            "width": width,
+                            "height": height,
+                            "image": str(data)
+                        },
+                        "timestamp": time.time()
+                    })
 
     def enable_callback(self, message):
         self.info["enabled"] = True

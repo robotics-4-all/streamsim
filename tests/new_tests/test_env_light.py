@@ -15,37 +15,36 @@ class Test(unittest.TestCase):
     def test_get(self):
         try:
             # Get simulation actors
-            sim_name = "streamsim"
-            cl = CommlibFactory.getRPCClient(
+            sim_name = "streamsim.123"
+            cfact = CommlibFactory(node_name = "Test")
+            cl = cfact.getRPCClient(
                 broker = "redis",
                 rpc_name = f"{sim_name}.get_device_groups"
             )
             res = cl.call({})
 
             world = res["world"]
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
-                rpc_name = f"{world}.nodes_detector.get_connected_devices"
+            cl = cfact.getRPCClient(
+                rpc_name = f"streamsim.{world}.nodes_detector.get_connected_devices"
             )
             res = cl.call({})
 
             # Get ph sensors
             for s in res["devices"]:
                 if s["type"] == "LIGHTS":
-                    set_rpc = CommlibFactory.getRPCClient(
+                    set_rpc = cfact.getRPCClient(
                         rpc_name = s["base_topic"] + ".set"
                     )
-                    get_rpc = CommlibFactory.getRPCClient(
+                    get_rpc = cfact.getRPCClient(
                         rpc_name = s["base_topic"] + ".get"
                     )
 
                     # Set constant
-                    print("Setting {1, 1, 1, 1}")
                     set_rpc.call({
                         'r': 1,
                         'g': 1,
                         'b': 1,
-                        'luminosity': 60
+                        'luminosity': 0
                     })
                     print("Getting color")
                     print(get_rpc.call({}))

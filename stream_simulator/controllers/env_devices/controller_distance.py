@@ -32,10 +32,11 @@ class EnvDistanceController(BaseThing):
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
+        _namespace = package["namespace"]
         id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
             "name": _name,
             "place": conf["place"],
             "enabled": True,
@@ -89,6 +90,9 @@ class EnvDistanceController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
 
         self.set_communication_layer(package)
+        self.get_tf = self.commlib_factory.getRPCClient(
+            rpc_name = package["namespace"] + ".tf.get_tf"
+        )
 
         self.tf_declare_rpc.call(tf_package)
 
@@ -194,7 +198,7 @@ class EnvDistanceController(BaseThing):
 
             elif self.mode == "simulation":
                 # Get pose of the sensor (in case it is on a pan-tilt)
-                pp = self.commlib_factory.get_tf.call({
+                pp = self.get_tf.call({
                     "name": self.name
                 })
                 xx = pp['x'] / self.resolution
@@ -206,7 +210,7 @@ class EnvDistanceController(BaseThing):
                 tmpy = int(yy)
                 limit = self.max_range / self.resolution
                 robot = False
-                while self.map[int(tmpx), int(tmpy)] == 0 and d < limit and robot == False:
+                while self.map[int(tmpx), int(tmpy)] == 0 and d < limit and robot is False:
                     d += 1
                     tmpx = xx + d * math.cos(th)
                     tmpy = yy + d * math.sin(th)
@@ -224,7 +228,7 @@ class EnvDistanceController(BaseThing):
 
                 val = d * self.resolution
 
-                # print(self.name, val)
+            val += random.uniform(-0.02, 0.02)
             # Publishing value:
             self.publisher.publish({
                 "value": val,

@@ -112,6 +112,7 @@ class EnvLinearAlarmController(BaseThing):
                 "value": val,
                 "timestamp": time.time()
             })
+            print(f"Sensor {self.name} value: {val}")
 
             if prev == None and val not in [None, []]:
                 triggers += 1

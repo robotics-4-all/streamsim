@@ -15,17 +15,16 @@ class Test(unittest.TestCase):
     def test_get(self):
         try:
             # Get simulation actors
-            sim_name = "streamsim"
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
+            sim_name = "streamsim.123"
+            cfact = CommlibFactory(node_name = "Test")
+            cl = cfact.getRPCClient(
                 rpc_name = f"{sim_name}.get_device_groups"
             )
             res = cl.call({})
 
             robots = res["robots"]
             for r in robots:
-                cl = CommlibFactory.getRPCClient(
-                    broker = "redis",
+                cl = cfact.getRPCClient(
                     rpc_name = f"robot.{r}.nodes_detector.get_connected_devices"
                 )
                 res = cl.call({})
@@ -34,8 +33,7 @@ class Test(unittest.TestCase):
                 for s in res["devices"]:
                     if s["type"] == "SPEAKERS":
                         # Speak
-                        action = CommlibFactory.getActionClient(
-                            broker = "redis",
+                        action = cfact.getActionClient(
                             action_name = s["base_topic"] + ".speak"
                         )
                         resp = action.send_goal({
@@ -50,8 +48,7 @@ class Test(unittest.TestCase):
                         print(final_res)
 
                         # Play
-                        action = CommlibFactory.getActionClient(
-                            broker = "redis",
+                        action = cfact.getActionClient(
                             action_name = s["base_topic"] + ".play"
                         )
                         resp = action.send_goal({

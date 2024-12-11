@@ -158,7 +158,7 @@ class EnvSpeakerController(BaseThing):
             string = goalh.data["string"]
             volume = goalh.data["volume"]
         except Exception as e:
-            self.logger.error("{} wrong parameters: {}".format(self.name, ))
+            self.logger.error("{} wrong parameters: {}".format(self.name, e))
 
         self.play_pub.publish({
             "text": string,
@@ -194,7 +194,7 @@ class EnvSpeakerController(BaseThing):
         self.blocked = True
 
         self.commlib_factory.notify_ui(
-            type = "effector_command",
+            type_ = "effector_command",
             data = {
                 "name": self.name,
                 "value": {
@@ -208,7 +208,7 @@ class EnvSpeakerController(BaseThing):
             volume = goalh.data["volume"]
             language = goalh.data["language"]
         except Exception as e:
-            self.logger.error("{} wrong parameters: {}".format(self.name, ))
+            self.logger.error("{} wrong parameters: {}".format(self.name, e))
 
         self.speak_pub.publish({
             "text": texts,

@@ -1,12 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import random
 from stream_simulator.base_classes import BasicSensor
-from stream_simulator.connectivity import CommlibFactory
-import statistics
-import time
 
 class EnvGasSensorController(BasicSensor):
+    """
+    Controller class for an environmental gas sensor.
+    Args:
+        conf (dict, optional): Configuration dictionary for the sensor. Defaults to None.
+        package (dict, optional): Package containing sensor properties. Defaults to None.
+    Attributes:
+        env_properties (dict): Environmental properties from the package.
+        host (str): Host information from the configuration, if available.
+    Methods:
+        get_simulation_value():
+            Calculates and returns the simulated gas concentration value in parts per million (ppm).
+    """
     def __init__(self, conf = None, package = None):
 
         _type = "GAS_SENSOR"
@@ -65,4 +75,4 @@ class EnvGasSensorController(BasicSensor):
             elif res[a]['type'] == 'fire':
                 ppm += 5000.0 * rel_range
 
-        return ppm
+        return ppm + random.uniform(-10, 10)

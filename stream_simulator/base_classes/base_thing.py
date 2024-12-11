@@ -31,6 +31,16 @@ class BaseThing:
         """
         BaseThing.id += 1
 
+        self.base_topic = None
+        self.tf_declare_rpc = None
+        self.tf_affection_rpc = None
+        self.enable_rpc_server = None
+        self.disable_rpc_server = None
+        self.set_mode_rpc_server = None
+        self.get_mode_rpc_server = None
+        self.publisher = None
+        self.publisher_triggers = None
+
         self.commlib_factory = CommlibFactory(node_name=_name)
         self.commlib_factory.run()
 

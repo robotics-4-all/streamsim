@@ -136,7 +136,6 @@ class EnvLightController(BaseThing):
                 "value": message
             }
         )
-
         self.publisher.publish(message)
 
         return {}

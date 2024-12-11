@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import time
-import json
 import math
 import logging
 import threading
@@ -64,6 +63,7 @@ class EnvAmbientLightController(BaseThing):
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
         self.env_properties = package["env"]
+        self.allowed_states = info["conf"]["states"]
 
         self.set_communication_layer(package)
 
@@ -136,10 +136,10 @@ class EnvAmbientLightController(BaseThing):
         self.sinus_amp = self.operation_parameters["sinus"]['amplitude']
         self.sinus_step = self.operation_parameters["sinus"]['step']
 
+        val = None
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
 
-            val = None
             if self.mode == "mock":
                 if self.operation == "constant":
                     val = self.constant_value
@@ -164,7 +164,7 @@ class EnvAmbientLightController(BaseThing):
                 else:
                     self.logger.warning(f"Unsupported operation: {self.operation}")
 
-                lum = val
+                val += random.uniform(-0.25, 0.25)
 
             elif self.mode == "simulation":
                 res = self.tf_affection_rpc.call({
@@ -188,10 +188,14 @@ class EnvAmbientLightController(BaseThing):
 
                 if lum > 100:
                     lum = 100
+                if lum < 0:
+                    lum = 0
+
+                val = lum + random.uniform(-0.25, 0.25)
 
             # Publishing value:
             self.publisher.publish({
-                "value": lum,
+                "value": val,
                 "timestamp": time.time()
             })
 

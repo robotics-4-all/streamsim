@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import sys, traceback
+import sys
+import traceback
 import time
-import os
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -15,17 +15,16 @@ class Test(unittest.TestCase):
     def test_get(self):
         try:
             # Get simulation actors
-            sim_name = "streamsim"
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
+            sim_name = "streamsim.123"
+            cfact = CommlibFactory(node_name = "Test")
+            cl = cfact.getRPCClient(
                 rpc_name = f"{sim_name}.get_device_groups"
             )
             res = cl.call({})
 
             world = res["world"]
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
-                rpc_name = f"{world}.nodes_detector.get_connected_devices"
+            cl = cfact.getRPCClient(
+                rpc_name = f"streamsim.{world}.nodes_detector.get_connected_devices"
             )
             res = cl.call({})
 
@@ -33,8 +32,7 @@ class Test(unittest.TestCase):
             for s in res["devices"]:
                 if s["type"] == "SPEAKERS":
                     # Speak
-                    action = CommlibFactory.getActionClient(
-                        broker = "redis",
+                    action = cfact.getActionClient(
                         action_name = s["base_topic"] + ".speak"
                     )
                     resp = action.send_goal({
@@ -42,30 +40,27 @@ class Test(unittest.TestCase):
                         'volume': 100,
                         'language': 'el'
                     })
-                    goal_id = resp["goal_id"]
-                    while action.get_result(goal_id)["status"] == 1:
+                    while action.get_result() is None:
                         time.sleep(0.1)
-                    final_res = action.get_result(goal_id)
-                    print(final_res)
+                    final_res = action.get_result()
+                    print("Speak result: ", final_res)
 
                     # Play
-                    action = CommlibFactory.getActionClient(
-                        broker = "redis",
+                    action = cfact.getActionClient(
                         action_name = s["base_topic"] + ".play"
                     )
                     resp = action.send_goal({
                         'string': '...',
                         'volume': 100
                     })
-                    goal_id = resp["goal_id"]
-                    while action.get_result(goal_id)["status"] == 1:
+                    while action.get_result() is None:
                         time.sleep(0.1)
-                    final_res = action.get_result(goal_id)
-                    print(final_res)
+                    final_res = action.get_result()
+                    print("Play result: ", final_res)
 
-        except:
+        except Exception as e:
             traceback.print_exc(file=sys.stdout)
-            self.assertTrue(False)
+            self.fail(f"Test failed due to exception: {e}")
 
     def tearDown(self):
         pass

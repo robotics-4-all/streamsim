@@ -2,5 +2,5 @@ pose: {x: 100, y: 100}
 range: 100
 name: alarm_area_X
 hz: 1
-mode: mock # mock, simulation, real
+mode: simulation # mock, simulation, real
 place: "office" # or "gym.bathroom" for nested

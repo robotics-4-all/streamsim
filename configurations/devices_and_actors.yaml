@@ -17,7 +17,7 @@ world:
   properties:
     temperature: 16 # celcius
     humidity: 60 # out of 100
-    luminosity: 40 # out of 100
+    luminosity: 0 # out of 100
     ph: 7.4
 
 env_devices:
@@ -27,14 +27,14 @@ env_devices:
   #   - source: "env_devices/ph_sensor"
   # temperature_sensors:
   #   - source: "env_devices/temperature"
-  humidity_sensors:
-    - source: "env_devices/humidity"
+  # humidity_sensors:
+  #   - source: "env_devices/humidity"
   # gas_sensors:
   #   - source: "env_devices/gas"
   # camera_sensors:
   #   - source: "env_devices/camera"
-  # distance_sensors:
-  #   - source: "env_devices/distance_sensor"
+  distance_sensors:
+    - source: "env_devices/distance_sensor"
   # ambient_light_sensor:
   #   - source: "env_devices/ambient_light_sensor"
   # pan_tilt:
@@ -48,16 +48,16 @@ env_devices:
   #   - source: "env_devices/thermostat"
   # microphones:
   #   - source: "env_devices/microphone"
-  humidifiers:
-    - source: "env_devices/humidifier"
+  # humidifiers:
+  #   - source: "env_devices/humidifier"
   # alarms_area:
   #   - source: "env_devices/alarm_area"
   # alarms_linear:
   #   - source: "env_devices/alarm_linear"
 
 # actors:
-  # humans:
-  #   - {id: 0, x: 120, y: 150, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
+#   humans:
+#     - {id: 0, x: 105, y: 100, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
   # superman:
   #   - {id: 1000, x: 120, y: 120, move: 1, sound: 1, lang: EN, message: test, text: hello}
   # sound_sources:
@@ -75,6 +75,6 @@ env_devices:
   #   - {id: RF432423, x: 100, y: 100, message: test}
   #   - {id: RF432425, x: 80, y: 100, message: test_2}
   # fires:
-  #   - {id: 11, x: 110, y: 180, temperature: 140, range: 100}
+  #   - {id: 11, x: 110, y: 110, temperature: 140, range: 100}
   # waters:
   #   - {id: 12, x: 120, y: 100, range: 100}
