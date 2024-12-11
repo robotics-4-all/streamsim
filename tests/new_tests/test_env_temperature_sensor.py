@@ -77,7 +77,10 @@ class Test(unittest.TestCase):
                     )
                     sub.run()
                     time.sleep(5)
-                    sub.stop()
+                    try:
+                        sub.stop()
+                    except Exception:
+                        pass
 
         except Exception as e:
             traceback.print_exc(file=sys.stdout)

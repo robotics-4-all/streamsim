@@ -73,6 +73,7 @@ class CommlibFactory(Node):
             ssl=True,
             username='sensors',
             password='issel.sensors',
+            reconnect_attempts=0,
         )
 
         # self.conn_params = ConnectionParameters(

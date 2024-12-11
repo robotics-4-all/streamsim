@@ -645,6 +645,19 @@ class TfController:
 
     # Affected by humidifiers and water sources
     def handle_env_sensor_humidity(self, name):
+        """
+        Handles the humidity sensor for a given environment sensor.
+        This method processes the humidity data for a specified environment sensor by calculating the 
+        effect of humidifiers and water sources on the sensor's location. It returns a dictionary 
+        containing the humidity information for each affecting actuator.
+        Args:
+            name (str): The name of the environment sensor.
+        Returns:
+            dict: A dictionary where keys are actuator names and values are dictionaries containing 
+              humidity information and random noise.
+        Raises:
+            Exception: If an error occurs during processing, it logs the error and raises an exception.
+        """
         try:
             ret = {}
             pl = self.places_absolute[name]
@@ -652,13 +665,13 @@ class TfController:
 
             for f in self.per_type['env']['actuator']['humidifier']:
                 r = self.handle_affection_ranged(x_y, f, 'humidifier')
-                if r != None:
+                if r is not None:
                     th_t = self.effectors_get_rpcs[f].call({})
                     r['info']['humidity'] = th_t['humidity']
                     ret[f] = r
             for f in self.per_type['actor']['water']:
                 r = self.handle_affection_ranged(x_y, f, 'water')
-                if r != None:
+                if r is not None:
                     ret[f] = r
         except Exception as e:
             self.logger.error(str(e))

@@ -41,7 +41,6 @@ class EncoderController(BaseThing):
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
-            "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
             "categorization": {
                 "host_type": "robot",
@@ -55,7 +54,6 @@ class EncoderController(BaseThing):
 
         self.info = info
         self.name = info["name"]
-        self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
         self.robot = _pack.split(".")[-1]

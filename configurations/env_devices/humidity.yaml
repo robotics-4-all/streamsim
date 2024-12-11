@@ -1,7 +1,7 @@
 pose: {x: 100, y: 100, theta: 0}
 name: humidity_X
 place: office
-hz: 0.5
+hz: 2
 mode: simulation # mock, simulation, real
 operation: sinus # constant, triangle, random, normal, sinus
 operation_parameters:

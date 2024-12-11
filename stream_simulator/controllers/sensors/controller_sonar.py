@@ -44,7 +44,6 @@ class SonarController(BaseThing):
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
-            "sensor_configuration": conf["sensor_configuration"],
             "max_range": conf["max_range"],
             "device_name": package["device_name"],
             "categorization": {
@@ -59,7 +58,6 @@ class SonarController(BaseThing):
 
         self.info = info
         self.name = info['name']
-        self.conf = info["sensor_configuration"]
         self.map = package["map"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"

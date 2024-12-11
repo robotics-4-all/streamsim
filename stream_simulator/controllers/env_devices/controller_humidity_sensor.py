@@ -67,4 +67,6 @@ class EnvHumiditySensorController(BasicSensor):
         else:
             ambient = affections - (affections - ambient) * 0.1
 
+        ambient += random.uniform(-0.5, 0.5)
+
         return ambient

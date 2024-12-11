@@ -61,10 +61,11 @@ class EnvPanTiltController(BaseThing):
         self.tilt = 0
         self.limits = info['conf']['limits']
         # Turn to rads
-        self.limits['pan']['min'] *= math.pi / 180.0
-        self.limits['pan']['max'] *= math.pi / 180.0
-        self.limits['tilt']['min'] *= math.pi / 180.0
-        self.limits['tilt']['max'] *= math.pi / 180.0
+        print(self.limits, self.name, self.limits['pan']['min'])
+        self.limits['pan']['min'] = float(self.limits['pan']['min']) * math.pi / 180.0
+        self.limits['pan']['max'] = float(self.limits['pan']['max']) * math.pi / 180.0
+        self.limits['tilt']['min'] = float(self.limits['tilt']['min']) * math.pi / 180.0
+        self.limits['tilt']['max'] = float(self.limits['tilt']['max']) * math.pi / 180.0
         self.pan_range = \
             self.limits['pan']['max'] - self.limits['pan']['min']
         self.tilt_range = \

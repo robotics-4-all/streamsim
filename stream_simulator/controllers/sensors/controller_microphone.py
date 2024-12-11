@@ -47,7 +47,6 @@ class MicrophoneController(BaseThing):
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
-            "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
             "actors": package["actors"],
             "categorization": {
@@ -63,7 +62,6 @@ class MicrophoneController(BaseThing):
         self.info = info
         self.base_topic = info["base_topic"]
         self.name = info["name"]
-        self.conf = info["sensor_configuration"]
 
         self.set_tf_communication(package)
 

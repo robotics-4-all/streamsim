@@ -44,7 +44,6 @@ class TofController(BaseThing):
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
-            "sensor_configuration": conf["sensor_configuration"],
             "max_range": conf["max_range"],
             "device_name": package["device_name"],
             "categorization": {
