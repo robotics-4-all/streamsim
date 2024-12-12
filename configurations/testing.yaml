@@ -7,7 +7,7 @@ map:
   resolution: 0.1
   obstacles:
     lines:
-      - {x1: 510, y1: 400, x2: 510, y2: 600}
+      # - {x1: 510, y1: 400, x2: 510, y2: 600}
       - {x1: 5, y1: 4, x2: 8, y2: 4}
 
 world:
@@ -43,8 +43,8 @@ robots:
 #         - source: "robot_devices/irs/ir_l"
 #         - source: "robot_devices/irs/ir_br"
 #         - source: "robot_devices/irs/ir_bl"
-      tof:
-        - source: "robot_devices/tof"
+      # tof:
+      #   - source: "robot_devices/tof"
 #       camera:
 #         - source: "robot_devices/camera"
 #       imu:
@@ -62,8 +62,8 @@ robots:
 #         - source: "robot_devices/buttons/button_G2"
 #         - source: "robot_devices/buttons/button_G3"
 #         - source: "robot_devices/buttons/button_G4"
-#       env:
-#         - source: "robot_devices/env"
+      env:
+        - source: "robot_devices/env"
 #       speaker:
 #         - source: "robot_devices/speaker"
 #       leds:
@@ -117,9 +117,9 @@ robots:
   # alarms_linear:
   #   - source: "env_devices/alarm_linear"
 
-# actors:
+actors:
   # humans:
-  #   - {id: 0, x: 10, y: 0, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
+  #   - {id: 0, x: 520, y: 500, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
   # superman:
   #   - {id: 1000, x: 10, y: 0, move: 1, sound: 1, lang: EN, message: test, text: hello}
   # sound_sources:
@@ -136,7 +136,7 @@ robots:
   # rfid_tags:
   #   - {id: RF432423, x: 100, y: 100, message: test}
   #   - {id: RF432425, x: 80, y: 100, message: test_2}
-  # fires:
-  #   - {id: 11, x: 110, y: 110, temperature: 140, range: 100}
-  # waters:
-  #   - {id: 12, x: 120, y: 100, range: 100}
+  fires:
+    - {id: 11, x: 510, y: 510, temperature: 140, range: 20}
+  waters:
+    - {id: 12, x: 520, y: 490, range: 20}

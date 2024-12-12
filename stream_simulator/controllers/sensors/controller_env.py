@@ -2,13 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import math
 import logging
 import threading
 import random
-
-from colorama import Fore, Style
+import statistics
 
 from stream_simulator.base_classes import BaseThing
 
@@ -119,7 +116,7 @@ class EnvController(BaseThing):
                     'name': self.name
                 })
 
-                import statistics
+                
                 gas_aff = res["gas"]
                 hum_aff = res["humidity"]
                 tem_aff = res["temperature"]
@@ -133,6 +130,7 @@ class EnvController(BaseThing):
                 val["temperature"] = amb
                 if len(temps) != 0:
                     val["temperature"] = amb + statistics.mean(temps)
+                val += random.uniform(-0.25, 0.25)
 
                 # humidity
                 ambient = self.env_properties['humidity']
@@ -147,7 +145,7 @@ class EnvController(BaseThing):
                         ambient += affections * 0.1
                     else:
                         ambient = affections - (affections - ambient) * 0.1
-                val["humidity"] = ambient
+                val["humidity"] = ambient + random.uniform(-0.5, 0.5)
 
                 # gas
                 ppm = 400 # typical environmental
@@ -157,7 +155,7 @@ class EnvController(BaseThing):
                         ppm += 1000.0 * rel_range
                     elif gas_aff[a]['type'] == 'fire':
                         ppm += 5000.0 * rel_range
-                val["gas"] = ppm
+                val["gas"] = ppm + random.uniform(-5, 5)
 
                 # pressure
                 val["pressure"] = 27.3 + random.uniform(-3, 3)
@@ -167,6 +165,7 @@ class EnvController(BaseThing):
                 "data": val,
                 "timestamp": time.time()
             })
+            # print(val)
 
         self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
 
