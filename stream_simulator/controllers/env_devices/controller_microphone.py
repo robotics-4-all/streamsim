@@ -2,16 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import math
 import logging
-import threading
-import random
-import os
-import cv2
+from pathlib import Path
 import base64
-
-from colorama import Fore, Style
+import wave
 
 from stream_simulator.base_classes import BaseThing
 
@@ -183,6 +177,8 @@ class EnvMicrophoneController(BaseThing):
             })
             # Get the closest:
             clos = None
+            clos_type = None
+            clos_info = None
             clos_d = 100000.0
             for x in res:
                 if res[x]['distance'] < clos_d:
@@ -190,12 +186,18 @@ class EnvMicrophoneController(BaseThing):
                     clos_d = res[x]['distance']
 
             wav = "Silent.wav"
-            if res[clos]['type'] == 'sound_source':
+            if clos is None:
+                pass
+            elif res[clos]['type'] == 'sound_source':
+                clos_type = 'sound_source'
+                clos_info = res[clos]['info']
                 if res[clos]['info']['language'] == 'EL':
                     wav = "greek_sentence.wav"
                 else:
                     wav = "english_sentence.wav"
             elif res[clos]['type'] == "human":
+                clos_type = 'human'
+                clos_info = res[clos]['info']
                 if res[clos]['info']["sound"] == 1:
                     if res[clos]['info']["language"] == "EL":
                         wav = "greek_sentence.wav"
@@ -203,7 +205,7 @@ class EnvMicrophoneController(BaseThing):
                         wav = "english_sentence.wav"
 
             now = time.time()
-            self.logger.info(f"Recording... {res[clos]['type']}, {res[clos]['info']}")
+            self.logger.info("Recording... %s, %s", clos_type, clos_info)
             while time.time() - now < duration:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
@@ -215,22 +217,16 @@ class EnvMicrophoneController(BaseThing):
             ret["record"] = self.load_wav(wav)
             ret["volume"] = 100
 
-        self.logger.info("{} recording finished".format(self.name))
+        self.logger.info("%s recording finished", self.name)
         self.blocked = False
         return ret
 
     def load_wav(self, path):
         # Read from file
-        import wave
-        import os
-        from pathlib import Path
         dirname = Path(__file__).resolve().parent
         fil = str(dirname) + '/../../resources/' + path
-        self.logger.info("Reading sound from " + fil)
+        self.logger.info("Reading sound from %s", fil)
         f = wave.open(fil, 'rb')
-        channels = f.getnchannels()
-        framerate = f.getframerate()
-        sample_width = f.getsampwidth()
         data = bytearray()
         sample = f.readframes(256)
         while sample:

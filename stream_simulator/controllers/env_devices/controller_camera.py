@@ -7,6 +7,8 @@ import threading
 import random
 import os
 import base64
+import numpy as np
+import qrcode
 import cv2
 
 from stream_simulator.base_classes import BaseThing
@@ -150,7 +152,7 @@ class EnvCameraController(BaseThing):
         )
 
     def sensor_read(self):
-        self.logger.info(f"Sensor {self.name} read thread started")
+        self.logger.info(f"Sensor %s read thread started", self.name)
         width = self.width
         height = self.height
 
@@ -192,17 +194,17 @@ class EnvCameraController(BaseThing):
                 elif cl_type == "human":
                     img = random.choice(["face.jpg", "face_inverted.jpg"])
                 elif cl_type == "qr":
-                    import qrcode
+                    
                     try:
                         im = qrcode.make(res[clos]["info"]["message"])
-                    except Exception as e:
-                        self.logger.error(f"QR creator could not produce string: {res[clos]['info']['message']} or qrcode library is not installed: {str(e)}")
+                    except: # pylint: disable=bare-except
+                        self.logger.error("QR creator could not produce string or qrcode library is not installed")
                     im.save(dirname + "/resources/qr_tmp.png")
                     img = "qr_tmp.png"
                 elif cl_type == "barcode":
                     img = "barcode.jpg"
                 elif cl_type == 'color':
-                    import numpy as np
+                    
                     img = 'col_tmp.png'
                     tmp = np.zeros((height, width, 3), np.uint8)
                     tmp[:] = (
@@ -212,7 +214,6 @@ class EnvCameraController(BaseThing):
                     )
                     cv2.imwrite(dirname + "/resources/" + img, tmp) # pylint: disable=no-member
                 elif cl_type == "text":
-                    import numpy as np
                     img = 'txt_temp.png'
                     try:
                         image = np.zeros((height, width, 3), dtype=np.uint8)

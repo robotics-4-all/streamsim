@@ -20,14 +20,14 @@ world:
     luminosity: 0 # out of 100
     ph: 7.4
 
-# robots:
-#   - name: robot_1
-#     mode: simulation # [simulation, mock, real]
-#     speak_mode: espeak # [google, espeak] - in case of real mode
-#     wait_for: [] #[rhasspy] # in case of real mode
-#     remote_inform: true
-#     step_by_step_execution: false
-#     devices:
+robots:
+  - name: robot_1
+    mode: simulation # [simulation, mock, real]
+    speak_mode: espeak # [google, espeak] - in case of real mode
+    wait_for: [] #[rhasspy] # in case of real mode
+    remote_inform: true
+    step_by_step_execution: false
+    devices:
 #       microphone:
 #         - source: "robot_devices/microphone"
 #       sonar:
@@ -74,8 +74,8 @@ world:
 #       encoder:
 #         - source: "robot_devices/encoders/encoder_BR"
 #         - source: "robot_devices/encoders/encoder_BL"
-#       skid_steer:
-#         - source: "robot_devices/skid_steer"
+      skid_steer:
+        - source: "robot_devices/skid_steer"
 #       rfid_reader:
 #         - source: "robot_devices/rfid_reader"
 #     starting_pose:
@@ -83,7 +83,7 @@ world:
 #       y: 120 # in pixels
 #       theta: 45 # in degrees
 
-env_devices:
+# env_devices:
   # relays:
   #   - source: "env_devices/relay"
   # ph_sensors:
@@ -94,8 +94,8 @@ env_devices:
   #   - source: "env_devices/humidity"
   # gas_sensors:
   #   - source: "env_devices/gas"
-  camera_sensors:
-    - source: "env_devices/camera"
+  # camera_sensors:
+  #   - source: "env_devices/camera"
   # distance_sensors:
   #   - source: "env_devices/distance_sensor"
   # ambient_light_sensor:
@@ -118,13 +118,13 @@ env_devices:
   # alarms_linear:
   #   - source: "env_devices/alarm_linear"
 
-actors:
-#   humans:
-#     - {id: 0, x: 10, y: 0, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
+# actors:
+  # humans:
+  #   - {id: 0, x: 10, y: 0, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
   # superman:
   #   - {id: 1000, x: 10, y: 0, move: 1, sound: 1, lang: EN, message: test, text: hello}
   # sound_sources:
-  #   - {id: 4, x: 100, y: 100, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
+  #   - {id: 4, x: 1, y: 1, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
   # qrs:
   #   - {id: 5, x: 10, y: 0, message: test}
   # barcodes:
@@ -132,8 +132,8 @@ actors:
   #   - {id: 60, x: 80, y: 60, message: EL3DD341}
   # colors:
   #   - {id: 7, x: 10, y: 0, r: 0, g: 255, b: 0} # for dominant color
-  texts:
-    - {id: 8, x: 10, y: 0, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
+  # texts:
+  #   - {id: 8, x: 10, y: 0, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
   # rfid_tags:
   #   - {id: RF432423, x: 100, y: 100, message: test}
   #   - {id: RF432425, x: 80, y: 100, message: test_2}
