@@ -1,0 +1,5 @@
+pose: {theta: 0}
+orientation: 0
+place: FR
+hz: 3
+max_range: 2

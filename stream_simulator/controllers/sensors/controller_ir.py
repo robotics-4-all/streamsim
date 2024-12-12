@@ -101,6 +101,7 @@ class IrController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
+            self.robot_pose_sub.run()
 
     def robot_pose_update(self, message):
         self.robot_pose = message
@@ -127,7 +128,7 @@ class IrController(BaseThing):
                         d += 1
                         tmpx = originx + d * math.cos(ths)
                         tmpy = originy + d * math.sin(ths)
-                    val = d * self.robot_pose["resolution"]
+                    val = d * self.robot_pose["resolution"] + random.uniform(-0.03, 0.03)
                 except:
                     self.logger.warning("Pose not got yet..")
 
@@ -136,6 +137,7 @@ class IrController(BaseThing):
                 "distance": val,
                 "timestamp": time.time()
             })
+            self.logger.info("Ir %s sensor read: %f", self.info["id"], val)
 
         self.logger.info("Ir {} sensor read thread stopped".format(self.info["id"]))
 
