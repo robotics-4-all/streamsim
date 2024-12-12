@@ -2,20 +2,65 @@
 # -*- coding: utf-8 -*-
 
 import time
-import json
 import math
 import logging
 import threading
-import random
-import string
-import os
+
 
 from colorama import Fore, Style, Back
-import configparser
 
 from stream_simulator.connectivity import CommlibFactory
 
 class Robot:
+    """
+    A class to represent a robot in a simulated environment.
+    Attributes
+    ----------
+    configuration : dict
+        Configuration settings for the robot.
+    world : dict
+        The world/environment properties and configuration.
+    map : numpy.ndarray
+        The map of the environment.
+    tick : float
+        The time interval for each simulation step.
+    namespace : str
+        The namespace for the robot.
+    Methods
+    -------
+    register_controller(c):
+        Registers a controller for the robot.
+    device_lookup():
+        Looks up and registers devices for the robot.
+    leds_redis(message):
+        Handles LED messages from Redis.
+    leds_wipe_redis(message):
+        Handles LED wipe messages from Redis.
+    execution_nodes_redis(message):
+        Handles execution node messages from Redis.
+    detects_redis(message):
+        Handles detection messages from Redis.
+    button_amqp(message):
+        Handles button press messages from AMQP.
+    step_by_step_amqp(message):
+        Handles step-by-step execution messages from AMQP.
+    start():
+        Starts the robot and its controllers.
+    stop():
+        Stops the robot and its controllers.
+    devices_callback(message):
+        Callback for retrieving connected devices.
+    reset_pose_callback(message):
+        Callback for resetting the robot's pose.
+    initialize_resources():
+        Initializes resources for the robot.
+    check_ok(x, y, prev_x, prev_y):
+        Checks if the robot's position is valid.
+    dispatch_pose_local():
+        Publishes the robot's internal pose.
+    simulation_thread():
+        The main simulation thread for the robot.
+    """
     def __init__(self,
                  configuration = None,
                  world = None,
@@ -450,14 +495,13 @@ class Robot:
                 theta2 = float("{:.2f}".format(self._theta))
 
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
-                    self.logger.info("AMQP pose updated")
                     self.pose_pub.publish({
                         "x": xx,
                         "y": yy,
                         "theta": theta2,
                         "resolution": self.resolution
                     })
-                    self.logger.info(f"{self.raw_name}: New pose: {xx}, {yy}, {theta2}")
+                    self.logger.info("%s: New pose: %f, %f, %f", self.raw_name, xx, yy, theta2)
 
                 if self.check_ok(self._x, self._y, prev_x, prev_y):
                     self._x = prev_x
@@ -466,7 +510,7 @@ class Robot:
 
                     # notify ui about the error in robot's position
                     self.commlib_factory.notify_ui(
-                        type = "new_message",
+                        type_ = "new_message",
                         data = {
                             "type": "logs",
                             "message": f"Robot: {self.raw_name} {self.error_log_msg}"

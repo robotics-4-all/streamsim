@@ -41,7 +41,6 @@ class PanTiltController(BaseThing):
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
-            "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"],
             "categorization": {
                 "host_type": "robot",

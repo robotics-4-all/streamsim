@@ -55,13 +55,17 @@ class CommlibFactory(Node):
         },
     }
 
-    topics = set()
+    publisher_topics = {}
+    subscriber_topics = {}
+    rpc_server_topics = {}
+    rpc_client_topics = {}
+    action_server_topics = {}
+    action_client_topics = {}
 
     def __init__(self, *args, **kwargs):
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         self._logger = logging.getLogger(__name__)
-        self._logger.info('[*] Commlib factory initiating')
 
         self.notify = None
         self.get_tf_affection = None
@@ -91,6 +95,33 @@ class CommlibFactory(Node):
 
         self._logger.info('[*] Commlib factory initiated from %s:%s',
                           calframe[1][1].split('/')[-1], calframe[1][2])
+
+    def print_topics(self):
+        """
+        Print the topics for publishers, subscribers, RPC servers, and RPC clients.
+
+        Returns:
+            None
+        """
+        self._logger.warning("\nPublisher topics:")
+        for topic, place in CommlibFactory.publisher_topics.items():
+            self._logger.info("\t%s @ %s", topic, place)
+        self._logger.warning("Subscriber topics:")
+        for topic, place in CommlibFactory.subscriber_topics.items():
+            self._logger.info("\t%s @ %s", topic, place)
+        self._logger.warning("RPC server topics:")
+        for topic, place in CommlibFactory.rpc_server_topics.items():
+            self._logger.info("\t%s @ %s", topic, place)
+        self._logger.warning("RPC client topics:")
+        for topic, place in CommlibFactory.rpc_client_topics.items():
+            self._logger.info("\t%s @ %s", topic, place)
+        self._logger.warning("Action server topics:")
+        for topic, place in CommlibFactory.action_server_topics.items():
+            self._logger.info("\t%s @ %s", topic, place)
+        self._logger.warning("Action client topics:")
+        for topic, place in CommlibFactory.action_client_topics.items():
+            self._logger.info("\t%s @ %s", topic, place)
+        self._logger.info("")
 
     def notify_ui(self, type_ = None, data = None):
         """
@@ -147,9 +178,12 @@ class CommlibFactory(Node):
 
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        self.inform(broker, topic, "Publisher", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        # self.inform(broker, topic, "Publisher", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['publishers'] += 1
-        CommlibFactory.topics.add(topic)
+        if topic in CommlibFactory.publisher_topics:
+            CommlibFactory.publisher_topics[topic].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        else:
+            CommlibFactory.publisher_topics[topic] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
     def getSubscriber(self, broker = "mqtt", topic = None, callback = None):
@@ -176,10 +210,13 @@ class CommlibFactory(Node):
         ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        self.inform(broker, topic, "Subscriber", 
-                    f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        # self.inform(broker, topic, "Subscriber", 
+                    # f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['subscribers'] += 1
-        CommlibFactory.topics.add(topic)
+        if topic in CommlibFactory.subscriber_topics:
+            CommlibFactory.subscriber_topics[topic].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        else:
+            CommlibFactory.subscriber_topics[topic] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
     def getRPCService(self, broker = "mqtt", rpc_name = None, callback = None):
@@ -201,10 +238,13 @@ class CommlibFactory(Node):
         ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        self.inform(broker, rpc_name, "RPCService", 
-                    f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        # self.inform(broker, rpc_name, "RPCService", 
+                    # f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['rpc servers'] += 1
-        CommlibFactory.topics.add(rpc_name)
+        if rpc_name in CommlibFactory.rpc_server_topics:
+            CommlibFactory.rpc_server_topics[rpc_name].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        else:
+            CommlibFactory.rpc_server_topics[rpc_name] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
     def getRPCClient(self, broker = "mqtt", rpc_name = None):
@@ -224,10 +264,13 @@ class CommlibFactory(Node):
         ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        self.inform(broker, rpc_name, "RPCClient", 
-                    f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        # self.inform(broker, rpc_name, "RPCClient", 
+        #             f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['rpc clients'] += 1
-        CommlibFactory.topics.add(rpc_name)
+        if rpc_name in CommlibFactory.rpc_client_topics:
+            CommlibFactory.rpc_client_topics[rpc_name].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        else:
+            CommlibFactory.rpc_client_topics[rpc_name] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
     def getActionServer(self, broker = "mqtt", action_name = None, callback = None):
@@ -249,10 +292,13 @@ class CommlibFactory(Node):
         ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        self.inform(broker, action_name, "ActionServer", 
-                    f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        # self.inform(broker, action_name, "ActionServer", 
+        #             f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['action servers'] += 1
-        CommlibFactory.topics.add(action_name)
+        if action_name in CommlibFactory.action_server_topics:
+            CommlibFactory.action_server_topics[action_name].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        else:
+            CommlibFactory.action_server_topics[action_name] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
     def getActionClient(self, broker = "mqtt", action_name = None):
@@ -276,8 +322,11 @@ class CommlibFactory(Node):
         ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        self.inform(broker, action_name, "ActionClient", 
-                    f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        # self.inform(broker, action_name, "ActionClient", 
+        #             f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['action clients'] += 1
-        CommlibFactory.topics.add(action_name)
+        if action_name in CommlibFactory.action_client_topics:
+            CommlibFactory.action_client_topics[action_name].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+        else:
+            CommlibFactory.action_client_topics[action_name] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret

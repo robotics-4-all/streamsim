@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import sys, traceback
+import sys
+import traceback
 import time
-import os
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -15,26 +15,25 @@ class Test(unittest.TestCase):
     def test_get(self):
         try:
             # Get simulation actors
-            sim_name = "streamsim"
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
+            sim_name = "streamsim.123"
+            cfact = CommlibFactory(node_name = "Test")
+            cl = cfact.getRPCClient(
                 rpc_name = f"{sim_name}.get_device_groups"
             )
             res = cl.call({})
+            print(res)
 
             robots = res["robots"]
             for r in robots:
-                cl = CommlibFactory.getRPCClient(
-                    broker = "redis",
-                    rpc_name = f"robot.{r}.nodes_detector.get_connected_devices"
+                cl = cfact.getRPCClient(
+                    rpc_name = f"{sim_name}.{r}.nodes_detector.get_connected_devices"
                 )
                 res = cl.call({})
 
                 # Get ph sensors
                 for s in res["devices"]:
                     if s["type"] == "SKID_STEER":
-                        set_rpc = CommlibFactory.getPublisher(
-                            broker = "redis",
+                        set_rpc = cfact.getPublisher(
                             topic = s["base_topic"] + ".set"
                         )
 
@@ -54,9 +53,9 @@ class Test(unittest.TestCase):
                             'raw': 0
                         })
 
-        except:
+        except: # pylint: disable=bare-except
             traceback.print_exc(file=sys.stdout)
-            self.assertTrue(False)
+            self.fail("Test failed due to exception")
 
     def tearDown(self):
         pass

@@ -55,7 +55,7 @@ class TfController:
 
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
-            'host', 'host_type', 'properties', 'id'
+            'host', 'host_type', 'properties', 'id', 'namespace'
         ]
 
         self.declarations = []
@@ -159,9 +159,9 @@ class TfController:
         """
         self.logger.info("Transformation tree:")
         for h in self.tree:
-            self.logger.info("%s:", h)
+            self.logger.info("\t%s:", h)
             for d in self.tree[h]:
-                self.logger.info("\t%s @ %s", d, self.places_absolute[d])
+                self.logger.info("\t\t%s @ %s", d, self.places_absolute[d])
 
     def get_declarations_callback(self, message):
         """
@@ -268,8 +268,8 @@ class TfController:
                 if d['host'] not in self.existing_hosts:
                     self.robots.append(d['host'])
                     self.existing_hosts.append(d['host'])
-
-                    topic = d['host_type'] + "." + d["host"] + ".pose.internal"
+                    print(d)
+                    topic = d['namespace'] + "." + d["host"] + ".pose.internal"
                     self.subs[d['host']] = self.commlib_factory.getSubscriber(
                         topic = topic,
                         callback = self.robot_pose_callback

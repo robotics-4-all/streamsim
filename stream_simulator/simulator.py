@@ -180,19 +180,18 @@ class Simulator:
             )
 
         # Communications report
-        self.logger.info("Communications report:")
-        total = 0
-        for t in self.commlib_factory.stats:
-            for k in self.commlib_factory.stats[t]:
-                n = self.commlib_factory.stats[t][k]
-                total += n
-                if n == 0:
-                    continue
-                self.logger.info(f"\t{t} {k}: {n}")
-        self.logger.info(f"Total connections: {total}")
+        # self.logger.info("Communications report:")
+        # total = 0
+        # for t in self.commlib_factory.stats:
+        #     for k in self.commlib_factory.stats[t]:
+        #         n = self.commlib_factory.stats[t][k]
+        #         total += n
+        #         if n == 0:
+        #             continue
+        #         self.logger.info(f"\t{t} {k}: {n}")
+        # self.logger.info(f"Total connections: {total}")
 
-        for topic in CommlibFactory.topics:
-            self.logger.info("Topic/RPC: %s", topic)
+        self.commlib_factory.print_topics()
 
         # Just to be informed for pose
         for i in range(0, len(self.robots)):
