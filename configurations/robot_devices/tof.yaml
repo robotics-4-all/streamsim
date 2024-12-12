@@ -1,5 +1,5 @@
 orientation: 0
 place: F
-hz: 1
+hz: 5
 pose: {theta: 0}
-max_range: 2
+max_range: 5

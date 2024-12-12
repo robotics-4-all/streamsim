@@ -36,15 +36,15 @@ robots:
 #         - source: "robot_devices/sonars/sonar_r"
 #         - source: "robot_devices/sonars/sonar_bl"
 #         - source: "robot_devices/sonars/sonar_br"
-      ir:
-        - source: "robot_devices/irs/ir_front"
+      # ir:
+      #   - source: "robot_devices/irs/ir_front"
 #         - source: "robot_devices/irs/ir_fl"
 #         - source: "robot_devices/irs/ir_r"
 #         - source: "robot_devices/irs/ir_l"
 #         - source: "robot_devices/irs/ir_br"
 #         - source: "robot_devices/irs/ir_bl"
-#       tof:
-#         - source: "robot_devices/tof"
+      tof:
+        - source: "robot_devices/tof"
 #       camera:
 #         - source: "robot_devices/camera"
 #       imu:

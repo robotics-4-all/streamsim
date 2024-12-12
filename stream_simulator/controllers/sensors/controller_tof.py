@@ -104,6 +104,7 @@ class TofController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
+            self.robot_pose_sub.run()
 
     def robot_pose_update(self, message):
         self.robot_pose = message
@@ -139,6 +140,7 @@ class TofController(BaseThing):
                 "distance": val,
                 "timestamp": time.time()
             })
+            self.logger.info("\tTOF %s sensor read: %f", self.info["id"], val)
 
         self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
 
