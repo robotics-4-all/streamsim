@@ -27,6 +27,7 @@ class RfidReaderController(BaseThing):
         _class = "rf"
         _subclass = "rfid_reader"
         _pack = package["name"]
+        _namespace = package["namespace"]
 
         super().__init__(id)
 
@@ -38,7 +39,7 @@ class RfidReaderController(BaseThing):
             "place": conf["place"],
             "id": id,
             "enabled": True,
-            "orientation": conf["orientation"],
+            "orientation": float(conf["orientation"]),
             "hz": conf["hz"],
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
@@ -75,6 +76,7 @@ class RfidReaderController(BaseThing):
             "base_topic": info['base_topic'],
             "name": self.name,
             "range": self.range,
+            "namespace": _namespace,
             "properties": {
                 "fov": self.fov
             }

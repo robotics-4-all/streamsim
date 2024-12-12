@@ -503,6 +503,9 @@ class Robot:
                     })
                     self.logger.info("%s: New pose: %f, %f, %f", self.raw_name, xx, yy, theta2)
 
+                    # Send internal pose for distance sensors
+                    self.dispatch_pose_local()
+
                 if self.check_ok(self._x, self._y, prev_x, prev_y):
                     self._x = prev_x
                     self._y = prev_y
@@ -516,14 +519,5 @@ class Robot:
                             "message": f"Robot: {self.raw_name} {self.error_log_msg}"
                         }
                     )
-
-                    # Send internal pose for distance sensors
-                    self.internal_pose_pub.publish({
-                        "x": xx,
-                        "y": yy,
-                        "theta": theta2,
-                        "resolution": self.resolution,
-                        "name": self.name
-                    })
 
             time.sleep(self.dt)

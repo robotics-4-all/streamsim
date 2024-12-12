@@ -28,6 +28,7 @@ class SpeakerController(BaseThing):
         _class = "audio"
         _subclass = "speaker"
         _pack = package["name"]
+        _namespace = package["namespace"]
         super().__init__(id)
 
         info = {
@@ -38,7 +39,7 @@ class SpeakerController(BaseThing):
             "place": conf["place"],
             "id": id,
             "enabled": True,
-            "orientation": conf["orientation"],
+            "orientation": float(conf["orientation"]),
             "queue_size": 0,
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
@@ -72,7 +73,8 @@ class SpeakerController(BaseThing):
             },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
-            "name": self.name
+            "name": self.name,
+            "namespace": _namespace
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'

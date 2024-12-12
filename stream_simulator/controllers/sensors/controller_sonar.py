@@ -27,6 +27,7 @@ class SonarController(BaseThing):
         _class = "distance"
         _subclass = "sonar"
         _pack = package["name"]
+        _namespace = package["namespace"]
 
         super().__init__(id)
 
@@ -38,7 +39,7 @@ class SonarController(BaseThing):
             "place": conf["place"],
             "id": id,
             "enabled": True,
-            "orientation": conf["orientation"],
+            "orientation": float(conf["orientation"]),
             "hz": conf["hz"],
             "queue_size": 100,
             "mode": package["mode"],
@@ -74,7 +75,8 @@ class SonarController(BaseThing):
             },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
-            "name": self.name
+            "name": self.name,
+            "namespace": _namespace,
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
@@ -96,21 +98,28 @@ class SonarController(BaseThing):
             rpc_name = self.base_topic  + ".disable"
         )
 
+        # print(self.info)
+
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = self.commlib_factory.getSubscriber(
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
+            self.robot_pose_sub.run()
+
+        self.robot_pose = None
 
 
     def robot_pose_update(self, message):
         self.robot_pose = message
-        # print(Fore.CYAN + f"Sonar {self.info['id']} got robot pose" + Style.RESET_ALL)
+        # print(Fore.CYAN + f"Sonar {self.info['id']} got robot pose: {self.robot_pose}" + Style.RESET_ALL)
 
     def sensor_read(self):
-        self.logger.debug("Sonar {} sensor read thread started".format(self.info["id"]))
+        self.logger.debug("Sonar %s sensor read thread started", self.info["id"])
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
+            if self.robot_pose is None:
+                continue
 
             val = 0
             if self.info["mode"] == "mock":
@@ -118,29 +127,35 @@ class SonarController(BaseThing):
             elif self.info["mode"] == "simulation":
                 try:
                     ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
+                    # print("Sonar: ", ths)
                     # Calculate distance
                     d = 1
                     originx = self.robot_pose["x"] / self.robot_pose["resolution"]
                     originy = self.robot_pose["y"] / self.robot_pose["resolution"]
                     tmpx = originx
                     tmpy = originy
+                    # print("Sonar: ", originx, originy)
                     limit = self.info["max_range"] / self.robot_pose["resolution"]
                     while self.map[int(tmpx), int(tmpy)] == 0 and d < limit:
                         d += 1
                         tmpx = originx + d * math.cos(ths)
                         tmpy = originy + d * math.sin(ths)
-                    val = d * self.robot_pose["resolution"]
-                    # print(Fore.CYAN + f"Sonar {self.info['id']} distance: {val}" + Style.RESET_ALL)
-                except:
-                    self.logger.warning("Pose not got yet..")
+                    val = d * self.robot_pose["resolution"] + random.uniform(-0.03, 0.03)
+                    if val > self.info["max_range"]:
+                        val = self.info["max_range"]
+                    if val < 0:
+                        val = 0
+                except Exception as e: # pylint: disable=broad-except
+                    self.logger.warning("Error in sonar %s sensor read thread: %s", self.name, str(e))
 
             # Publishing value:
             self.publisher.publish({
                 "distance": val,
                 "timestamp": time.time()
             })
+            self.logger.info("Sonar reads: %f",  val)
 
-        self.logger.debug("Sonar {} sensor read thread stopped".format(self.info["id"]))
+        self.logger.debug("Sonar %s sensor read thread stopped", self.info["id"])
 
     def enable_callback(self, message):
         self.info["enabled"] = True

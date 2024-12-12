@@ -27,6 +27,7 @@ class LedsController(BaseThing):
         _class = "visual"
         _subclass = "leds"
         _pack = package["name"]
+        _namespace = package["namespace"]
 
         super().__init__(id)
 
@@ -38,7 +39,7 @@ class LedsController(BaseThing):
             "place": conf["place"],
             "id": id,
             "enabled": True,
-            "orientation": conf["orientation"],
+            "orientation": float(conf["orientation"]),
             "queue_size": 0,
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
@@ -73,7 +74,8 @@ class LedsController(BaseThing):
             },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
-            "name": self.name
+            "name": self.name,
+            "namespace": _namespace,
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'

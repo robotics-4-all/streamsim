@@ -31,6 +31,7 @@ class CameraController(BaseThing):
         _class = "visual"
         _subclass = "camera"
         _pack = package["name"]
+        _namespace = package["namespace"]
 
         super().__init__(id)
 
@@ -42,7 +43,7 @@ class CameraController(BaseThing):
             "place": conf["place"],
             "id": id,
             "enabled": True,
-            "orientation": conf["orientation"],
+            "orientation": float(conf["orientation"]),
             "hz": conf["hz"],
             "queue_size": 0,
             "mode": package["mode"],
@@ -81,6 +82,7 @@ class CameraController(BaseThing):
             "base_topic": info['base_topic'],
             "name": self.name,
             "range": self.range,
+            "namespace": _namespace,
             "properties": {
                 "fov": self.fov,
                 'ambient_luminosity': self.env_properties['luminosity']

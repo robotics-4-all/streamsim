@@ -56,6 +56,6 @@ devices:
   rfid_reader:
     - source: "robot_devices/rfid_reader"
 starting_pose:
-  x: 100 # in pixels
-  y: 120 # in pixels
-  theta: 45 # in degrees
+  x: 500 # in pixels
+  y: 500 # in pixels
+  theta: 0 # in degrees

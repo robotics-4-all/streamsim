@@ -39,7 +39,7 @@ class MotionController(BaseThing):
             "place": conf["place"],
             "id": id,
             "enabled": True,
-            "orientation": conf["orientation"],
+            "orientation": float(conf["orientation"]),
             "queue_size": 0,
             "mode": package["mode"],
             "namespace": package["namespace"],
@@ -117,7 +117,7 @@ class MotionController(BaseThing):
             try:
                 float(response['linear'])
                 float(response['angular'])
-            except:
+            except: # pylint: disable=bare-except
                 if not response['linear'].isdigit():
                     raise Exception("Linear is no integer nor float")
                 if not response['angular'].isdigit():
@@ -132,6 +132,6 @@ class MotionController(BaseThing):
             elif self.info["mode"] == "simulation":
                 pass
           
-            self.logger.debug("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
+            # self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
         except Exception as e:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))

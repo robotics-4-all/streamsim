@@ -3,12 +3,11 @@ simulation:
 
 map:
   width: 1000
-  height: 800
-  resolution: 0.05
+  height: 1000
+  resolution: 0.1
   obstacles:
     lines:
-      - {x1: 5, y1: 0, x2: 5, y2: 20}
-      - {x1: 510, y1: 510, x2: 500, y2: 500}
+      - {x1: 510, y1: 400, x2: 510, y2: 600}
       - {x1: 5, y1: 4, x2: 8, y2: 4}
 
 world:
@@ -30,15 +29,15 @@ robots:
     devices:
 #       microphone:
 #         - source: "robot_devices/microphone"
-#       sonar:
-#         - source: "robot_devices/sonars/sonar_fr"
+      # sonar:
+      #   - source: "robot_devices/sonars/sonar_front"
 #         - source: "robot_devices/sonars/sonar_fl"
 #         - source: "robot_devices/sonars/sonar_l"
 #         - source: "robot_devices/sonars/sonar_r"
 #         - source: "robot_devices/sonars/sonar_bl"
 #         - source: "robot_devices/sonars/sonar_br"
-#       ir:
-#         - source: "robot_devices/irs/ir_fr"
+      ir:
+        - source: "robot_devices/irs/ir_front"
 #         - source: "robot_devices/irs/ir_fl"
 #         - source: "robot_devices/irs/ir_r"
 #         - source: "robot_devices/irs/ir_l"
@@ -78,10 +77,10 @@ robots:
         - source: "robot_devices/skid_steer"
 #       rfid_reader:
 #         - source: "robot_devices/rfid_reader"
-#     starting_pose:
-#       x: 100 # in pixels
-#       y: 120 # in pixels
-#       theta: 45 # in degrees
+    starting_pose:
+      x: 500 # in pixels
+      y: 500 # in pixels
+      theta: 0 # in degrees
 
 # env_devices:
   # relays:

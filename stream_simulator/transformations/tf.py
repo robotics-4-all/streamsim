@@ -268,7 +268,6 @@ class TfController:
                 if d['host'] not in self.existing_hosts:
                     self.robots.append(d['host'])
                     self.existing_hosts.append(d['host'])
-                    print(d)
                     topic = d['namespace'] + "." + d["host"] + ".pose.internal"
                     self.subs[d['host']] = self.commlib_factory.getSubscriber(
                         topic = topic,
@@ -349,7 +348,7 @@ class TfController:
 
     def robot_pose_callback(self, message):
         nm = message['name'].split(".")[-1]
-        print(f"Updating {nm}: {message}")
+        # print(f"Updating {nm}: {message}")
         if nm not in self.places_absolute:
             self.places_absolute[nm] = {'x': 0, 'y': 0, 'theta': 0}
         self.places_absolute[nm]['x'] = message['x']

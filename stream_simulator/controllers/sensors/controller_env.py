@@ -27,6 +27,7 @@ class EnvController(BaseThing):
         _class = "env"
         _subclass = "temp_hum_pressure_gas"
         _pack = package["name"]
+        _namespace = package["namespace"]
         
         super().__init__(id)
 
@@ -38,7 +39,7 @@ class EnvController(BaseThing):
             "place": conf["place"],
             "id": id,
             "enabled": True,
-            "orientation": conf["orientation"],
+            "orientation": float(conf["orientation"]),
             "hz": conf["hz"],
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
@@ -72,7 +73,8 @@ class EnvController(BaseThing):
             },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
-            "name": self.name
+            "name": self.name,
+            "namespace": _namespace
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'

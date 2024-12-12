@@ -27,6 +27,7 @@ class TofController(BaseThing):
         _class = "distance"
         _subclass = "tof"
         _pack = package["name"]
+        _namespace = package["namespace"]
 
         super().__init__(id)
 
@@ -38,7 +39,7 @@ class TofController(BaseThing):
             "place": conf["place"],
             "id": id,
             "enabled": True,
-            "orientation": conf["orientation"],
+            "orientation": float(conf["orientation"]),
             "hz": conf["hz"],
             "queue_size": 100,
             "mode": package["mode"],
@@ -74,7 +75,8 @@ class TofController(BaseThing):
             },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
-            "name": self.name
+            "name": self.name,
+            "namespace": _namespace,
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'

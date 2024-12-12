@@ -27,6 +27,7 @@ class PanTiltController(BaseThing):
         _class = "motion"
         _subclass = "pan_tilt"
         _pack = package["name"]
+        _namespace = package["namespace"]
         super().__init__(id)
 
         info = {
@@ -37,7 +38,7 @@ class PanTiltController(BaseThing):
             "place": conf["place"],
             "id": id,
             "enabled": True,
-            "orientation": conf["orientation"],
+            "orientation": float(conf["orientation"]),
             "mode": package["mode"],
             "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
@@ -70,7 +71,8 @@ class PanTiltController(BaseThing):
             },
             "pose": conf["pose"],
             "base_topic": info['base_topic'],
-            "name": self.name
+            "name": self.name,
+            "namespace": _namespace
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
