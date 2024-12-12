@@ -64,10 +64,10 @@ robots:
 #         - source: "robot_devices/buttons/button_G4"
       # env:
       #   - source: "robot_devices/env"
-#       speaker:
-#         - source: "robot_devices/speaker"
-      leds:
-        - source: "robot_devices/leds"
+      speaker:
+        - source: "robot_devices/speaker"
+      # leds:
+      #   - source: "robot_devices/leds"
       # pan_tilt:
       #   - source: "robot_devices/pan_tilt"
 #       encoder:

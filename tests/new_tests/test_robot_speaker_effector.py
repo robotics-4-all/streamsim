@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
             robots = res["robots"]
             for r in robots:
                 cl = cfact.getRPCClient(
-                    rpc_name = f"robot.{r}.nodes_detector.get_connected_devices"
+                    rpc_name = f"{sim_name}.{r}.nodes_detector.get_connected_devices"
                 )
                 res = cl.call({})
 
@@ -41,10 +41,10 @@ class Test(unittest.TestCase):
                             'volume': 100,
                             'language': 'el'
                         })
-                        goal_id = resp["goal_id"]
-                        while action.get_result(goal_id)["status"] == 1:
+                        while action.get_result() is None:
+                            print(action.get_result())
                             time.sleep(0.1)
-                        final_res = action.get_result(goal_id)
+                        final_res = action.get_result()
                         print(final_res)
 
                         # Play
@@ -55,10 +55,9 @@ class Test(unittest.TestCase):
                             'string': '...',
                             'volume': 100
                         })
-                        goal_id = resp["goal_id"]
-                        while action.get_result(goal_id)["status"] == 1:
+                        while action.get_result() == None:
                             time.sleep(0.1)
-                        final_res = action.get_result(goal_id)
+                        final_res = action.get_result()
                         print(final_res)
 
         except:
