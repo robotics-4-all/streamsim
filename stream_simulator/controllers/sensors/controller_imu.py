@@ -95,6 +95,7 @@ class ImuController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
+            self.robot_pose_sub.run()
 
             self.robot_pose = {
                 "x": 0,
@@ -178,6 +179,7 @@ class ImuController(BaseThing):
                 "data": val,
                 "timestamp": time.time()
             })
+            print(Fore.CYAN + f"IMU {self.info['id']} read: {val}" + Style.RESET_ALL)
 
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
 

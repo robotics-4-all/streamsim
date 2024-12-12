@@ -55,7 +55,6 @@ class PanTiltController(BaseThing):
 
         self.info = info
         self.name = info["name"]
-        self.conf = info["sensor_configuration"]
         self.base_topic = info["base_topic"]
         self.derp_data_key = info["base_topic"] + ".raw"
 

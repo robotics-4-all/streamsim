@@ -378,6 +378,8 @@ class TfController:
 
             # Just setting devs on pan tilts the robot's pose
             if d in self.pantilts:
+                if d not in self.tree:
+                    continue # no devices on this pan-tilt
                 pt_devs = self.tree[d]
                 for dev in pt_devs:
                     self.places_absolute[dev]['x'] = self.places_absolute[nm]['x']

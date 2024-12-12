@@ -20,6 +20,7 @@ class TofController(BaseThing):
             self.logger = package["logger"]
 
         id = "d_tof_" + str(BaseThing.id + 1)
+        print(conf)
         name = id
         if 'name' in conf:
             name = conf['name']
