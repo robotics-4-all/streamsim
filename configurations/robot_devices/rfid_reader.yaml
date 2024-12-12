@@ -2,5 +2,5 @@ pose: {x: 0, y: 0, theta: 0}
 orientation: 0
 place: FRONT
 hz: 1
-range: 120
+range: 15
 fov: 180

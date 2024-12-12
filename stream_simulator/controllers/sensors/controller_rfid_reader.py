@@ -119,15 +119,14 @@ class RfidReaderController(BaseThing):
                 for t in res:
                     tags[res[t]['info']['id']] = res[t]['info']['message']
 
-            else: # The real deal
-                pass
-
             # Publishing value:
             val['tags'] = tags
             self.publisher.publish({
                 "data": val,
                 "timestamp": time.time()
             })
+
+            print(Fore.CYAN + f"RFID {self.info['id']} read: {val}" + Style.RESET_ALL)
 
             if len(tags) > 0:
                 self.commlib_factory.notify_ui(
