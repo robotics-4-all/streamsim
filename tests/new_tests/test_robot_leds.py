@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import sys, traceback
+import sys
+import traceback
 import time
-import os
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -15,36 +15,33 @@ class Test(unittest.TestCase):
     def test_get(self):
         try:
             # Get simulation actors
-            sim_name = "streamsim"
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
+            sim_name = "streamsim.123"
+            cfact = CommlibFactory(node_name = "Test")
+            cl = cfact.getRPCClient(
                 rpc_name = f"{sim_name}.get_device_groups"
             )
             res = cl.call({})
 
             robots = res["robots"]
             for r in robots:
-                cl = CommlibFactory.getRPCClient(
-                    broker = "redis",
-                    rpc_name = f"robot.{r}.nodes_detector.get_connected_devices"
+                cl = cfact.getRPCClient(
+                    rpc_name = f"{sim_name}.{r}.nodes_detector.get_connected_devices"
                 )
                 res = cl.call({})
 
                 # Get ph sensors
                 for s in res["devices"]:
                     if s["type"] == "LED":
-                        set_rpc = CommlibFactory.getPublisher(
-                            broker = "redis",
-                            topic = s["base_topic"] + ".set"
+                        set_rpc = cfact.getRPCClient(
+                            rpc_name = s["base_topic"] + ".set"
                         )
-                        wipe_rpc = CommlibFactory.getRPCClient(
-                            broker = "redis",
+                        wipe_rpc = cfact.getRPCClient(
                             rpc_name = s["base_topic"] + ".wipe"
                         )
 
                         # Set constant
                         print("Showing color")
-                        set_rpc.publish({
+                        set_rpc.call({
                             "id": 0,
                             "r": 0,
                             "g": 30,
@@ -65,6 +62,8 @@ class Test(unittest.TestCase):
         except:
             traceback.print_exc(file=sys.stdout)
             self.assertTrue(False)
+
+        time.sleep(1)
 
     def tearDown(self):
         pass

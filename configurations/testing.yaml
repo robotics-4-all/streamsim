@@ -66,10 +66,10 @@ robots:
       #   - source: "robot_devices/env"
 #       speaker:
 #         - source: "robot_devices/speaker"
-#       leds:
-#         - source: "robot_devices/leds"
-      pan_tilt:
-        - source: "robot_devices/pan_tilt"
+      leds:
+        - source: "robot_devices/leds"
+      # pan_tilt:
+      #   - source: "robot_devices/pan_tilt"
 #       encoder:
 #         - source: "robot_devices/encoders/encoder_BR"
 #         - source: "robot_devices/encoders/encoder_BL"
