@@ -1,6 +1,6 @@
-pose: {x: 1, y: 1, theta: 0}
+pose: {x: 0, y: 0, theta: 0}
 name: pan_tilt_dist_X
-mode: simulation # mock, simulation, real
+mode: mock # mock, simulation, real
 place: "office" # or "gym.bathroom" for nested
 limits:
   pan:
