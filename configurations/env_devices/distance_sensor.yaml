@@ -1,7 +1,7 @@
 pose: {x: 0, y: 0, theta: 0}
 name: dist_X
 place: office
-# host: pan_tilt_dist_X
+host: pan_tilt_dist_X
 hz: 1
 max_range: 10
 mode: simulation # mock, simulation, real

@@ -68,6 +68,7 @@ class EnvDistanceController(BaseThing):
         self.resolution = package["resolution"]
         self.max_range = info['conf']['max_range']
         self.get_device_groups_rpc_topic = package["namespace"] + ".get_device_groups"
+        self.allowed_states = ["enabled", "disabled"]
 
         # tf handling
         tf_package = {
@@ -234,6 +235,7 @@ class EnvDistanceController(BaseThing):
                 "value": val,
                 "timestamp": time.time()
             })
+            # print(val)
 
     def enable_callback(self, message):
         self.info["enabled"] = True

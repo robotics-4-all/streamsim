@@ -2,13 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import time
-import json
 import math
 import logging
 import threading
-import random
-
-from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
 
@@ -111,7 +107,7 @@ class EnvPanTiltController(BaseThing):
         self.operation = message["mode"]
         return {}
     
-    def get_mode_callback(self, message):
+    def get_mode_callback(self, _):
         return {
             "mode": self.operation,
             "parameters": self.operation_parameters[self.operation]
@@ -140,7 +136,7 @@ class EnvPanTiltController(BaseThing):
         self.enable_rpc_server.run()
         self.disable_rpc_server.run()
         self.get_rpc_server.run()
-        self.set_subscriber.run()
+        # self.set_subscriber.run()
 
         if self.mode == "mock":
             self.data_thread = threading.Thread(target = self.thread_fun)
@@ -148,11 +144,11 @@ class EnvPanTiltController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
         self.info["enabled"] = False
         return {"enabled": False}
 
-    def get_callback(self, message):
+    def get_callback(self, _):
         return {
             'pan': self.pan,
             'tilt': self.tilt
@@ -166,6 +162,7 @@ class EnvPanTiltController(BaseThing):
             'tilt': self.tilt,
             'name': self.name
         })
+        print("Set: ", self.pan, self.tilt)
         return {}
 
     def start(self):

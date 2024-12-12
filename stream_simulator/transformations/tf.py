@@ -405,15 +405,15 @@ class TfController:
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
 
-                    self.commlib_factory.notify.publish({
-                        'type': 'sensor_pose',
-                        'data': {
+                    self.commlib_factory.notify_ui(
+                        type_ = 'sensor_pose',
+                        data = {
                             "name": i,
                             "x": self.places_absolute[i]['x'],
                             "y": self.places_absolute[i]['y'],
                             "theta": self.places_absolute[i]['theta']
                         }
-                    })
+                    )
 
     def pan_tilt_callback(self, message):
         self.pantilts[message['name']]['pan'] = message['pan']
@@ -1154,9 +1154,9 @@ class TfController:
             "result": decision
         })
 
-        self.commlib_factory.notify.publish({
-            "type": "detection",
-            "data": {
+        self.commlib_factory.notify_ui(
+            type_ = "detection",
+            data = {
                 "name": name,
                 "device_type": decl['subtype']['subclass'][0],
                 "type": type,
@@ -1166,7 +1166,7 @@ class TfController:
                 "info": info,
                 "frm": frm
             }
-        })
+        )
 
         return {
             "result": decision,

@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import sys, traceback
-import time
-import os
+import sys
+import traceback
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -15,58 +14,56 @@ class Test(unittest.TestCase):
     def test_get(self):
         try:
             # Get simulation actors
-            sim_name = "streamsim"
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
+            sim_name = "streamsim.123"
+            cfact = CommlibFactory(node_name = "Test")
+            cl = cfact.getRPCClient(
                 rpc_name = f"{sim_name}.get_device_groups"
             )
             res = cl.call({})
 
             world = res["world"]
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
-                rpc_name = f"{world}.nodes_detector.get_connected_devices"
+            cl = cfact.getRPCClient(
+                rpc_name = f"streamsim.{world}.nodes_detector.get_connected_devices"
             )
             res = cl.call({})
 
             # Get ph sensors
             for s in res["devices"]:
                 if s["type"] == "PAN_TILT":
-                    set_rpc = CommlibFactory.getPublisher(
-                        broker = "redis",
-                        topic = s["base_topic"] + ".set"
+                    set_rpc = cfact.getRPCClient(
+                        rpc_name = s["base_topic"] + ".set"
                     )
-                    sub = CommlibFactory.getSubscriber(
+                    sub = cfact.getSubscriber(
                         topic = s["base_topic"] + ".data",
                         callback = self.callback
                     )
                     sub.run()
-                    get_rpc = CommlibFactory.getRPCClient(
-                        broker = "redis",
+                    get_rpc = cfact.getRPCClient(
                         rpc_name = s["base_topic"] + ".get"
                     )
 
                     # Set constant
                     print("Setting 0.2, 0.4")
-                    set_rpc.publish({
+                    set_rpc.call({
                         'pan': 0.2,
-                        'tilt': 0.4
+                        'tilt': 0
                     })
                     print("Getting state")
                     print("Res: ", get_rpc.call({}))
 
-                    time.sleep(5)
+                    try:
+                        sub.stop()
+                    except: # pylint disable=bare-except
+                        pass
 
-                    sub.stop()
-
-        except:
+        except: # pylint disable=bare-except
             traceback.print_exc(file=sys.stdout)
             self.assertTrue(False)
 
     def tearDown(self):
         pass
 
-    def callback(self, message, meta):
+    def callback(self, message):
         print(f"Sub: {message}")
 
 if __name__ == '__main__':
