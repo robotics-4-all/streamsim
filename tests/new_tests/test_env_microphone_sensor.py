@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import sys, traceback
+import sys
+import traceback
 import time
-import os
 
 from stream_simulator.connectivity import CommlibFactory
 

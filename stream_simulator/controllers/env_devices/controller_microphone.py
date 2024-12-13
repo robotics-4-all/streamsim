@@ -67,7 +67,8 @@ class EnvMicrophoneController(BaseThing):
             },
             "pose": self.pose,
             "base_topic": self.base_topic,
-            "name": self.name
+            "name": self.name,
+            "namespace": _namespace
         }
 
         self.host = None

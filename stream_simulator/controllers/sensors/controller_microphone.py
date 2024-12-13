@@ -204,6 +204,8 @@ class MicrophoneController(BaseThing):
             })
             # Get the closest:
             clos = None
+            clos_type = None
+            clos_info = None
             clos_d = 100000.0
             for x in res:
                 if res[x]['distance'] < clos_d:
@@ -211,12 +213,18 @@ class MicrophoneController(BaseThing):
                     clos_d = res[x]['distance']
 
             wav = "Silent.wav"
-            if res[clos]['type'] == 'sound_source':
+            if clos is None:
+                pass
+            elif res[clos]['type'] == 'sound_source':
+                clos_type = 'sound_source'
+                clos_info = res[clos]['info']
                 if res[clos]['info']['language'] == 'EL':
                     wav = "greek_sentence.wav"
                 else:
                     wav = "english_sentence.wav"
             elif res[clos]['type'] == "human":
+                clos_type = 'human'
+                clos_info = res[clos]['info']
                 if res[clos]['info']["sound"] == 1:
                     if res[clos]['info']["language"] == "EL":
                         wav = "greek_sentence.wav"
@@ -224,7 +232,7 @@ class MicrophoneController(BaseThing):
                         wav = "english_sentence.wav"
 
             now = time.time()
-            self.logger.info(f"Recording... {res[clos]['type']}, {res[clos]['info']}")
+            self.logger.info("Recording... %s, %s", clos_type, clos_info)
             while time.time() - now < duration:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
