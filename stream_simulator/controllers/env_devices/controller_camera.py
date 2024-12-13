@@ -139,7 +139,8 @@ class EnvCameraController(BaseThing):
             "qrs": "qr_code.png",
             "texts": "testocr.png",
             "colors": "dog.jpg",
-            "empty": "empty.png"
+            "empty": "empty.png",
+            "superman": "all.png"
         }
 
     def set_communication_layer(self, package):

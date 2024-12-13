@@ -45,8 +45,8 @@ robots:
 #         - source: "robot_devices/irs/ir_bl"
       # tof:
       #   - source: "robot_devices/tof"
-#       camera:
-#         - source: "robot_devices/camera"
+      camera:
+        - source: "robot_devices/camera"
       # imu:
       #   - source: "robot_devices/imu"
 #       button:
@@ -64,8 +64,8 @@ robots:
 #         - source: "robot_devices/buttons/button_G4"
       # env:
       #   - source: "robot_devices/env"
-      speaker:
-        - source: "robot_devices/speaker"
+      # speaker:
+      #   - source: "robot_devices/speaker"
       # leds:
       #   - source: "robot_devices/leds"
       # pan_tilt:
@@ -125,14 +125,14 @@ robots:
   # sound_sources:
   #   - {id: 4, x: 1, y: 1, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
   # qrs:
-  #   - {id: 5, x: 10, y: 0, message: test}
+  #   - {id: 5, x: 500, y: 510, message: test}
   # barcodes:
-  #   - {id: 6, x: 10, y: 0, message: EL3323341}
+  #   - {id: 6, x: 510, y: 500, message: EL3323341}
   #   - {id: 60, x: 80, y: 60, message: EL3DD341}
   # colors:
-  #   - {id: 7, x: 10, y: 0, r: 0, g: 255, b: 0} # for dominant color
+  #   - {id: 7, x: 512, y: 500, r: 0, g: 255, b: 0} # for dominant color
   # texts:
-  #   - {id: 8, x: 10, y: 0, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
+  #   - {id: 8, x: 511, y: 500, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
   # rfid_tags:
   #   - {id: RF432423, x: 510, y: 510, message: test}
   #   - {id: RF432425, x: 520, y: 480, message: test_2}
