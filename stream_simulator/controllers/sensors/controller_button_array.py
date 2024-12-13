@@ -28,7 +28,7 @@ class ButtonArrayController(BaseThing):
         _subclass = "tactile"
         _pack = package["name"]
         _namespace = package["namespace"]
-        
+
         super().__init__(id)
 
         info = {
@@ -57,9 +57,8 @@ class ButtonArrayController(BaseThing):
 
         self.buttons_base_topics = self.conf["base_topics"]
         self.publishers = {}
-        self.derp_data_keys = {}
 
-        self.number_of_buttons = len(self.conf["pin_nums"])
+        self.number_of_buttons = len(self.conf["places"])
         self.values = [True] * self.number_of_buttons         # multiple values
         self.button_places = self.conf["places"]
         self.prev = 0
@@ -68,7 +67,6 @@ class ButtonArrayController(BaseThing):
             self.publishers[b] = self.commlib_factory.getPublisher(
                 topic = self.buttons_base_topics[b] + ".data"
             )
-            self.derp_data_keys[b] = self.buttons_base_topics[b] + ".raw"
 
         self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
@@ -81,7 +79,7 @@ class ButtonArrayController(BaseThing):
 
         if self.info["mode"] == "simulation":
             self.sim_button_pressed_sub = self.commlib_factory.getSubscriber(
-                topic = self.info['device_name'] + ".buttons_sim.internal",
+                topic = _namespace + "." + self.info['device_name'] + ".buttons_sim.internal",
                 callback = self.sim_button_pressed
             )
 
@@ -92,13 +90,13 @@ class ButtonArrayController(BaseThing):
             "timestamp": time.time()
         })
 
-    # Untested!!!
     def sim_button_pressed(self, data):
+        self.logger.warning(f"Button controller: Pressed from sim! {data}")
+        # Simulated press
         self.dispatch_information(1, data["button"])
         time.sleep(0.1)
         # Simulated release
         self.dispatch_information(0, data["button"])
-        self.logger.warning(f"Button controller: Pressed from sim! {data}")
 
     def sensor_read(self):
         self.logger.info(f"Button {self.info['id']} sensor read thread started")
@@ -111,17 +109,6 @@ class ButtonArrayController(BaseThing):
                 self.dispatch_information(_val, self.button_places[_place])
 
         self.logger.info(f"Button {self.info['id']} sensor read thread stopped")
-
-    # Untested!!!
-    def real_button_pressed(self, button):
-        if self.values[button] is False:
-            return
-        self.values[button] = False
-        self.logger.info(f"Button {button} pressed at {current_milli_time()}")
-
-        self.dispatch_information(1, self.button_places[button])
-
-        self.values[button] = True
 
     def start(self):
         if self.info["mode"] == "mock":

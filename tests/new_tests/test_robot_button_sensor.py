@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import sys, traceback
+import sys
+import traceback
 import time
-import os
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -15,38 +15,50 @@ class Test(unittest.TestCase):
     def test_get(self):
         try:
             # Get simulation actors
-            sim_name = "streamsim"
-            cl = CommlibFactory.getRPCClient(
-                broker = "redis",
+            sim_name = "streamsim.123"
+            cfact = CommlibFactory(node_name = "Test")
+            cl = cfact.getRPCClient(
                 rpc_name = f"{sim_name}.get_device_groups"
             )
             res = cl.call({})
 
             robots = res["robots"]
             for r in robots:
-                cl = CommlibFactory.getRPCClient(
-                    broker = "redis",
-                    rpc_name = f"robot.{r}.nodes_detector.get_connected_devices"
+                cl = cfact.getRPCClient(
+                    rpc_name = f"{sim_name}.{r}.nodes_detector.get_connected_devices"
                 )
                 res = cl.call({})
 
-                # Get ph sensors
+                # Get buttons
                 for s in res["devices"]:
                     if s["type"] == "BUTTON":
-                        sub = CommlibFactory.getSubscriber(
-                            broker = "redis",
+                        sub = cfact.getSubscriber(
                             topic = s["base_topic"] + ".data",
                             callback = self.callback
                         )
+                        print(s["base_topic"] + ".data")
                         sub.run()
+                        print("Waiting for button press")
+                        time.sleep(1)
+
+                        pub = cfact.getPublisher(
+                            topic = f"{sim_name}.{r}.buttons_sim.internal"
+                        )
+                        pub.publish({
+                            "button": s["id"],
+                            "state": 1
+                        })
                         time.sleep(2)
-                        sub.stop()
+                        try:
+                            sub.stop()
+                        except: # pylint: disable=bare-except
+                            pass
 
         except:
             traceback.print_exc(file=sys.stdout)
             self.assertTrue(False)
 
-    def callback(self, message, meta):
+    def callback(self, message):
         print(message)
 
     def tearDown(self):

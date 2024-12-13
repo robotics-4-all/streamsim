@@ -239,14 +239,15 @@ class Robot:
                 self.devices.append(c.info)
 
             if c.info["type"] == "BUTTON":
-                # Do not put in controllers
+                # Do not put in controllers but add in devices
+                self.logger.error(f"Button {c.name} skipped from controllers")
                 return
             self.controllers[c.name] = c
 
         if c.info["type"] == "SKID_STEER":
             self.motion_controller = c
 
-        self.logger.info(f"{c.name} controller created")
+        self.logger.error(f"{c.name} controller created")
 
     def device_lookup(self):
         actors = {}
@@ -268,7 +269,7 @@ class Robot:
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
-        map = {
+        map_ = {
            "ir": getattr(str_contro, "IrController"),
            "sonar": getattr(str_contro, "SonarController"),
            "tof": getattr(str_contro, "TofController"),
@@ -300,28 +301,26 @@ class Robot:
                     if 'theta' not in m['pose']:
                         m['pose']['theta'] = None
 
-                self.register_controller(map[s](conf = m, package = p))
+                tmp_controller = map_[s](conf = m, package = p)
+                self.register_controller(tmp_controller)
 
         # Handle the buttons
         self.button_configuration = {
                 "places": [],
-                "pin_nums": [],
                 "base_topics": {},
                 "direction": "down",
                 "bounce": 200,
         }
         buttons = [x for x in self.devices if x["type"] == "BUTTON"]
         for d in buttons:
-            self.logger.debug(f"Button {d['id']} added in button_array")
-            self.button_configuration["pin_nums"].append(\
-                d["sensor_configuration"].get("pin_num"))
+            self.logger.error(f"Button {d['id']} added in button_array")
             self.button_configuration["places"].append(d["place"])
-            self.button_configuration["base_topics"][d["place"]] = d["base_topic"]
-        if len(self.button_configuration["pin_nums"]) > 0:
+            self.button_configuration["base_topics"][d["id"]] = d["base_topic"]
+        if len(self.button_configuration["places"]) > 0:
             m = {
                 "sensor_configuration": self.button_configuration
             }
-            self.register_controller(map["button_array"](conf = m, package = p))
+            self.register_controller(map_["button_array"](conf = m, package = p))
 
     def leds_redis(self, message):
         self.logger.debug("Got leds from redis " + str(message))
@@ -386,7 +385,7 @@ class Robot:
         self.logger.warning("Trying to stop robot thread")
         self.stopped = True
 
-    def devices_callback(self, message):
+    def devices_callback(self, _):
         timestamp = time.time()
         secs = int(timestamp)
         nanosecs = int((timestamp-secs) * 10**(9))

@@ -1,13 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import time
-import json
-import math
-import logging
-import threading
-import random
-
 from stream_simulator.base_classes import BaseThing
 
 class ButtonController(BaseThing):
@@ -51,26 +44,4 @@ class ButtonController(BaseThing):
 
         self.info = info
         self.name = info["name"]
-
-        self.set_tf_communication(package)
-
-        # tf handling
-        tf_package = {
-            "type": "robot",
-            "subtype": {
-                "category": _category,
-                "class": _class,
-                "subclass": [_subclass]
-            },
-            "pose": conf["pose"],
-            "base_topic": info['base_topic'],
-            "name": self.name,
-            "namespace": _namespace
-        }
-        tf_package['host'] = package['device_name']
-        tf_package['host_type'] = 'robot'
-        if 'host' in conf:
-            tf_package['host'] = conf['host']
-            tf_package['host_type'] = 'pan_tilt'
-
-        self.tf_declare_rpc.call(tf_package)
+        print(info["base_topic"])

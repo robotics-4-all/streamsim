@@ -27,8 +27,8 @@ robots:
     remote_inform: true
     step_by_step_execution: false
     devices:
-      microphone:
-        - source: "robot_devices/microphone"
+      # microphone:
+      #   - source: "robot_devices/microphone"
       # sonar:
       #   - source: "robot_devices/sonars/sonar_front"
 #         - source: "robot_devices/sonars/sonar_fl"
@@ -49,13 +49,13 @@ robots:
       #   - source: "robot_devices/camera"
       # imu:
       #   - source: "robot_devices/imu"
-#       button:
-#         - source: "robot_devices/buttons/button_F"
+      button:
+        - source: "robot_devices/buttons/button_F"
 #         - source: "robot_devices/buttons/button_FR"
 #         - source: "robot_devices/buttons/button_FL"
 #         - source: "robot_devices/buttons/button_R"
 #         - source: "robot_devices/buttons/button_L"
-#         - source: "robot_devices/buttons/button_B"
+        # - source: "robot_devices/buttons/button_B"
 #         - source: "robot_devices/buttons/button_BR"
 #         - source: "robot_devices/buttons/button_BL"
 #         - source: "robot_devices/buttons/button_G1"
@@ -117,13 +117,13 @@ robots:
   # alarms_linear:
   #   - source: "env_devices/alarm_linear"
 
-actors:
+# actors:
   # humans:
   #   - {id: 0, x: 520, y: 500, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
   # superman:
   #   - {id: 1000, x: 10, y: 0, move: 1, sound: 1, lang: EN, message: test, text: hello}
-  sound_sources:
-    - {id: 4, x: 510, y: 500, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
+  # sound_sources:
+  #   - {id: 4, x: 510, y: 500, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
   # qrs:
   #   - {id: 5, x: 500, y: 510, message: test}
   # barcodes:
