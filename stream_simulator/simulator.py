@@ -59,23 +59,22 @@ class Simulator:
     """
     def __init__(self,
                  tick = 0.1,
-                 random_uid = False
+                 uid = None
                  ):
 
         self.tick = tick
         self.logger = logging.getLogger(__name__)
 
         characters = string.ascii_lowercase + string.digits
-        self.uid = "123"
-        if random_uid:
+        self.uid = uid
+        if self.uid is None:
             self.uid = ''.join(random.choice(characters) for _ in range(16))
-        self.logger.critical("Generated UID: %s", self.uid)
-
+        self.logger.critical("Simulator UID is: %s", self.uid)
+        
         self.name = f"streamsim.{self.uid}"
 
         # Wait for configuration from broker
         self.configuration = None
-        # self.configuration_setup_done = False
 
          # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = "Simulator")

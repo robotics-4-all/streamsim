@@ -20,6 +20,7 @@ Logging:
 
 import time
 import logging
+import sys
 
 from stream_simulator import Simulator
 
@@ -29,6 +30,13 @@ try:
     COLAB = True
 except ImportError:
     pass
+
+if len(sys.argv) < 2:
+    print("You must provide a UID as argument:")
+    print(">> python3 main.py UID")
+    exit(0)
+
+uid = sys.argv[1]
 
 if COLAB:
     # Clear any existing logging handlers
@@ -46,7 +54,7 @@ else:
         level=logging.DEBUG
     )
 
-s = Simulator()
+s = Simulator(uid = uid)
 
 # While keyboard interrupt is not received, keep the simulator running
 try:

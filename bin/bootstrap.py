@@ -15,7 +15,7 @@ import threading
 
 from bin import SimulatorStartup
 
-def thread_main(curr_dir):
+def thread_main(curr_dir, uid):
     """
     Executes the main.py script located in the specified directory using the system's Python 3 interpreter.
 
@@ -25,8 +25,8 @@ def thread_main(curr_dir):
     Returns:
         None
     """
-    print(f"python3 {curr_dir}/main.py")
-    os.system(f"python3 {curr_dir}/main.py")
+    print(f"python3 {curr_dir}/main.py {uid}")
+    os.system(f"python3 {curr_dir}/main.py {uid}")
 
 def main():
     """
@@ -51,7 +51,7 @@ def main():
     # Get absolute path of the current file
     curr_dir = os.path.dirname(os.path.abspath(__file__))
     # Start the simulator in a separate thread
-    t1 = threading.Thread(target=thread_main, args=(curr_dir,))
+    t1 = threading.Thread(target=thread_main, args=(curr_dir, uid,))
     t1.start()
 
     # Wait for the simulator to start
