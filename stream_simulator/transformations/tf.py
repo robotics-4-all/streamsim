@@ -950,6 +950,8 @@ class TfController:
                     ret = self.handle_env_distance(name)
                 if 'light_sensor' in subt['subclass']:
                     ret = self.handle_env_light_sensor(name)
+                if 'distance' in subt['subclass']:
+                    ret = self.handle_env_distance(name)
             elif type == "robot":
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)
@@ -957,6 +959,8 @@ class TfController:
                     ret = self.handle_sensor_camera(name)
                 if 'rfid_reader' in subt['subclass']:
                     ret = self.handle_sensor_rfid_reader(name)
+                if 'distance' in subt['subclass']:
+                    ret = self.handle_env_distance(name)
                 if 'temp_hum_pressure_gas' in subt['subclass']:
                     ret = {
                         'temperature': self.handle_env_sensor_temperature(name),

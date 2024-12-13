@@ -262,7 +262,7 @@ class EnvCameraController(BaseThing):
                         },
                         "timestamp": time.time()
                     })
-                
+
     def enable_callback(self, message):
         self.info["enabled"] = True
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
