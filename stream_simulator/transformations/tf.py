@@ -728,7 +728,7 @@ class TfController:
 
         return ret
 
-    def compute_luminosity(self, place):
+    def compute_luminosity(self, name):
         """
         Computes the luminosity for a given place.
         This method calculates the luminosity for a specified place by considering the light sources 
@@ -738,6 +738,7 @@ class TfController:
         Returns:
             float: The luminosity value for the place.
         """
+        place = self.places_absolute[name]
         x_y = [place['x'], place['y']]
         lum = 0
         
@@ -798,49 +799,75 @@ class TfController:
 
     # Affected by barcode, color, human, qr, text
     def handle_sensor_camera(self, name, with_robots = False):
+        """
+        Processes sensor data from a camera and handles different types of actors 
+        (human, qr, barcode, color, text) and optionally robots.
+        Args:
+            name (str): The name of the place or sensor.
+            with_robots (bool, optional): If True, includes robots in the processing. Defaults to False.
+        Returns:
+            dict: A dictionary containing the detected actors and their respective processed data.
+        Raises:
+            Exception: If an error occurs during processing.
+        The function performs the following steps:
+        1. Retrieves the absolute place data for the given name.
+        2. Computes the luminosity of the place.
+        3. Processes different types of actors (human, qr, barcode, color, text) and stores the results.
+        4. Optionally processes robots if `with_robots` is True.
+        5. Filters the results based on the luminosity, simulating detection failure in low light conditions.
+        6. Logs and raises an exception if any error occurs during processing.
+        """
+        tmp_ret = {}
+        ret = {}
         try:
-            ret = {}
-            pl = self.places_absolute[name]
-            x_y = [pl['x'], pl['y']]
-            th = pl['theta']
+            # pl = self.places_absolute[name]
+            luminosity = self.compute_luminosity(name)
+            # print(f"Luminosity: {luminosity}")
 
             # - actor human
             for f in self.per_type['actor']['human']:
                 r = self.handle_affection_arced(name, f, 'human')
-                if r != None:
+                if r is not None:
                     ret[f] = r
             # - actor qr
             for f in self.per_type['actor']['qr']:
                 r = self.handle_affection_arced(name, f, 'qr')
-                if r != None:
+                if r is not None:
                     ret[f] = r
             # - actor barcode
             for f in self.per_type['actor']['barcode']:
                 r = self.handle_affection_arced(name, f, 'barcode')
-                if r != None:
+                if r is not None:
                     ret[f] = r
             # - actor color
             for f in self.per_type['actor']['color']:
                 r = self.handle_affection_arced(name, f, 'color')
-                if r != None:
+                if r is not None:
                     ret[f] = r
             # - actor text
             for f in self.per_type['actor']['text']:
                 r = self.handle_affection_arced(name, f, 'text')
-                if r != None:
+                if r is not None:
                     ret[f] = r
 
             # check all robots
             if with_robots:
                 for rob in self.robots:
                     r = self.handle_affection_arced(name, rob, 'robot')
-                    if r != None:
+                    if r is not None:
                         ret[rob] = r
+
+            # Filtering by luminosity. If darkness, do not detect things.
+            for key, val in ret.items():
+                rnd = random.uniform(0, 100)
+                if rnd < luminosity:
+                    tmp_ret[key] = val
 
         except Exception as e:
             self.logger.error("handle_sensor_camera:" + str(e))
             raise Exception(str(e))
 
+        ret = tmp_ret
         return ret
 
     # Affected by rfid_tags

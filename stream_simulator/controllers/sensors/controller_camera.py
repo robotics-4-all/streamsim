@@ -246,6 +246,8 @@ class CameraController(BaseThing):
                     except Exception as e: # pylint: disable=broad-except
                         self.logger.error(f"CameraController: Error with text image generation: {str(e)}")
 
+                # print(f"CameraController: Published image {cl_type}")
+
                 with open(dirname + "/resources/" + img, "rb") as f:
                     fdata = f.read()
                     b64 = base64.b64encode(fdata)
