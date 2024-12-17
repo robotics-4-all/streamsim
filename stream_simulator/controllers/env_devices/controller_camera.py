@@ -245,6 +245,8 @@ class EnvCameraController(BaseThing):
                     except Exception as e:
                         self.logger.error("CameraController: Error with text image generation: %s", str(e))
 
+                # print("Image: ", img)
+
                 with open(dirname + "/resources/" + img, "rb") as f:
                     fdata = f.read()
                     b64 = base64.b64encode(fdata)

@@ -48,13 +48,13 @@ class Test(unittest.TestCase):
                             "b": 10,
                             "luminosity": 100
                         })
-
+                        time.sleep(3)
                         print("Wiping")
                         ret = wipe_rpc.call({
                             "r": 0,
                             "g": 30,
                             "b": 10,
-                            "luminosity": 100,
+                            "luminosity": 10,
                             "wait_ms": 4
                         })
                         print(ret)

@@ -461,6 +461,21 @@ class TfController:
 
     # https://jsonformatter.org/yaml-formatter/a56cff
     def per_type_storage(self, d):
+        """
+        Organizes and stores data based on its type and subtype.
+        Parameters:
+        d (dict): A dictionary containing the following keys:
+            - 'type' (str): The type of the data (e.g., 'actor', 'env', 'robot').
+            - 'subtype' (dict): A dictionary containing subtype information.
+            - 'name' (str): The name of the data.
+            - 'base_topic' (str): The base topic for communication.
+        Raises:
+        ValueError: If the name already exists in self.names.
+        Side Effects:
+        - Updates self.names with the new name.
+        - Updates self.per_type with the new data based on its type and subtype.
+        - Initializes RPC clients for certain subclasses and stores them in self.effectors_get_rpcs.
+        """
         type = d['type']
         sub = d['subtype']
 
@@ -489,6 +504,11 @@ class TfController:
                 self.per_type[type][category][cls].append(d['name'])
             else:
                 self.per_type[type][category][subclass].append(d['name'])
+
+            if subclass in ["leds"]:
+                self.effectors_get_rpcs[d['name']] = self.commlib_factory.getRPCClient(
+                    rpc_name = d['base_topic'] + ".get"
+                )
 
     def get_affections_callback(self, message):
         try:
@@ -560,7 +580,7 @@ class TfController:
         d = dd['distance']
         # print(self.declarations_info[f])
         if d < self.declarations_info[f]['range']: # range is fire's
-            if self.declarations_info[f]["properties"] == None:
+            if self.declarations_info[f]["properties"] is None:
                 self.declarations_info[f]["properties"] = {}
             return {
                 'type': type,
@@ -728,7 +748,7 @@ class TfController:
 
         return ret
 
-    def compute_luminosity(self, name):
+    def compute_luminosity(self, name, print_debug = False):
         """
         Computes the luminosity for a given place.
         This method calculates the luminosity for a specified place by considering the light sources 
@@ -741,7 +761,10 @@ class TfController:
         place = self.places_absolute[name]
         x_y = [place['x'], place['y']]
         lum = 0
-        
+
+        if print_debug:
+            print(f"Computing luminosity for {name}")
+
         # - env light
         for f in self.per_type['env']['actuator']['leds']:
             r = self.handle_affection_ranged(x_y, f, 'light')
@@ -751,14 +774,32 @@ class TfController:
                 new_r['info'] = th_t
                 rel_range = 1 - new_r['distance'] / new_r['range']
                 lum += rel_range * new_r['info']['luminosity']
+                if print_debug:
+                    print(f"\t{f} - {new_r['info']['luminosity']}")
+        # - robot leds
+        for f in self.per_type['robot']['actuator']['leds']:
+            r = self.handle_affection_ranged(x_y, f, 'light')
+            if r is not None:
+                th_t = self.effectors_get_rpcs[f].call({})
+                new_r = r
+                new_r['info'] = th_t
+                rel_range = 1 - new_r['distance'] / new_r['range']
+                lum += rel_range * new_r['info']['luminosity']
+                if print_debug:
+                    print(f"\t{f} - {new_r['info']['luminosity']}")
         # - actor fire
         for f in self.per_type['actor']['fire']:
             r = self.handle_affection_ranged(x_y, f, 'fire')
             if r is not None:
                 rel_range = 1 - r['distance'] / r['range']
                 lum += 100 * rel_range
+                if print_debug:
+                    print(f"\t{f} - 100")
 
         env_luminosity = self.env_properties['luminosity']
+        if print_debug:
+            print(f"Env luminosity: {env_luminosity}")
+
         if lum < env_luminosity:
             lum = lum * 0.1 + env_luminosity
         else:
@@ -768,6 +809,9 @@ class TfController:
             lum = 100
         if lum < 0:
             lum = 0
+
+        if print_debug:
+            print(f"Computed luminosity: {lum}")
 
         return lum + random.uniform(-0.25, 0.25)
 
@@ -821,8 +865,7 @@ class TfController:
         ret = {}
         try:
             # pl = self.places_absolute[name]
-            luminosity = self.compute_luminosity(name)
-            # print(f"Luminosity: {luminosity}")
+            luminosity = self.compute_luminosity(name, print_debug = False)
 
             # - actor human
             for f in self.per_type['actor']['human']:

@@ -44,7 +44,7 @@ class Test(unittest.TestCase):
                         'r': 1,
                         'g': 1,
                         'b': 1,
-                        'luminosity': 0
+                        'luminosity': 100
                     })
                     print("Getting color")
                     print(get_rpc.call({}))

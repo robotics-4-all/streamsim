@@ -74,6 +74,7 @@ class LedsController(BaseThing):
             "base_topic": info['base_topic'],
             "name": self.name,
             "namespace": _namespace,
+            "range": conf["range"]
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
@@ -118,11 +119,11 @@ class LedsController(BaseThing):
             rpc_name = self.base_topic + ".disable"
         )
 
-    def enable_callback(self, message):
+    def enable_callback(self, _):
         self.info["enabled"] = True
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
         self.info["enabled"] = False
         return {"enabled": False}
 
@@ -132,8 +133,7 @@ class LedsController(BaseThing):
     def stop(self):
         self.commlib_factory.stop()
 
-    def leds_get_callback(self, message):
-        self.logger.info(f"Getting led state!")
+    def leds_get_callback(self, _):
         return {
             "color": self._color,
             "luminosity": self._luminosity
@@ -142,7 +142,7 @@ class LedsController(BaseThing):
     def leds_set_callback(self, message):
         try:
             response = message
-            
+
             r = response["r"] if "r" in response else 0.0
             g = response["g"] if "g" in response else 0.0
             b = response["b"] if "b" in response else 0.0
