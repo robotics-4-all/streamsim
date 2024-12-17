@@ -246,6 +246,7 @@ class Robot:
 
         if c.info["type"] == "SKID_STEER":
             self.motion_controller = c
+            self.controllers[c.name].resolution = self.resolution
 
         self.logger.error(f"{c.name} controller created")
 

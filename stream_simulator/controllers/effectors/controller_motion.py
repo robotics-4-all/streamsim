@@ -19,6 +19,7 @@ class MotionController(BaseThing):
         else:
             self.logger = package["logger"]
 
+        self.resolution = 0
         id = "d_skid_steering_" + str(BaseThing.id + 1)
         name = id
         if 'name' in conf:
@@ -86,6 +87,18 @@ class MotionController(BaseThing):
             topic = self.base_topic + ".set",
             callback = self.cmd_vel
         )
+        self.motion_duration_sub = self.commlib_factory.getRPCService(
+            rpc_name = self.base_topic + ".move.duration",
+            callback = self.move_duration_callback
+        )
+        self.motion_distance_sub = self.commlib_factory.getRPCService(
+            rpc_name = self.base_topic + ".move.distance",
+            callback = self.move_distance_callback
+        )
+        self.turn_sub = self.commlib_factory.getRPCService(
+            rpc_name = self.base_topic + ".move.turn",
+            callback = self.turn_callback
+        )
         self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,
             rpc_name = self.base_topic + ".enable"
@@ -109,6 +122,100 @@ class MotionController(BaseThing):
     def stop(self):
         self.commlib_factory.stop()
 
+    def move_duration_callback(self, message):
+        """
+        Callback function to handle movement duration messages.
+        Args:
+            message (dict): A dictionary containing movement parameters:
+                - 'linear' (float or str): Linear movement value.
+                - 'angular' (float or str): Angular movement value.
+                - 'duration' (float or str): Duration for the movement.
+        Raises:
+            ValueError: If 'linear', 'angular', or 'duration' are not valid float values.
+        Logs:
+            Error: If the message is wrongly formatted.
+        """
+        try:
+            response = message
+
+            # Checks for types
+            try:
+                float(response['linear'])
+                float(response['angular'])
+                float(response['duration'])
+            except Exception as exe: # pylint: disable=broad-exception-caught
+                if not response['linear'].isdigit():
+                    raise ValueError("Linear is no integer nor float") from exe
+                if not response['angular'].isdigit():
+                    raise ValueError("Angular is no integer nor float") from exe
+                if not response['duration'].isdigit():
+                    raise ValueError("Angular is no integer nor float") from exe
+
+            self._linear = response['linear']
+            self._angular = response['angular']
+            motion_started = time.time()
+            while True:
+                if time.time() - motion_started >= response["duration"]:
+                    self._linear = 0
+                    self._angular = 0
+                    break
+                time.sleep(0.05)
+        except Exception as e: # pylint: disable=broad-exception-caught
+            self.logger.error("%s: move_duration is wrongly formatted: %s - %s", self.name, str(e.__class__), str(e))
+            return {"status": "failed"}
+
+        return {"status": "done"}
+
+    def move_distance_callback(self, message):
+        try:
+            response = message
+
+            # Checks for types
+            try:
+                float(response['linear'])
+                float(response['distance'])
+            except Exception as exe: # pylint: disable=broad-exception-caught
+                if not response['linear'].isdigit():
+                    raise ValueError("Linear is no integer nor float") from exe
+                if not response['distance'].isdigit():
+                    raise ValueError("Distance is no integer nor float") from exe
+
+            self._linear = response['linear']
+            self._angular = 0
+            print("time to sleep is: ", response["distance"] / response["linear"])
+            time.sleep(response["distance"] / response["linear"])
+            self._linear = 0
+        except Exception as e: # pylint: disable=broad-exception-caught
+            self.logger.error("%s: move_duration is wrongly formatted: %s - %s", self.name, str(e.__class__), str(e))
+            return {"status": "failed"}
+
+        return {"status": "done"}
+
+    def turn_callback(self, message):
+        try:
+            response = message
+
+            # Checks for types
+            try:
+                float(response['angular'])
+                float(response['angle'])
+            except Exception as exe: # pylint: disable=broad-exception-caught
+                if not response['angular'].isdigit():
+                    raise ValueError("Angular is no integer nor float") from exe
+                if not response['angle'].isdigit():
+                    raise ValueError("Angle is no integer nor float") from exe
+
+            self._linear = 0
+            self._angular = response['angular']
+            print("time to sleep is: ", response["angle"] / response["angular"])
+            time.sleep(response["angle"] / response["angular"])
+            self._angular = 0
+        except Exception as e: # pylint: disable=broad-exception-caught
+            self.logger.error("%s: turn is wrongly formatted: %s - %s", self.name, str(e.__class__), str(e))
+            return {"status": "failed"}
+
+        return {"status": "done"}
+
     def cmd_vel(self, message):
         try:
             response = message
@@ -126,12 +233,5 @@ class MotionController(BaseThing):
             self._linear = response['linear']
             self._angular = response['angular']
             self._raw = response['raw']
-
-            if self.info["mode"] == "mock":
-                pass
-            elif self.info["mode"] == "simulation":
-                pass
-          
-            # self.logger.info("{}: New motion command: {}, {}".format(self.name, self._linear, self._angular))
         except Exception as e:
             self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
