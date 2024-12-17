@@ -33,9 +33,12 @@ class SimulatorStartup:
     def __init__(self,
                  conf_file = None,
                  uid = None,
+                 curr_dir = None,
                  ):
 
         self.logger = logging.getLogger("Simulator Startup")
+
+        self.curr_dir = curr_dir
         self.configuration = self.parse_configuration(conf_file)
 
         # Create the CommlibFactory
@@ -43,7 +46,7 @@ class SimulatorStartup:
         self.commlib_factory.run()
 
         # Generate a random 10-character UID
-        
+
         self.devices_rpc_client = self.commlib_factory.getRPCClient(
             rpc_name = f'streamsim.{uid}.set_configuration',
         )
@@ -62,13 +65,14 @@ class SimulatorStartup:
             Exception: If there is an error loading or parsing the YAML file.
         """
         tmp_conf = {}
-        curr_dir = str(pathlib.Path(__file__).parent.resolve()) + "/../configurations/"
+        current_dir = self.curr_dir if self.curr_dir is not None else str(pathlib.Path(__file__).parent.resolve())
+        current_dir += "/../configurations/"
         if conf_file is not None:
             # Must load and parse file here
-            filename = curr_dir + conf_file + ".yaml"
+            filename = current_dir + conf_file + ".yaml"
             try:
                 tmp_conf = self.load_yaml(filename)
-                tmp_conf = self.recursive_conf_parse(tmp_conf, curr_dir)
+                tmp_conf = self.recursive_conf_parse(tmp_conf, current_dir)
             except yaml.YAMLError as e:
                 self.logger.critical(str(e))
             except FileNotFoundError as e:

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import time
 import random
 import string
 
@@ -124,6 +123,8 @@ class Simulator:
         self.tf = TfController(
             base = self.name,
             resolution = resolution,
+            logger = None,
+            env_properties = self.configuration["world"]["properties"],
         )
 
         # Initializing world

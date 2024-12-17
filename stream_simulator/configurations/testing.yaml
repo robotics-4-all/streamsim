@@ -16,7 +16,7 @@ world:
   properties:
     temperature: 16 # celcius
     humidity: 60 # out of 100
-    luminosity: 0 # out of 100
+    luminosity: 10 # out of 100
     ph: 7.4
 
 robots:
@@ -49,8 +49,8 @@ robots:
       #   - source: "robot_devices/camera"
       # imu:
       #   - source: "robot_devices/imu"
-      button:
-        - source: "robot_devices/buttons/button_F"
+      # button:
+      #   - source: "robot_devices/buttons/button_F"
 #         - source: "robot_devices/buttons/button_FR"
 #         - source: "robot_devices/buttons/button_FL"
 #         - source: "robot_devices/buttons/button_R"

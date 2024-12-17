@@ -1,19 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import time
-import json
 import math
 import logging
-import threading
 import random
-from colorama import Fore, Style
-import pprint
 
 from stream_simulator.connectivity import CommlibFactory
 
 class TfController:
-    def __init__(self, base = None, resolution = None, logger = None):
+    """
+    A class to handle transformations for the simulator.
+    """
+    def __init__(self, base = None, resolution = None, logger = None, env_properties = None):
         self.logger = logging.getLogger(__name__) if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
@@ -21,8 +19,10 @@ class TfController:
 
         self.commlib_factory = CommlibFactory(node_name = "Tf")
         self.commlib_factory.run()
-        
+
         self.lin_alarms_robots = {}
+        self.env_properties = env_properties
+        self.logger.info("TF set environmental variables: %s", self.env_properties)
 
         self.declare_rpc_server = self.commlib_factory.getRPCService(
             callback = self.declare_callback,
@@ -727,6 +727,48 @@ class TfController:
             raise Exception(str(e))
 
         return ret
+
+    def compute_luminosity(self, place):
+        """
+        Computes the luminosity for a given place.
+        This method calculates the luminosity for a specified place by considering the light sources 
+        in the environment. It returns the luminosity value for the place.
+        Args:
+            place (dict): A dictionary containing the place information.
+        Returns:
+            float: The luminosity value for the place.
+        """
+        x_y = [place['x'], place['y']]
+        lum = 0
+        
+        # - env light
+        for f in self.per_type['env']['actuator']['leds']:
+            r = self.handle_affection_ranged(x_y, f, 'light')
+            if r is not None:
+                th_t = self.effectors_get_rpcs[f].call({})
+                new_r = r
+                new_r['info'] = th_t
+                rel_range = 1 - new_r['distance'] / new_r['range']
+                lum += rel_range * new_r['info']['luminosity']
+        # - actor fire
+        for f in self.per_type['actor']['fire']:
+            r = self.handle_affection_ranged(x_y, f, 'fire')
+            if r is not None:
+                rel_range = 1 - r['distance'] / r['range']
+                lum += 100 * rel_range
+
+        env_luminosity = self.env_properties['luminosity']
+        if lum < env_luminosity:
+            lum = lum * 0.1 + env_luminosity
+        else:
+            lum = env_luminosity * 0.1 + lum
+
+        if lum > 100:
+            lum = 100
+        if lum < 0:
+            lum = 0
+
+        return lum + random.uniform(-0.25, 0.25)
 
     # Affected by light, fire
     def handle_env_light_sensor(self, name):

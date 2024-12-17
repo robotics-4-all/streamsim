@@ -1,3 +1,6 @@
+"""
+File name: robot.py
+"""
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -5,9 +8,6 @@ import time
 import math
 import logging
 import threading
-
-
-from colorama import Fore, Style, Back
 
 from stream_simulator.connectivity import CommlibFactory
 

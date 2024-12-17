@@ -13,7 +13,7 @@ import sys
 import time
 import threading
 
-from bin import SimulatorStartup
+from stream_simulator.bin import SimulatorStartup
 
 def thread_main(curr_dir, uid):
     """
@@ -56,7 +56,7 @@ def main():
 
     # Wait for the simulator to start
     time.sleep(2)
-    startup_obj = SimulatorStartup(conf_file = c, uid = uid)
+    startup_obj = SimulatorStartup(conf_file = c, uid = uid, curr_dir = curr_dir)
     startup_obj.notify_simulator_start()
 
 if __name__ == "__main__":
