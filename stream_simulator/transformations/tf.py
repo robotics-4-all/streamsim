@@ -4,6 +4,7 @@
 import math
 import logging
 import random
+import string
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -1090,7 +1091,8 @@ class TfController:
             type = message['type']
             decl = self.declarations_info[name]
         except Exception as e:
-            raise Exception(f"{name} not in devices")
+            self.logger.error(f"{name} not in devices")
+            return
 
         if decl['subtype']['subclass'][0] not in ['camera', 'microphone']:
             return {
@@ -1098,8 +1100,8 @@ class TfController:
                 "info": "Wrong detection device. Not microphone nor camera."
             }
 
-        import string
         id = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 6))
+        print(f"Detection request for {name} with id {id}")
         self.detections_publisher.publish({
             "name": name,
             "device_type": decl['subtype']['subclass'][0],
@@ -1251,6 +1253,7 @@ class TfController:
                         frm = ret[x]
             else:
                 self.logger.error(f"Wrong detection type: {type}")
+                return
 
 
             if decision == True:
@@ -1262,6 +1265,7 @@ class TfController:
         else: # possible types: face, qr, barcode, gender, age, color, motion, emotion
             pass
 
+        print(f"Detection result for {name} with id {id}: {decision}, {info}, {frm}")
         self.detections_publisher.publish({
             "name": name,
             "device_type": decl['subtype']['subclass'][0],
