@@ -137,7 +137,7 @@ class TofController(BaseThing):
                 "distance": val,
                 "timestamp": time.time()
             })
-            # self.logger.info("TOF %s sensor read: %f", self.info["id"], val)
+            self.logger.info("TOF %s sensor read: %f", self.info["id"], val)
 
         self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
 

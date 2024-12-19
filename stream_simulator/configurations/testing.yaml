@@ -7,7 +7,7 @@ map:
   resolution: 0.1
   obstacles:
     lines:
-      # - {x1: 510, y1: 400, x2: 510, y2: 600}
+      - {x1: 510, y1: 400, x2: 510, y2: 600}
       - {x1: 5, y1: 4, x2: 8, y2: 4}
 
 world:
@@ -27,92 +27,92 @@ robots:
     remote_inform: true
     step_by_step_execution: false
     devices:
-      microphone:
-        - source: "robot_devices/microphone"
-      sonar:
-        - source: "robot_devices/sonars/sonar_front"
-        - source: "robot_devices/sonars/sonar_fl"
-        - source: "robot_devices/sonars/sonar_l"
-        - source: "robot_devices/sonars/sonar_r"
-        - source: "robot_devices/sonars/sonar_bl"
-        - source: "robot_devices/sonars/sonar_br"
-      ir:
-        - source: "robot_devices/irs/ir_front"
-        - source: "robot_devices/irs/ir_fl"
-        - source: "robot_devices/irs/ir_r"
-        - source: "robot_devices/irs/ir_l"
-        - source: "robot_devices/irs/ir_br"
-        - source: "robot_devices/irs/ir_bl"
+      # microphone:
+      #   - source: "robot_devices/microphone"
+      # sonar:
+      #   - source: "robot_devices/sonars/sonar_front"
+      #   - source: "robot_devices/sonars/sonar_fl"
+      #   - source: "robot_devices/sonars/sonar_l"
+      #   - source: "robot_devices/sonars/sonar_r"
+      #   - source: "robot_devices/sonars/sonar_bl"
+      #   - source: "robot_devices/sonars/sonar_br"
+      # ir:
+      #   - source: "robot_devices/irs/ir_front"
+      #   - source: "robot_devices/irs/ir_fl"
+      #   - source: "robot_devices/irs/ir_r"
+      #   - source: "robot_devices/irs/ir_l"
+      #   - source: "robot_devices/irs/ir_br"
+      #   - source: "robot_devices/irs/ir_bl"
       tof:
         - source: "robot_devices/tof"
-      camera:
-        - source: "robot_devices/camera"
-      imu:
-        - source: "robot_devices/imu"
-      button:
-        - source: "robot_devices/buttons/button_F"
-        - source: "robot_devices/buttons/button_FR"
-        - source: "robot_devices/buttons/button_FL"
-        - source: "robot_devices/buttons/button_R"
-        - source: "robot_devices/buttons/button_L"
-        - source: "robot_devices/buttons/button_B"
-        - source: "robot_devices/buttons/button_BR"
-        - source: "robot_devices/buttons/button_BL"
-        - source: "robot_devices/buttons/button_G1"
-        - source: "robot_devices/buttons/button_G2"
-        - source: "robot_devices/buttons/button_G3"
-        - source: "robot_devices/buttons/button_G4"
-      env:
-        - source: "robot_devices/env"
-      speaker:
-        - source: "robot_devices/speaker"
-      leds:
-        - source: "robot_devices/leds"
+      # camera:
+      #   - source: "robot_devices/camera"
+      # imu:
+      #   - source: "robot_devices/imu"
+      # button:
+      #   - source: "robot_devices/buttons/button_F"
+      #   - source: "robot_devices/buttons/button_FR"
+      #   - source: "robot_devices/buttons/button_FL"
+      #   - source: "robot_devices/buttons/button_R"
+      #   - source: "robot_devices/buttons/button_L"
+      #   - source: "robot_devices/buttons/button_B"
+      #   - source: "robot_devices/buttons/button_BR"
+      #   - source: "robot_devices/buttons/button_BL"
+      #   - source: "robot_devices/buttons/button_G1"
+      #   - source: "robot_devices/buttons/button_G2"
+      #   - source: "robot_devices/buttons/button_G3"
+      #   - source: "robot_devices/buttons/button_G4"
+      # env:
+      #   - source: "robot_devices/env"
+      # speaker:
+      #   - source: "robot_devices/speaker"
+      # leds:
+      #   - source: "robot_devices/leds"
       pan_tilt:
         - source: "robot_devices/pan_tilt"
-      skid_steer:
-        - source: "robot_devices/skid_steer"
-      rfid_reader:
-        - source: "robot_devices/rfid_reader"
+      # skid_steer:
+      #   - source: "robot_devices/skid_steer"
+      # rfid_reader:
+      #   - source: "robot_devices/rfid_reader"
     starting_pose:
       x: 500 # in pixels
       y: 500 # in pixels
       theta: 0 # in degrees
 
-env_devices:
-  relays:
-    - source: "env_devices/relay"
-  ph_sensors:
-    - source: "env_devices/ph_sensor"
-  temperature_sensors:
-    - source: "env_devices/temperature"
-  humidity_sensors:
-    - source: "env_devices/humidity"
-  gas_sensors:
-    - source: "env_devices/gas"
-  camera_sensors:
-    - source: "env_devices/camera"
-  distance_sensors:
-    - source: "env_devices/distance_sensor"
-  ambient_light_sensor:
-    - source: "env_devices/ambient_light_sensor"
-  pan_tilt:
-    - source: "env_devices/pan_tilt"
-    - source: "env_devices/pan_tilt_dist_X"
-  speakers:
-    - source: "env_devices/speaker"
-  lights:
-    - source: "env_devices/light"
-  thermostats:
-    - source: "env_devices/thermostat"
-  microphones:
-    - source: "env_devices/microphone"
-  humidifiers:
-    - source: "env_devices/humidifier"
-  alarms_area:
-    - source: "env_devices/alarm_area"
-  alarms_linear:
-    - source: "env_devices/alarm_linear"
+# env_devices:
+#   relays:
+#     - source: "env_devices/relay"
+#   ph_sensors:
+#     - source: "env_devices/ph_sensor"
+#   temperature_sensors:
+#     - source: "env_devices/temperature"
+#   humidity_sensors:
+#     - source: "env_devices/humidity"
+#   gas_sensors:
+#     - source: "env_devices/gas"
+#   camera_sensors:
+#     - source: "env_devices/camera"
+#   distance_sensors:
+#     - source: "env_devices/distance_sensor"
+#   ambient_light_sensor:
+#     - source: "env_devices/ambient_light_sensor"
+#   pan_tilt:
+#     - source: "env_devices/pan_tilt"
+#     - source: "env_devices/pan_tilt_dist_X"
+#   speakers:
+#     - source: "env_devices/speaker"
+#   lights:
+#     - source: "env_devices/light"
+#   thermostats:
+#     - source: "env_devices/thermostat"
+#   microphones:
+#     - source: "env_devices/microphone"
+#   humidifiers:
+#     - source: "env_devices/humidifier"
+#   alarms_area:
+#     - source: "env_devices/alarm_area"
+#   alarms_linear:
+#     - source: "env_devices/alarm_linear"
 
 # actors:
 #   humans:

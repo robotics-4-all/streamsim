@@ -257,24 +257,27 @@ class TfController:
 
         # Fill tree
         for d in self.declarations:
+            # Update tree
             if d['host'] not in self.tree:
                 self.tree[d['host']] = []
-
             self.tree[d['host']].append(d['name'])
+
+            # print(d)
+            # Update items_hosts_dict
             self.items_hosts_dict[d['name']] = d['host']
 
             self.places_relative[d['name']] = d['pose'].copy()
             self.places_absolute[d['name']] = d['pose'].copy()
-            if 'x' in d['pose']: # The only culprit is linear alarm
-                for i in ['x', 'y']:
-                    self.places_relative[d['name']][i] #*= self.resolution
-                    self.places_absolute[d['name']][i] #*= self.resolution
+            # if 'x' in d['pose']: # The only culprit is linear alarm
+            #     for i in ['x', 'y']:
+            #         self.places_relative[d['name']][i] #*= self.resolution
+            #         self.places_absolute[d['name']][i] #*= self.resolution
 
             # if d['range'] != None:
             #     d['range'] *= self.resolution
-
-        self.logger.info(f"Getting devices... {self.base + '.get_device_groups'}")
-        res = self.get_devices_rpc.call({}) # is this needed?
+            # print(f"Adding {d['name']} to {d['host']}")
+            # print(f"Relative: {self.places_relative[d['name']]}")
+            # print(f"Absolute: {self.places_absolute[d['name']]}")
 
         self.logger.info("Pan tilts detected:")
         for p in self.pantilts:
@@ -297,16 +300,19 @@ class TfController:
             if d in self.tree:  # We can have a pan-tilt with no devices on it
                 for i in self.tree[d]:
                     # initial pan is considered 0
+                    # print(f"Updating {i} on {d}")
+                    # print(f"Initial: {self.places_absolute[i]}")
+                    # print(f"Initial pt: {self.places_absolute[d]}")
                     pt_abs_pose = self.places_absolute[d]
                     self.places_absolute[i]['x'] += pt_abs_pose['x']
                     self.places_absolute[i]['y'] += pt_abs_pose['y']
                     if self.places_absolute[i]['theta'] is not None:
                         self.places_absolute[i]['theta'] += pt_abs_pose['theta']
 
-                    # self.logger.info(f"{i}@{d}:")
-                    # self.logger.info(f"\tPan-tilt: {self.places_absolute[d]}")
-                    # self.logger.info(f"\tRelative: {self.places_relative[i]}")
-                    # self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
+                    self.logger.info(f"{i}@{d}:")
+                    self.logger.info(f"\tPan-tilt: {self.places_absolute[d]}")
+                    self.logger.info(f"\tRelative: {self.places_relative[i]}")
+                    self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
 
         self.logger.info("*************** TF setup end ***************")
 
@@ -410,6 +416,7 @@ class TfController:
     def pan_tilt_callback(self, message):
         self.pantilts[message['name']]['pan'] = message['pan']
         self.update_pan_tilt(message['name'], message['pan'])
+        self.print_tf_tree()
 
     # {
     #     'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
