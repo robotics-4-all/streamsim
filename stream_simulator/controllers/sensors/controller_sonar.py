@@ -106,7 +106,10 @@ class SonarController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
-            # self.robot_pose_sub.run()
+
+            self.get_tf_rpc = self.commlib_factory.getRPCClient(
+                rpc_name = self.info['namespace'] + ".tf.get_tf"
+            )
 
         self.robot_pose = None
 
@@ -127,12 +130,15 @@ class SonarController(BaseThing):
                 val = float(random.uniform(30, 10))
             elif self.info["mode"] == "simulation":
                 try:
-                    ths = self.robot_pose["theta"] + self.info["orientation"] / 180.0 * math.pi
-                    # print("Sonar: ", ths)
+                    # Get the place of the sensor from tf
+                    res = self.get_tf_rpc.call({
+                        "name": self.info["name"]
+                    })
+                    ths = res['theta']
                     # Calculate distance
                     d = 1
-                    originx = self.robot_pose["x"] / self.robot_pose["resolution"]
-                    originy = self.robot_pose["y"] / self.robot_pose["resolution"]
+                    originx = res["x"] / self.robot_pose["resolution"]
+                    originy = res["y"] / self.robot_pose["resolution"]
                     tmpx = originx
                     tmpy = originy
                     # print("Sonar: ", originx, originy)

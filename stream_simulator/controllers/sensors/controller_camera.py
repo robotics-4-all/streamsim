@@ -114,7 +114,6 @@ class CameraController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.inernal",
                 callback = self.robot_pose_update
             )
-            # self.robot_pose_sub.run()
 
         self.enable_rpc_server = self.commlib_factory.getRPCService(
             callback = self.enable_callback,

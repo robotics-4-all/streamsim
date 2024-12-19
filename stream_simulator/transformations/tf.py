@@ -214,10 +214,11 @@ class TfController:
         if node not in self.tree:
             return visited
         tabs = "\t" * level
-        self.logger.info(f"{tabs}{node}:")
+        self.logger.info(f"{tabs}{node} @ {self.places_absolute[node]}:")
         for c in self.tree[node]:
             tabs = "\t" * (level + 1)
-            self.logger.info(f"{tabs}{c} @ {self.places_absolute[c]}")
+            if c not in self.existing_hosts:
+                self.logger.info(f"{tabs}{c} @ {self.places_absolute[c]}")
             visited = self.print_tf_tree_recursive(c, level + 1, visited)
         return visited
 
@@ -387,6 +388,8 @@ class TfController:
                 # self.logger.info(f"giving {pan_now}")
                 self.update_pan_tilt(d, pan_now)
 
+        # self.print_tf_tree()
+
     def update_pan_tilt(self, pt_name, pan):
         base_th = 0
         # If we are on a robot take its theta
@@ -416,7 +419,7 @@ class TfController:
     def pan_tilt_callback(self, message):
         self.pantilts[message['name']]['pan'] = message['pan']
         self.update_pan_tilt(message['name'], message['pan'])
-        self.print_tf_tree()
+        # self.print_tf_tree()
 
     # {
     #     'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \

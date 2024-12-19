@@ -7,3 +7,4 @@ range: 80 # Optional - Default is 100
 fov: 60 # Degrees - optional - default is 60
 width: 640
 height: 480
+host: pt1

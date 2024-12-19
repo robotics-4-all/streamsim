@@ -186,7 +186,7 @@ class MotionController(BaseThing):
 
             self._linear = response['linear']
             self._angular = 0
-            print("time to sleep is: ", response["distance"] / response["linear"])
+            # print("time to sleep is: ", response["distance"] / response["linear"])
             time.sleep(response["distance"] / response["linear"])
             self._linear = 0
         except Exception as e: # pylint: disable=broad-exception-caught
@@ -211,7 +211,7 @@ class MotionController(BaseThing):
 
             self._linear = 0
             self._angular = response['angular']
-            print("time to sleep is: ", response["angle"] / response["angular"])
+            # print("time to sleep is: ", response["angle"] / response["angular"])
             time.sleep(response["angle"] / response["angular"])
             self._angular = 0
         except Exception as e: # pylint: disable=broad-exception-caught
