@@ -36,6 +36,7 @@ class EnvTemperatureSensorController(BasicSensor):
         _category = "sensor"
         _class = "env"
         _subclass = "temperature"
+        _namespace = package["namespace"]
 
         super().__init__(
             conf = conf,

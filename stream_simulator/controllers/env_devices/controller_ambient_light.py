@@ -62,12 +62,12 @@ class EnvAmbientLightController(BaseThing):
 
         _name = conf["name"]
         _pack = package["base"]
+        _namespace = package["namespace"]
         _place = conf["place"]
 
-        # id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
             "name": _name,
             "place": conf["place"],
             "enabled": True,
@@ -151,6 +151,7 @@ class EnvAmbientLightController(BaseThing):
         Args:
             package (Any): The communication package to be used for setting up the communication layer.
         """
+        self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
         self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
@@ -380,10 +381,15 @@ class EnvAmbientLightController(BaseThing):
             info (dict): Dictionary containing the configuration and state of the ambient light sensor.
             sensor_read_thread (threading.Thread): Thread to handle reading data from the ambient light sensor.
         """
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_mode_rpc_server.run()
-        self.set_mode_rpc_server.run()
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
+        # self.get_mode_rpc_server.run()
+        # self.set_mode_rpc_server.run()
 
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)

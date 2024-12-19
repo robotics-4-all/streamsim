@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import time
 
 from stream_simulator.base_classes import BaseThing
 
@@ -23,7 +24,6 @@ class EnvThermostatController(BaseThing):
         _pack = package["base"]
         _place = conf["place"]
         _namespace = package["namespace"]
-        id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
             "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
@@ -76,26 +76,27 @@ class EnvThermostatController(BaseThing):
         self.tf_declare_rpc.call(tf_package)
 
     def set_communication_layer(self, package):
+        self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
         self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
         self.set_data_publisher(self.base_topic)
 
-    def enable_callback(self, message):
+    def enable_callback(self, _):
         self.info["enabled"] = True
 
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_rpc_server.run()
-        self.set_rpc_server.run()
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
+        # self.get_rpc_server.run()
+        # self.set_rpc_server.run()
 
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
         self.info["enabled"] = False
         return {"enabled": False}
 
-    def get_callback(self, message):
+    def get_callback(self, _):
         return {"temperature": self.temperature}
 
     def set_callback(self, message):
@@ -115,10 +116,15 @@ class EnvThermostatController(BaseThing):
         return {}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_rpc_server.run()
-        self.set_rpc_server.run()
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
+        # self.get_rpc_server.run()
+        # self.set_rpc_server.run()
 
     def stop(self):
         self.info["enabled"] = False

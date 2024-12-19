@@ -5,4 +5,4 @@ numpy
 wave
 qrcode[pil]
 opencv-python
-colorama
+python-dotenv

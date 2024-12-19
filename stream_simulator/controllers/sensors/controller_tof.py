@@ -20,7 +20,6 @@ class TofController(BaseThing):
             self.logger = package["logger"]
 
         id = "d_tof_" + str(BaseThing.id + 1)
-        print(conf)
         name = id
         if 'name' in conf:
             name = conf['name']
@@ -31,6 +30,7 @@ class TofController(BaseThing):
         _namespace = package["namespace"]
 
         super().__init__(id)
+        self.set_simulation_communication(_namespace)
 
         info = {
             "type": "TOF",
@@ -105,7 +105,7 @@ class TofController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
-            self.robot_pose_sub.run()
+            # self.robot_pose_sub.run()
 
     def robot_pose_update(self, message):
         self.robot_pose = message
@@ -141,7 +141,7 @@ class TofController(BaseThing):
                 "distance": val,
                 "timestamp": time.time()
             })
-            self.logger.info("\tTOF %s sensor read: %f", self.info["id"], val)
+            # self.logger.info("\tTOF %s sensor read: %f", self.info["id"], val)
 
         self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
 
@@ -160,6 +160,11 @@ class TofController(BaseThing):
         return {"enabled": False}
 
     def start(self):
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()

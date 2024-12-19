@@ -3,7 +3,6 @@ orientation: 0
 place: FRONT
 hz: 1
 name: tektrain_camera
-# host: pt1
 range: 80 # Optional - Default is 100
 fov: 60 # Degrees - optional - default is 60
 width: 640

@@ -5,6 +5,7 @@ import sys
 import logging
 import pathlib
 import yaml
+import time
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -46,10 +47,11 @@ class SimulatorStartup:
         self.commlib_factory.run()
 
         # Generate a random 10-character UID
-
         self.devices_rpc_client = self.commlib_factory.getRPCClient(
             rpc_name = f'streamsim.{uid}.set_configuration',
         )
+        print(f'streamsim.{uid}.set_configuration')
+        # self.devices_rpc_client.run()
 
     def parse_configuration(self, conf_file):
         """
@@ -141,7 +143,8 @@ class SimulatorStartup:
         """
         Notify the simulator to start with the given configuration.
         """
-        response = self.devices_rpc_client.call(self.configuration)
+        print("Sending configuration to the simulator...")
+        response = self.devices_rpc_client.call(self.configuration, timeout=60)
         self.logger.info(response)
 
 def main():
@@ -170,3 +173,4 @@ def main():
 if __name__ == "__main__":
     print("Dispatching configuration to the simulator...")
     main()
+    print("Configuration dispatched successfully.")

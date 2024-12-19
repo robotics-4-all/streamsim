@@ -60,6 +60,7 @@ class SpeakerController(BaseThing):
         self.base_topic = info["base_topic"]
 
         self.set_tf_communication(package)
+        self.set_simulation_communication(_namespace)
 
         # tf handling
         tf_package = {
@@ -255,7 +256,10 @@ class SpeakerController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        pass
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
 
     def stop(self):
         self.commlib_factory.stop()

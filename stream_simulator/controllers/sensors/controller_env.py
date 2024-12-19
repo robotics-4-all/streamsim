@@ -27,6 +27,7 @@ class EnvController(BaseThing):
         _namespace = package["namespace"]
         
         super().__init__(id)
+        self.set_simulation_communication(_namespace)
 
         info = {
             "type": "ENV",
@@ -78,8 +79,9 @@ class EnvController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        
+
         self.tf_declare_rpc.call(tf_package)
+        # self.tf_declare_pub.publish(tf_package)
 
         self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
@@ -130,7 +132,7 @@ class EnvController(BaseThing):
                 val["temperature"] = amb
                 if len(temps) != 0:
                     val["temperature"] = amb + statistics.mean(temps)
-                val += random.uniform(-0.25, 0.25)
+                val["temperature"] += random.uniform(-0.25, 0.25)
 
                 # humidity
                 ambient = self.env_properties['humidity']
@@ -184,6 +186,11 @@ class EnvController(BaseThing):
         return {"enabled": False}
 
     def start(self):
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()

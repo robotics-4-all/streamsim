@@ -55,7 +55,7 @@ def main():
     t1.start()
 
     # Wait for the simulator to start
-    time.sleep(2)
+    time.sleep(1)
     startup_obj = SimulatorStartup(conf_file = c, uid = uid, curr_dir = curr_dir)
     startup_obj.notify_simulator_start()
 

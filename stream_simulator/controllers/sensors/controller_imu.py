@@ -30,6 +30,7 @@ class ImuController(BaseThing):
         _namespace = package["namespace"]
 
         super().__init__(id)
+        self.set_simulation_communication(_namespace)
 
         info = {
             "type": "IMU",
@@ -95,7 +96,7 @@ class ImuController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
-            self.robot_pose_sub.run()
+            # self.robot_pose_sub.run()
 
             self.robot_pose = {
                 "x": 0,
@@ -179,7 +180,6 @@ class ImuController(BaseThing):
                 "data": val,
                 "timestamp": time.time()
             })
-            print(Fore.CYAN + f"IMU {self.info['id']} read: {val}" + Style.RESET_ALL)
 
         self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
 
@@ -198,6 +198,11 @@ class ImuController(BaseThing):
         return {"enabled": False}
 
     def start(self):
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()

@@ -30,6 +30,7 @@ class RfidReaderController(BaseThing):
         _namespace = package["namespace"]
 
         super().__init__(id)
+        self.set_simulation_communication(_namespace)
 
         info = {
             "type": "RFID_READER",
@@ -126,7 +127,7 @@ class RfidReaderController(BaseThing):
                 "timestamp": time.time()
             })
 
-            print(Fore.CYAN + f"RFID {self.info['id']} read: {val}" + Style.RESET_ALL)
+            # print(Fore.CYAN + f"RFID {self.info['id']} read: {val}" + Style.RESET_ALL)
 
             if len(tags) > 0:
                 self.commlib_factory.notify_ui(
@@ -155,6 +156,11 @@ class RfidReaderController(BaseThing):
         return {"enabled": False}
 
     def start(self):
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()

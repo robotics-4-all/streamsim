@@ -14,6 +14,7 @@ class EnvHumiditySensorController(BasicSensor):
         _category = "sensor"
         _class = "env"
         _subclass = "humidity"
+        _namespace = package["namespace"]
 
         super().__init__(
             conf = conf,
@@ -25,6 +26,7 @@ class EnvHumiditySensorController(BasicSensor):
         )
 
         self.env_properties = package['env']
+        self.set_simulation_communication(_namespace)
 
         # tf handling
         tf_package = {

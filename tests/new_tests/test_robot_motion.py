@@ -63,6 +63,7 @@ class Test(unittest.TestCase):
                         })
                         time.sleep(2)
                         print("Go with duration")
+                        
                         cmd_duration_rpc.call({
                             'linear': 0.5,
                             'angular': 0,

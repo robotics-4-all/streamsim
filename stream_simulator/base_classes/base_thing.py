@@ -31,7 +31,9 @@ class BaseThing:
         """
         BaseThing.id += 1
 
+        self.name = _name
         self.base_topic = None
+        self.namespace = None
         self.tf_declare_rpc = None
         self.tf_affection_rpc = None
         self.enable_rpc_server = None
@@ -42,9 +44,29 @@ class BaseThing:
         self.publisher_triggers = None
         self.set_rpc_server = None
         self.get_rpc_server = None
+        self.simulator_started = False
+        self.simulation_started_sub = None
 
-        self.commlib_factory = CommlibFactory(node_name=_name)
+        self.tf_declare_pub = None
+
+        self.commlib_factory = CommlibFactory(node_name=self.name)
         self.commlib_factory.run()
+
+    def set_simulation_communication(self, namespace):
+        self.namespace = namespace
+        self.simulation_started_sub = self.commlib_factory.getSubscriber(
+            topic=f"{namespace}.simulation_started",
+            callback=self.simulation_started_cb
+        )
+
+    def simulation_started_cb(self, _):
+        """
+        Callback function for the simulation_started topic.
+
+        Args:
+            msg (str): The message received on the topic.
+        """
+        self.simulator_started = True
 
     def set_tf_communication(self, package):
         """
@@ -55,6 +77,10 @@ class BaseThing:
         """
         self.tf_declare_rpc = self.commlib_factory.getRPCClient(
             rpc_name=package["tf_declare_rpc_topic"]
+        )
+
+        self.tf_declare_pub = self.commlib_factory.getPublisher(
+            topic=package["tf_declare_rpc_topic"] + "sub"
         )
 
         self.tf_affection_rpc = self.commlib_factory.getRPCClient(

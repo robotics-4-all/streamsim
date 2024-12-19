@@ -7,7 +7,6 @@ from .sensors import \
     IrController, \
     ButtonArrayController, \
     CameraController, \
-    EncoderController, \
     EnvController, \
     ImuController, \
     MicrophoneController, \

@@ -77,7 +77,6 @@ class Robot:
 
         # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = self.configuration["name"])
-        self.commlib_factory.run()
 
         self.tf_base = world['tf_base']
         self.tf_declare_rpc = self.commlib_factory.getRPCClient(
@@ -225,6 +224,8 @@ class Robot:
                 callback = self.leds_wipe_redis
             )
 
+        # Start the CommlibFactory
+        self.commlib_factory.run()
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
@@ -240,7 +241,7 @@ class Robot:
 
             if c.info["type"] == "BUTTON":
                 # Do not put in controllers but add in devices
-                self.logger.error(f"Button {c.name} skipped from controllers")
+                self.logger.warning(f"Button {c.name} skipped from controllers")
                 return
             self.controllers[c.name] = c
 
@@ -248,7 +249,7 @@ class Robot:
             self.motion_controller = c
             self.controllers[c.name].resolution = self.resolution
 
-        self.logger.error(f"{c.name} controller created")
+        self.logger.info(f"{c.name} controller created")
 
     def device_lookup(self):
         actors = {}
@@ -282,7 +283,6 @@ class Robot:
            "speaker": getattr(str_contro, "SpeakerController"),
            "leds": getattr(str_contro, "LedsController"),
            "pan_tilt": getattr(str_contro, "PanTiltController"),
-           "encoder": getattr(str_contro, "EncoderController"),
            "button": getattr(str_contro, "ButtonController"),
            "button_array": getattr(str_contro, "ButtonArrayController"),
            "rfid_reader": getattr(str_contro, "RfidReaderController"),
@@ -314,7 +314,7 @@ class Robot:
         }
         buttons = [x for x in self.devices if x["type"] == "BUTTON"]
         for d in buttons:
-            self.logger.error(f"Button {d['id']} added in button_array")
+            self.logger.info(f"Button {d['id']} added in button_array")
             self.button_configuration["places"].append(d["place"])
             self.button_configuration["base_topics"][d["id"]] = d["base_topic"]
         if len(self.button_configuration["places"]) > 0:
@@ -371,7 +371,7 @@ class Robot:
 
     def start(self):
         for c in self.controllers:
-            self.controllers[c].start()
+            threading.Thread(target = self.controllers[c].start).start()
 
         self.stopped = False
         self.simulator_thread.start()

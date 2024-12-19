@@ -17,6 +17,7 @@ class ButtonController(BaseThing):
         _namespace = package["namespace"]
 
         super().__init__(id)
+        self.set_simulation_communication(_namespace)
 
         info = {
             "type": "BUTTON",
@@ -44,4 +45,3 @@ class ButtonController(BaseThing):
 
         self.info = info
         self.name = info["name"]
-        print(info["base_topic"])

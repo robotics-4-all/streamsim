@@ -88,7 +88,6 @@ class EnvCameraController(BaseThing):
                 "name": _name
             }
         }
-        
 
         self.info = info
         self.width = conf['width']
@@ -144,6 +143,7 @@ class EnvCameraController(BaseThing):
         }
 
     def set_communication_layer(self, package):
+        self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
         self.set_enable_disable_rpcs(
@@ -277,8 +277,13 @@ class EnvCameraController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
 
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)

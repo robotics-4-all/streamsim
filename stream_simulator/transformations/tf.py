@@ -5,6 +5,7 @@ import math
 import logging
 import random
 import string
+import time
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -19,7 +20,6 @@ class TfController:
         self.resolution = resolution
 
         self.commlib_factory = CommlibFactory(node_name = "Tf")
-        self.commlib_factory.run()
 
         self.lin_alarms_robots = {}
         self.env_properties = env_properties
@@ -27,32 +27,57 @@ class TfController:
 
         self.declare_rpc_server = self.commlib_factory.getRPCService(
             callback = self.declare_callback,
-            rpc_name = self.base_topic + ".declare"
+            rpc_name = self.base_topic + ".declare",
+            auto_run = False,
+        )
+
+        self.declare_subscriber_ = self.commlib_factory.getSubscriber(
+            topic = self.base_topic + ".declaresub",
+            callback = self.declare_subscriber,
+            auto_run = False,
         )
 
         self.get_declarations_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_declarations_callback,
-            rpc_name = self.base_topic + ".get_declarations"
+            rpc_name = self.base_topic + ".get_declarations",
+            auto_run = False,
         )
 
         self.get_tf_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_tf_callback,
-            rpc_name = self.base_topic + ".get_tf"
+            rpc_name = self.base_topic + ".get_tf",
+            auto_run = False,
         )
 
         self.get_affectability_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_affections_callback,
-            rpc_name = self.base_topic + ".get_affections"
+            rpc_name = self.base_topic + ".get_affections",
+            auto_run = False,
         )
 
         self.get_sim_detection_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_sim_detection_callback,
-            rpc_name = self.base_topic + ".simulated_detection"
+            rpc_name = self.base_topic + ".simulated_detection",
+            auto_run = False,
         )
 
         self.detections_publisher = self.commlib_factory.getPublisher(
-            topic = self.base_topic + ".detections.notify"
+            topic = self.base_topic + ".detections.notify",
+            auto_run = False,
         )
+
+        self.get_devices_rpc = self.commlib_factory.getRPCClient(
+            rpc_name = self.base + ".get_device_groups",
+            auto_run = False,
+        )
+
+        self.pan_tilts_rpc = self.commlib_factory.getRPCClient(
+            rpc_name = f"{self.base}.nodes_detector.get_connected_devices",
+            auto_run = False,
+        )
+
+        # Start the CommlibFactory
+        self.commlib_factory.run()
 
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
@@ -64,6 +89,7 @@ class TfController:
         self.names = []
 
         self.effectors_get_rpcs = {}
+        self.robots_get_devices_rpcs = {}
 
         self.subs = {} # Filled
         self.places_relative = {}
@@ -196,7 +222,7 @@ class TfController:
             return self.places_absolute[name]
 
     def setup(self):
-        # self.logger.info("*************** TF setup ***************")
+        self.logger.info("*************** TF setup ***************")
 
         # Fill tree
         for d in self.declarations:
@@ -216,64 +242,13 @@ class TfController:
             # if d['range'] != None:
             #     d['range'] *= self.resolution
 
-        # Get all devices and check pan-tilts exist
-        get_devices_rpc = self.commlib_factory.getRPCClient(
-            rpc_name = self.base + ".get_device_groups"
-        )
-        res = get_devices_rpc.call({})
-
-        # Pan tilts on robots
-        for r in res['robots']:
-            cl = self.commlib_factory.getRPCClient(
-                rpc_name = f"{self.base}.{r}.nodes_detector.get_connected_devices"
-            )
-            rr = cl.call({})
-            self.logger.info(f"Devices in {r}: {len(rr['devices'])}")
-            for d in rr['devices']:
-                if d['type'] == 'PAN_TILT':
-                    self.pantilts[d['name']] = {
-                        'base_topic': d['base_topic'],
-                        'place': d['categorization']['place'],
-                        'pan': 0.0
-                    }
-
-        # Pan tilts in environment
-        cl = self.commlib_factory.getRPCClient(
-            rpc_name = f"{self.base}.nodes_detector.get_connected_devices"
-        )
-        rr = cl.call({})
-        self.logger.info(f"Devices in world: {len(rr['devices'])}")
-        for d in rr['devices']:
-            if d['type'] == 'PAN_TILT':
-                self.pantilts[d['name']] = {
-                    'base_topic': d['base_topic'],
-                    'place': d['categorization']['place'],
-                    'pan': 0.0
-                }
+        self.logger.info(f"Getting devices... {self.base + '.get_device_groups'}")
+        res = self.get_devices_rpc.call({}) # is this needed?
 
         self.logger.info("Pan tilts detected:")
         for p in self.pantilts:
             self.logger.info(f"\t{p} on {self.pantilts[p]['place']}")
-
             self.existing_hosts.append(p)
-
-            topic = self.pantilts[p]['base_topic'] + '.data'
-            self.subs[p] = self.commlib_factory.getSubscriber(
-                topic = topic,
-                callback = self.pan_tilt_callback
-            )
-
-        # Gather robots and create subscribers
-        for d in self.declarations:
-            if d['host_type'] == "robot":
-                if d['host'] not in self.existing_hosts:
-                    self.robots.append(d['host'])
-                    self.existing_hosts.append(d['host'])
-                    topic = d['namespace'] + "." + d["host"] + ".pose.internal"
-                    self.subs[d['host']] = self.commlib_factory.getSubscriber(
-                        topic = topic,
-                        callback = self.robot_pose_callback
-                    )
 
         # Check pan tilt poses for None
         for pt in self.pantilts:
@@ -294,7 +269,7 @@ class TfController:
                     pt_abs_pose = self.places_absolute[d]
                     self.places_absolute[i]['x'] += pt_abs_pose['x']
                     self.places_absolute[i]['y'] += pt_abs_pose['y']
-                    if self.places_absolute[i]['theta'] != None:
+                    if self.places_absolute[i]['theta'] is not None:
                         self.places_absolute[i]['theta'] += pt_abs_pose['theta']
 
                     # self.logger.info(f"{i}@{d}:")
@@ -302,23 +277,7 @@ class TfController:
                     # self.logger.info(f"\tRelative: {self.places_relative[i]}")
                     # self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
 
-        for n in self.declarations_info:
-            d_i = self.declarations_info[n]
-            if d_i["type"] == "actor":
-                continue
-
-            # subscribers for speakers
-            if "speaker" in d_i['subtype']['subclass']:
-                self.speaker_subs[d_i['name']] = self.commlib_factory.getSubscriber(
-                    topic = d_i["base_topic"] + ".speak.notify",
-                    callback = self.speak_callback
-                )
-            # publishers for microphones
-            if "microphone" in d_i['subtype']['subclass']:
-                self.microphone_pubs[d_i['name']] = self.commlib_factory.getPublisher(
-                    topic = d_i["base_topic"] + ".speech_detected"
-                )
-        # self.logger.info("*************** TF setup end ***************")
+        self.logger.info("*************** TF setup end ***************")
 
     def speak_callback(self, message):
         # {'text': 'This is an example', 'volume': 100, 'language': 'el', 'speaker': 'speaker_X'}
@@ -426,6 +385,7 @@ class TfController:
     #      'host', 'host_type'
     # }
     def declare_callback(self, message):
+        print("#############################")
         m = message
 
         # sanity checks
@@ -457,8 +417,47 @@ class TfController:
         self.declarations_info[temp['name']] = temp
 
         # Per type storage
+        print(">>>>>>>>>>>>>")
         self.per_type_storage(temp)
+        print("<<<<<<<<<<<<<")
         return {}
+
+    def declare_subscriber(self, message):
+        print("#############################")
+        m = message
+
+        # sanity checks
+        temp = {}
+        for t in self.declare_rpc_input:
+            temp[t] = None
+        for m in message:
+            if m not in temp:
+                self.logger.error(f"tf: Invalid declaration field for {message['name']}: {m}")
+                return {}
+            temp[m] = message[m]
+
+        host_msg = ""
+        if 'host' in message:
+            host_msg = f"on {message['host']}"
+
+        if 'host_type' in message:
+            if message['host_type'] not in ['robot', 'pan_tilt']:
+                self.logger.error(f"tf: Invalid host type for {message['name']}: {message['host_type']}")
+
+        self.logger.info(f"TF declaration: {temp['name']}::{temp['type']}::{temp['subtype']}\n\t @ {temp['pose']} {host_msg}")
+
+        # Fix thetas if exist:
+        if temp['pose']['theta'] != None:
+            temp['pose']['theta'] = float(temp['pose']['theta'])
+            temp['pose']['theta'] *= math.pi/180.0
+
+        self.declarations.append(temp)
+        self.declarations_info[temp['name']] = temp
+
+        # Per type storage
+        print(">>>>>>>>>>>>>")
+        self.per_type_storage(temp)
+        print("<<<<<<<<<<<<<")
 
     # https://jsonformatter.org/yaml-formatter/a56cff
     def per_type_storage(self, d):
@@ -510,6 +509,46 @@ class TfController:
                 self.effectors_get_rpcs[d['name']] = self.commlib_factory.getRPCClient(
                     rpc_name = d['base_topic'] + ".get"
                 )
+
+            # Handle robots
+            if d['host'] not in self.robots_get_devices_rpcs:
+                self.robots.append(d['host'])
+                self.existing_hosts.append(d['host'])
+
+                self.robots_get_devices_rpcs[d['host']] = self.commlib_factory.getRPCClient(
+                    rpc_name = f"{d['namespace']}.{d['host']}.nodes_detector.get_connected_devices"
+                )
+
+                self.subs[d['host']] = self.commlib_factory.getSubscriber(
+                    topic = d['namespace'] + "." + d["host"] + ".pose.internal",
+                    callback = self.robot_pose_callback
+                )
+
+        # Handle pan tilts
+        if "pan_tilt" in  d['subtype']['subclass']:
+            self.subs[d['name']] = self.commlib_factory.getSubscriber(
+                topic = d["base_topic"] + ".data",
+                callback = self.pan_tilt_callback
+            )
+
+            self.pantilts[d['name']] = {
+                'base_topic': d['base_topic'],
+                'place': d['pose'], # this was d['categorization']['place'],
+                'pan': 0.0
+            }
+
+        # Handle speakers
+        if "speaker" in d['subtype']['subclass']:
+            self.speaker_subs[d['name']] = self.commlib_factory.getSubscriber(
+                topic = d["base_topic"] + ".speak.notify",
+                callback = self.speak_callback
+            )
+
+        # Handle microphones
+        if "microphone" in d['subtype']['subclass']:
+            self.microphone_pubs[d['name']] = self.commlib_factory.getPublisher(
+                topic = d["base_topic"] + ".speech_detected"
+            )
 
     def get_affections_callback(self, message):
         try:

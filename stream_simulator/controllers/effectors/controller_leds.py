@@ -61,6 +61,7 @@ class LedsController(BaseThing):
         self.derp_data_key = info["base_topic"] + ".raw"
 
         self.set_tf_communication(package)
+        self.set_simulation_communication(_namespace)
 
         # tf handling
         tf_package = {
@@ -128,7 +129,10 @@ class LedsController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        pass
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
 
     def stop(self):
         self.commlib_factory.stop()

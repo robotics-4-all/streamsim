@@ -30,6 +30,7 @@ class SonarController(BaseThing):
         _namespace = package["namespace"]
 
         super().__init__(id)
+        self.set_simulation_communication(_namespace)
 
         info = {
             "type": "SONAR",
@@ -105,7 +106,7 @@ class SonarController(BaseThing):
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
-            self.robot_pose_sub.run()
+            # self.robot_pose_sub.run()
 
         self.robot_pose = None
 
@@ -153,7 +154,7 @@ class SonarController(BaseThing):
                 "distance": val,
                 "timestamp": time.time()
             })
-            self.logger.info("Sonar reads: %f",  val)
+            # self.logger.info("Sonar reads: %f",  val)
 
         self.logger.debug("Sonar %s sensor read thread stopped", self.info["id"])
 
@@ -173,6 +174,11 @@ class SonarController(BaseThing):
         return {"enabled": False}
 
     def start(self):
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
         if self.info["enabled"]:
             self.memory = self.info["queue_size"] * [0]
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)

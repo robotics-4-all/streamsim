@@ -91,6 +91,7 @@ class EnvDistanceController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
 
         self.set_communication_layer(package)
+
         self.get_tf = self.commlib_factory.getRPCClient(
             rpc_name = package["namespace"] + ".tf.get_tf"
         )
@@ -106,6 +107,7 @@ class EnvDistanceController(BaseThing):
             self.prev = None
 
     def set_communication_layer(self, package):
+        self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
         self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
@@ -144,7 +146,9 @@ class EnvDistanceController(BaseThing):
         get_devices_rpc = self.commlib_factory.getRPCClient(
             rpc_name = self.get_device_groups_rpc_topic
         )
-        res = get_devices_rpc.call({})
+        print("Callinggggg", self.get_device_groups_rpc_topic)
+        res = get_devices_rpc.call({}, timeout=5)
+        print("Called")
         # create subscribers
         self.robots_subscribers = {}
         for r in res['robots']:
@@ -152,7 +156,7 @@ class EnvDistanceController(BaseThing):
                 topic = f"robot.{r}.pose", # get poses from all robots
                 callback = self.robot_pose_callback
             )
-            self.robots_subscribers[r].run()
+            # self.robots_subscribers[r].run()
 
         self.logger.info(f"Sensor {self.name} read thread started")
 
@@ -240,10 +244,10 @@ class EnvDistanceController(BaseThing):
     def enable_callback(self, message):
         self.info["enabled"] = True
 
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_mode_rpc_server.run()
-        self.set_mode_rpc_server.run()
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
+        # self.get_mode_rpc_server.run()
+        # self.set_mode_rpc_server.run()
 
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
@@ -266,10 +270,15 @@ class EnvDistanceController(BaseThing):
         return {"state": self.state}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_mode_rpc_server.run()
-        self.set_mode_rpc_server.run()
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
+        # self.get_mode_rpc_server.run()
+        # self.set_mode_rpc_server.run()
 
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)

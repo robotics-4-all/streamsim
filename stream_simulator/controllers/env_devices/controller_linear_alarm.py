@@ -33,10 +33,11 @@ class EnvLinearAlarmController(BaseThing):
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
+        _namespace = package["namespace"]
         id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
-            "base_topic": f"{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
             "name": _name,
             "place": conf["place"],
             "enabled": True,
@@ -86,6 +87,7 @@ class EnvLinearAlarmController(BaseThing):
         self.tf_declare_rpc.call(tf_package)
 
     def set_communication_layer(self, package):
+        self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
         self.set_triggers_publisher(self.base_topic)
@@ -134,8 +136,8 @@ class EnvLinearAlarmController(BaseThing):
     def enable_callback(self, message):
         self.info["enabled"] = True
 
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
 
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
@@ -147,8 +149,13 @@ class EnvLinearAlarmController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
 
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)

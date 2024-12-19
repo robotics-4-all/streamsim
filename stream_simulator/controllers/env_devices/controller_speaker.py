@@ -90,6 +90,7 @@ class EnvSpeakerController(BaseThing):
         self.blocked = False
 
     def set_communication_layer(self, package):
+        self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
         
@@ -112,11 +113,11 @@ class EnvSpeakerController(BaseThing):
     def enable_callback(self, message):
         self.info["enabled"] = True
 
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
 
-        self.play_action_server.run()
-        self.speak_action_server.run()
+        # self.play_action_server.run()
+        # self.speak_action_server.run()
 
         return {"enabled": True}
 
@@ -125,11 +126,16 @@ class EnvSpeakerController(BaseThing):
         return {"enabled": False}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
 
-        self.play_action_server.run()
-        self.speak_action_server.run()
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
+
+        # self.play_action_server.run()
+        # self.speak_action_server.run()
 
     def stop(self):
         self.info["enabled"] = False

@@ -4,6 +4,7 @@
 import logging
 import random
 import string
+import time
 
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.transformations import TfController
@@ -77,7 +78,6 @@ class Simulator:
 
          # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = "Simulator")
-        self.commlib_factory.run()
 
         self.logger.info("Created %s.notifications publisher!", self.name)
         self.commlib_factory.notify = self.commlib_factory.getPublisher(
@@ -88,11 +88,20 @@ class Simulator:
             callback = self.devices_callback,
             rpc_name = self.name + '.get_device_groups'
         )
+        print("Startedddd", self.name + '.get_device_groups')
 
-        self.devices_rpc_server = self.commlib_factory.getRPCService(
+        self.configuration_rpc_server = self.commlib_factory.getRPCService(
             callback = self.configuration_callback,
             rpc_name = self.name + '.set_configuration'
         )
+        print(self.name + '.set_configuration')
+
+        self.simulation_start_pub = self.commlib_factory.getPublisher(
+            topic = f"{self.name}.simulation_started"
+        )
+
+        # Start the CommlibFactory
+        self.commlib_factory.run()
 
         self.tf = None
         self.world = None
@@ -102,6 +111,7 @@ class Simulator:
         self.logger.info("Simulator created. Waiting for configuration...")
 
     def devices_callback(self, message):
+        print(">>> Devices callback")
         return {
                 "robots": self.robot_names,
                 "world": self.world_name
@@ -148,10 +158,29 @@ class Simulator:
                 )
                 self.robot_names.append(r["name"])
 
+        # Create robots
+        for i in range(0, len(self.robots)):
+            _robot = self.robots[i]
+            _robot.start()
+
+            self.commlib_factory.notify_ui(
+                type_ = "new_message",
+                data = {
+                    "type": "logs",
+                    "message": f"Robot {_robot.name} launched"
+                }
+            )
+
         # Initializing tf
         self.logger.info("Setting up tf")
         self.tf.setup()
         self.logger.info("Tf setup done")
+
+        # Start all devices NOTE: Should this be here???
+        self.simulation_start_pub.publish({
+            "uid": self.uid
+        })
+        
         self.start()
         self.logger.info("Configuration setup done")
         return {"success": True}
@@ -166,30 +195,18 @@ class Simulator:
 
     def start(self):
         self.logger.info("******** Simulator starting *********")
-        # Create robots
-        for i in range(0, len(self.robots)):
-            _robot = self.robots[i]
-            _robot.start()
-
-            self.commlib_factory.notify_ui(
-                type_ = "new_message",
-                data = {
-                    "type": "logs",
-                    "message": f"Robot {_robot.name} launched"
-                }
-            )
 
         # Communications report
-        # self.logger.info("Communications report:")
-        # total = 0
-        # for t in self.commlib_factory.stats:
-        #     for k in self.commlib_factory.stats[t]:
-        #         n = self.commlib_factory.stats[t][k]
-        #         total += n
-        #         if n == 0:
-        #             continue
-        #         self.logger.info(f"\t{t} {k}: {n}")
-        # self.logger.info(f"Total connections: {total}")
+        self.logger.info("Communications report:")
+        total = 0
+        for t in self.commlib_factory.stats:
+            for k in self.commlib_factory.stats[t]:
+                n = self.commlib_factory.stats[t][k]
+                total += n
+                if n == 0:
+                    continue
+                self.logger.info(f"\t{t} {k}: {n}")
+        self.logger.info(f"Total connections: {total}")
 
         self.commlib_factory.print_topics()
 

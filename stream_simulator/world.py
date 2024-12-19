@@ -5,6 +5,7 @@ import time
 import logging
 import math
 import numpy
+import threading
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -52,7 +53,6 @@ class World:
     """
     def __init__(self, uid):
         self.commlib_factory = CommlibFactory(node_name = "World")
-        self.commlib_factory.run()
         self.logger = logging.getLogger(__name__)
         self.uid = uid
         self.configuration = None
@@ -140,9 +140,13 @@ class World:
         self.actors_controllers = {}
         self.actors_lookup()
 
+        # All communications have been set up, start the factory
+        self.commlib_factory.run()
+
         # Start all controllers
         for c in self.controllers:
-            self.controllers[c].start()
+            # start controllers in threads
+            threading.Thread(target = self.controllers[c].start).start()
 
     def devices_callback(self, _):
         """
@@ -189,7 +193,7 @@ class World:
             self.resolution = self.configuration['map']['resolution']
             self.width = int(self.configuration['map']['width'] / self.resolution)
             self.height = int(self.configuration['map']['height'] / self.resolution)
-            self.map = numpy.zeros((self.width, self.height))            
+            self.map = numpy.zeros((self.width, self.height))
 
             if 'obstacles' not in self.configuration['map']:
                 return

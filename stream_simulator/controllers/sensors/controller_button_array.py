@@ -49,6 +49,7 @@ class ButtonArrayController(BaseThing):
         }
 
         self.set_tf_communication(package)
+        self.set_simulation_communication(_namespace)
 
         self.info = info
         self.name = info["name"]
@@ -111,6 +112,11 @@ class ButtonArrayController(BaseThing):
         self.logger.info(f"Button {self.info['id']} sensor read thread stopped")
 
     def start(self):
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
         if self.info["mode"] == "mock":
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()

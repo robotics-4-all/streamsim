@@ -57,7 +57,6 @@ class EnvPanTiltController(BaseThing):
         self.tilt = 0
         self.limits = info['conf']['limits']
         # Turn to rads
-        print(self.limits, self.name, self.limits['pan']['min'])
         self.limits['pan']['min'] = float(self.limits['pan']['min']) * math.pi / 180.0
         self.limits['pan']['max'] = float(self.limits['pan']['max']) * math.pi / 180.0
         self.limits['tilt']['min'] = float(self.limits['tilt']['min']) * math.pi / 180.0
@@ -97,6 +96,7 @@ class EnvPanTiltController(BaseThing):
         self.operation_parameters = info['conf']['operation_parameters']
 
     def set_communication_layer(self, package):
+        self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
         self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
@@ -133,10 +133,9 @@ class EnvPanTiltController(BaseThing):
     def enable_callback(self, message):
         self.info["enabled"] = True
 
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_rpc_server.run()
-        # self.set_subscriber.run()
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
+        # self.get_rpc_server.run()
 
         if self.mode == "mock":
             self.data_thread = threading.Thread(target = self.thread_fun)
@@ -166,10 +165,15 @@ class EnvPanTiltController(BaseThing):
         return {}
 
     def start(self):
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_rpc_server.run()
-        self.set_rpc_server.run()
+        self.logger.info("Sensor %s waiting to start", self.name)
+        while not self.simulator_started:
+            time.sleep(1)
+        self.logger.info("Sensor %s started", self.name)
+
+        # self.enable_rpc_server.run()
+        # self.disable_rpc_server.run()
+        # self.get_rpc_server.run()
+        # self.set_rpc_server.run()
 
         if self.mode == "mock":
             if self.info['enabled']:
