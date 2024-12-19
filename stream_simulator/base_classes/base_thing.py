@@ -1,3 +1,6 @@
+"""
+File that contains the BaseThing class.
+"""
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -53,6 +56,18 @@ class BaseThing:
         self.commlib_factory.run()
 
     def set_simulation_communication(self, namespace):
+        """
+        Sets up the communication for the simulation by subscribing to the 
+        'simulation_started' topic within the given namespace.
+
+        Args:
+            namespace (str): The namespace to be used for the simulation communication.
+
+        Attributes:
+            namespace (str): The namespace used for the simulation communication.
+            simulation_started_sub (Subscriber): The subscriber object for the 
+                                                 'simulation_started' topic.
+        """
         self.namespace = namespace
         self.simulation_started_sub = self.commlib_factory.getSubscriber(
             topic=f"{namespace}.simulation_started",

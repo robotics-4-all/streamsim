@@ -1,3 +1,7 @@
+"""
+File used to define the exports for the bin package.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 

@@ -1,3 +1,6 @@
+"""
+File that contains the SimulatorStartup class.
+"""
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -5,7 +8,6 @@ import sys
 import logging
 import pathlib
 import yaml
-import time
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -29,7 +31,8 @@ class SimulatorStartup:
     load_yaml(yaml_file):
         Loads and parses a YAML file.
     recursive_conf_parse(conf, curr_dir):
-        Recursively parses the configuration dictionary, handling "source" keys to include other YAML files.
+        Recursively parses the configuration dictionary, handling "source" keys to include 
+        other YAML files.
     """
     def __init__(self,
                  conf_file = None,
@@ -59,7 +62,8 @@ class SimulatorStartup:
         This method loads and parses a YAML configuration file if `conf_file` is provided.
         If `configuration` is provided instead, it uses that dictionary directly.
         Args:
-            conf_file (str): The name of the configuration file (without extension) to load from the configurations directory.
+            conf_file (str): The name of the configuration file (without extension) to load 
+            from the configurations directory.
             configuration (dict): A dictionary containing the configuration data.
         Returns:
             dict: The parsed configuration dictionary.
@@ -67,7 +71,8 @@ class SimulatorStartup:
             Exception: If there is an error loading or parsing the YAML file.
         """
         tmp_conf = {}
-        current_dir = self.curr_dir if self.curr_dir is not None else str(pathlib.Path(__file__).parent.resolve())
+        current_dir = self.curr_dir if self.curr_dir is not None \
+            else str(pathlib.Path(__file__).parent.resolve())
         current_dir += "/../configurations/"
         if conf_file is not None:
             # Must load and parse file here

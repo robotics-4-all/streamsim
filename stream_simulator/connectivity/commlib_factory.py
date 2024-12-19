@@ -1,3 +1,6 @@
+"""
+File that contains the CommlibFactory class.
+"""
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -17,11 +20,12 @@ class CommlibFactory(Node):
     action servers, and action clients.
     It also maintains statistics about these entities for different brokers (e.g., MQTT, Redis).
     Attributes:
-        stats (dict): A dictionary to keep track of the number of publishers, subscribers, RPC servers, RPC clients,
-                      action servers, and action clients for different brokers.
+        stats (dict): A dictionary to keep track of the number of publishers, subscribers, 
+        RPC servers, RPC clients, action servers, and action clients for different brokers.
     Methods:
         __init__(*args, **kwargs):
-            Initializes the CommlibFactory instance, sets up logging, and initializes connection parameters.
+            Initializes the CommlibFactory instance, sets up logging, and initializes 
+            connection parameters.
         notify_ui(type=None, data=None):
             Publishes a notification to the UI if the notify attribute is set.
         inform(broker, topic, type, extras=""):
@@ -29,15 +33,20 @@ class CommlibFactory(Node):
         getPublisher(broker="mqtt", topic=None):
             Creates and runs a publisher for the specified broker and topic. Updates the statistics.
         getSubscriber(broker="mqtt", topic=None, callback=None):
-            Creates and runs a subscriber for the specified broker and topic. Updates the statistics.
+            Creates and runs a subscriber for the specified broker and topic. Updates the 
+            statistics.
         getRPCService(broker="mqtt", rpc_name=None, callback=None):
-            Creates and runs an RPC service for the specified broker and RPC name. Updates the statistics.
+            Creates and runs an RPC service for the specified broker and RPC name. Updates 
+            the statistics.
         getRPCClient(broker="mqtt", rpc_name=None):
-            Creates and runs an RPC client for the specified broker and RPC name. Updates the statistics.
+            Creates and runs an RPC client for the specified broker and RPC name. Updates 
+            the statistics.
         getActionServer(broker="mqtt", action_name=None, callback=None):
-            Creates and runs an action server for the specified broker and action name. Updates the statistics.
+            Creates and runs an action server for the specified broker and action name. 
+            Updates the statistics.
         getActionClient(broker="mqtt", action_name=None):
-            Creates and runs an action client for the specified broker and action name. Updates the statistics.
+            Creates and runs an action client for the specified broker and action name. 
+            Updates the statistics.
     """
     stats = {
         'mqtt': {
@@ -65,7 +74,7 @@ class CommlibFactory(Node):
     action_server_topics = {}
     action_client_topics = {}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, _, **kwargs):
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         self._logger = logging.getLogger(__name__)
@@ -101,7 +110,7 @@ class CommlibFactory(Node):
                 workers_rpc=10,
                 **kwargs
             )
-        except:
+        except: # pylint: disable=bare-except
             self._logger.critical("Error in connection parameters")
 
         self._logger.info('[*] Commlib factory initiated from %s:%s',
@@ -160,8 +169,8 @@ class CommlibFactory(Node):
             broker (str): The broker involved in the communication.
             topic (str): The topic of the communication.
             type (str): The type of communication event.
-            extras (str, optional): Additional information about the event. Defaults to an empty string.
-
+            extras (str, optional): Additional information about the event. Defaults to an 
+            empty string.
         Returns:
             None
         """
@@ -190,12 +199,13 @@ class CommlibFactory(Node):
 
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        # self.inform(broker, topic, "Publisher", f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['publishers'] += 1
         if topic in CommlibFactory.publisher_topics:
-            CommlibFactory.publisher_topics[topic].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+            CommlibFactory.publisher_topics[topic].append(\
+                f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         else:
-            CommlibFactory.publisher_topics[topic] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
+            CommlibFactory.publisher_topics[topic] = \
+                [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
     def getSubscriber(self, broker = "mqtt", topic = None, callback = None, auto_run = True):
@@ -205,7 +215,8 @@ class CommlibFactory(Node):
         Args:
             broker (str): The type of broker to use (default is "mqtt").
             topic (str): The topic to subscribe to (default is None).
-            callback (function): The callback function to handle incoming messages (default is None).
+            callback (function): The callback function to handle incoming messages (default 
+            is None).
 
         Returns:
             object: The created subscriber instance.
@@ -223,13 +234,13 @@ class CommlibFactory(Node):
             ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        # self.inform(broker, topic, "Subscriber", 
-                    # f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['subscribers'] += 1
         if topic in CommlibFactory.subscriber_topics:
-            CommlibFactory.subscriber_topics[topic].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+            CommlibFactory.subscriber_topics[topic].append(\
+                f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         else:
-            CommlibFactory.subscriber_topics[topic] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
+            CommlibFactory.subscriber_topics[topic] = [\
+                f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
     def getRPCService(self, broker = "mqtt", rpc_name = None, callback = None, auto_run = True):
@@ -239,7 +250,8 @@ class CommlibFactory(Node):
         Args:
             broker (str): The type of broker to use (default is "mqtt").
             rpc_name (str, optional): The name of the RPC service. Defaults to None.
-            callback (callable, optional): The callback function to handle requests. Defaults to None.
+            callback (callable, optional): The callback function to handle requests. 
+            Defaults to None.
 
         Returns:
             RPCService: The created and running RPC service instance.
@@ -252,13 +264,13 @@ class CommlibFactory(Node):
             ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        # self.inform(broker, rpc_name, "RPCService", 
-                    # f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['rpc servers'] += 1
         if rpc_name in CommlibFactory.rpc_server_topics:
-            CommlibFactory.rpc_server_topics[rpc_name].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+            CommlibFactory.rpc_server_topics[rpc_name].append(\
+                f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         else:
-            CommlibFactory.rpc_server_topics[rpc_name] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
+            CommlibFactory.rpc_server_topics[rpc_name] = \
+                [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
     def getRPCClient(self, broker = "mqtt", rpc_name = None, auto_run = True):
@@ -279,16 +291,22 @@ class CommlibFactory(Node):
             ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        # self.inform(broker, rpc_name, "RPCClient", 
-        #             f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['rpc clients'] += 1
         if rpc_name in CommlibFactory.rpc_client_topics:
-            CommlibFactory.rpc_client_topics[rpc_name].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+            CommlibFactory.rpc_client_topics[rpc_name].append(\
+                f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         else:
-            CommlibFactory.rpc_client_topics[rpc_name] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
+            CommlibFactory.rpc_client_topics[rpc_name] = \
+                [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
-    def getActionServer(self, broker = "mqtt", action_name = None, callback = None, auto_run = True):
+    def getActionServer(
+        self,
+        broker = "mqtt",
+        action_name = None,
+        callback = None,
+        auto_run = True
+    ):
         """
         Creates and runs an action server, and logs its creation.
 
@@ -308,13 +326,13 @@ class CommlibFactory(Node):
             ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        # self.inform(broker, action_name, "ActionServer", 
-        #             f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['action servers'] += 1
         if action_name in CommlibFactory.action_server_topics:
-            CommlibFactory.action_server_topics[action_name].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+            CommlibFactory.action_server_topics[action_name].append(\
+                f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         else:
-            CommlibFactory.action_server_topics[action_name] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
+            CommlibFactory.action_server_topics[action_name] = \
+                [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret
 
     def getActionClient(self, broker = "mqtt", action_name = None, auto_run = True):
@@ -339,11 +357,11 @@ class CommlibFactory(Node):
             ret.run()
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
-        # self.inform(broker, action_name, "ActionClient", 
-        #             f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         CommlibFactory.stats[broker]['action clients'] += 1
         if action_name in CommlibFactory.action_client_topics:
-            CommlibFactory.action_client_topics[action_name].append(f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
+            CommlibFactory.action_client_topics[action_name].append(\
+                f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
         else:
-            CommlibFactory.action_client_topics[action_name] = [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
+            CommlibFactory.action_client_topics[action_name] = \
+                [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
         return ret

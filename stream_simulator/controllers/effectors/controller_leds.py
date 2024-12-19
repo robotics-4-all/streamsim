@@ -1,26 +1,49 @@
+"""
+File implementing the LedsController class.
+"""
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import math
 import logging
-import threading
-import random
-
-from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
 
 class LedsController(BaseThing):
+    """
+    LedsController is a class that manages LED devices in a simulation or mock environment.
+    Attributes:
+        logger (logging.Logger): Logger for the controller.
+        info (dict): Information about the LED device.
+        name (str): Name of the LED device.
+        base_topic (str): Base topic for communication.
+        derp_data_key (str): Key for raw data communication.
+        _color (dict): Current color of the LED.
+        _luminosity (int): Current luminosity of the LED.
+        leds_pub (Publisher): Publisher for LED commands.
+        leds_wipe_pub (Publisher): Publisher for LED wipe commands.
+        set_rpc_server (RPCService): RPC server for setting LED state.
+        get_rpc_server (RPCService): RPC server for getting LED state.
+        leds_wipe_server (RPCService): RPC server for wiping LED state.
+        enable_rpc_server (RPCService): RPC server for enabling the LED.
+        disable_rpc_server (RPCService): RPC server for disabling the LED.
+    Methods:
+        enable_callback(_): Enables the LED device.
+        disable_callback(_): Disables the LED device.
+        start(): Starts the LED controller.
+        stop(): Stops the LED controller.
+        leds_get_callback(_): Gets the current state of the LED.
+        leds_set_callback(message): Sets the state of the LED based on the provided message.
+        leds_wipe_callback(message): Wipes the LED state based on the provided message.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
-        id = "d_leds_" + str(BaseThing.id + 1)
-        name = id
+        id_ = "d_leds_" + str(BaseThing.id + 1)
+        name = id_
         if 'name' in conf:
             name = conf['name']
         _category = "actuator"
@@ -29,7 +52,7 @@ class LedsController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id)
+        super().__init__(id_)
 
         info = {
             "type": "LED",
@@ -37,7 +60,7 @@ class LedsController(BaseThing):
             "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
-            "id": id,
+            "id": id_,
             "enabled": True,
             "orientation": float(conf["orientation"]),
             "queue_size": 0,
@@ -82,7 +105,7 @@ class LedsController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        
+
         self.tf_declare_rpc.call(tf_package)
 
         self._color = {
@@ -121,29 +144,85 @@ class LedsController(BaseThing):
         )
 
     def enable_callback(self, _):
+        """
+        Enables the callback by setting the "enabled" key in the info dictionary to True.
+
+        Args:
+            _ (Any): Placeholder argument, not used in the method.
+
+        Returns:
+            dict: A dictionary with the key "enabled" set to True.
+        """
         self.info["enabled"] = True
         return {"enabled": True}
 
     def disable_callback(self, _):
+        """
+        Disables the callback by setting the "enabled" key in the info dictionary to False.
+
+        Args:
+            _ (Any): A placeholder argument that is not used.
+
+        Returns:
+            dict: A dictionary with the "enabled" key set to False.
+        """
         self.info["enabled"] = False
         return {"enabled": False}
 
     def start(self):
+        """
+        Starts the sensor and waits for the simulator to start.
+
+        This method logs a message indicating that the sensor is waiting to start.
+        It then enters a loop, sleeping for 1 second at a time, until the simulator
+        has started. Once the simulator has started, it logs a message indicating
+        that the sensor has started.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
     def stop(self):
+        """
+        Stops the communication library factory.
+
+        This method stops the communication library factory, which is responsible
+        for managing the communication with the LED controllers.
+        """
         self.commlib_factory.stop()
 
     def leds_get_callback(self, _):
+        """
+        Callback function to retrieve the current state of the LEDs.
+
+        Args:
+            _ (Any): Unused argument.
+
+        Returns:
+            dict: A dictionary containing the current color and luminosity of the LEDs.
+                - "color" (str): The current color of the LEDs.
+                - "luminosity" (float): The current luminosity of the LEDs.
+        """
         return {
             "color": self._color,
             "luminosity": self._luminosity
         }
 
     def leds_set_callback(self, message):
+        """
+        Callback function to set the LED values based on the received message.
+        Args:
+            message (dict): A dictionary containing the LED values. Expected keys are:
+                - "r" (float): Red component of the color (default is 0.0).
+                - "g" (float): Green component of the color (default is 0.0).
+                - "b" (float): Blue component of the color (default is 0.0).
+                - "luminosity" (float): Intensity of the LEDs (default is 0.0).
+        Returns:
+            dict: An empty dictionary.
+        Raises:
+            Exception: If the message is wrongly formatted.
+        """
         try:
             response = message
 
@@ -151,8 +230,6 @@ class LedsController(BaseThing):
             g = response["g"] if "g" in response else 0.0
             b = response["b"] if "b" in response else 0.0
             intensity = response["luminosity"] if "luminosity" in response else 0.0
-
-            real_color = [r, g, b, intensity]
 
             _values = {
                 'r': r,
@@ -177,21 +254,36 @@ class LedsController(BaseThing):
                 self._color["b"] = b
                 self._luminosity = intensity
 
-            self.logger.info("{}: New leds command: {}".format(self.name, message))
+            self.logger.info("{%s: New leds command: %s", self.name, message)
 
-        except Exception as e:
-            self.logger.error("{}: leds_set is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
+        except Exception as e: # pylint: disable=broad-except
+            self.logger.error("%s: leds_set is wrongly formatted: %s - %s", \
+                self.name, str(e.__class__), str(e))
 
         return {}
 
     def leds_wipe_callback(self, message):
+        """
+        Handles the LED wipe command by extracting the color and intensity values from the message,
+        updating the internal state, and notifying the UI.
+        Args:
+            message (dict): A dictionary containing the LED wipe command with the following keys:
+                - "r" (int): Red color component (0-255).
+                - "g" (int): Green color component (0-255).
+                - "b" (int): Blue color component (0-255).
+                - "luminosity" (int): Intensity of the color (0-255).
+                - "wait_ms" (int): Wait time in milliseconds.
+        Returns:
+            dict: An empty dictionary.
+        Raises:
+            Exception: If the message is wrongly formatted.
+        """
         try:
             response = message
             r = response["r"]
             g = response["g"]
             b = response["b"]
             intensity = response["luminosity"]
-            ms = response["wait_ms"]
             self._color = [r, g, b, intensity]
 
             self.commlib_factory.notify_ui(
@@ -212,9 +304,10 @@ class LedsController(BaseThing):
             elif self.info["mode"] == "simulation":
                 pass
 
-            self.logger.info("{}: New leds wipe command: {}".format(self.name, message))
+            self.logger.info("%s: New leds wipe command: %s", self.name, message)
 
-        except Exception as e:
-            self.logger.error("{}: leds_wipe is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
+        except Exception as e: # pylint: disable=broad-except
+            self.logger.error("%s: leds_wipe is wrongly formatted: %s - %s", \
+                self.name, str(e.__class__), str(e))
 
         return {}

@@ -1,3 +1,6 @@
+"""
+File used to define the effectors controllers.
+"""
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 

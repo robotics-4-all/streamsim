@@ -1,3 +1,7 @@
+"""
+File that contains the BasicSensor class.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -12,7 +16,8 @@ from stream_simulator.base_classes import BaseThing
 
 class BasicSensor(BaseThing):
     """
-    BasicSensor is a class that represents a basic sensor with various operational modes and configurations.
+    BasicSensor is a class that represents a basic sensor with various 
+    operational modes and configurations.
     Attributes:
         logger (logging.Logger): Logger instance for logging sensor activities.
         info (dict): Dictionary containing sensor information and configuration.
@@ -74,7 +79,7 @@ class BasicSensor(BaseThing):
         _name = conf["name"]
         _pack = package["base"]
         _place = conf["place"]
-        
+
         info = {
             "type": _type,
             "base_topic": f"{_simname}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
@@ -112,7 +117,7 @@ class BasicSensor(BaseThing):
 
         if self.mode == 'mock':
             if self.operation not in self.operation_parameters:
-                self.logger.error("Operation parameters missing from %s: %s", 
+                self.logger.error("Operation parameters missing from %s: %s",
                                   self.name, self.operation)
                 raise Exception( # pylint: disable=broad-exception-raised
                     f"Operation parameters missing from {self.name}: {self.operation}")
@@ -164,12 +169,13 @@ class BasicSensor(BaseThing):
         Sets the mode of the sensor based on the provided message.
         Parameters:
         message (dict): A dictionary containing the mode information. 
-                        Expected keys:
-                        - "mode" (str): The mode to set. Possible values are "triangle", "sinus", or other.
+        Expected keys:
+        - "mode" (str): The mode to set. Possible values are "triangle", "sinus", or other.
         Returns:
         dict: An empty dictionary.
         Behavior:
-        - If the mode is "triangle", sets self.prev to the minimum value of the "triangle" operation parameters and self.way to 1.
+        - If the mode is "triangle", sets self.prev to the minimum value of the 
+            "triangle" operation parameters and self.way to 1.
         - If the mode is "sinus", sets self.prev to 0.
         - For any other mode, sets self.prev to None.
         - Updates self.operation to the provided mode.
@@ -187,9 +193,15 @@ class BasicSensor(BaseThing):
 
     def sensor_read(self):
         """
-        Reads sensor data based on the specified operation mode and parameters, and publishes the value at a specified frequency.
-        The method supports different operation modes such as "mock" and "simulation". In "mock" mode, it generates values based on predefined operations like "constant", "random", "normal", "triangle", and "sinus". In "simulation" mode, it retrieves values from a simulation function.
-        The method logs the start of the sensor read thread and any missing operation parameters. It continuously reads and publishes sensor values while the sensor is enabled.
+        Reads sensor data based on the specified operation mode and parameters, and 
+        publishes the value at a specified frequency.
+        The method supports different operation modes such as "mock" and "simulation". 
+        In "mock" mode, it generates values based on predefined operations like "constant", 
+        "random", "normal", "triangle", and "sinus". In "simulation" mode, it retrieves 
+        values from a simulation function.
+        The method logs the start of the sensor read thread and any missing operation 
+        parameters. It continuously reads and publishes sensor values while the sensor is 
+        enabled.
         Raises:
             Exception: If there are missing operation parameters.
         Operations:
@@ -274,11 +286,14 @@ class BasicSensor(BaseThing):
 
     def enable_callback(self, _):
         """
-        Enables the sensor by setting the "enabled" status to True and starting necessary services and threads.
+        Enables the sensor by setting the "enabled" status to True and starting necessary 
+        services and threads.
         Args:
-            message (dict): A dictionary containing the message data (not used in the current implementation).
+            message (dict): A dictionary containing the message data (not used 
+            in the current implementation).
         Returns:
-            dict: A dictionary indicating that the sensor has been enabled with the key "enabled" set to True.
+            dict: A dictionary indicating that the sensor has been enabled with 
+            the key "enabled" set to True.
         """
         self.info["enabled"] = True
 
@@ -321,7 +336,8 @@ class BasicSensor(BaseThing):
         """
         Sets the state of the sensor based on the provided message and returns the updated state.
         Args:
-            message (dict): A dictionary containing the state to be set. The dictionary must have a key "state".
+            message (dict): A dictionary containing the state to be set. 
+            The dictionary must have a key "state".
         Returns:
             dict: A dictionary containing the updated state of the sensor.
         Raises:

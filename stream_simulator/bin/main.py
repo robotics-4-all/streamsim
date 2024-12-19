@@ -5,7 +5,8 @@ Modules:
     logging: Provides a flexible framework for emitting log messages from Python programs.
     stream_simulator: Custom module that contains the Simulator class.
 Usage:
-    Run the script to start the simulator. The simulator will continue running until a keyboard interrupt (Ctrl+C) is received.
+    Run the script to start the simulator. The simulator will continue running until a 
+    keyboard interrupt (Ctrl+C) is received.
 Classes:
     Simulator: A class from the stream_simulator module that handles the simulation process.
 Functions:
@@ -13,7 +14,8 @@ Functions:
 Exceptions:
     KeyboardInterrupt: Catches the keyboard interrupt to stop the simulator gracefully.
 Logging:
-    Configured to display log messages with the format 'LEVEL : LOGGER NAME : MESSAGE' at the DEBUG level.
+    Configured to display log messages with the format 'LEVEL : LOGGER NAME : MESSAGE' at 
+    the DEBUG level.
 """
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
@@ -26,7 +28,7 @@ from stream_simulator import Simulator
 
 COLAB = False
 try:
-    from google.colab import drive # pylint: disable=unused-import
+    from google.colab import drive # type: ignore # pylint: disable=unused-import
     COLAB = True
 except ImportError:
     pass

@@ -1,6 +1,7 @@
 """
 This script is responsible for starting the simulator with a given configuration file.
-It executes the main.py script located in the specified directory using the system's Python 3 interpreter.
+It executes the main.py script located in the specified directory using the system's 
+Python 3 interpreter.
 
 Functions:
     thread_main(curr_dir):
@@ -17,7 +18,8 @@ from stream_simulator.bin import SimulatorStartup
 
 def thread_main(curr_dir, uid):
     """
-    Executes the main.py script located in the specified directory using the system's Python 3 interpreter.
+    Executes the main.py script located in the specified directory using the 
+    system's Python 3 interpreter.
 
     Args:
         curr_dir (str): The directory path where main.py is located.

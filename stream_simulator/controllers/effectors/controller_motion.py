@@ -1,18 +1,51 @@
+"""
+File that implements the MotionController class.
+"""
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import math
 import logging
-import threading
-import random
-
-from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
 
 class MotionController(BaseThing):
+    """
+    MotionController is a class that handles the motion control of a robot using skid steering.
+    Attributes:
+        logger (logging.Logger): Logger instance for logging messages.
+        resolution (int): Resolution of the motion controller.
+        info (dict): Dictionary containing information about the motion controller.
+        name (str): Name of the motion controller.
+        base_topic (str): Base topic for communication.
+        derp_data_key (str): Key for raw data communication.
+        _linear (float): Linear velocity.
+        _angular (float): Angular velocity.
+        vel_sub (Subscriber): Subscriber for velocity commands.
+        motion_duration_sub (RPCService): RPC service for handling movement duration commands.
+        motion_distance_sub (RPCService): RPC service for handling movement distance commands.
+        turn_sub (RPCService): RPC service for handling turn commands.
+        enable_rpc_server (RPCService): RPC service for enabling the motion controller.
+        disable_rpc_server (RPCService): RPC service for disabling the motion controller.
+    Methods:
+        __init__(conf=None, package=None):
+            Initializes the MotionController instance.
+        enable_callback(message):
+            Callback function to enable the motion controller.
+        disable_callback(message):
+            Callback function to disable the motion controller.
+        start():
+            Starts the motion controller.
+        stop():
+            Stops the motion controller.
+        move_duration_callback(message):
+        move_distance_callback(message):
+            Callback function to handle movement distance messages.
+        turn_callback(message):
+            Callback function to handle turn messages.
+        cmd_vel(message):
+            Callback function to handle velocity commands.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf["name"])
@@ -20,8 +53,8 @@ class MotionController(BaseThing):
             self.logger = package["logger"]
 
         self.resolution = 0
-        id = "d_skid_steering_" + str(BaseThing.id + 1)
-        name = id
+        id_ = "d_skid_steering_" + str(BaseThing.id + 1)
+        name = id_
         if 'name' in conf:
             name = conf['name']
         _category = "actuator"
@@ -30,7 +63,7 @@ class MotionController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id)
+        super().__init__(id_)
 
         info = {
             "type": "SKID_STEER",
@@ -38,7 +71,7 @@ class MotionController(BaseThing):
             "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
-            "id": id,
+            "id": id_,
             "enabled": True,
             "orientation": float(conf["orientation"]),
             "queue_size": 0,
@@ -78,7 +111,7 @@ class MotionController(BaseThing):
         }
         tf_package['host'] = package['device_name']
         tf_package['host_type'] = 'robot'
-        
+
         self.tf_declare_rpc.call(tf_package)
 
         self._linear = 0
@@ -109,21 +142,55 @@ class MotionController(BaseThing):
             rpc_name = self.base_topic + ".disable"
         )
 
-    def enable_callback(self, message):
+    def enable_callback(self, _):
+        """
+        Enables the callback by setting the "enabled" key in the info dictionary to True.
+
+        Args:
+            _ (Any): Placeholder argument, not used.
+
+        Returns:
+            dict: A dictionary with the key "enabled" set to True.
+        """
         self.info["enabled"] = True
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the callback by setting the "enabled" key in the info dictionary to False.
+
+        Args:
+            _ (Any): Unused parameter.
+
+        Returns:
+            dict: A dictionary with the "enabled" key set to False.
+        """
         self.info["enabled"] = False
         return {"enabled": False}
 
     def start(self):
+        """
+        Starts the sensor and waits for the simulator to start.
+
+        This method logs a message indicating that the sensor is waiting to start.
+        It then enters a loop, repeatedly checking if the simulator has started.
+        Once the simulator has started, it logs a message indicating that the sensor has started.
+
+        Returns:
+            None
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
     def stop(self):
+        """
+        Stops the motion controller by invoking the stop method of the commlib_factory.
+
+        This method is used to halt any ongoing operations or movements controlled by the 
+        commlib_factory.
+        """
         self.commlib_factory.stop()
 
     def move_duration_callback(self, message):
@@ -165,12 +232,25 @@ class MotionController(BaseThing):
                     break
                 time.sleep(0.05)
         except Exception as e: # pylint: disable=broad-exception-caught
-            self.logger.error("%s: move_duration is wrongly formatted: %s - %s", self.name, str(e.__class__), str(e))
+            self.logger.error("%s: move_duration is wrongly formatted: %s - %s", \
+                self.name, str(e.__class__), str(e))
             return {"status": "failed"}
 
         return {"status": "done"}
 
     def move_distance_callback(self, message):
+        """
+        Callback function to handle movement distance messages.
+        Args:
+            message (dict): A dictionary containing movement parameters.
+                - 'linear' (float or str): The linear speed of the movement.
+                - 'distance' (float or str): The distance to be moved.
+        Returns:
+            dict: A dictionary indicating the status of the operation.
+                - 'status' (str): "done" if the operation was successful, "failed" otherwise.
+        Raises:
+            ValueError: If 'linear' or 'distance' are not valid float or integer values.
+        """
         try:
             response = message
 
@@ -190,12 +270,25 @@ class MotionController(BaseThing):
             time.sleep(response["distance"] / response["linear"])
             self._linear = 0
         except Exception as e: # pylint: disable=broad-exception-caught
-            self.logger.error("%s: move_duration is wrongly formatted: %s - %s", self.name, str(e.__class__), str(e))
+            self.logger.error("%s: move_duration is wrongly formatted: %s - %s", \
+                self.name, str(e.__class__), str(e))
             return {"status": "failed"}
 
         return {"status": "done"}
 
     def turn_callback(self, message):
+        """
+        Callback function to handle turning motion based on the provided message.
+        Args:
+            message (dict): A dictionary containing the keys 'angular' and 'angle'.
+                            'angular' represents the angular velocity.
+                            'angle' represents the angle to turn.
+        Returns:
+            dict: A dictionary with the status of the operation. 
+                  Returns {"status": "done"} if successful, otherwise {"status": "failed"}.
+        Raises:
+            ValueError: If 'angular' or 'angle' in the message are not valid numbers.
+        """
         try:
             response = message
 
@@ -215,12 +308,25 @@ class MotionController(BaseThing):
             time.sleep(response["angle"] / response["angular"])
             self._angular = 0
         except Exception as e: # pylint: disable=broad-exception-caught
-            self.logger.error("%s: turn is wrongly formatted: %s - %s", self.name, str(e.__class__), str(e))
+            self.logger.error("%s: turn is wrongly formatted: %s - %s", \
+                self.name, str(e.__class__), str(e))
             return {"status": "failed"}
 
         return {"status": "done"}
 
     def cmd_vel(self, message):
+        """
+        Processes a velocity command message and updates the controller's linear 
+        and angular velocities.
+        Args:
+            message (dict): A dictionary containing the velocity command with keys 
+            'linear', 'angular', and 'raw'.
+        Raises:
+            Exception: If 'linear' or 'angular' values are not integers or floats.
+        Notes:
+            - The 'linear' and 'angular' values are expected to be convertible to float.
+            - Logs an error if the message is wrongly formatted.
+        """
         try:
             response = message
 
@@ -228,14 +334,14 @@ class MotionController(BaseThing):
             try:
                 float(response['linear'])
                 float(response['angular'])
-            except: # pylint: disable=bare-except
+            except Exception as exc: # pylint: disable=broad-exception-caught
                 if not response['linear'].isdigit():
-                    raise Exception("Linear is no integer nor float")
+                    raise Exception("Linear is no integer nor float") from exc # pylint: disable=broad-exception-raised
                 if not response['angular'].isdigit():
-                    raise Exception("Angular is no integer nor float")
+                    raise Exception("Angular is no integer nor float") from exc # pylint: disable=broad-exception-raised
 
             self._linear = response['linear']
             self._angular = response['angular']
-            self._raw = response['raw']
-        except Exception as e:
-            self.logger.error("{}: cmd_vel is wrongly formatted: {} - {}".format(self.name, str(e.__class__), str(e)))
+        except Exception as e: # pylint: disable=broad-exception-caught
+            self.logger.error("%s: cmd_vel is wrongly formatted: %s - %s", \
+                self.name, str(e.__class__), str(e))
