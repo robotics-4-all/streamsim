@@ -179,10 +179,47 @@ class TfController:
             child2 @ place2
         """
         self.logger.info("Transformation tree:")
+        visited = []
         for h in self.tree:
-            self.logger.info("\t%s:", h)
-            for d in self.tree[h]:
-                self.logger.info("\t\t%s @ %s", d, self.places_absolute[d])
+            if h is not None and h not in self.robots:
+                continue
+            visited = self.print_tf_tree_recursive(h, 1, visited)
+
+    def print_tf_tree_recursive(self, node, level, visited = []):
+        """
+        Prints the transformation tree recursively.
+
+        This method iterates through the transformation tree and prints each node
+        along with its corresponding places in an absolute format.
+
+        The output format is:
+        <node>:
+            <child_node> @ <absolute_place>
+
+        Example:
+        root:
+            child1 @ place1
+            child2 @ place2
+
+        Args:
+            node (str): The current node in the tree.
+            level (int): The level of the current node in the tree.
+        """
+        # We want only env devices and robots here
+        # print(f"Checking {node}", node, node not in self.robots, self.robots, visited)
+        if node in visited:
+            return visited
+
+        visited.append(node)
+        if node not in self.tree:
+            return visited
+        tabs = "\t" * level
+        self.logger.info(f"{tabs}{node}:")
+        for c in self.tree[node]:
+            tabs = "\t" * (level + 1)
+            self.logger.info(f"{tabs}{c} @ {self.places_absolute[c]}")
+            visited = self.print_tf_tree_recursive(c, level + 1, visited)
+        return visited
 
     def get_declarations_callback(self, message):
         """
@@ -398,6 +435,9 @@ class TfController:
         if 'host_type' in message:
             if message['host_type'] not in ['robot', 'pan_tilt']:
                 self.logger.error(f"tf: Invalid host type for {message['name']}: {message['host_type']}")
+        elif 'host' in message:
+            if message['host'] in self.pantilts:
+                message['host_type'] = 'pan_tilt'
 
         self.logger.info(f"TF declaration: {temp['name']}::{temp['type']}::{temp['subtype']}\n\t @ {temp['pose']} {host_msg}")
 
@@ -465,7 +505,7 @@ class TfController:
                 )
 
             # Handle robots
-            if d['host'] not in self.robots_get_devices_rpcs:
+            if d['host'] not in self.robots_get_devices_rpcs and d['host_type'] != 'pan_tilt':
                 self.robots.append(d['host'])
                 self.existing_hosts.append(d['host'])
 

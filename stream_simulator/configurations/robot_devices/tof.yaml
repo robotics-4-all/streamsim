@@ -3,3 +3,4 @@ place: F
 hz: 5
 pose: {theta: 0}
 max_range: 5
+host: pt1

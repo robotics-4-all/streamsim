@@ -75,26 +75,25 @@ class CommlibFactory(Node):
         self.get_tf = None
 
         load_dotenv()
-        broker_host = os.getenv('BROKER_HOST', 'broker.emqx.io')
-        broker_port = int(os.getenv('BROKER_PORT', "8883"))
-        broker_ssl = bool(os.getenv('BROKER_SSL', "True"))
-        broker_username = os.getenv('BROKER_USERNAME', '')
-        broker_password = os.getenv('BROKER_PASSWORD', '')
-
+        self.use_redis = os.getenv('USE_REDIS', "False")
         try:
-            self.conn_params = MQTTConnectionParameters(
-                host=broker_host,
-                port=broker_port,
-                ssl=broker_ssl,
-                username=broker_username,
-                password=broker_password,
-                reconnect_attempts=0,
-            )
+            if self.use_redis == "False":
+                broker_host = os.getenv('BROKER_HOST', 'broker.emqx.io')
+                broker_port = int(os.getenv('BROKER_PORT', "8883"))
+                broker_ssl = bool(os.getenv('BROKER_SSL', "True"))
+                broker_username = os.getenv('BROKER_USERNAME', '')
+                broker_password = os.getenv('BROKER_PASSWORD', '')
 
-            # self.conn_params = RedisConnectionParameters(
-            #     host="locahost",
-            #     port=6379,
-            # )
+                self.conn_params = MQTTConnectionParameters(
+                    host=broker_host,
+                    port=broker_port,
+                    ssl=broker_ssl,
+                    username=broker_username,
+                    password=broker_password,
+                    reconnect_attempts=0,
+                )
+            else:
+                self.conn_params = RedisConnectionParameters()
 
             super().__init__(
                 connection_params=self.conn_params,

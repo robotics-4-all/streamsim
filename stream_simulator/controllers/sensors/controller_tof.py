@@ -79,13 +79,9 @@ class TofController(BaseThing):
             "name": self.name,
             "namespace": _namespace,
         }
-        tf_package['host'] = package['device_name']
-        tf_package['host_type'] = 'robot'
-        if 'host' in conf:
-            tf_package['host'] = conf['host']
-            tf_package['host_type'] = 'pan_tilt'
-        
-        
+        tf_package['host'] = package['device_name'] if 'host' not in conf else conf['host']
+        tf_package['host_type'] = 'robot' if 'host' not in conf else 'pan_tilt'
+
         self.tf_declare_rpc.call(tf_package)
 
         self.publisher = self.commlib_factory.getPublisher(
