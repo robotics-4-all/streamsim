@@ -88,7 +88,6 @@ class Simulator:
             callback = self.devices_callback,
             rpc_name = self.name + '.get_device_groups'
         )
-        print("Startedddd", self.name + '.get_device_groups')
 
         self.configuration_rpc_server = self.commlib_factory.getRPCService(
             callback = self.configuration_callback,
@@ -111,7 +110,6 @@ class Simulator:
         self.logger.info("Simulator created. Waiting for configuration...")
 
     def devices_callback(self, message):
-        print(">>> Devices callback")
         return {
                 "robots": self.robot_names,
                 "world": self.world_name

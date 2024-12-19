@@ -31,12 +31,6 @@ class TfController:
             auto_run = False,
         )
 
-        self.declare_subscriber_ = self.commlib_factory.getSubscriber(
-            topic = self.base_topic + ".declaresub",
-            callback = self.declare_subscriber,
-            auto_run = False,
-        )
-
         self.get_declarations_rpc_server = self.commlib_factory.getRPCService(
             callback = self.get_declarations_callback,
             rpc_name = self.base_topic + ".get_declarations",
@@ -385,7 +379,6 @@ class TfController:
     #      'host', 'host_type'
     # }
     def declare_callback(self, message):
-        print("#############################")
         m = message
 
         # sanity checks
@@ -417,47 +410,8 @@ class TfController:
         self.declarations_info[temp['name']] = temp
 
         # Per type storage
-        print(">>>>>>>>>>>>>")
         self.per_type_storage(temp)
-        print("<<<<<<<<<<<<<")
         return {}
-
-    def declare_subscriber(self, message):
-        print("#############################")
-        m = message
-
-        # sanity checks
-        temp = {}
-        for t in self.declare_rpc_input:
-            temp[t] = None
-        for m in message:
-            if m not in temp:
-                self.logger.error(f"tf: Invalid declaration field for {message['name']}: {m}")
-                return {}
-            temp[m] = message[m]
-
-        host_msg = ""
-        if 'host' in message:
-            host_msg = f"on {message['host']}"
-
-        if 'host_type' in message:
-            if message['host_type'] not in ['robot', 'pan_tilt']:
-                self.logger.error(f"tf: Invalid host type for {message['name']}: {message['host_type']}")
-
-        self.logger.info(f"TF declaration: {temp['name']}::{temp['type']}::{temp['subtype']}\n\t @ {temp['pose']} {host_msg}")
-
-        # Fix thetas if exist:
-        if temp['pose']['theta'] != None:
-            temp['pose']['theta'] = float(temp['pose']['theta'])
-            temp['pose']['theta'] *= math.pi/180.0
-
-        self.declarations.append(temp)
-        self.declarations_info[temp['name']] = temp
-
-        # Per type storage
-        print(">>>>>>>>>>>>>")
-        self.per_type_storage(temp)
-        print("<<<<<<<<<<<<<")
 
     # https://jsonformatter.org/yaml-formatter/a56cff
     def per_type_storage(self, d):

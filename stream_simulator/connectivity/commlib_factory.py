@@ -82,23 +82,25 @@ class CommlibFactory(Node):
         broker_password = os.getenv('BROKER_PASSWORD', '')
 
         try:
-            # self.conn_params = MQTTConnectionParameters(
-            #     host=broker_host,
-            #     port=broker_port,
-            #     ssl=broker_ssl,
-            #     username=broker_username,
-            #     password=broker_password,
-            #     reconnect_attempts=0,
-            # )
-
-            self.conn_params = RedisConnectionParameters(
-                host="locahost",
-                port=6379,
+            self.conn_params = MQTTConnectionParameters(
+                host=broker_host,
+                port=broker_port,
+                ssl=broker_ssl,
+                username=broker_username,
+                password=broker_password,
+                reconnect_attempts=0,
             )
+
+            # self.conn_params = RedisConnectionParameters(
+            #     host="locahost",
+            #     port=6379,
+            # )
 
             super().__init__(
                 connection_params=self.conn_params,
-                *args, **kwargs
+                heartbeats=False,
+                workers_rpc=10,
+                **kwargs
             )
         except:
             self._logger.critical("Error in connection parameters")

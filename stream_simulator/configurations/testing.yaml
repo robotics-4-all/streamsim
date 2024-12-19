@@ -70,14 +70,14 @@ robots:
         - source: "robot_devices/leds"
       pan_tilt:
         - source: "robot_devices/pan_tilt"
-#       skid_steer:
-#         - source: "robot_devices/skid_steer"
-#       rfid_reader:
-#         - source: "robot_devices/rfid_reader"
-#     starting_pose:
-#       x: 500 # in pixels
-#       y: 500 # in pixels
-#       theta: 0 # in degrees
+      skid_steer:
+        - source: "robot_devices/skid_steer"
+      rfid_reader:
+        - source: "robot_devices/rfid_reader"
+    starting_pose:
+      x: 500 # in pixels
+      y: 500 # in pixels
+      theta: 0 # in degrees
 
 env_devices:
   relays:

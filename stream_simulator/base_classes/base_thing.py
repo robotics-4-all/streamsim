@@ -44,8 +44,8 @@ class BaseThing:
         self.publisher_triggers = None
         self.set_rpc_server = None
         self.get_rpc_server = None
-        self.simulator_started = False
         self.simulation_started_sub = None
+        self.simulator_started = False
 
         self.tf_declare_pub = None
 
@@ -77,10 +77,6 @@ class BaseThing:
         """
         self.tf_declare_rpc = self.commlib_factory.getRPCClient(
             rpc_name=package["tf_declare_rpc_topic"]
-        )
-
-        self.tf_declare_pub = self.commlib_factory.getPublisher(
-            topic=package["tf_declare_rpc_topic"] + "sub"
         )
 
         self.tf_affection_rpc = self.commlib_factory.getRPCClient(

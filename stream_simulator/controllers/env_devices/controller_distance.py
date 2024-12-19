@@ -146,9 +146,9 @@ class EnvDistanceController(BaseThing):
         get_devices_rpc = self.commlib_factory.getRPCClient(
             rpc_name = self.get_device_groups_rpc_topic
         )
-        print("Callinggggg", self.get_device_groups_rpc_topic)
+
         res = get_devices_rpc.call({}, timeout=5)
-        print("Called")
+
         # create subscribers
         self.robots_subscribers = {}
         for r in res['robots']:
