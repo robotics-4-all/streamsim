@@ -1,11 +1,18 @@
+"""
+This file contains the World class, which represents a simulated environment with various 
+properties, devices, and actors. The World class is responsible for loading the environment 
+configuration, initializing properties, devices, and actors, and setting up the map and obstacles 
+based on the configuration. It also registers controllers for devices and actors, and starts the 
+communication library factory.
+"""
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
 import logging
 import math
-import numpy
 import threading
+import numpy
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -20,7 +27,8 @@ class World:
         tf_base (str): Base topic for transformation.
         tf_declare_rpc (RPCClient): RPC client for declaring transformations.
         name (str): Name of the world.
-        env_properties (dict): Environmental properties such as temperature, humidity, luminosity, and pH.
+        env_properties (dict): Environmental properties such as temperature, humidity, 
+            luminosity, and pH.
         env_devices (list): List of environmental devices.
         actors (list): List of actors in the environment.
         devices (list): List of devices in the environment.
@@ -130,7 +138,8 @@ class World:
 
         self.devices_rpc_server = self.commlib_factory.getRPCService(
             callback = self.devices_callback,
-            rpc_name = f"{self.tf_base.split('.')[0]}.{self.name}.nodes_detector.get_connected_devices"
+            rpc_name = \
+                f"{self.tf_base.split('.')[0]}.{self.name}.nodes_detector.get_connected_devices"
         )
 
         self.setup()
@@ -238,7 +247,8 @@ class World:
         Registers a controller with the world.
 
         Args:
-            c (Controller): The controller to be registered. It must have 'name' and 'info' attributes.
+            c (Controller): The controller to be registered. It must have 'name' and 
+                'info' attributes.
 
         Raises:
             Logs an error if a controller with the same name is already registered.
@@ -258,7 +268,8 @@ class World:
         it registers the appropriate controller.
         The method performs the following steps:
         1. Initializes a dictionary `p` with configuration parameters.
-        2. Dynamically imports the `stream_simulator` module and retrieves the `controllers` attribute.
+        2. Dynamically imports the `stream_simulator` module and retrieves the `controllers` 
+            attribute.
         3. Creates a mapping of device types to their corresponding controller classes.
         4. Iterates over the devices in `self.env_devices`.
         5. For each device, ensures that the 'theta' attribute in the device's pose is set.
@@ -314,15 +325,20 @@ class World:
 
     def actors_lookup(self):
         """
-        Initializes and configures actor controllers based on the provided actor types and configurations.
+        Initializes and configures actor controllers based on the provided actor types and 
+            configurations.
 
         This method performs the following steps:
         1. Defines a dictionary `p` with configuration parameters for the actors.
-        2. Dynamically imports the `stream_simulator` module and retrieves the `controllers` attribute.
+        2. Dynamically imports the `stream_simulator` module and retrieves the `controllers` 
+            attribute.
         3. Creates a mapping `map` of actor types to their corresponding controller classes.
         4. Iterates over the actor types and their configurations in `self.actors`.
-        5. For each actor configuration, it instantiates the corresponding controller class with the configuration and package `p`.
-        6. Checks if the actor's name is already declared; if so, logs an error. Otherwise, it appends the actor's configuration to `self.actors_configurations`, adds the controller to `self.actors_controllers`, and logs the declaration.
+        5. For each actor configuration, it instantiates the corresponding controller class with 
+            the configuration and package `p`.
+        6. Checks if the actor's name is already declared; if so, logs an error. Otherwise, it 
+            appends the actor's configuration to `self.actors_configurations`, adds the controller 
+            to `self.actors_controllers`, and logs the declaration.
 
         Raises:
             AttributeError: If the actor type does not exist in the `map` dictionary.

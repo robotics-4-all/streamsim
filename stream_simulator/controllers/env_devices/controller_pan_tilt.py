@@ -1,3 +1,7 @@
+"""
+This file is a controller for a pan-tilt device in the simulation environment.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -9,6 +13,39 @@ import threading
 from stream_simulator.base_classes import BaseThing
 
 class EnvPanTiltController(BaseThing):
+    """
+    EnvPanTiltController is a class that controls a pan-tilt device in a simulated environment.
+    Attributes:
+        logger (logging.Logger): Logger for the controller.
+        pose (dict): Pose configuration of the device.
+        info (dict): Information about the device.
+        name (str): Name of the device.
+        base_topic (str): Base topic for communication.
+        mode (str): Operation mode of the device.
+        place (str): Place where the device is located.
+        pan (float): Current pan angle.
+        tilt (float): Current tilt angle.
+        limits (dict): Limits for pan and tilt angles.
+        pan_range (float): Range of pan angles.
+        tilt_range (float): Range of tilt angles.
+        pan_dc (float): Direct current component of the pan angle.
+        host (str): Host information.
+        operation (str): Current operation mode.
+        operation_parameters (dict): Parameters for the current operation mode.
+    Methods:
+        __init__(conf=None, package=None): Initializes the controller with configuration and 
+            package.
+        set_communication_layer(package): Sets up the communication layer for the controller.
+        set_mode_callback(message): Callback to set the operation mode.
+        get_mode_callback(_): Callback to get the current operation mode.
+        thread_fun(): Function to run in a separate thread for mock mode.
+        enable_callback(message): Callback to enable the device.
+        disable_callback(_): Callback to disable the device.
+        get_callback(_): Callback to get the current pan and tilt angles.
+        set_callback(message): Callback to set the pan and tilt angles.
+        start(): Starts the controller.
+        stop(): Stops the controller.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf["name"])
@@ -26,7 +63,6 @@ class EnvPanTiltController(BaseThing):
         _pack = package["base"]
         _place = conf["place"]
         _namespace = package["namespace"]
-        id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
             "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
@@ -96,7 +132,28 @@ class EnvPanTiltController(BaseThing):
         self.operation = info['conf']['operation']
         self.operation_parameters = info['conf']['operation_parameters']
 
+        self.prev = 0
+        self.hz = 0
+        self.sinus_step = 0
+        self.data_thread = None
+
     def set_communication_layer(self, package):
+        """
+        Configures the communication layer for the pan-tilt controller.
+
+        This method sets up various communication channels and RPCs (Remote Procedure Calls) 
+        required for the operation of the pan-tilt controller. It includes setting up 
+        simulation communication, transform communication, enable/disable RPCs, effector 
+        set/get RPCs, data publishing, and mode get/set RPCs.
+
+        Args:
+            package (dict): A dictionary containing configuration parameters. Expected keys 
+                            include "namespace" and other necessary parameters for setting 
+                            up communication.
+
+        Raises:
+            KeyError: If required keys are missing in the package dictionary.
+        """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
@@ -105,10 +162,32 @@ class EnvPanTiltController(BaseThing):
         self.set_mode_get_set_rpcs(self.base_topic, self.set_mode_callback, self.get_mode_callback)
 
     def set_mode_callback(self, message):
+        """
+        Callback function to set the operation mode.
+
+        Args:
+            message (dict): A dictionary containing the mode information. 
+                            Expected to have a key "mode" with the desired operation mode as its 
+                            value.
+
+        Returns:
+            dict: An empty dictionary.
+        """
         self.operation = message["mode"]
         return {}
-    
+
     def get_mode_callback(self, _):
+        """
+        Callback function to get the current mode and its parameters.
+
+        Args:
+            _ (Any): Placeholder argument, not used.
+
+        Returns:
+            dict: A dictionary containing the current mode and its associated parameters.
+                - "mode" (str): The current operation mode.
+                - "parameters" (dict): The parameters associated with the current operation mode.
+        """
         return {
             "mode": self.operation,
             "parameters": self.operation_parameters[self.operation]
@@ -116,6 +195,21 @@ class EnvPanTiltController(BaseThing):
 
     # Only for mock mode
     def thread_fun(self):
+        """
+        Thread function to control the pan and tilt movements based on sinusoidal operation.
+        This function runs in a loop while the 'enabled' flag in the 'info' dictionary is True.
+        It updates the 'pan' value based on a sinusoidal function with parameters defined in
+        'operation_parameters'. The updated 'pan' and 'tilt' values, along with the device 'name',
+        are published at each iteration.
+        Attributes:
+            prev (float): Previous value of the sinusoidal function.
+            hz (float): Frequency of the sinusoidal function.
+            sinus_step (float): Step increment for the sinusoidal function.
+        Behavior:
+            - Sleeps for a duration based on the frequency 'hz'.
+            - Updates the 'pan' value using a sinusoidal function.
+            - Publishes the 'pan', 'tilt', and 'name' values.
+        """
         self.prev = 0
         self.hz = self.operation_parameters['sinus']['hz']
         self.sinus_step = self.operation_parameters['sinus']['step']
@@ -131,7 +225,17 @@ class EnvPanTiltController(BaseThing):
                 'name': self.name
             })
 
-    def enable_callback(self, message):
+    def enable_callback(self, _):
+        """
+        Enables the callback function and sets the "enabled" status to True.
+        This method updates the `info` dictionary to indicate that the callback
+        function is enabled. If the mode is set to "mock", it starts a new thread
+        to run the `thread_fun` method.
+        Args:
+            _ (Any): Placeholder argument, not used.
+        Returns:
+            dict: A dictionary with the key "enabled" set to True.
+        """
         self.info["enabled"] = True
 
         # self.enable_rpc_server.run()
@@ -145,16 +249,44 @@ class EnvPanTiltController(BaseThing):
         return {"enabled": True}
 
     def disable_callback(self, _):
+        """
+        Disables the callback by setting the "enabled" key in the info dictionary to False.
+
+        Args:
+            _ (Any): Unused parameter.
+
+        Returns:
+            dict: A dictionary with the "enabled" key set to False.
+        """
         self.info["enabled"] = False
         return {"enabled": False}
 
     def get_callback(self, _):
+        """
+        Retrieves the current pan and tilt values.
+
+        Args:
+            _ (Any): Placeholder argument, not used in the function.
+
+        Returns:
+            dict: A dictionary containing the current 'pan' and 'tilt' values.
+        """
         return {
             'pan': self.pan,
             'tilt': self.tilt
         }
 
     def set_callback(self, message):
+        """
+        Sets the pan and tilt values from the given message and publishes the updated values.
+
+        Args:
+            message (dict): A dictionary containing 'pan' and 'tilt' keys with their respective 
+            values.
+
+        Returns:
+            dict: An empty dictionary.
+        """
         self.pan = message['pan']
         self.tilt = message['tilt']
         self.publisher.publish({
@@ -166,6 +298,21 @@ class EnvPanTiltController(BaseThing):
         return {}
 
     def start(self):
+        """
+        Starts the sensor and initializes the data thread if in mock mode.
+        This method logs the sensor's status, waits for the simulator to start,
+        and then logs that the sensor has started. If the sensor is in "mock" mode
+        and is enabled, it starts a new thread to handle data processing.
+        Attributes:
+            self.logger (Logger): Logger instance for logging sensor status.
+            self.name (str): Name of the sensor.
+            self.simulator_started (bool): Flag indicating if the simulator has started.
+            self.mode (str): Mode of the sensor, expected to be "mock" for this method to start 
+                the data thread.
+            self.info (dict): Dictionary containing sensor information, including the 'enabled' 
+                status.
+            self.data_thread (Thread): Thread instance for handling data processing.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
@@ -182,6 +329,16 @@ class EnvPanTiltController(BaseThing):
                 self.data_thread.start()
 
     def stop(self):
+        """
+        Stops the pan-tilt controller by disabling it and stopping all associated RPC servers.
+
+        This method performs the following actions:
+        1. Sets the "enabled" flag in the info dictionary to False.
+        2. Stops the enable RPC server.
+        3. Stops the disable RPC server.
+        4. Stops the get RPC server.
+        5. Stops the set RPC server.
+        """
         self.info["enabled"] = False
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()

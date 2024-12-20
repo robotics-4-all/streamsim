@@ -1,19 +1,22 @@
+"""
+File that contains the Simulator class.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import logging
 import random
 import string
-import time
 
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.transformations import TfController
+from stream_simulator.controllers import IrController # pylint: disable=unused-import
 
 from .robot import Robot
 from .world import World
 
 ### Dont know why but if I remove this no controllers are found
-from stream_simulator.controllers import IrController
 
 class Simulator:
     """
@@ -70,7 +73,7 @@ class Simulator:
         if self.uid is None:
             self.uid = ''.join(random.choice(characters) for _ in range(16))
         self.logger.critical("Simulator UID is: %s", self.uid)
-        
+
         self.name = f"streamsim.{self.uid}"
 
         # Wait for configuration from broker
@@ -108,13 +111,40 @@ class Simulator:
         self.robot_names = None
         self.logger.info("Simulator created. Waiting for configuration...")
 
-    def devices_callback(self, message):
+    def devices_callback(self, _):
+        """
+        Callback function to retrieve the names of robots and the world.
+
+        Args:
+            _ (Any): Placeholder argument, not used in the function.
+
+        Returns:
+            dict: A dictionary containing the names of robots and the world.
+                  The dictionary has the following structure:
+                  {
+                      "robots": list of robot names,
+                      "world": name of the world
+        """
         return {
-                "robots": self.robot_names,
-                "world": self.world_name
+            "robots": self.robot_names,
+            "world": self.world_name
         }
 
     def configuration_callback(self, message):
+        """
+        Callback function to handle the configuration message.
+        This function is responsible for setting up the simulation environment
+        based on the received configuration message. It initializes the 
+        transformation controller (tf), the world, and the robots as specified 
+        in the configuration. It also starts the robots and publishes a 
+        simulation start message.
+        Args:
+            message (dict): The configuration message containing the setup 
+                            details for the simulation.
+        Returns:
+            dict: A dictionary indicating the success of the configuration 
+                  setup with a key "success" set to True.
+        """
         self.logger.info("Received configuration")
         self.configuration = message
         self.configuration['tf_base'] = self.name + ".tf"
@@ -148,7 +178,7 @@ class Simulator:
                     Robot(
                         configuration = r,
                         world = self.world,
-                        map = self.world.map,
+                        map_ = self.world.map,
                         tick = self.tick,
                         namespace = self.name,
                     )
@@ -156,8 +186,8 @@ class Simulator:
                 self.robot_names.append(r["name"])
 
         # Create robots
-        for i in range(0, len(self.robots)):
-            _robot = self.robots[i]
+        for _, value in enumerate(self.robots):
+            _robot = value
             _robot.start()
 
             self.commlib_factory.notify_ui(
@@ -177,12 +207,17 @@ class Simulator:
         self.simulation_start_pub.publish({
             "uid": self.uid
         })
-        
+
         self.start()
         self.logger.info("Configuration setup done")
         return {"success": True}
 
     def stop(self):
+        """
+        Stops the simulation by stopping all robots, the world, the transformation framework,
+        the communication library factory, and logs a warning message indicating that the 
+        simulation has been stopped.
+        """
         for r in self.robots:
             r.stop()
         self.world.stop()
@@ -191,24 +226,32 @@ class Simulator:
         self.logger.warning("Simulation stopped")
 
     def start(self):
+        """
+        Starts the simulator and logs the initial status.
+        This method performs the following actions:
+        1. Logs the start of the simulator.
+        2. Logs a communications report, detailing the number of connections for each type.
+        3. Dispatches the local pose for each robot.
+        4. Notifies the UI that the simulator has started.
+        5. Logs a warning indicating that the simulation has started.
+        """
         self.logger.info("******** Simulator starting *********")
 
         # Communications report
         self.logger.info("Communications report:")
         total = 0
-        for t in self.commlib_factory.stats:
-            for k in self.commlib_factory.stats[t]:
-                n = self.commlib_factory.stats[t][k]
-                total += n
-                if n == 0:
+        for t, stat in self.commlib_factory.stats.items():
+            for k, inner_stat in stat.items():
+                total += inner_stat
+                if inner_stat == 0:
                     continue
-                self.logger.info(f"\t{t} {k}: {n}")
-        self.logger.info(f"Total connections: {total}")
+                self.logger.info("\t%s %s: %d", t, k, inner_stat)
+        self.logger.info("Total connections: %d", total)
 
         # self.commlib_factory.print_topics()
         # Just to be informed for pose
-        for i in range(0, len(self.robots)):
-            self.robots[i].dispatch_pose_local()
+        for _, robot in enumerate(self.robots):
+            robot.dispatch_pose_local()
 
         self.commlib_factory.notify_ui(
             type_ = "new_message",

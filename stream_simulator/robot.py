@@ -64,7 +64,7 @@ class Robot:
     def __init__(self,
                  configuration = None,
                  world = None,
-                 map = None,
+                 map_ = None,
                  tick = 0.1,
                  namespace = "_default_"):
 
@@ -102,16 +102,18 @@ class Robot:
         self._theta = 0
 
         self._curr_node = -1
+        self.stopped = False
+        self.error_log_msg = ""
 
         self.detection_threshold = 1
 
         # Yaml configuration management
         self.world = world
-        self.map = map
+        self.map = map_
         self.width = self.map.shape[0]
         self.height = self.map.shape[1]
         self.resolution = self.world["map"]["resolution"]
-        self.logger.info("Robot {}: map set".format(self.name))
+        self.logger.info("Robot %s: map set", self.name)
 
         self._x = 0
         self._y = 0
@@ -121,21 +123,21 @@ class Robot:
             self._init_x = pose['x'] #* self.resolution
             self._init_y = pose['y'] #* self.resolution
             self._init_theta = pose['theta'] / 180.0 * math.pi
-            self.logger.info("Robot {} pose set: {}, {}, {}".format(
-                self.name, self._x, self._y, self._theta))
+            self.logger.info("Robot %s pose set: %s, %s, %s",
+                self.name, self._x, self._y, self._theta)
 
             self._x = self._init_x
             self._y = self._init_y
             self._theta = self._init_theta
 
         self.step_by_step_execution = self.configuration['step_by_step_execution']
-        self.logger.warning("Step by step execution is {}".format(self.step_by_step_execution))
+        self.logger.warning("Step by step execution is %s", self.step_by_step_execution)
 
         # Devices set
         self.speak_mode = self.configuration["speak_mode"]
         self.mode = self.configuration["mode"]
         if self.mode not in ["mock", "simulation"]:
-            self.logger.error("Selected mode is invalid: {}".format(self.mode))
+            self.logger.error("Selected mode is invalid: %s", self.mode)
             exit(1)
 
         _logger = None
@@ -230,11 +232,30 @@ class Robot:
         # Threads
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
-        self.logger.info("Device {} set-up".format(self.name))
+        self.logger.info("Device %s set-up", self.name)
 
     def register_controller(self, c):
+        """
+        Registers a controller with the robot.
+        Args:
+            c (Controller): The controller to be registered. It should have 'name' and 'info' 
+            attributes.
+        Behavior:
+            - If the controller's name is already in the controllers dictionary, logs an error.
+            - If the controller's type is not "BUTTON_ARRAY", adds the controller's info to the 
+            devices list.
+            - If the controller's type is "BUTTON", logs a warning and skips adding it to the 
+            controllers dictionary.
+            - If the controller's type is "SKID_STEER", sets it as the motion controller and 
+            assigns the resolution.
+            - Logs the creation of the controller.
+        Logging:
+            - Logs an error if the controller is declared twice.
+            - Logs a warning if a button controller is skipped.
+            - Logs the creation of the controller.
+        """
         if c.name in self.controllers:
-            self.logger.error(f"Device {c.name} declared twice")
+            self.logger.error("Device %s declared twice", c.name)
         else:
             # Do not put button array in devices
             if c.info["type"] != "BUTTON_ARRAY":
@@ -242,7 +263,7 @@ class Robot:
 
             if c.info["type"] == "BUTTON":
                 # Do not put in controllers but add in devices
-                self.logger.warning(f"Button {c.name} skipped from controllers")
+                self.logger.warning("Button %s skipped from controllers", c.name)
                 return
             self.controllers[c.name] = c
 
@@ -250,9 +271,28 @@ class Robot:
             self.motion_controller = c
             self.controllers[c.name].resolution = self.resolution
 
-        self.logger.info(f"{c.name} controller created")
+        self.logger.info("%s controller created", c.name)
 
     def device_lookup(self):
+        """
+        Initializes and registers device controllers based on the robot's configuration.
+        This method performs the following steps:
+        1. Retrieves the list of actors from the world configuration if available.
+        2. Prepares a package dictionary containing various robot attributes and configurations.
+        3. Imports the necessary controller classes from the stream_simulator.controllers module.
+        4. Iterates over the devices specified in the robot's configuration and initializes the 
+        corresponding controllers.
+        5. Registers each initialized controller with the robot.
+        6. Handles the configuration and registration of button devices, if any.
+        The method expects the robot's configuration to contain a "devices" key with device 
+        specifications.
+        Each device specification should include a "pose" key with "x", "y", and "theta" 
+        attributes, which are set to default values if not provided.
+        The method also configures button devices by creating a button configuration dictionary 
+        and registering a ButtonArrayController if any buttons are found.
+        Returns:
+            None
+        """
         actors = {}
         if "actors" in self.world:
             actors = self.world["actors"]
@@ -315,7 +355,7 @@ class Robot:
         }
         buttons = [x for x in self.devices if x["type"] == "BUTTON"]
         for d in buttons:
-            self.logger.info(f"Button {d['id']} added in button_array")
+            self.logger.info("Button %s added in button_array", d['id'])
             self.button_configuration["places"].append(d["place"])
             self.button_configuration["base_topics"][d["id"]] = d["base_topic"]
         if len(self.button_configuration["places"]) > 0:
@@ -325,24 +365,66 @@ class Robot:
             self.register_controller(map_["button_array"](conf = m, package = p))
 
     def leds_redis(self, message):
-        self.logger.debug("Got leds from redis " + str(message))
-        self.logger.warning(f"Sending to amqp notifier: {message}")
+        """
+        Handles LED messages received from Redis.
+
+        This method logs the received LED message, then publishes it to an AMQP notifier.
+
+        Args:
+            message (str): The LED message received from Redis.
+        """
+        self.logger.debug("Got leds from redis %s", message)
+        self.logger.warning("Sending to amqp notifier: %s", message)
         self.leds_pub.publish(message)
 
     def leds_wipe_redis(self, message):
-        self.logger.debug("Got leds wipe from redis " + str(message))
-        self.logger.warning(f"Sending to amqp notifier: {message}")
+        """
+        Handles the LED wipe message received from Redis.
+
+        This method logs the received message, sends a warning log indicating
+        that the message is being sent to the AMQP notifier, and publishes the
+        message to the `leds_wipe_pub` publisher.
+
+        Args:
+            message (str): The message received from Redis to be processed.
+        """
+        self.logger.debug("Got leds wipe from redis %s", message)
+        self.logger.warning("Sending to amqp notifier: %s", message)
         self.leds_wipe_pub.publish(message)
 
     def execution_nodes_redis(self, message):
-        self.logger.debug("Got execution node from redis " + str(message))
-        self.logger.warning(f"Sending to amqp notifier: {message}")
+        """
+        Handles execution nodes received from Redis.
+
+        This method processes a message received from Redis, logs the message,
+        adds the device name to the message, and publishes it to an AMQP notifier.
+
+        Args:
+            message (dict): The message received from Redis. It is expected to be a dictionary.
+
+        Returns:
+            None
+        """
+        self.logger.debug("Got execution node from redis %s", message)
+        self.logger.warning("Sending to amqp notifier: %s", message)
         message["device"] = self.raw_name
         self.execution_pub.publish(message)
 
     # NOTE: Change this
     def detects_redis(self, message):
-        self.logger.warning("Got detect from redis " + str(message))
+        """
+        Handles detection messages from Redis.
+        This method logs a warning when a detection message is received from Redis.
+        It then waits for a source to be available, logging the status periodically.
+        Once the source is available, it updates the `actor_id` in the message based 
+        on the source value.
+        Finally, it publishes the updated message to the AMQP notifier.
+        Args:
+            message (dict): The detection message received from Redis.
+        Returns:
+            None
+        """
+        self.logger.warning("Got detect from redis %s", message)
         # Wait for source
         done = False
         while not done:
@@ -350,7 +432,7 @@ class Robot:
                 v2 = "" ## Change this!
                 self.logger.info("Got the source!")
                 done = True
-            except:
+            except: # pylint: disable=bare-except
                 time.sleep(0.1)
                 self.logger.info("Source not written yet...")
 
@@ -358,30 +440,74 @@ class Robot:
             message["actor_id"] = ""
         else:
             message["actor_id"] = -1
-        self.logger.warning(f"Sending to amqp notifier: {message}")
+        self.logger.warning("Sending to amqp notifier: %s", message)
         self.detects_pub.publish(message)
 
     def button_amqp(self, message):
-        self.logger.warning("Got button press from amqp " + str(message))
+        """
+        Handle button press messages received via AMQP.
+
+        This method logs a warning message indicating that a button press
+        was received from AMQP and publishes the button press information
+        to the buttons simulation publisher.
+
+        Args:
+            message (dict): A dictionary containing the button press information.
+                            Expected to have a key "button" with the button identifier.
+
+        Returns:
+            None
+        """
+        self.logger.warning("Got button press from amqp %s", str(message))
         self.buttons_sim_pub.publish({
             "button": message["button"]
         })
 
-    def step_by_step_amqp(self, message):
-        self.logger.info(f"Got next step from amqp")
+    def step_by_step_amqp(self, _):
+        """
+        Processes the next step message received from AMQP.
+
+        Args:
+            message (dict): The message received from AMQP containing the next step information.
+
+        Returns:
+            None
+        """
+        self.logger.info("Got next step from amqp")
         self.next_step_pub.publish({})
 
     def start(self):
-        for c in self.controllers:
-            threading.Thread(target = self.controllers[c].start).start()
+        """
+        Starts the robot simulation by initializing and starting all controller threads
+        and the main simulator thread.
+        This method performs the following actions:
+        1. Iterates through all controllers and starts each one in a new thread.
+        2. Sets the `stopped` attribute to False.
+        3. Starts the main simulator thread.
+        Note:
+            Ensure that `self.controllers` is a dictionary of controller objects,
+            each having a `start` method, and `self.simulator_thread` is a properly
+            initialized thread object before calling this method.
+        """
+        for _, controller in self.controllers.items():
+            threading.Thread(target = controller.start).start()
 
         self.stopped = False
         self.simulator_thread.start()
 
     def stop(self):
-        for c in self.controllers:
-            self.logger.warning("Trying to stop controller {}".format(c))
-            self.controllers[c].stop()
+        """
+        Stops all controllers and the communication library factory, and sets the robot's 
+        stopped flag to True.
+        This method iterates through all controllers, logs a warning message for each, and 
+        calls their stop method.
+        It then stops the communication library factory and logs a warning message indicating 
+        that the robot thread is being stopped.
+        Finally, it sets the robot's stopped attribute to True.
+        """
+        for c, controller in self.controllers:
+            self.logger.warning("Trying to stop controller %s", c)
+            controller.stop()
 
         self.commlib_factory.stop()
 
@@ -389,15 +515,36 @@ class Robot:
         self.stopped = True
 
     def devices_callback(self, _):
-        timestamp = time.time()
-        secs = int(timestamp)
-        nanosecs = int((timestamp-secs) * 10**(9))
+        """
+        Callback function to retrieve the current devices and timestamp.
+
+        Args:
+            _ (Any): Placeholder argument, not used in the function.
+
+        Returns:
+            dict: A dictionary containing:
+                - "devices" (list): The list of current devices.
+                - "timestamp" (float): The current time in seconds since the epoch.
+        """
         return {
                 "devices": self.devices,
                 "timestamp": time.time()
         }
 
-    def reset_pose_callback(self, message):
+    def reset_pose_callback(self, _):
+        """
+        Callback function to reset the robot's pose to its initial state.
+
+        This function is triggered by an external event and resets the robot's
+        position (x, y) and orientation (theta) to their initial values. It also
+        logs a warning message indicating that the robot's pose is being reset.
+
+        Args:
+            _ (Any): Placeholder for the argument passed by the callback mechanism.
+
+        Returns:
+            dict: An empty dictionary.
+        """
         self.logger.warning("Resetting robot pose")
         self._x = self._init_x
         self._y = self._init_y
@@ -405,21 +552,43 @@ class Robot:
         return {}
 
     def initialize_resources(self):
-        pass
+        """
+        Initialize the resources required for the robot simulation.
+
+        This method is intended to set up any necessary resources or configurations
+        needed for the robot to operate within the simulation environment. Currently,
+        it does not perform any actions, but it can be extended in the future to
+        include resource initialization logic.
+        """
 
     def check_ok(self, x, y, prev_x, prev_y):
+        """
+        Check if the given coordinates are valid and do not result in a collision.
+        This method performs the following checks:
+        1. Out of bounds check: Ensures that the coordinates (x, y) are within the valid range.
+        2. Collision check: Ensures that the path from (prev_x, prev_y) to (x, y) does not collide
+        with any obstacles.
+        Args:
+            x (float): The current x-coordinate.
+            y (float): The current y-coordinate.
+            prev_x (float): The previous x-coordinate.
+            prev_y (float): The previous y-coordinate.
+        Returns:
+            bool: True if the coordinates are out of bounds or if there is a collision, 
+            False otherwise.
+        """
         # Check out of bounds
         if x < 0 or y < 0:
             self.error_log_msg = "Out of bounds - negative x or y"
-            self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+            self.logger.error("%s: %s", self.name, self.error_log_msg)
             return True
         if x / self.resolution > self.width or y / self.resolution > self.height:
             self.error_log_msg = "Out of bounds"
-            self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+            self.logger.error("%s: %s", self.name, self.error_log_msg)
             return True
 
         # Check collision to obstacles
-        
+
         x_i = int(x / self.resolution)
         x_i_p = int(prev_x / self.resolution)
         if x_i > x_i_p:
@@ -434,13 +603,13 @@ class Robot:
             for i in range(y_i, y_i_p):
                 if self.map[x_i, i] == 1:
                     self.error_log_msg = "Crashed on a Wall"
-                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+                    self.logger.error("%s: %s", self.name, self.error_log_msg)
                     return True
         elif y_i == y_i_p:
             for i in range(x_i, x_i_p):
                 if self.map[i, y_i] == 1:
                     self.error_log_msg = "Crashed on a Wall"
-                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+                    self.logger.error("%s: %s", self.name, self.error_log_msg)
                     return True
         else: # we have a straight line
             th = math.atan2(y_i_p - y_i, x_i_p - x_i)
@@ -451,13 +620,26 @@ class Robot:
                 yy = y_i + d * math.sin(th)
                 if self.map[int(xx), int(yy)] == 1:
                     self.error_log_msg = "Crashed on a Wall"
-                    self.logger.error("{}: {}".format(self.name, self.error_log_msg))
+                    self.logger.error("%s: %s", self.name, self.error_log_msg)
                     return True
                 d += 1.0
 
         return False
 
     def dispatch_pose_local(self):
+        """
+        Publishes the robot's current pose to the internal_pose_pub topic.
+
+        The pose includes the following information:
+        - x: The x-coordinate of the robot's position.
+        - y: The y-coordinate of the robot's position.
+        - theta: The orientation of the robot in radians.
+        - resolution: The resolution of the robot's position data.
+        - name: The name of the robot.
+
+        Returns:
+            None
+        """
         # print(">>>>>>>>>>>POSE")
         self.internal_pose_pub.publish({
             "x": self._x,
@@ -468,7 +650,31 @@ class Robot:
         })
 
     def simulation_thread(self):
-        self.logger.warning(f"Started {self.name} simulation thread")
+        """
+        Runs the simulation thread for the robot.
+        This method continuously updates the robot's position and orientation 
+        based on the motion controller's linear and angular velocities. 
+        It publishes the new pose to the pose publisher and logs the updated
+        pose. If the robot's position is not valid, it reverts to the previous 
+        position and notifies the UI about the error.
+        The simulation runs in a loop until the `stopped` attribute is set 
+        to True. The loop updates the position and orientation at intervals defined by `self.dt`.
+        Attributes:
+            self._x (float): The current x-coordinate of the robot.
+            self._y (float): The current y-coordinate of the robot.
+            self._theta (float): The current orientation (theta) of the robot.
+            self.motion_controller (object): The motion controller providing 
+            linear and angular velocities.
+            self.pose_pub (object): The publisher for the robot's pose.
+            self.logger (object): The logger for logging messages.
+            self.resolution (float): The resolution of the robot's pose.
+            self.raw_name (str): The raw name of the robot.
+            self.error_log_msg (str): The error message to log when the position is invalid.
+            self.commlib_factory (object): The communication library factory for notifying the UI.
+            self.dt (float): The time interval for updating the position and orientation.
+            self.stopped (bool): Flag to stop the simulation thread.
+        """
+        self.logger.warning("Started %s simulation thread", self.name)
         t = time.time()
 
         self.dispatch_pose_local()
@@ -482,20 +688,23 @@ class Robot:
                 prev_y = self._y
                 prev_th = self._theta
 
-                if self.motion_controller._angular == 0:
-                    self._x += self.motion_controller._linear * dt * math.cos(self._theta)
-                    self._y += self.motion_controller._linear * dt * math.sin(self._theta)
-                else:
-                    arc = self.motion_controller._linear / self.motion_controller._angular
-                    self._x += - arc * math.sin(self._theta) + \
-                        arc * math.sin(self._theta + dt * self.motion_controller._angular)
-                    self._y -= - arc * math.cos(self._theta) + \
-                        arc * math.cos(self._theta + dt * self.motion_controller._angular)
-                self._theta += self.motion_controller._angular * dt
+                lin_ = self.motion_controller.get_linear()
+                ang_ = self.motion_controller.get_angular()
 
-                xx = float("{:.2f}".format(self._x))
-                yy = float("{:.2f}".format(self._y))
-                theta2 = float("{:.2f}".format(self._theta))
+                if ang_ == 0:
+                    self._x += lin_ * dt * math.cos(self._theta)
+                    self._y += lin_ * dt * math.sin(self._theta)
+                else:
+                    arc = lin_ / ang_
+                    self._x += - arc * math.sin(self._theta) + \
+                        arc * math.sin(self._theta + dt * ang_)
+                    self._y -= - arc * math.cos(self._theta) + \
+                        arc * math.cos(self._theta + dt * ang_)
+                self._theta += ang_ * dt
+
+                xx = round(float(self._x), 2)
+                yy = round(float(self._y), 2)
+                theta2 = round(float(self._theta), 2)
 
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
                     self.pose_pub.publish({

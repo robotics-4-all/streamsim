@@ -144,6 +144,24 @@ class MotionController(BaseThing):
 
         self.commlib_factory.run()
 
+    def get_linear(self):
+        """
+        Returns the linear velocity of the robot.
+
+        Returns:
+            float: The linear velocity of the robot.
+        """
+        return self._linear
+
+    def get_angular(self):
+        """
+        Returns the angular velocity of the robot.
+
+        Returns:
+            float: The angular velocity of the robot.
+        """
+        return self._angular
+
     def enable_callback(self, _):
         """
         Enables the callback by setting the "enabled" key in the info dictionary to True.
