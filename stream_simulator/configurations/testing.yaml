@@ -29,15 +29,15 @@ robots:
     devices:
       # microphone:
       #   - source: "robot_devices/microphone"
-      sonar:
-        - source: "robot_devices/sonars/sonar_front"
+      # sonar:
+      #   - source: "robot_devices/sonars/sonar_front"
       #   - source: "robot_devices/sonars/sonar_fl"
       #   - source: "robot_devices/sonars/sonar_l"
       #   - source: "robot_devices/sonars/sonar_r"
       #   - source: "robot_devices/sonars/sonar_bl"
       #   - source: "robot_devices/sonars/sonar_br"
-      ir:
-        - source: "robot_devices/irs/ir_front"
+      # ir:
+      #   - source: "robot_devices/irs/ir_front"
       #   - source: "robot_devices/irs/ir_fl"
       #   - source: "robot_devices/irs/ir_r"
       #   - source: "robot_devices/irs/ir_l"

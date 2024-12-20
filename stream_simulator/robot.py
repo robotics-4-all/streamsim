@@ -325,20 +325,21 @@ class Robot:
 
     def leds_redis(self, message):
         self.logger.debug("Got leds from redis " + str(message))
-        self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        self.logger.warning(f"Sending to amqp notifier: {message}")
         self.leds_pub.publish(message)
 
     def leds_wipe_redis(self, message):
         self.logger.debug("Got leds wipe from redis " + str(message))
-        self.logger.warning(f"{Fore.YELLOW}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        self.logger.warning(f"Sending to amqp notifier: {message}")
         self.leds_wipe_pub.publish(message)
 
     def execution_nodes_redis(self, message):
         self.logger.debug("Got execution node from redis " + str(message))
-        self.logger.warning(f"{Fore.MAGENTA}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        self.logger.warning(f"Sending to amqp notifier: {message}")
         message["device"] = self.raw_name
         self.execution_pub.publish(message)
 
+    # NOTE: Change this
     def detects_redis(self, message):
         self.logger.warning("Got detect from redis " + str(message))
         # Wait for source
@@ -353,10 +354,10 @@ class Robot:
                 self.logger.info("Source not written yet...")
 
         if v2 != "empty":
-            message["actor_id"] = v2["id"]
+            message["actor_id"] = ""
         else:
             message["actor_id"] = -1
-        self.logger.warning(f"{Fore.CYAN}Sending to amqp notifier: {message}{Style.RESET_ALL}")
+        self.logger.warning(f"Sending to amqp notifier: {message}")
         self.detects_pub.publish(message)
 
     def button_amqp(self, message):
