@@ -74,7 +74,7 @@ class CommlibFactory(Node):
     action_server_topics = {}
     action_client_topics = {}
 
-    def __init__(self, _, **kwargs):
+    def __init__(self, *args, **kwargs): # pylint: disable=unused-argument
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         self._logger = logging.getLogger(__name__)
