@@ -11,7 +11,7 @@ class EnvRelayController(BaseThing):
         self.logger = logging.getLogger(conf["name"]) if package['logger'] is None \
             else package['logger']
 
-        super().__init__(conf["name"])
+        super().__init__(conf["name"], auto_start=False)
 
         _type = "RELAY"
         _category = "actuator"
@@ -72,6 +72,7 @@ class EnvRelayController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
 
         self.set_communication_layer(package)
+        self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
 

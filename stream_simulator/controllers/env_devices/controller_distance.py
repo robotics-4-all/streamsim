@@ -23,7 +23,7 @@ class EnvDistanceController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super().__init__(conf["name"])
+        super().__init__(conf["name"], auto_start=False)
 
         _type = "DISTANCE"
         _category = "sensor"
@@ -95,6 +95,8 @@ class EnvDistanceController(BaseThing):
         self.get_tf = self.commlib_factory.getRPCClient(
             rpc_name = package["namespace"] + ".tf.get_tf"
         )
+
+        self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
 

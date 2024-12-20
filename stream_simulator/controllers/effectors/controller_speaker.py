@@ -29,7 +29,7 @@ class SpeakerController(BaseThing):
         _subclass = "speaker"
         _pack = package["name"]
         _namespace = package["namespace"]
-        super().__init__(id)
+        super().__init__(id, auto_start=False)
 
         info = {
             "type": "SPEAKERS",
@@ -109,6 +109,8 @@ class SpeakerController(BaseThing):
         self.speak_pub = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".speak.notify"
         )
+
+        self.commlib_factory.run()
 
     def on_goal_speak(self, goalh):
         self.logger.info("{} speak started".format(self.name))

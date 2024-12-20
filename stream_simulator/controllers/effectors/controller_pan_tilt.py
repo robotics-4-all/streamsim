@@ -49,7 +49,7 @@ class PanTiltController(BaseThing):
         _subclass = "pan_tilt"
         _pack = package["name"]
         _namespace = package["namespace"]
-        super().__init__(id_)
+        super().__init__(id_, auto_start=False)
 
         info = {
             "type": "PAN_TILT",
@@ -127,6 +127,8 @@ class PanTiltController(BaseThing):
         self.data_publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
+
+        self.commlib_factory.run()
 
     def enable_callback(self, _):
         """

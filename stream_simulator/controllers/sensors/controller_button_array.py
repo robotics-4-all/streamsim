@@ -29,7 +29,7 @@ class ButtonArrayController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id)
+        super().__init__(id, auto_start=False)
 
         info = {
             "type": "BUTTON_ARRAY",
@@ -83,6 +83,8 @@ class ButtonArrayController(BaseThing):
                 topic = _namespace + "." + self.info['device_name'] + ".buttons_sim.internal",
                 callback = self.sim_button_pressed
             )
+
+        self.commlib_factory.run()
 
     def dispatch_information(self, _data, _button):
         # Publish to stream

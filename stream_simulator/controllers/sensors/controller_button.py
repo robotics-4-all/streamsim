@@ -16,8 +16,9 @@ class ButtonController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id)
+        super().__init__(id, auto_start=False)
         self.set_simulation_communication(_namespace)
+        self.commlib_factory.run()
 
         info = {
             "type": "BUTTON",

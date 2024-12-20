@@ -26,7 +26,7 @@ class EnvSpeakerController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super().__init__(conf["name"])
+        super().__init__(conf["name"], auto_start=False)
 
         _type = "SPEAKERS"
         _category = "actuator"
@@ -84,6 +84,7 @@ class EnvSpeakerController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
 
         self.set_communication_layer(package)
+        self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
 

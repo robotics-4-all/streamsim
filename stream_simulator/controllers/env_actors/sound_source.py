@@ -3,7 +3,6 @@
 
 import logging
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class SoundSourceActor(BaseThing):
     def __init__(self, conf = None, package = None):
@@ -12,7 +11,7 @@ class SoundSourceActor(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super().__init__("sound_source_" + str(conf["id"]))
+        super().__init__("sound_source_" + str(conf["id"]), auto_start=False)
         id = BaseThing.id
 
         self.set_tf_communication(package)
@@ -60,3 +59,5 @@ class SoundSourceActor(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
 
         self.tf_declare_rpc.call(tf_package)
+
+        self.commlib_factory.run()

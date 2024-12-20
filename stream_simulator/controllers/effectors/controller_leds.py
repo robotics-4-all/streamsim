@@ -52,7 +52,7 @@ class LedsController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id_)
+        super().__init__(id_, auto_start=False)
 
         info = {
             "type": "LED",
@@ -142,6 +142,8 @@ class LedsController(BaseThing):
             callback = self.disable_callback,
             rpc_name = self.base_topic + ".disable"
         )
+
+        self.commlib_factory.run()
 
     def enable_callback(self, _):
         """

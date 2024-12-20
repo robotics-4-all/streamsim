@@ -12,7 +12,7 @@ class SupermanActor(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super().__init__("superman_" + str(conf["id"]))
+        super().__init__("superman_" + str(conf["id"]), auto_start=False)
         id = BaseThing.id
 
         self.set_tf_communication(package)
@@ -55,3 +55,5 @@ class SupermanActor(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
 
         self.tf_declare_rpc.call(tf_package)
+
+        self.commlib_factory.run()

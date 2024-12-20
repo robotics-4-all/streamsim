@@ -63,7 +63,7 @@ class MotionController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id_)
+        super().__init__(id_, auto_start=False)
 
         info = {
             "type": "SKID_STEER",
@@ -141,6 +141,8 @@ class MotionController(BaseThing):
             callback = self.disable_callback,
             rpc_name = self.base_topic + ".disable"
         )
+
+        self.commlib_factory.run()
 
     def enable_callback(self, _):
         """

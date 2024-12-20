@@ -115,7 +115,7 @@ class CommlibFactory(Node):
 
         self.wsub = self.create_wsubscriber()
         self.mpub = self.create_mpublisher()
-        self.mrpcserv = self.create_rpc()
+        # self.mrpcserv = self.create_rpc()
 
         self._logger.info('[*] Commlib factory initiated from %s:%s',
                           calframe[1][1].split('/')[-1], calframe[1][2])
@@ -201,7 +201,7 @@ class CommlibFactory(Node):
                 comm_entity.run()
                 # print(f"Running {name}")
             except: # pylint: disable=bare-except
-                self._logger.critical("Error in running %s", name)
+                self._logger.warning("CommlibFactory: Error in running %s", name)
 
         CommlibFactory.stats[broker]['publishers'] += 1 # NOTE: Fix this
         if name in comm_lst:

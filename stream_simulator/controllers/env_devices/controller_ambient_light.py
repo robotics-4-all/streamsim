@@ -53,7 +53,7 @@ class EnvAmbientLightController(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super().__init__(conf["name"])
+        super().__init__(conf["name"], auto_start=False)
 
         _type = "AMBIENT_LIGHT"
         _category = "sensor"
@@ -97,6 +97,7 @@ class EnvAmbientLightController(BaseThing):
         self.allowed_states = info["conf"]["states"]
 
         self.set_communication_layer(package)
+        self.commlib_factory.run()
 
         tf_package = {
             "type": "env",
@@ -140,6 +141,7 @@ class EnvAmbientLightController(BaseThing):
         self.sinus_step = None
         self.sensor_read_thread = None
         self.state = None
+
 
     def set_communication_layer(self, package):
         """

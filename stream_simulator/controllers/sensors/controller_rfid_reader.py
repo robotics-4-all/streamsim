@@ -29,7 +29,7 @@ class RfidReaderController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id)
+        super().__init__(id, auto_start=False)
         self.set_simulation_communication(_namespace)
 
         info = {
@@ -87,8 +87,6 @@ class RfidReaderController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        
-        self.tf_declare_rpc.call(tf_package)
 
         self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
@@ -101,6 +99,10 @@ class RfidReaderController(BaseThing):
             callback = self.disable_callback,
             rpc_name = self.base_topic + ".disable"
         )
+
+        self.commlib_factory.run()
+
+        self.tf_declare_rpc.call(tf_package)
 
     def sensor_read(self):
         self.logger.info("RFID reader {} sensor read thread started".format(self.info["id"]))
