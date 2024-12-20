@@ -15,6 +15,7 @@ try:
     # Get simulation actors
     sim_name = "streamsim.123"
     cfact = CommlibFactory(node_name = "Test")
+    cfact.run()
     cl = cfact.getRPCClient(
         rpc_name = f"{sim_name}.tf.simulated_detection"
     )

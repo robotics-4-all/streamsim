@@ -25,7 +25,7 @@ class BaseThing:
 
     id = 0
 
-    def __init__(self, _name):
+    def __init__(self, _name, auto_start=True):
         """
         Initializes a new instance of the BaseThing class.
 
@@ -53,7 +53,8 @@ class BaseThing:
         self.tf_declare_pub = None
 
         self.commlib_factory = CommlibFactory(node_name=self.name)
-        self.commlib_factory.run()
+        if auto_start:
+            self.commlib_factory.run()
 
     def set_simulation_communication(self, namespace):
         """

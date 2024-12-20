@@ -29,7 +29,7 @@ class ImuController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id)
+        super().__init__(id, auto_start=False)
         self.set_simulation_communication(_namespace)
 
         info = {
@@ -112,6 +112,9 @@ class ImuController(BaseThing):
             callback = self.disable_callback,
             rpc_name = info["base_topic"] + ".disable"
         )
+
+        # Start commlib factory due to robot subscriptions (msub)
+        self.commlib_factory.run()
 
     def robot_pose_update(self, message):
         if self.prev_robot_pose == None:

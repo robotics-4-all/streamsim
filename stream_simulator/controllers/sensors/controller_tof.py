@@ -29,7 +29,7 @@ class TofController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id)
+        super().__init__(id, auto_start=False)
         self.set_simulation_communication(_namespace)
 
         info = {
@@ -109,8 +109,12 @@ class TofController(BaseThing):
         self.sensor_read_thread = None
         self.robot_pose = None
 
+        # Start commlib factory due to robot subscriptions (msub)
+        self.commlib_factory.run()
+
     def robot_pose_update(self, message):
         self.robot_pose = message
+        # print("TOF {} got robot pose".format(self.info["id"]))
 
     def sensor_read(self):
         self.logger.info("TOF {} sensor read thread started".format(self.info["id"]))
@@ -147,7 +151,7 @@ class TofController(BaseThing):
                 "distance": val,
                 "timestamp": time.time()
             })
-            self.logger.info("TOF %s sensor read: %f", self.info["id"], val)
+            # self.logger.info("TOF %s sensor read: %f", self.info["id"], val)
 
         self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
 

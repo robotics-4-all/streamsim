@@ -205,8 +205,7 @@ class Simulator:
                 self.logger.info(f"\t{t} {k}: {n}")
         self.logger.info(f"Total connections: {total}")
 
-        self.commlib_factory.print_topics()
-
+        # self.commlib_factory.print_topics()
         # Just to be informed for pose
         for i in range(0, len(self.robots)):
             self.robots[i].dispatch_pose_local()
@@ -220,4 +219,4 @@ class Simulator:
         )
 
         self.logger.warning("Simulation started")
-        self.tf.print_tf_tree()
+        # self.tf.print_tf_tree()

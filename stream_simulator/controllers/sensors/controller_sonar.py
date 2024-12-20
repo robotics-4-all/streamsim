@@ -29,7 +29,7 @@ class SonarController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id)
+        super().__init__(id, auto_start=False)
         self.set_simulation_communication(_namespace)
 
         info = {
@@ -113,6 +113,8 @@ class SonarController(BaseThing):
 
         self.robot_pose = None
 
+        # Start commlib factory due to robot subscriptions (msub)
+        self.commlib_factory.run()
 
     def robot_pose_update(self, message):
         self.robot_pose = message

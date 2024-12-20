@@ -36,6 +36,7 @@ class Test(unittest.TestCase):
         This method is called before each test case is executed.
         """
         self.cfact = CommlibFactory(node_name = "Test")
+        self.cfact.run()
 
     def test_get(self):
         """

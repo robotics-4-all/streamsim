@@ -158,6 +158,7 @@ class Robot:
         self.internal_pose_pub = self.commlib_factory.getPublisher(
             topic = self.name + ".pose.internal"
         )
+        # print("IN ROBOT: ", self.name, self.name + ".pose.internal")
 
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['remote_inform'] is True:
@@ -185,13 +186,13 @@ class Robot:
             )
 
             # AMQP Subscribers  -----------------------------------------------
-            self.buttons_amqp_sub = self.commlib_factory.getSubscriber(
+            self.commlib_factory.getSubscriber(
                 topic = self.name + ".buttons",
                 callback = self.button_amqp
             )
 
             if self.step_by_step_execution:
-                self.step_by_step_amqp_sub = self.commlib_factory.getSubscriber(
+                self.commlib_factory.getSubscriber(
                     topic = self.name + ".step_by_step",
                     callback = self.step_by_step_amqp
                 )
@@ -457,6 +458,7 @@ class Robot:
         return False
 
     def dispatch_pose_local(self):
+        # print(">>>>>>>>>>>POSE")
         self.internal_pose_pub.publish({
             "x": self._x,
             "y": self._y,

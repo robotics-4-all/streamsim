@@ -113,6 +113,10 @@ class CommlibFactory(Node):
         except: # pylint: disable=bare-except
             self._logger.critical("Error in connection parameters")
 
+        self.wsub = self.create_wsubscriber()
+        self.mpub = self.create_mpublisher()
+        self.mrpcserv = self.create_rpc()
+
         self._logger.info('[*] Commlib factory initiated from %s:%s',
                           calframe[1][1].split('/')[-1], calframe[1][2])
 
@@ -191,10 +195,15 @@ class CommlibFactory(Node):
         Returns:
         None
         """
-        if auto_run:
-            comm_entity.run()
+        # print(comm_entity)
+        if auto_run and comm_entity is not None:
+            try:
+                comm_entity.run()
+                # print(f"Running {name}")
+            except: # pylint: disable=bare-except
+                self._logger.critical("Error in running %s", name)
 
-        CommlibFactory.stats[broker]['publishers'] += 1
+        CommlibFactory.stats[broker]['publishers'] += 1 # NOTE: Fix this
         if name in comm_lst:
             comm_lst[name].append(\
                 f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
@@ -215,9 +224,13 @@ class CommlibFactory(Node):
             - Logs information about the publisher creation.
             - Increments the count of publishers for the specified broker in the stats.
         """
-        ret = self.create_publisher(
-            topic = topic
-        )
+        # NOTE: Old way
+        # ret = self.create_publisher(
+        #     topic = topic
+        # )
+
+        # NOTE: Check if this works
+        ret = self.create_wpublisher(self.mpub, topic)
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
         self.internal_handle(auto_run, ret, CommlibFactory.publisher_topics, topic, calframe, broker)
         return ret
@@ -240,10 +253,15 @@ class CommlibFactory(Node):
             - Logs the creation of the subscriber.
             - Increments the subscriber count in CommlibFactory.stats for the specified broker.
         """
-        ret = self.create_subscriber(
-            topic = topic,
-            on_message = callback
-        )
+        # NOTE: Old way
+        # ret = self.create_subscriber(
+        #     topic = topic,
+        #     on_message = callback
+        # )
+        
+        # NOTE: Check if this works
+        self.wsub.subscribe(topic, callback)
+        ret = None
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
         self.internal_handle(auto_run, ret, CommlibFactory.subscriber_topics, topic, calframe, broker)
         return ret

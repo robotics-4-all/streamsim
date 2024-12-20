@@ -17,6 +17,7 @@ class Test(unittest.TestCase):
             # Get simulation actors
             sim_name = "streamsim.123"
             cfact = CommlibFactory(node_name = "Test")
+            cfact.run()
             cl = cfact.getRPCClient(
                 rpc_name = f"{sim_name}.get_device_groups"
             )
@@ -39,7 +40,9 @@ class Test(unittest.TestCase):
                             'duration': 2
                         })
                         while action.get_result() is None:
+                            print("Recording...")
                             time.sleep(0.1)
+                        print("Recording finished")
                         final_res = action.get_result()
                         print(f"Bytes of recording: {len(final_res['record'])}")
         except: # pylint: disable=bare-except
