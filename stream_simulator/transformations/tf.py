@@ -180,12 +180,23 @@ class TfController:
         """
         self.logger.info("Transformation tree:")
         visited = []
+        tmp_tree = {"world": []}
+        self.places_absolute["world"] = {'x': 0, 'y': 0, 'theta': 0}
         for h in self.tree:
-            if h is not None and h not in self.robots:
-                continue
-            visited = self.print_tf_tree_recursive(h, 1, visited)
+            if h is None:
+                tmp_tree["world"] += self.tree[h]
+            elif h in self.robots:
+                tmp_tree["world"] += [h]
+                tmp_tree[h] = self.tree[h]
+            else:
+                tmp_tree[h] = self.tree[h]
+        self.print_tf_tree_recursive(tmp_tree, "world", 0, visited)
+        # for h in self.tree:
+        #     if h is not None and h not in self.robots:
+        #         continue
+        #     visited = self.print_tf_tree_recursive(h, 1, visited)
 
-    def print_tf_tree_recursive(self, node, level, visited = []):
+    def print_tf_tree_recursive(self, tree, node, level, visited = []):
         """
         Prints the transformation tree recursively.
 
@@ -211,15 +222,15 @@ class TfController:
             return visited
 
         visited.append(node)
-        if node not in self.tree:
+        if node not in tree:
             return visited
         tabs = "\t" * level
         self.logger.info(f"{tabs}{node} @ {self.places_absolute[node]}:")
-        for c in self.tree[node]:
+        for c in tree[node]:
             tabs = "\t" * (level + 1)
             if c not in self.existing_hosts:
                 self.logger.info(f"{tabs}{c} @ {self.places_absolute[c]}")
-            visited = self.print_tf_tree_recursive(c, level + 1, visited)
+            visited = self.print_tf_tree_recursive(tree, c, level + 1, visited)
         return visited
 
     def get_declarations_callback(self, message):
@@ -460,10 +471,14 @@ class TfController:
         self.declarations_info[temp['name']] = temp
 
         # Per type storage
-        self.per_type_storage(temp)
+        try:
+            self.per_type_storage(temp)
+        except Exception as e:
+            self.logger.error(f"Error in per type storage for {temp['name']}: {str(e)}")
+
+        self.logger.info(f"Declaration done for {temp['name']}")
         return {}
 
-    # https://jsonformatter.org/yaml-formatter/a56cff
     def per_type_storage(self, d):
         """
         Organizes and stores data based on its type and subtype.
@@ -480,34 +495,35 @@ class TfController:
         - Updates self.per_type with the new data based on its type and subtype.
         - Initializes RPC clients for certain subclasses and stores them in self.effectors_get_rpcs.
         """
-        type = d['type']
+        type_ = d['type']
         sub = d['subtype']
 
         if d['name'] in self.names:
             self.logger.error(f"Name {d['name']} already exists. {d['base_topic']}")
         else:
             self.names.append(d['name'])
+            self.logger.info(f"Adding {d['name']} to names")
 
-        if type == 'actor':
-            self.per_type[type][sub].append(d['name'])
-        elif type == "env":
+        if type_ == 'actor':
+            self.per_type[type_][sub].append(d['name'])
+            return
+        elif type_ == "env":
             subclass = sub['subclass'][0]
             category = sub['category']
-            self.per_type[type][category][subclass].append(d['name'])
+            self.per_type[type_][category][subclass].append(d['name'])
 
             if subclass in ["thermostat", "humidifier", "leds"]:
                 self.effectors_get_rpcs[d['name']] = self.commlib_factory.getRPCClient(
                     rpc_name = d['base_topic'] + ".get"
                 )
-
-        elif type == "robot":
+        elif type_ == "robot":
             subclass = sub['subclass'][0]
             category = sub['category']
             cls = sub['class']
             if cls in ["imu", "button", "env", "encoder", "twist", "line_follow"]:
-                self.per_type[type][category][cls].append(d['name'])
+                self.per_type[type_][category][cls].append(d['name'])
             else:
-                self.per_type[type][category][subclass].append(d['name'])
+                self.per_type[type_][category][subclass].append(d['name'])
 
             if subclass in ["leds"]:
                 self.effectors_get_rpcs[d['name']] = self.commlib_factory.getRPCClient(

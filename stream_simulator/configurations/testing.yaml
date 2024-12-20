@@ -79,9 +79,9 @@ robots:
       y: 500 # in pixels
       theta: 0 # in degrees
 
-# env_devices:
-#   relays:
-#     - source: "env_devices/relay"
+env_devices:
+  relays:
+    - source: "env_devices/relay"
 #   ph_sensors:
 #     - source: "env_devices/ph_sensor"
 #   temperature_sensors:
@@ -92,13 +92,13 @@ robots:
 #     - source: "env_devices/gas"
 #   camera_sensors:
 #     - source: "env_devices/camera"
-#   distance_sensors:
-#     - source: "env_devices/distance_sensor"
+  distance_sensors:
+    - source: "env_devices/distance_sensor"
 #   ambient_light_sensor:
 #     - source: "env_devices/ambient_light_sensor"
-#   pan_tilt:
+  pan_tilt:
 #     - source: "env_devices/pan_tilt"
-#     - source: "env_devices/pan_tilt_dist_X"
+    - source: "env_devices/pan_tilt_dist_X"
 #   speakers:
 #     - source: "env_devices/speaker"
 #   lights:
@@ -114,26 +114,26 @@ robots:
 #   alarms_linear:
 #     - source: "env_devices/alarm_linear"
 
-# actors:
-#   humans:
-#     - {id: 0, x: 510, y: 500, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
-#   superman:
-#     - {id: 1000, x: 10, y: 0, move: 1, sound: 1, lang: EN, message: test, text: hello}
-#   sound_sources:
-#     - {id: 4, x: 510, y: 500, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
-#   qrs:
-#     - {id: 5, x: 500, y: 510, message: test}
-#   barcodes:
-#     - {id: 6, x: 510, y: 500, message: EL3323341}
-#     - {id: 60, x: 80, y: 60, message: EL3DD341}
-#   colors:
-#     - {id: 7, x: 512, y: 500, r: 0, g: 255, b: 0} # for dominant color
-#   texts:
-#     - {id: 8, x: 511, y: 500, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
-#   rfid_tags:
-#     - {id: RF432423, x: 510, y: 510, message: test}
-#     - {id: RF432425, x: 520, y: 480, message: test_2}
-#   fires:
-#     - {id: 11, x: 500, y: 510, temperature: 140, range: 20}
-#   waters:
-#     - {id: 12, x: 520, y: 490, range: 20}
+actors:
+  humans:
+    - {id: 1, x: 510, y: 500, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
+  superman:
+    - {id: 1000, x: 10, y: 0, move: 1, sound: 1, lang: EN, message: test, text: hello}
+  sound_sources:
+    - {id: 4, x: 510, y: 500, lang: EN, range: 100, speech: Hey there, emotion: happy} # lang for language detection | EL or EN
+  qrs:
+    - {id: 5, x: 500, y: 510, message: test}
+  barcodes:
+    - {id: 6, x: 510, y: 500, message: EL3323341}
+    - {id: 60, x: 80, y: 60, message: EL3DD341}
+  colors:
+    - {id: 7, x: 512, y: 500, r: 0, g: 255, b: 0} # for dominant color
+  texts:
+    - {id: 8, x: 511, y: 500, text: this is a laaarge laaarge  laaarge  laaarge  laaarge  laaarge  laaarge text} # for OCR
+  rfid_tags:
+    - {id: RF432423, x: 510, y: 510, message: test}
+    - {id: RF432425, x: 520, y: 480, message: test_2}
+  fires:
+    - {id: 11, x: 500, y: 510, temperature: 140, range: 20}
+  waters:
+    - {id: 12, x: 520, y: 490, range: 20}

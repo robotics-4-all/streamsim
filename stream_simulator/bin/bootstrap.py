@@ -27,7 +27,7 @@ def thread_main(curr_dir, uid):
     Returns:
         None
     """
-    print(f"python3 {curr_dir}/main.py {uid}")
+    # print(f"python3 {curr_dir}/main.py {uid}")
     os.system(f"python3 {curr_dir}/main.py {uid}")
 
 def main():

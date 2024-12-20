@@ -61,7 +61,7 @@ s = Simulator(uid = uid)
 # While keyboard interrupt is not received, keep the simulator running
 try:
     while True:
-        time.sleep(0.25)
+        time.sleep(0.1)
 except KeyboardInterrupt:
     s.stop()
     print("Bye!")

@@ -93,7 +93,6 @@ class Simulator:
             callback = self.configuration_callback,
             rpc_name = self.name + '.set_configuration'
         )
-        print(self.name + '.set_configuration')
 
         self.simulation_start_pub = self.commlib_factory.getPublisher(
             topic = f"{self.name}.simulation_started"
