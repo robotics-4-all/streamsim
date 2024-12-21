@@ -1,11 +1,31 @@
+"""
+File that contains the superman actor.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import logging
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class SupermanActor(BaseThing):
+    """
+    A class representing a Superman actor in the simulation environment.
+    Attributes:
+        logger (logging.Logger): Logger instance for the actor.
+        info (dict): Information about the actor including type, configuration, id, and name.
+        pose (dict): Pose information of the actor including x, y coordinates and theta.
+        motion (str): Motion configuration for the actor.
+        sound (str): Sound configuration for the actor.
+        language (str): Language configuration for the actor.
+        message (str): Message configuration for the actor.
+        text (str): Text configuration for the actor.
+        name (str): Name of the actor.
+        id (int): ID of the actor.
+        host (str, optional): Host configuration for the actor.
+    Methods:
+        __init__(conf=None, package=None): Initializes the SupermanActor instance.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger("superman_" + str(conf["id"]))
@@ -13,14 +33,14 @@ class SupermanActor(BaseThing):
             self.logger = package["logger"]
 
         super().__init__("superman_" + str(conf["id"]), auto_start=False)
-        id = BaseThing.id
+        id_ = BaseThing.id
 
         self.set_tf_communication(package)
 
         info = {
             "type": "SUPERMAN",
             "conf": conf,
-            "id": id,
+            "id": id_,
             "name": "superman_" + str(conf["id"])
         }
 

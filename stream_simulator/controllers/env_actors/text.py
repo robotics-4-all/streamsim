@@ -1,11 +1,37 @@
+"""
+File that contains the text actor.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import logging
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class TextActor(BaseThing):
+    """
+    A class to represent a TextActor which inherits from BaseThing.
+    Attributes:
+    -----------
+    logger : logging.Logger
+        Logger instance for the TextActor.
+    info : dict
+        Dictionary containing information about the TextActor.
+    name : str
+        Name of the TextActor.
+    pose : dict
+        Dictionary containing the position (x, y) and orientation (theta) of the TextActor.
+    text : str
+        Text content of the TextActor.
+    id : int
+        Identifier for the TextActor.
+    host : str, optional
+        Host information if available in the configuration.
+    Methods:
+    --------
+    __init__(conf=None, package=None):
+        Initializes the TextActor with the given configuration and package.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger("text_" + str(conf["id"]))
@@ -13,14 +39,14 @@ class TextActor(BaseThing):
             self.logger = package["logger"]
 
         super().__init__("text_" + str(conf["id"]), auto_start=False)
-        id = BaseThing.id
+        id_ = BaseThing.id
 
         self.set_tf_communication(package)
 
         info = {
             "type": "TEXT",
             "conf": conf,
-            "id": id,
+            "id": id_,
             "name": "text_" + str(conf["id"])
         }
 

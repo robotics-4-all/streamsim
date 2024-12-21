@@ -1,3 +1,7 @@
+"""
+File that contains the sound source actor.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -5,6 +9,25 @@ import logging
 from stream_simulator.base_classes import BaseThing
 
 class SoundSourceActor(BaseThing):
+    """
+    SoundSourceActor is a class that represents a sound source actor in the simulation environment.
+    Attributes:
+        logger (logging.Logger): Logger instance for logging messages.
+        info (dict): Information dictionary containing type, configuration, id, and name 
+            of the sound source.
+        name (str): Name of the sound source.
+        pose (dict): Dictionary containing the x, y coordinates and theta (orientation) 
+            of the sound source.
+        language (str): Language of the sound source.
+        speech (str): Speech content of the sound source.
+        id (int): Identifier of the sound source.
+        emotion (str): Emotion associated with the sound source.
+        range (int): Range of the sound source.
+        host (str, optional): Host information if available in the configuration.
+    Methods:
+        __init__(conf=None, package=None): Initializes the SoundSourceActor with t
+            he given configuration and package.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger("sound_source_" + str(conf["id"]))
@@ -12,14 +35,14 @@ class SoundSourceActor(BaseThing):
             self.logger = package["logger"]
 
         super().__init__("sound_source_" + str(conf["id"]), auto_start=False)
-        id = BaseThing.id
+        id_ = BaseThing.id
 
         self.set_tf_communication(package)
 
         info = {
             "type": "SOUND_SOURCE",
             "conf": conf,
-            "id": id,
+            "id": id_,
             "name": "sound_source_" + str(conf["id"])
         }
 

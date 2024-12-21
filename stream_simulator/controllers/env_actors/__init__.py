@@ -1,3 +1,7 @@
+"""
+File that contains the environment actors.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 

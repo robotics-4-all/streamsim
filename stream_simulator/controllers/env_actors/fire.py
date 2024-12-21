@@ -1,11 +1,30 @@
+"""
+File that contains the fire actor.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import logging
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class FireActor(BaseThing):
+    """
+    FireActor is a class that represents a fire entity in the simulation environment.
+    Attributes:
+        logger (logging.Logger): Logger instance for the fire actor.
+        info (dict): Information about the fire actor including type, configuration, id, and name.
+        name (str): Name of the fire actor.
+        pose (dict): Position of the fire actor with keys 'x', 'y', and 'theta'.
+        id (int): Unique identifier for the fire actor.
+        temperature (int): Temperature of the fire actor. Defaults to 150 if not 
+            specified in the configuration.
+        range (int): Range of the fire actor. Defaults to 100 if not specified in the configuration.
+        host (str): Host information if available in the configuration.
+    Methods:
+        __init__(conf=None, package=None): Initializes the FireActor instance with 
+            the given configuration and package.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger("fire_" + str(conf["id"]))
@@ -13,14 +32,14 @@ class FireActor(BaseThing):
             self.logger = package["logger"]
 
         super().__init__("fire_" + str(conf["id"]), auto_start=False)
-        id = BaseThing.id
+        id_ = BaseThing.id
 
         self.set_tf_communication(package)
 
         info = {
             "type": "FIRE",
             "conf": conf,
-            "id": id,
+            "id": id_,
             "name": "fire_" + str(conf["id"])
         }
 

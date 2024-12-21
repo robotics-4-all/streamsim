@@ -1,3 +1,7 @@
+"""
+File that contains the ambient light controller.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -31,7 +35,8 @@ class EnvAmbientLightController(BaseThing):
         way (int): Direction for triangle operation.
         sensor_read_thread (threading.Thread): Thread for reading sensor data.
     Methods:
-        __init__(conf=None, package=None): Initializes the controller with configuration and package.
+        __init__(conf=None, package=None): Initializes the controller with 
+            configuration and package.
         set_communication_layer(package): Sets up the communication layer.
         get_mode_callback(message): Callback to get the current mode.
         set_mode_callback(message): Callback to set the mode.
@@ -147,11 +152,13 @@ class EnvAmbientLightController(BaseThing):
         """
         Configures the communication layer for the ambient light controller.
 
-        This method sets up the necessary communication interfaces for the ambient light controller,
-        including TF communication, data publishing, and RPCs for enabling/disabling and mode setting/getting.
+        This method sets up the necessary communication interfaces for the ambient light 
+        controller, including TF communication, data publishing, and RPCs for enabling/
+        disabling and mode setting/getting.
 
         Args:
-            package (Any): The communication package to be used for setting up the communication layer.
+            package (Any): The communication package to be used for setting 
+            up the communication layer.
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
@@ -181,10 +188,11 @@ class EnvAmbientLightController(BaseThing):
         Sets the mode of operation based on the provided message.
         Parameters:
         message (dict): A dictionary containing the mode of operation. 
-                        Expected keys:
-                        - "mode" (str): The mode to set. Can be "triangle", "sinus", or other values.
+            Expected keys:
+            - "mode" (str): The mode to set. Can be "triangle", "sinus", or other values.
         Behavior:
-        - If the mode is "triangle", sets `self.prev` to the minimum value of the "triangle" operation parameters and `self.way` to 1.
+        - If the mode is "triangle", sets `self.prev` to the minimum value of the 
+            "triangle" operation parameters and `self.way` to 1.
         - If the mode is "sinus", sets `self.prev` to 0.
         - For other modes, sets `self.prev` to None.
         - Updates `self.operation` to the provided mode.
@@ -209,7 +217,8 @@ class EnvAmbientLightController(BaseThing):
         sensor values based on predefined operation parameters such as constant, random, normal,
         triangle, and sinusoidal values. In "simulation" mode, it interacts with an external
         service to get environmental data and adjusts the luminosity based on the response.
-        The method runs in a loop, reading sensor data and publishing it until the sensor is disabled.
+        The method runs in a loop, reading sensor data and publishing it until the 
+        sensor is disabled.
         Attributes:
             self.constant_value (float): Constant value for the sensor in "mock" mode.
             self.random_min (float): Minimum value for random generation in "mock" mode.
@@ -226,7 +235,8 @@ class EnvAmbientLightController(BaseThing):
             self.mode (str): Mode of operation, either "mock" or "simulation".
             self.operation (str): Type of operation for generating sensor values in "mock" mode.
             self.info (dict): Dictionary containing sensor status information.
-            self.tf_affection_rpc (object): RPC client for interacting with external service in "simulation" mode.
+            self.tf_affection_rpc (object): RPC client for interacting with external service 
+                in "simulation" mode.
             self.env_properties (dict): Dictionary containing environmental properties.
             self.publisher (object): Publisher object for publishing sensor data.
             self.logger (object): Logger object for logging information.
@@ -356,7 +366,8 @@ class EnvAmbientLightController(BaseThing):
         Sets the callback for the ambient light controller.
         Args:
             message (dict): A dictionary containing the state to be set. 
-                            The dictionary must have a key "state" with a value that is one of the allowed states.
+                The dictionary must have a key "state" with a value that is one of 
+                the allowed states.
         Raises:
             Exception: If the state provided in the message is not in the list of allowed states.
         Returns:
@@ -378,10 +389,14 @@ class EnvAmbientLightController(BaseThing):
         Attributes:
             enable_rpc_server (RPCServer): Server to enable the ambient light sensor.
             disable_rpc_server (RPCServer): Server to disable the ambient light sensor.
-            get_mode_rpc_server (RPCServer): Server to get the current mode of the ambient light sensor.
-            set_mode_rpc_server (RPCServer): Server to set the mode of the ambient light sensor.
-            info (dict): Dictionary containing the configuration and state of the ambient light sensor.
-            sensor_read_thread (threading.Thread): Thread to handle reading data from the ambient light sensor.
+            get_mode_rpc_server (RPCServer): Server to get the current mode of the 
+                ambient light sensor.
+            set_mode_rpc_server (RPCServer): Server to set the mode of the ambient 
+                light sensor.
+            info (dict): Dictionary containing the configuration and state of the 
+                ambient light sensor.
+            sensor_read_thread (threading.Thread): Thread to handle reading data 
+                from the ambient light sensor.
         """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
@@ -399,7 +414,8 @@ class EnvAmbientLightController(BaseThing):
 
     def stop(self):
         """
-        Stops the ambient light controller by disabling its functionality and stopping all associated RPC servers.
+        Stops the ambient light controller by disabling its functionality and 
+        stopping all associated RPC servers.
 
         This method performs the following actions:
         - Sets the "enabled" status to False.

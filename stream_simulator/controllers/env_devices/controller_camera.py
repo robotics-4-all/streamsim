@@ -1,3 +1,7 @@
+"""
+File that contains the camera controller.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -15,7 +19,8 @@ from stream_simulator.base_classes import BaseThing
 
 class EnvCameraController(BaseThing):
     """
-    EnvCameraController is a class that simulates a camera sensor in an environment. It inherits from BaseThing.
+    EnvCameraController is a class that simulates a camera sensor in an environment. 
+    It inherits from BaseThing.
     Attributes:
         logger (logging.Logger): Logger instance for logging information.
         info (dict): Dictionary containing camera information and configuration.
@@ -69,7 +74,6 @@ class EnvCameraController(BaseThing):
         _pack = package["base"]
         _place = conf["place"]
         _namespace = package["namespace"]
-        id = "d_" + str(BaseThing.id)
 
         info = {
             "type": _type,
@@ -144,7 +148,22 @@ class EnvCameraController(BaseThing):
             "superman": "all.png"
         }
 
+        self.sensor_read_thread = None
+
     def set_communication_layer(self, package):
+        """
+        Configures the communication layer for the camera controller.
+
+        This method sets up various communication channels required for the camera
+        controller to function properly within the simulation environment. It 
+        initializes the simulation communication, transform communication, data 
+        publisher, and enable/disable RPCs.
+
+        Args:
+            package (dict): A dictionary containing configuration parameters. 
+                            Expected keys include:
+                            - "namespace": The namespace for simulation communication.
+        """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
@@ -155,7 +174,33 @@ class EnvCameraController(BaseThing):
         )
 
     def sensor_read(self):
-        self.logger.info(f"Sensor %s read thread started", self.name)
+        """
+        Reads sensor data and publishes it at a specified frequency.
+        This method continuously reads data from a sensor and publishes it. T
+        he behavior of the method
+        depends on the mode of the sensor, which can be either "mock" or "simulation".
+        In "mock" mode:
+            - Reads a predefined image file and encodes it in base64 format.
+        In "simulation" mode:
+            - Calls a remote procedure to get information about nearby objects.
+            - Determines the closest object and its type (e.g., human, QR code, 
+            barcode, color, text).
+            - Generates an image based on the type of the closest object:
+                - For humans, selects a random face image.
+                - For QR codes, generates a QR code image from the provided message.
+                - For barcodes, uses a predefined barcode image.
+                - For colors, creates an image filled with the specified color.
+                - For text, generates an image with the specified text centered.
+            - Encodes the generated image in base64 format.
+        The method publishes the encoded image data along with metadata such as 
+        timestamp, format, width, and height.
+        Raises:
+            Exception: If there is an error generating the text image in "simulation" mode.
+        Logs:
+            - Information about the start of the sensor read thread.
+            - Errors related to QR code generation and text image generation.
+        """
+        self.logger.info("Sensor %s read thread started", self.name)
         width = self.width
         height = self.height
 
@@ -197,17 +242,17 @@ class EnvCameraController(BaseThing):
                 elif cl_type == "human":
                     img = random.choice(["face.jpg", "face_inverted.jpg"])
                 elif cl_type == "qr":
-                    
                     try:
                         im = qrcode.make(res[clos]["info"]["message"])
                     except: # pylint: disable=bare-except
-                        self.logger.error("QR creator could not produce string or qrcode library is not installed")
+                        self.logger.error(\
+                            "QR creator could not produce string or qrcode \
+                                library is not installed")
                     im.save(dirname + "/resources/qr_tmp.png")
                     img = "qr_tmp.png"
                 elif cl_type == "barcode":
                     img = "barcode.jpg"
                 elif cl_type == 'color':
-                    
                     img = 'col_tmp.png'
                     tmp = np.zeros((height, width, 3), np.uint8)
                     tmp[:] = (
@@ -244,7 +289,7 @@ class EnvCameraController(BaseThing):
                         # Save the image to a file
                         cv2.imwrite(dirname + "/resources/" + img, image) # pylint: disable=no-member
 
-                    except Exception as e:
+                    except Exception as e: # pylint: disable=broad-except
                         self.logger.error("CameraController: Error with text image generation: %s", str(e))
 
                 # print("Image: ", img)
@@ -267,18 +312,47 @@ class EnvCameraController(BaseThing):
                         "timestamp": time.time()
                     })
 
-    def enable_callback(self, message):
+    def enable_callback(self, _):
+        """
+        Enables the camera sensor by setting the "enabled" flag to True and starting a new thread
+        to read sensor data.
+        Args:
+            _ (Any): Placeholder argument, not used.
+        Returns:
+            dict: A dictionary indicating that the camera sensor has been enabled.
+        """
         self.info["enabled"] = True
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
 
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the camera by setting the 'enabled' status to False.
+
+        Args:
+            _ (Any): Placeholder argument, not used in the method.
+
+        Returns:
+            dict: A dictionary with the 'enabled' status set to False.
+        """
         self.info["enabled"] = False
         return {"enabled": False}
 
     def start(self):
+        """
+        Starts the sensor and waits for the simulator to start.
+        This method logs the initial state of the sensor and enters a loop, 
+        waiting for the simulator to start. Once the simulator has started, 
+        it logs the sensor's start state. If the sensor is enabled, it starts 
+        a new thread to read sensor data.
+        Attributes:
+            simulator_started (bool): Flag indicating if the simulator has started.
+            info (dict): Dictionary containing sensor information, including 
+                         whether the sensor is enabled.
+            sensor_read_thread (threading.Thread): Thread for reading sensor data.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
@@ -292,6 +366,12 @@ class EnvCameraController(BaseThing):
             self.sensor_read_thread.start()
 
     def stop(self):
+        """
+        Stops the camera controller by disabling the camera and stopping the RPC servers.
+
+        This method sets the "enabled" flag in the info dictionary to False, indicating that the camera is no longer active.
+        It also stops the RPC servers responsible for enabling and disabling the camera.
+        """
         self.info["enabled"] = False
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()

@@ -1,11 +1,35 @@
+"""
+File that contains the human actor.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import logging
 from stream_simulator.base_classes import BaseThing
-from stream_simulator.connectivity import CommlibFactory
 
 class HumanActor(BaseThing):
+    """
+    HumanActor is a class that represents a human actor in the simulation environment.
+    Attributes:
+        logger (logging.Logger): Logger for the human actor.
+        info (dict): Information about the human actor including type, configuration, id, and name.
+        name (str): Name of the human actor.
+        pose (dict): Pose of the human actor with x, y coordinates and theta.
+        motion (str): Motion configuration of the human actor.
+        sound (str): Sound configuration of the human actor.
+        language (str): Language configuration of the human actor.
+        range (int): Range of the human actor.
+        speech (str): Speech configuration of the human actor.
+        emotion (str): Emotion configuration of the human actor.
+        gender (str): Gender configuration of the human actor.
+        age (str): Age configuration of the human actor.
+        id (int): ID of the human actor.
+        host (str, optional): Host configuration of the human actor.
+    Methods:
+        __init__(conf=None, package=None): Initializes the HumanActor with the 
+            given configuration and package.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger("human_" + str(conf["id"]))
@@ -13,14 +37,14 @@ class HumanActor(BaseThing):
             self.logger = package["logger"]
 
         super().__init__("human_" + str(conf["id"]), auto_start=False)
-        id = BaseThing.id
+        id_ = BaseThing.id
 
         self.set_tf_communication(package)
 
         info = {
             "type": "HUMAN",
             "conf": conf,
-            "id": id,
+            "id": id_,
             "name": "human_" + str(conf["id"])
         }
 

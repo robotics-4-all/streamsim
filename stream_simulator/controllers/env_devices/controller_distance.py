@@ -15,7 +15,8 @@ from stream_simulator.base_classes import BaseThing
 
 class EnvDistanceController(BaseThing):
     """
-    EnvDistanceController is a class that simulates a distance sensor in an environment. It inherits from BaseThing.
+    EnvDistanceController is a class that simulates a distance sensor in an environment. 
+    It inherits from BaseThing.
     Attributes:
         logger (logging.Logger): Logger for the controller.
         robots_poses (dict): Dictionary to store the poses of robots.
@@ -157,6 +158,9 @@ class EnvDistanceController(BaseThing):
         else:
             self.prev = None
 
+        self.sensor_read_thread = None
+        self.state = "enabled"
+
     def set_communication_layer(self, package):
         """
         Configures the communication layer for the simulation environment.
@@ -171,11 +175,15 @@ class EnvDistanceController(BaseThing):
                             - Other keys required by set_tf_communication and other methods.
 
         Methods called:
-            - set_simulation_communication(namespace): Sets up the simulation communication using the provided namespace.
-            - set_tf_communication(package): Configures the TF (Transform) communication using the provided package.
+            - set_simulation_communication(namespace): Sets up the simulation 
+            communication using the provided namespace.
+            - set_tf_communication(package): Configures the TF (Transform) communication 
+            using the provided package.
             - set_data_publisher(base_topic): Sets up the data publisher using the base topic.
-            - set_enable_disable_rpcs(base_topic, enable_callback, disable_callback): Configures the enable/disable RPCs.
-            - set_mode_get_set_rpcs(base_topic, set_mode_callback, get_mode_callback): Configures the mode get/set RPCs.
+            - set_enable_disable_rpcs(base_topic, enable_callback, disable_callback):
+            Configures the enable/disable RPCs.
+            - set_mode_get_set_rpcs(base_topic, set_mode_callback, get_mode_callback):
+            Configures the mode get/set RPCs.
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
@@ -189,13 +197,16 @@ class EnvDistanceController(BaseThing):
 
         Args:
             message (dict): A dictionary containing the robot's pose information.
-                - 'name' (str): The name of the robot, expected to be in the format 'prefix.robot_name'.
+                - 'name' (str): The name of the robot, expected to be in the format 
+                    'prefix.robot_name'.
                 - 'x' (float): The x-coordinate of the robot's position.
                 - 'y' (float): The y-coordinate of the robot's position.
 
         Updates:
-            self.robots_poses (dict): A dictionary where the key is the robot's name and the value is another dictionary
-                                      containing the 'x' and 'y' coordinates of the robot's position, adjusted by the resolution.
+            self.robots_poses (dict): A dictionary where the key is the robot's
+            name and the value is another dictionary
+            containing the 'x' and 'y' coordinates of the robot's position, 
+            adjusted by the resolution.
         """
         nm = message['name'].split(".")[-1]
         if nm not in self.robots_poses:
@@ -230,12 +241,13 @@ class EnvDistanceController(BaseThing):
         Callback function to set the operation mode based on the provided message.
         Parameters:
         message (dict): A dictionary containing the mode information. 
-                        Expected keys:
-                        - "mode" (str): The mode to set. Possible values are "triangle", "sinus", or other.
+            Expected keys:
+            - "mode" (str): The mode to set. Possible values are "triangle", "sinus", or other.
         Returns:
         dict: An empty dictionary.
         Behavior:
-        - If the mode is "triangle", sets self.prev to the minimum value of the "triangle" operation parameters and self.way to 1.
+        - If the mode is "triangle", sets self.prev to the minimum value of the 
+            "triangle" operation parameters and self.way to 1.
         - If the mode is "sinus", sets self.prev to 0.
         - For any other mode, sets self.prev to None.
         - Updates self.operation to the provided mode.
@@ -286,7 +298,7 @@ class EnvDistanceController(BaseThing):
             )
             # self.robots_subscribers[r].run()
 
-        self.logger.info(f"Sensor {self.name} read thread started")
+        self.logger.info("Sensor %s read thread started", self.name)
 
         # Operation parameters
         self.constant_value = self.operation_parameters["constant"]['value']
@@ -327,7 +339,7 @@ class EnvDistanceController(BaseThing):
                     val = self.sinus_dc + self.sinus_amp * math.sin(self.prev)
                     self.prev += self.sinus_step
                 else:
-                    self.logger.warning(f"Unsupported operation: {self.operation}")
+                    self.logger.warning("Unsupported operation: %s", self.operation)
 
             elif self.mode == "simulation":
                 # Get pose of the sensor (in case it is on a pan-tilt)
@@ -349,10 +361,10 @@ class EnvDistanceController(BaseThing):
                     tmpy = yy + d * math.sin(th)
 
                     # Check robots atan2
-                    for r in self.robots_poses:
+                    for r, pose in self.robots_poses.items():
                         dd = math.sqrt(
-                            math.pow(tmpy - self.robots_poses[r]['y'], 2) + \
-                            math.pow(tmpx - self.robots_poses[r]['x'], 2)
+                            math.pow(tmpy - pose['y'], 2) + \
+                            math.pow(tmpx - pose['x'], 2)
                         )
                         # print(dd, 0.5 / self.resolution)
                         if dd < (0.5 / self.resolution):
@@ -369,7 +381,16 @@ class EnvDistanceController(BaseThing):
             })
             # print(val)
 
-    def enable_callback(self, message):
+    def enable_callback(self, _):
+        """
+        Enables the callback by setting the 'enabled' flag to True and starting the 
+        sensor read thread.
+        Args:
+            _ (Any): Placeholder argument, not used in the method.
+        Returns:
+            dict: A dictionary indicating that the callback has been enabled with 
+            the key 'enabled' set to True.
+        """
         self.info["enabled"] = True
 
         # self.enable_rpc_server.run()
@@ -382,22 +403,64 @@ class EnvDistanceController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the callback by setting the "enabled" status to False.
+
+        Args:
+            message (dict): The message received (not used in this method).
+
+        Returns:
+            dict: A dictionary indicating that the "enabled" status is now False.
+        """
         self.info["enabled"] = False
         return {"enabled": False}
 
-    def get_callback(self, message):
+    def get_callback(self, _):
+        """
+        Callback function to handle incoming messages.
+
+        Args:
+            message (Any): The incoming message to be processed.
+
+        Returns:
+            dict: A dictionary containing the current state.
+        """
         return {"state": self.state}
 
     def set_callback(self, message):
+        """
+        Sets the state of the device based on the provided message.
+        Args:
+            message (dict): A dictionary containing the state information. 
+                            It must have a key "state" with the desired state as its value.
+        Raises:
+            Exception: If the provided state is not in the list of allowed states.
+        Returns:
+            dict: A dictionary containing the updated state of the device.
+        """
         state = message["state"]
         if state not in self.allowed_states:
-            raise Exception(f"{self.name} does not allow {state} state")
+            raise Exception(f"{self.name} does not allow {state} state") # pylint: disable=broad-exception-raised
 
         self.state = state
         return {"state": self.state}
 
     def start(self):
+        """
+        Starts the sensor and waits for the simulator to start.
+        This method logs the initial state of the sensor and enters a loop, 
+        waiting for the simulator to start. Once the simulator has started, 
+        it logs that the sensor has started. If the sensor is enabled, it 
+        starts a new thread to read sensor data.
+        Attributes:
+            self.logger (Logger): Logger instance for logging information.
+            self.name (str): Name of the sensor.
+            self.simulator_started (bool): Flag indicating if the simulator has started.
+            self.info (dict): Dictionary containing sensor information, including 
+                              whether the sensor is enabled.
+            self.sensor_read_thread (Thread): Thread for reading sensor data.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
@@ -413,6 +476,15 @@ class EnvDistanceController(BaseThing):
             self.sensor_read_thread.start()
 
     def stop(self):
+        """
+        Stops the controller by disabling it and stopping all RPC servers.
+
+        This method sets the "enabled" flag to False and stops the following RPC servers:
+        - enable_rpc_server
+        - disable_rpc_server
+        - get_mode_rpc_server
+        - set_mode_rpc_server
+        """
         self.info["enabled"] = False
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
