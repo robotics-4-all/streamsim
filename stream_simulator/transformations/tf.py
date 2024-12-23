@@ -635,7 +635,8 @@ class TfController:
         if "pan_tilt" in  d['subtype']['subclass']:
             self.subs[d['name']] = self.commlib_factory.getSubscriber(
                 topic = d["base_topic"] + ".data",
-                callback = self.pan_tilt_callback
+                callback = self.pan_tilt_callback,
+                old_way = True,
             )
 
             self.pantilts[d['name']] = {

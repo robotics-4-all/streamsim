@@ -126,7 +126,8 @@ class TofController(BaseThing):
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = self.commlib_factory.getSubscriber(
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
-                callback = self.robot_pose_update
+                callback = self.robot_pose_update,
+                old_way=True
             )
 
             self.get_tf_rpc = self.commlib_factory.getRPCClient(

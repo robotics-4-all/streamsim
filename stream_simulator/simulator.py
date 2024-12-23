@@ -262,4 +262,4 @@ class Simulator:
         )
 
         self.logger.warning("Simulation started")
-        # self.tf.print_tf_tree()
+        self.tf.print_tf_tree()

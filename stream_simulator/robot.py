@@ -153,6 +153,10 @@ class Robot:
             callback = self.reset_pose_callback,
             rpc_name = self.name + '.reset_robot_pose'
         )
+        self.set_pose_rpc_server = self.commlib_factory.getRPCService(
+            callback = self.set_pose_callback,
+            rpc_name = self.name + '.teleport'
+        )
         self.devices_rpc_server = self.commlib_factory.getRPCService(
             callback = self.devices_callback,
             rpc_name = self.name + '.nodes_detector.get_connected_devices'
@@ -549,6 +553,31 @@ class Robot:
         self._x = self._init_x
         self._y = self._init_y
         self._theta = self._init_theta
+        self.dispatch_pose_local()
+        return {}
+
+    def set_pose_callback(self, msg):
+        """
+        Callback function to set the robot's pose.
+
+        This function is triggered to update the robot's position and orientation.
+        It logs a warning message indicating that the robot is being teleported,
+        updates the internal state variables `_x`, `_y`, and `_theta` with the
+        values from the provided message, and then dispatches the updated pose
+        locally.
+
+        Args:
+            msg (dict): A dictionary containing the new pose of the robot with keys
+                        "x" (float), "y" (float), and "theta" (float).
+
+        Returns:
+            dict: An empty dictionary.
+        """
+        self.logger.warning("Teleporting robot")
+        self._x = msg["x"]
+        self._y = msg["y"]
+        self._theta = msg["theta"]
+        self.dispatch_pose_local()
         return {}
 
     def initialize_resources(self):
