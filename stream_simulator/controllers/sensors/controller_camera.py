@@ -144,7 +144,7 @@ class CameraController(BaseThing):
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = self.commlib_factory.getSubscriber(
-                topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.inernal",
+                topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
 

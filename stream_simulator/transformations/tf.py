@@ -627,7 +627,9 @@ class TfController:
                 self.subs[d['host']] = self.commlib_factory.getSubscriber(
                     topic = d['namespace'] + "." + d["host"] + ".pose.internal",
                     callback = self.robot_pose_callback,
+                    old_way = True,
                 )
+                self.subs[d['host']].run()
 
         # Handle pan tilts
         if "pan_tilt" in  d['subtype']['subclass']:
@@ -1300,7 +1302,6 @@ class TfController:
             pl = self.places_absolute[name]
             xy = [pl['x'], pl['y']]
             range_ = self.declarations_info[name]['range']
-
             # Check all robots if in there
             for r in self.robots:
                 pl_aff = self.places_absolute[r]
@@ -1482,6 +1483,7 @@ class TfController:
                         'gas': self.handle_env_sensor_gas(name)
                     }
         except Exception as e:
+            self.logger.error("Error in device handling: %s", str(e))
             # pylint: disable=broad-exception-raised
             raise Exception(f"Error in device handling: {str(e)}") from e
 

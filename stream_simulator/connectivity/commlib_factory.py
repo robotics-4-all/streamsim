@@ -236,7 +236,7 @@ class CommlibFactory(Node):
             broker, "publishers")
         return ret
 
-    def getSubscriber(self, broker = "mqtt", topic = None, callback = None, auto_run = True):
+    def getSubscriber(self, broker = "mqtt", topic = None, callback = None, auto_run = True, old_way = False):
         """
         Creates and runs a subscriber for the specified broker and topic, and logs the creation.
 
@@ -255,14 +255,16 @@ class CommlibFactory(Node):
             - Increments the subscriber count in CommlibFactory.stats for the specified broker.
         """
         # NOTE: Old way
-        # ret = self.create_subscriber(
-        #     topic = topic,
-        #     on_message = callback
-        # )
+        if old_way:
+            ret = self.create_subscriber(
+                topic = topic,
+                on_message = callback
+            )
+        else:
+            # NOTE: Check if this works
+            self.wsub.subscribe(topic, callback)
+            ret = None
 
-        # NOTE: Check if this works
-        self.wsub.subscribe(topic, callback)
-        ret = None
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
         self.internal_handle(auto_run, ret, CommlibFactory.subscriber_topics, topic, calframe, \
             broker, "subscribers")

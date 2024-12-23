@@ -640,7 +640,6 @@ class Robot:
         Returns:
             None
         """
-        # print(">>>>>>>>>>>POSE")
         self.internal_pose_pub.publish({
             "x": self._x,
             "y": self._y,

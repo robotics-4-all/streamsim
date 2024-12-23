@@ -32,7 +32,6 @@ class Test(unittest.TestCase):
         initialize variables, create mock objects, or perform any other setup tasks
         required for the tests.
         """
-        pass
 
     def test_get(self):
         """
