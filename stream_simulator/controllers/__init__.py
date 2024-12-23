@@ -1,3 +1,7 @@
+"""
+File that exposes the controllers.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 

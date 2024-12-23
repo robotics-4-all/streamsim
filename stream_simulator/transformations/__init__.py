@@ -1,3 +1,7 @@
+"""
+File that exposes the transformations.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 

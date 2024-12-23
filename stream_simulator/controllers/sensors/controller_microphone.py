@@ -1,27 +1,55 @@
+"""
+File that contains the microphone controller.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import math
 import logging
-import threading
-import random
 import base64
-
-from colorama import Fore, Style
+import wave
+from pathlib import Path
 
 from stream_simulator.base_classes import BaseThing
 
 class MicrophoneController(BaseThing):
+    """
+    MicrophoneController is a class that simulates a microphone sensor in a robotic system.
+    Attributes:
+        logger (logging.Logger): Logger instance for logging information.
+        name (str): Name of the microphone controller.
+        info (dict): Dictionary containing microphone information and configuration.
+        base_topic (str): Base topic for communication.
+        blocked (bool): Flag indicating if the microphone is currently blocked.
+        actors (list): List of actors associated with the microphone.
+        record_action_server (ActionServer): Action server for recording actions.
+        listen_action_server (ActionServer): Action server for listening actions.
+        enable_rpc_server (RPCService): RPC service for enabling the microphone.
+        disable_rpc_server (RPCService): RPC service for disabling the microphone.
+        record_pub (Publisher): Publisher for recording notifications.
+        detect_speech_sub (Subscriber): Subscriber for speech detection notifications.
+    Methods:
+        __init__(conf=None, package=None): Initializes the MicrophoneController with the 
+        given configuration and package.
+        speech_detected(message): Callback function for handling detected speech messages.
+        load_wav(path): Loads a WAV file from the specified path and returns its base64 
+        encoded content.
+        on_goal(goalh): Callback function for handling recording goals.
+        on_goal_listen(goalh): Callback function for handling listening goals.
+        enable_callback(message): Callback function for enabling the microphone.
+        disable_callback(message): Callback function for disabling the microphone.
+        start(): Starts the microphone controller.
+        stop(): Stops the microphone controller.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
-        id = "d_microphone_" + str(BaseThing.id + 1)
-        name = id
+        id_ = "d_microphone_" + str(BaseThing.id + 1)
+        name = id_
         self.name = name
         if 'name' in conf:
             name = conf['name']
@@ -33,7 +61,7 @@ class MicrophoneController(BaseThing):
         _namespace = package["namespace"]
 
         # BaseThing initialization
-        super().__init__(id, auto_start=False)
+        super().__init__(id_, auto_start=False)
         self.set_simulation_communication(_namespace)
 
         info = {
@@ -42,7 +70,7 @@ class MicrophoneController(BaseThing):
             "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
-            "id": "id_" + str(id),
+            "id": "id_" + str(id_),
             "enabled": True,
             "orientation": float(conf["orientation"]),
             "queue_size": 0,
@@ -127,23 +155,42 @@ class MicrophoneController(BaseThing):
         self.tf_declare_rpc.call(tf_package)
 
     def speech_detected(self, message):
+        """
+        Handles the event when speech is detected.
+
+        Args:
+            message (dict): A dictionary containing information about the detected speech.
+                - speaker (str): The source of the speech.
+                - text (str): The detected speech text.
+                - language (str): The language of the detected speech.
+
+        Logs:
+            Logs the detected speech information including the source, language, and text.
+        """
         source = message["speaker"]
         text = message["text"]
         language = message["language"]
-        self.logger.info(f"Speech detected from {source} [{language}]: {text}")
+        self.logger.info("Speech detected from %s [%s]: %s", source, language, text)
 
     def load_wav(self, path):
+        """
+        Loads a WAV file from the specified path, reads its contents, and encodes it in base64.
+
+        Args:
+            path (str): The relative path to the WAV file within the resources directory.
+
+        Returns:
+            str: The base64 encoded string of the WAV file's binary data.
+
+        Raises:
+            FileNotFoundError: If the specified file does not exist.
+            wave.Error: If there is an error reading the WAV file.
+        """
         # Read from file
-        import wave
-        import os
-        from pathlib import Path
         dirname = Path(__file__).resolve().parent
         fil = str(dirname) + '/../../resources/' + path
-        self.logger.info("Reading sound from " + fil)
+        self.logger.info("Reading sound from %s", fil)
         f = wave.open(fil, 'rb')
-        channels = f.getnchannels()
-        framerate = f.getframerate()
-        sample_width = f.getsampwidth()
         data = bytearray()
         sample = f.readframes(256)
         while sample:
@@ -155,8 +202,23 @@ class MicrophoneController(BaseThing):
         return source
 
     def on_goal(self, goalh):
-        self.logger.info("{} recording started".format(self.name))
-        if self.info["enabled"] == False:
+        """
+        Handles the goal event for the microphone controller.
+        This method starts the recording process based on the provided goal, handles concurrent 
+        speaker calls, and simulates or mocks the recording process depending on the mode specified 
+        in the `info` attribute.
+        Args:
+            goalh: The goal handle containing the recording parameters.
+        Returns:
+            dict: A dictionary containing the recording result with the following keys:
+                - header: A dictionary with timestamp information.
+                - record: The base64 encoded recording data.
+                - volume: The volume level of the recording.
+        Raises:
+            Exception: If the goal does not contain a duration parameter.
+        """
+        self.logger.info("%s recording started", self.name)
+        if self.info["enabled"] is False:
             return {}
 
         # Concurrent speaker calls handling
@@ -167,8 +229,8 @@ class MicrophoneController(BaseThing):
 
         try:
             duration = goalh.data["duration"]
-        except Exception as e:
-            self.logger.error("{} goal had no duration as parameter".format(self.name))
+        except Exception: # pylint: disable=broad-except
+            self.logger.error("%s goal had no duration as parameter", self.name)
 
         self.record_pub.publish({
             "duration": duration
@@ -247,13 +309,25 @@ class MicrophoneController(BaseThing):
             ret["record"] = self.load_wav(wav)
             ret["volume"] = 100
 
-        self.logger.info("{} recording finished".format(self.name))
+        self.logger.info("%s recording finished", self.name)
         self.blocked = False
         return ret
 
     def on_goal_listen(self, goalh):
-        self.logger.info("{} listening started".format(self.name))
-        if self.info["enabled"] == False:
+        """
+        Handles the goal to listen for a specified duration and language.
+        This function starts the listening process, checks if the microphone is enabled,
+        and handles concurrent speaker calls. It then attempts to retrieve the duration
+        and language from the goal data and logs the listening process.
+        Args:
+            goalh (object): An object containing the goal data with 'duration' and 'language' 
+            parameters.
+        Returns:
+            dict: A dictionary containing the transcribed text. Currently, this is a dummy 
+            implementation and returns a placeholder text.
+        """
+        self.logger.info("%s listening started", self.name)
+        if self.info["enabled"] is False:
             return {}
 
         # Concurrent speaker calls handling
@@ -265,30 +339,59 @@ class MicrophoneController(BaseThing):
         # NOTE!!! This is a dummy implementation
         text = "IMPLEMENT THIS FUNCTIONALITY!"
 
-        try:
-            duration = goalh.data["duration"]
-            language = goalh.data["language"]
-        except Exception as e:
-            self.logger.error("{} goal had no duration and language as parameter".format(self.name))
+        if "duration" not in goalh.data or "language" not in goalh.data:
+            self.logger.error("%s goal had no duration and language as parameter", self.name)
+            return {'text': "ERROR"}
 
-        self.logger.info("Listening finished: " + str(text))
+        self.logger.info("Listening finished: %s", )
         self.blocked = False
         return {'text': text}
 
-    def enable_callback(self, message):
+    def enable_callback(self, _):
+        """
+        Enables the microphone sensor callback.
+
+        This method sets the "enabled" key in the info dictionary to True and returns a dictionary 
+        indicating that the microphone sensor is enabled.
+
+        Args:
+            _ (Any): Unused parameter.
+
+        Returns:
+            dict: A dictionary with the key "enabled" set to True.
+        """
         self.info["enabled"] = True
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the microphone callback by setting the "enabled" status to False.
+
+        Args:
+            _ (Any): Unused parameter.
+
+        Returns:
+            dict: A dictionary with the "enabled" status set to False.
+        """
         self.info["enabled"] = False
         return {"enabled": False}
 
     def start(self):
+        """
+        Starts the microphone sensor.
+
+        This method logs a message indicating that the sensor is waiting to start.
+        It then enters a loop, sleeping for 1 second at a time, until the simulator
+        has started. Once the simulator has started, it logs a message indicating
+        that the sensor has started.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-
     def stop(self):
+        """
+        Stops the microphone controller by invoking the stop method of the commlib_factory.
+        """
         self.commlib_factory.stop()

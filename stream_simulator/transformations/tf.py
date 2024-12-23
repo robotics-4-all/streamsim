@@ -1,3 +1,7 @@
+"""
+File that contains the TfController class.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -5,7 +9,6 @@ import math
 import logging
 import random
 import string
-import time
 
 from stream_simulator.connectivity import CommlibFactory
 

@@ -1,26 +1,53 @@
+"""
+File that contains the TOF controller.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
-import json
 import math
 import logging
 import threading
 import random
 
-from colorama import Fore, Style
-
 from stream_simulator.base_classes import BaseThing
 
 class TofController(BaseThing):
+    """
+    TofController is a class that simulates a Time-of-Flight (TOF) sensor.
+    Attributes:
+        logger (logging.Logger): Logger for the controller.
+        info (dict): Information about the TOF sensor.
+        name (str): Name of the TOF sensor.
+        map (Any): Map data for the sensor.
+        base_topic (str): Base topic for communication.
+        derp_data_key (str): Key for raw data communication.
+        tf_declare_rpc (Any): RPC client for declaring TF.
+        publisher (Any): Publisher for sensor data.
+        enable_rpc_server (Any): RPC server for enabling the sensor.
+        disable_rpc_server (Any): RPC server for disabling the sensor.
+        robot_pose_sub (Any): Subscriber for robot pose updates (simulation mode).
+        get_tf_rpc (Any): RPC client for getting TF data (simulation mode).
+        sensor_read_thread (threading.Thread): Thread for reading sensor data.
+        robot_pose (Any): Current pose of the robot.
+    Methods:
+        __init__(conf=None, package=None): Initializes the TOF controller.
+        robot_pose_update(message): Updates the robot pose.
+        sensor_read(): Reads sensor data and publishes it.
+        enable_callback(message): Enables the sensor and starts reading data.
+        disable_callback(message): Disables the sensor.
+        start(): Starts the sensor.
+        stop(): Stops the sensor.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
-        id = "d_tof_" + str(BaseThing.id + 1)
-        name = id
+        id_ = "d_tof_" + str(BaseThing.id + 1)
+        name = id_
         if 'name' in conf:
             name = conf['name']
         _category = "sensor"
@@ -29,16 +56,16 @@ class TofController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id, auto_start=False)
+        super().__init__(id_, auto_start=False)
         self.set_simulation_communication(_namespace)
 
         info = {
             "type": "TOF",
             "brand": "vl53l1x",
             "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
-            "name": "tof_" + str(id),
+            "name": "tof_" + str(id_),
             "place": conf["place"],
-            "id": id,
+            "id": id_,
             "enabled": True,
             "orientation": float(conf["orientation"]),
             "hz": conf["hz"],
@@ -113,11 +140,31 @@ class TofController(BaseThing):
         self.commlib_factory.run()
 
     def robot_pose_update(self, message):
+        """
+        Updates the robot's pose with the given message.
+
+        Args:
+            message: The new pose information to update the robot's pose.
+        """
         self.robot_pose = message
-        # print("TOF {} got robot pose".format(self.info["id"]))
 
     def sensor_read(self):
-        self.logger.info("TOF {} sensor read thread started".format(self.info["id"]))
+        """
+        Reads sensor data in a separate thread and publishes the distance value.
+        This method continuously reads data from the sensor based on the specified mode
+        ("mock" or "simulation") and publishes the distance value at a rate defined by
+        the sensor's frequency (hz). The method runs in a loop until the sensor is disabled.
+        In "mock" mode, the distance value is randomly generated within a specified range.
+        In "simulation" mode, the distance is calculated based on the sensor's position and
+        orientation in the simulated environment.
+        The method logs the start and stop of the sensor read thread, as well as any warnings
+        if the sensor's pose is not available.
+        Raises:
+            Exception: If there is an error in retrieving the sensor's pose in simulation mode.
+        Publishes:
+            dict: A dictionary containing the distance value and the current timestamp.
+        """
+        self.logger.info("TOF %s sensor read thread started", self.info["id"])
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
@@ -143,7 +190,7 @@ class TofController(BaseThing):
                         tmpx = originx + d * math.cos(ths)
                         tmpy = originy + d * math.sin(ths)
                     val = d * self.robot_pose["resolution"]
-                except:
+                except: # pylint: disable=bare-except
                     self.logger.warning("Pose not got yet..")
 
             # Publishing value:
@@ -153,9 +200,19 @@ class TofController(BaseThing):
             })
             # self.logger.info("TOF %s sensor read: %f", self.info["id"], val)
 
-        self.logger.info("TOF {} sensor read thread stopped".format(self.info["id"]))
+        self.logger.info("TOF %s sensor read thread stopped", self.info["id"])
 
     def enable_callback(self, message):
+        """
+        Enables the sensor callback and starts the sensor reading thread.
+        Args:
+            message (dict): A dictionary containing the following keys:
+                - "hz" (int): The frequency at which the sensor should read data.
+                - "queue_size" (int): The size of the queue for sensor data.
+        Returns:
+            dict: A dictionary indicating that the sensor has been enabled with the key "enabled" 
+            set to True.
+        """
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -164,12 +221,33 @@ class TofController(BaseThing):
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the TOF sensor callback.
+
+        Args:
+            _ (Any): Unused parameter.
+
+        Returns:
+            dict: A dictionary indicating the sensor is disabled with the key "enabled" set to 
+            False.
+        """
         self.info["enabled"] = False
-        self.logger.info("TOF {} stops reading".format(self.info["id"]))
+        self.logger.info("TOF %s stops reading", self.info["id"])
         return {"enabled": False}
 
     def start(self):
+        """
+        Starts the sensor and begins reading data if enabled.
+        This method logs the initial state of the sensor and waits for the simulator to start.
+        Once the simulator has started, it logs that the sensor has started.
+        If the sensor is enabled, it starts a new thread to read sensor data at the specified 
+        frequency.
+        Attributes:
+            simulator_started (bool): Indicates whether the simulator has started.
+            info (dict): Contains sensor configuration, including 'enabled', 'id', and 'hz'.
+            sensor_read_thread (threading.Thread): The thread that reads sensor data.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
@@ -178,8 +256,14 @@ class TofController(BaseThing):
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
-            self.logger.info("TOF {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
+            self.logger.info("TOF %s reads with %s Hz", self.info["id"], self.info["hz"])
 
     def stop(self):
+        """
+        Stops the sensor by disabling it and stopping the communication library.
+
+        This method sets the "enabled" flag in the info dictionary to False and 
+        calls the stop method on the commlib_factory to halt any ongoing communication.
+        """
         self.info["enabled"] = False
         self.commlib_factory.stop()

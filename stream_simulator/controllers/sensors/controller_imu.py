@@ -1,26 +1,50 @@
+"""
+This file contains the controller class for an IMU sensor.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import math
 import logging
 import threading
 import random
 
-from colorama import Fore, Style
-
 from stream_simulator.base_classes import BaseThing
 
 class ImuController(BaseThing):
+    """
+    ImuController is a class that simulates an Inertial Measurement Unit (IMU) sensor.
+    Attributes:
+        logger (logging.Logger): Logger for the controller.
+        info (dict): Dictionary containing sensor information and configuration.
+        name (str): Name of the sensor.
+        base_topic (str): Base topic for communication.
+        derp_data_key (str): Key for raw data communication.
+        robot (str): Name of the robot.
+        prev_robot_pose (dict): Previous pose of the robot.
+        publisher (Publisher): Publisher for sensor data.
+        robot_pose_sub (Subscriber): Subscriber for robot pose updates.
+        enable_rpc_server (RPCService): RPC service to enable the sensor.
+        disable_rpc_server (RPCService): RPC service to disable the sensor.
+    Methods:
+        __init__(conf=None, package=None): Initializes the IMU controller with configuration and 
+        package details.
+        robot_pose_update(message): Updates the robot pose based on incoming messages.
+        sensor_read(): Reads sensor data and publishes it at a specified frequency.
+        enable_callback(message): Callback to enable the sensor and start reading data.
+        disable_callback(message): Callback to disable the sensor and stop reading data.
+        start(): Starts the sensor and begins reading data if enabled.
+        stop(): Stops the sensor and communication.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
-        id = "d_imu_" + str(BaseThing.id + 1)
-        name = id
+        id_ = "d_imu_" + str(BaseThing.id + 1)
+        name = id_
         if 'name' in conf:
             name = conf['name']
         _category = "sensor"
@@ -29,7 +53,7 @@ class ImuController(BaseThing):
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id, auto_start=False)
+        super().__init__(id_, auto_start=False)
         self.set_simulation_communication(_namespace)
 
         info = {
@@ -38,7 +62,7 @@ class ImuController(BaseThing):
             "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
-            "id": id,
+            "id": id_,
             "enabled": True,
             "orientation": float(conf["orientation"]),
             "hz": conf["hz"],
@@ -84,7 +108,7 @@ class ImuController(BaseThing):
         if 'host' in conf:
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
-        
+
         self.tf_declare_rpc.call(tf_package)
 
         self.publisher = self.commlib_factory.getPublisher(
@@ -116,8 +140,18 @@ class ImuController(BaseThing):
         # Start commlib factory due to robot subscriptions (msub)
         self.commlib_factory.run()
 
+        self.sensor_read_thread = None
+
     def robot_pose_update(self, message):
-        if self.prev_robot_pose == None:
+        """
+        Updates the robot's pose with the given message.
+        If this is the first update, the previous robot pose is set to the current message
+        and a timestamp is added. For subsequent updates, the previous robot pose is updated
+        to the current robot pose before setting the new pose and timestamp.
+        Args:
+            message (dict): A dictionary containing the robot's pose information.
+        """
+        if self.prev_robot_pose is None:
             self.prev_robot_pose = message
             self.prev_robot_pose['timestamp'] = time.time()
         else:
@@ -127,7 +161,26 @@ class ImuController(BaseThing):
         self.robot_pose['timestamp'] = time.time()
 
     def sensor_read(self):
-        self.logger.info("IMU {} sensor read thread started".format(self.info["id"]))
+        """
+        Reads sensor data at a specified frequency and publishes it to a sensor stream.
+        This method runs in a loop while the sensor is enabled. Depending on the mode specified 
+        in the sensor's configuration, it either generates mock data or simulates sensor data based 
+        on the robot's pose.
+        Mock mode:
+            Generates constant acceleration values and random gyroscope and magnetometer values.
+        Simulation mode:
+            Generates random acceleration, gyroscope, and magnetometer values. If the robot is 
+            moving, the acceleration values are adjusted accordingly.
+        The generated sensor data is published to a sensor stream with a timestamp.
+        Raises:
+            None
+        Logs:
+            - Info: When the sensor read thread starts and stops.
+            - Warning: If the robot's pose is not available in simulation mode.
+        Returns:
+            None
+        """
+        self.logger.info("IMU %s sensor read thread started", self.info["id"])
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
             val = {}
@@ -175,7 +228,7 @@ class ImuController(BaseThing):
                             "roll": random.uniform(0.03, -0.03)
                         }
                     }
-                except:
+                except: # pylint: disable=bare-except
                     self.logger.warning("Pose not got yet..")
 
             # Publish data to sensor stream
@@ -184,9 +237,21 @@ class ImuController(BaseThing):
                 "timestamp": time.time()
             })
 
-        self.logger.info("IMU {} sensor read thread stopped".format(self.info["id"]))
+        self.logger.info("IMU %s sensor read thread stopped", self.info["id"])
 
     def enable_callback(self, message):
+        """
+        Enables the sensor callback and starts the sensor reading thread.
+        This method updates the sensor information with the provided message
+        and starts a new thread to handle sensor readings.
+        Args:
+            message (dict): A dictionary containing the sensor configuration.
+                - "hz" (int): The frequency at which the sensor should read data.
+                - "queue_size" (int): The size of the queue for sensor data.
+        Returns:
+            dict: A dictionary indicating that the sensor has been enabled.
+                - "enabled" (bool): Always True.
+        """
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -195,12 +260,36 @@ class ImuController(BaseThing):
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the IMU sensor callback.
+
+        This method sets the "enabled" status of the IMU sensor to False and logs
+        an informational message indicating that the IMU has stopped reading.
+
+        Args:
+            message (dict): The message triggering the callback (not used in this method).
+
+        Returns:
+            dict: A dictionary with the "enabled" status set to False.
+        """
         self.info["enabled"] = False
-        self.logger.info("IMU {} stops reading".format(self.info["id"]))
+        self.logger.info("IMU %s stops reading", self.info["id"])
         return {"enabled": False}
 
     def start(self):
+        """
+        Starts the IMU sensor.
+        This method logs the initial state of the sensor and waits for the simulator to start.
+        Once the simulator has started, it checks if the sensor is enabled. If enabled, it starts
+        a new thread to read sensor data at the specified frequency.
+        Logging:
+            Logs the waiting state of the sensor.
+            Logs when the sensor has started.
+            Logs the sensor's reading frequency if enabled.
+        Threading:
+            Starts a new thread to read sensor data if the sensor is enabled.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
@@ -209,8 +298,15 @@ class ImuController(BaseThing):
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
-            self.logger.info("IMU {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
+            self.logger.info("IMU %s reads with %s Hz", self.info["id"], self.info["hz"])
 
     def stop(self):
+        """
+        Stops the IMU controller by disabling it and stopping the communication library.
+
+        This method sets the "enabled" flag in the info dictionary to False, indicating
+        that the IMU controller is no longer active. It also stops the communication
+        library factory to cease any ongoing communication processes.
+        """
         self.info["enabled"] = False
         self.commlib_factory.stop()
