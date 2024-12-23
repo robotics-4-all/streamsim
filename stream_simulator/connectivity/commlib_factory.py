@@ -129,22 +129,22 @@ class CommlibFactory(Node):
         """
         self._logger.warning("\nPublisher topics:")
         for topic, place in CommlibFactory.publisher_topics.items():
-            self._logger.info("\t%s @ %s", topic, place)
+            self._logger.info("- %s \n\t@ %s", topic, place)
         self._logger.warning("Subscriber topics:")
         for topic, place in CommlibFactory.subscriber_topics.items():
-            self._logger.info("\t%s @ %s", topic, place)
+            self._logger.info("- %s \n\t@ %s", topic, place)
         self._logger.warning("RPC server topics:")
         for topic, place in CommlibFactory.rpc_server_topics.items():
-            self._logger.info("\t%s @ %s", topic, place)
+            self._logger.info("- %s \n\t@ %s", topic, place)
         self._logger.warning("RPC client topics:")
         for topic, place in CommlibFactory.rpc_client_topics.items():
-            self._logger.info("\t%s @ %s", topic, place)
+            self._logger.info("- %s \n\t@ %s", topic, place)
         self._logger.warning("Action server topics:")
         for topic, place in CommlibFactory.action_server_topics.items():
-            self._logger.info("\t%s @ %s", topic, place)
+            self._logger.info("- %s \n\t@ %s", topic, place)
         self._logger.warning("Action client topics:")
         for topic, place in CommlibFactory.action_client_topics.items():
-            self._logger.info("\t%s @ %s", topic, place)
+            self._logger.info("- %s \n\t@ %s", topic, place)
         self._logger.info("")
 
     def notify_ui(self, type_ = None, data = None):
@@ -182,7 +182,7 @@ class CommlibFactory(Node):
             "%s::%s <%s> @ %s", broker, type_, topic, extras if extras != '' else '-'
         )
 
-    def internal_handle(self, auto_run, comm_entity, comm_lst, name, calframe, broker):
+    def internal_handle(self, auto_run, comm_entity, comm_lst, name, calframe, broker, _type):
         """
         Handles the internal communication setup and updates statistics.
         Parameters:
@@ -203,7 +203,7 @@ class CommlibFactory(Node):
             except: # pylint: disable=bare-except
                 self._logger.warning("CommlibFactory: Error in running %s", name)
 
-        CommlibFactory.stats[broker]['publishers'] += 1 # NOTE: Fix this
+        CommlibFactory.stats[broker][_type] += 1 # NOTE: Fix this
         if name in comm_lst:
             comm_lst[name].append(\
                 f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}")
@@ -233,7 +233,7 @@ class CommlibFactory(Node):
         ret = self.create_wpublisher(self.mpub, topic)
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
         self.internal_handle(auto_run, ret, CommlibFactory.publisher_topics, topic, calframe, \
-            broker)
+            broker, "publishers")
         return ret
 
     def getSubscriber(self, broker = "mqtt", topic = None, callback = None, auto_run = True):
@@ -265,7 +265,7 @@ class CommlibFactory(Node):
         ret = None
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
         self.internal_handle(auto_run, ret, CommlibFactory.subscriber_topics, topic, calframe, \
-            broker)
+            broker, "subscribers")
         return ret
 
     def getRPCService(self, broker = "mqtt", rpc_name = None, callback = None, auto_run = True):
@@ -287,7 +287,7 @@ class CommlibFactory(Node):
         )
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
         self.internal_handle(auto_run, ret, CommlibFactory.rpc_server_topics, rpc_name, calframe, \
-            broker)
+            broker, "rpc servers")
         return ret
 
     def getRPCClient(self, broker = "mqtt", rpc_name = None, auto_run = True):
@@ -306,7 +306,7 @@ class CommlibFactory(Node):
         )
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
         self.internal_handle(auto_run, ret, CommlibFactory.rpc_client_topics, rpc_name, calframe, \
-            broker)
+            broker, "rpc clients")
         return ret
 
     def getActionServer(
@@ -333,7 +333,7 @@ class CommlibFactory(Node):
         )
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
         self.internal_handle(auto_run, ret, CommlibFactory.action_server_topics, action_name, \
-            calframe, broker)
+            calframe, broker, "action servers")
         return ret
 
     def getActionClient(self, broker = "mqtt", action_name = None, auto_run = True):
@@ -356,5 +356,5 @@ class CommlibFactory(Node):
         )
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
         self.internal_handle(auto_run, ret, CommlibFactory.action_client_topics, action_name, \
-            calframe, broker)
+            calframe, broker, "action clients")
         return ret
