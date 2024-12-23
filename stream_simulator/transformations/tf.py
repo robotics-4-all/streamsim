@@ -185,21 +185,17 @@ class TfController:
         visited = []
         tmp_tree = {"world": []}
         self.places_absolute["world"] = {'x': 0, 'y': 0, 'theta': 0}
-        for h in self.tree:
+        for h, item in self.tree.items():
             if h is None:
-                tmp_tree["world"] += self.tree[h]
+                tmp_tree["world"] += item
             elif h in self.robots:
                 tmp_tree["world"] += [h]
-                tmp_tree[h] = self.tree[h]
+                tmp_tree[h] = item
             else:
-                tmp_tree[h] = self.tree[h]
+                tmp_tree[h] = item
         self.print_tf_tree_recursive(tmp_tree, "world", 0, visited)
-        # for h in self.tree:
-        #     if h is not None and h not in self.robots:
-        #         continue
-        #     visited = self.print_tf_tree_recursive(h, 1, visited)
 
-    def print_tf_tree_recursive(self, tree, node, level, visited = []):
+    def print_tf_tree_recursive(self, tree, node, level, visited):
         """
         Prints the transformation tree recursively.
 
@@ -228,15 +224,15 @@ class TfController:
         if node not in tree:
             return visited
         tabs = "\t" * level
-        self.logger.info(f"{tabs}{node} @ {self.places_absolute[node]}:")
+        self.logger.info("%s%s @ %s:", tabs, node, self.places_absolute[node])
         for c in tree[node]:
             tabs = "\t" * (level + 1)
             if c not in self.existing_hosts:
-                self.logger.info(f"{tabs}{c} @ {self.places_absolute[c]}")
+                self.logger.info("%s%s @ %s", tabs, c, self.places_absolute[c])
             visited = self.print_tf_tree_recursive(tree, c, level + 1, visited)
         return visited
 
-    def get_declarations_callback(self, message):
+    def get_declarations_callback(self, _):
         """
         Callback function to get the declarations.
 
@@ -249,6 +245,19 @@ class TfController:
         return {"declarations": self.declarations}
 
     def get_tf_callback(self, message):
+        """
+        Retrieves the transformation callback for a given device based on the message.
+        Args:
+            message (dict): A dictionary containing the 'name' key which specifies the device name.
+        Returns:
+            dict: A dictionary representing the transformation of the device. If the device is 
+            not found, an empty dictionary is returned. If the device is a robot, the absolute 
+            position is returned.
+            If the device is a pantilt, the pose is calculated based on the relative position and 
+            pan angle. Otherwise, the absolute position is returned.
+        Raises:
+            None
+        """
         name = message['name']
         if name not in self.items_hosts_dict:
             self.logger.error("TF: Requested transformation of missing device: %s", name)
@@ -259,7 +268,7 @@ class TfController:
         elif name in self.pantilts:
             pose = self.places_absolute[name]
             base_th = 0
-            if self.items_hosts_dict[name] != None:
+            if self.items_hosts_dict[name] is not None:
                 base_th = self.places_absolute[self.items_hosts_dict[name]]['theta']
             pose['theta'] = self.places_relative[name]['theta'] + \
                 self.pantilts[name]['pan'] + base_th
@@ -268,6 +277,22 @@ class TfController:
             return self.places_absolute[name]
 
     def setup(self):
+        """
+        Sets up the transformation framework by initializing and updating various
+        dictionaries and lists that track the state and relationships of different
+        devices and their poses.
+        The setup process includes:
+        - Logging the start of the setup process.
+        - Filling the tree structure with device declarations.
+        - Updating the items_hosts_dict with device names and their corresponding hosts.
+        - Copying pose information to places_relative and places_absolute dictionaries.
+        - Logging detected pan-tilts and adding them to the existing_hosts list.
+        - Checking for None values in pan-tilt poses and logging errors if found.
+        - Logging errors for missing hosts and their affected devices.
+        - Updating poses based on the tree structure for pan-tilts and their devices.
+        - Logging the updated poses for each device.
+        Finally, logs the end of the setup process.
+        """
         self.logger.info("*************** TF setup ***************")
 
         # Fill tree
@@ -277,38 +302,27 @@ class TfController:
                 self.tree[d['host']] = []
             self.tree[d['host']].append(d['name'])
 
-            # print(d)
             # Update items_hosts_dict
             self.items_hosts_dict[d['name']] = d['host']
 
             self.places_relative[d['name']] = d['pose'].copy()
             self.places_absolute[d['name']] = d['pose'].copy()
-            # if 'x' in d['pose']: # The only culprit is linear alarm
-            #     for i in ['x', 'y']:
-            #         self.places_relative[d['name']][i] #*= self.resolution
-            #         self.places_absolute[d['name']][i] #*= self.resolution
-
-            # if d['range'] != None:
-            #     d['range'] *= self.resolution
-            # print(f"Adding {d['name']} to {d['host']}")
-            # print(f"Relative: {self.places_relative[d['name']]}")
-            # print(f"Absolute: {self.places_absolute[d['name']]}")
 
         self.logger.info("Pan tilts detected:")
-        for p in self.pantilts:
-            self.logger.info(f"\t{p} on {self.pantilts[p]['place']}")
+        for p, pan_tilt in self.pantilts.items():
+            self.logger.info("\t%s on %s", p, pan_tilt['place'])
             self.existing_hosts.append(p)
 
         # Check pan tilt poses for None
-        for pt in self.pantilts:
+        for pt, _ in self.pantilts.items():
             for k in ['x', 'y', 'theta']:
-                if self.places_relative[pt][k] == None:
-                    self.logger.error(f"Pan-tilt {pt} has {k} = None. Please fix it in yaml.")
+                if self.places_relative[pt][k] is None:
+                    self.logger.error("Pan-tilt %s has %s = None. Please fix it in yaml.", pt, k)
 
-        for h in self.tree:
-            if h not in self.existing_hosts and h != None:
-                self.logger.error(f"We have a missing host: {h}")
-                self.logger.error(f"\tAffected devices: {self.tree[h]}")
+        for h, item in self.tree.items():
+            if h not in self.existing_hosts and h is not None:
+                self.logger.error("We have a missing host: %s", h)
+                self.logger.error("\tAffected devices: %s", item)
 
         # update poses based on tree for pan-tilts
         for d in self.pantilts:
@@ -324,23 +338,40 @@ class TfController:
                     if self.places_absolute[i]['theta'] is not None:
                         self.places_absolute[i]['theta'] += pt_abs_pose['theta']
 
-                    self.logger.info(f"{i}@{d}:")
-                    self.logger.info(f"\tPan-tilt: {self.places_absolute[d]}")
-                    self.logger.info(f"\tRelative: {self.places_relative[i]}")
-                    self.logger.info(f"\tAbsolute: {self.places_absolute[i]}")
+                    self.logger.info("%s@%s:", i, d)
+                    self.logger.info("\tPan-tilt: %s", self.places_absolute[d])
+                    self.logger.info("\tRelative: %s", self.places_relative[i])
+                    self.logger.info("\tAbsolute: %s", self.places_absolute[i])
 
         self.logger.info("*************** TF setup end ***************")
 
     def speak_callback(self, message):
+        """
+        Handles the callback for when a speaker speaks. It processes the message and publishes 
+        it to the appropriate microphones
+        if they are within a certain distance.
+        Args:
+            message (dict): A dictionary containing the following keys:
+            - 'text' (str): The text message to be spoken.
+            - 'volume' (int): The volume level of the speech.
+            - 'language' (str): The language of the speech.
+            - 'speaker' (str): The identifier of the speaker.
+        The function performs the following steps:
+            1. Retrieves the speaker's name and position.
+            2. Iterates through all declared entities to find microphones.
+            3. Checks the distance between the speaker and each microphone.
+            4. If the distance is less than 4 meters, publishes the message to the microphone's 
+            topic.
+        """
         # {'text': 'This is an example', 'volume': 100, 'language': 'el', 'speaker': 'speaker_X'}
         name = message['speaker']
         pose = self.places_absolute[name]
 
         # search all microphones:
-        for n in self.declarations_info:
-            if self.declarations_info[n]['type'] == "actor":
+        for n, node in self.declarations_info.items():
+            if node['type'] == "actor":
                 continue
-            if "microphone" in self.declarations_info[n]['subtype']['subclass']:
+            if "microphone" in node['subtype']['subclass']:
                 # check distance
                 m_name = n
                 m_pose = self.places_absolute[m_name]
@@ -359,6 +390,24 @@ class TfController:
                     })
 
     def robot_pose_callback(self, message):
+        """
+        Callback function to handle updates to the robot's pose.
+        This function updates the absolute positions and orientations of the robot
+        and its associated devices based on the incoming message. It also notifies
+        the UI about the updated robot pose and adjusts the positions and orientations
+        of devices mounted on pan-tilt units.
+        Args:
+            message (dict): A dictionary containing the robot's pose information with keys:
+                - 'name' (str): The name of the robot or device.
+                - 'x' (float): The x-coordinate of the robot's position.
+                - 'y' (float): The y-coordinate of the robot's position.
+                - 'theta' (float): The orientation (theta) of the robot.
+        Updates:
+            self.places_absolute (dict): Updates the absolute positions and orientations
+                of the robot and its associated devices.
+            self.commlib_factory.notify_ui: Notifies the UI with the updated robot pose.
+            self.update_pan_tilt: Updates the angles of devices mounted on pan-tilt units.
+        """
         nm = message['name'].split(".")[-1]
         if nm not in self.places_absolute:
             self.places_absolute[nm] = {'x': 0, 'y': 0, 'theta': 0}
@@ -378,7 +427,7 @@ class TfController:
 
         # Update all thetas of devices
         for d in self.tree[nm]:
-            if self.places_absolute[d]['theta'] != None and d not in self.pantilts:
+            if self.places_absolute[d]['theta'] is not None and d not in self.pantilts:
                 self.places_absolute[d]['theta'] = \
                     self.places_absolute[nm]['theta'] + \
                     self.places_relative[d]['theta']
@@ -404,9 +453,21 @@ class TfController:
         # self.print_tf_tree()
 
     def update_pan_tilt(self, pt_name, pan):
+        """
+        Update the pan-tilt mechanism's absolute theta value and notify the UI.
+        This method updates the absolute theta value of a pan-tilt mechanism based on its 
+        relative theta, the provided pan value, and the base theta of its host (if any). 
+        It also updates the absolute theta values of any items mounted on the pan-tilt mechanism 
+        and notifies the UI of these changes.
+        Args:
+            pt_name (str): The name of the pan-tilt mechanism to update.
+            pan (float): The pan value to add to the pan-tilt mechanism's relative theta.
+        Returns:
+            None
+        """
         base_th = 0
         # If we are on a robot take its theta
-        if self.items_hosts_dict[pt_name] != None:
+        if self.items_hosts_dict[pt_name] is not None:
             base_th = self.places_absolute[self.items_hosts_dict[pt_name]]['theta']
 
         # self.logger.info(f"Updated {pt_name}: {self.places_absolute[pt_name]} / {pan}")
@@ -414,7 +475,7 @@ class TfController:
         abs_pt_theta = self.places_relative[pt_name]['theta'] + pan + base_th
         if pt_name in self.tree: # if pan-tilt has anything on it
             for i in self.tree[pt_name]:
-                if self.places_absolute[i]['theta'] != None:
+                if self.places_absolute[i]['theta'] is not None:
                     self.places_absolute[i]['theta'] = \
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
@@ -430,6 +491,17 @@ class TfController:
                     )
 
     def pan_tilt_callback(self, message):
+        """
+        Callback function to handle pan and tilt updates.
+
+        Args:
+            message (dict): A dictionary containing the following keys:
+                - 'name' (str): The name identifier for the pan-tilt unit.
+                - 'pan' (float): The new pan value to be set.
+
+        Updates the internal pan value for the specified pan-tilt unit and calls
+        the update_pan_tilt method to apply the change.
+        """
         self.pantilts[message['name']]['pan'] = message['pan']
         self.update_pan_tilt(message['name'], message['pan'])
         # self.print_tf_tree()
@@ -439,6 +511,15 @@ class TfController:
     #      'host', 'host_type'
     # }
     def declare_callback(self, message):
+        """
+        Handles the declaration callback by performing sanity checks, logging information,
+        and storing the declaration details.
+        Args:
+            message (dict): The message containing declaration details.
+        Returns:
+            dict: An empty dictionary if the declaration is invalid, otherwise the processed
+            declaration.
+        """
         m = message
 
         # sanity checks
@@ -447,7 +528,7 @@ class TfController:
             temp[t] = None
         for m in message:
             if m not in temp:
-                self.logger.error(f"tf: Invalid declaration field for {message['name']}: {m}")
+                self.logger.error("tf: Invalid declaration field for %s: %s", message['name'], m)
                 return {}
             temp[m] = message[m]
 
@@ -457,15 +538,17 @@ class TfController:
 
         if 'host_type' in message:
             if message['host_type'] not in ['robot', 'pan_tilt']:
-                self.logger.error(f"tf: Invalid host type for {message['name']}: {message['host_type']}")
+                self.logger.error("tf: Invalid host type for %s: %s", \
+                    message['name'], message['host_type'])
         elif 'host' in message:
             if message['host'] in self.pantilts:
                 message['host_type'] = 'pan_tilt'
 
-        self.logger.info(f"TF declaration: {temp['name']}::{temp['type']}::{temp['subtype']}\n\t @ {temp['pose']} {host_msg}")
+        self.logger.info("TF declaration: %s::%s::%s\n\t @ %s %s", \
+            temp['name'], temp['type'], temp['subtype'], temp['pose'], host_msg)
 
         # Fix thetas if exist:
-        if temp['pose']['theta'] != None:
+        if temp['pose']['theta'] is not None:
             temp['pose']['theta'] = float(temp['pose']['theta'])
             temp['pose']['theta'] *= math.pi/180.0
 
@@ -475,10 +558,10 @@ class TfController:
         # Per type storage
         try:
             self.per_type_storage(temp)
-        except Exception as e:
-            self.logger.error(f"Error in per type storage for {temp['name']}: {str(e)}")
+        except Exception as e: # pylint: disable=broad-except
+            self.logger.error("Error in per type storage for %s: %s", temp['name'], str(e))
 
-        self.logger.info(f"Declaration done for {temp['name']}")
+        self.logger.info("Declaration done for %s", temp['name'])
         return {}
 
     def per_type_storage(self, d):
@@ -501,10 +584,10 @@ class TfController:
         sub = d['subtype']
 
         if d['name'] in self.names:
-            self.logger.error(f"Name {d['name']} already exists. {d['base_topic']}")
+            self.logger.error("Name %s already exists. %s", d['name'], d['base_topic'])
         else:
             self.names.append(d['name'])
-            self.logger.info(f"Adding {d['name']} to names")
+            self.logger.info("Adding %s to names", d['name'])
 
         if type_ == 'actor':
             self.per_type[type_][sub].append(d['name'])
@@ -573,32 +656,87 @@ class TfController:
             )
 
     def get_affections_callback(self, message):
+        """
+        Callback function to get affections based on the provided message.
+
+        Args:
+            message (dict): A dictionary containing the message data. 
+                            It should have a key 'name' with the name to check for affectability.
+
+        Returns:
+            dict: A dictionary with the affections if the name is affectable, 
+                  otherwise an empty dictionary in case of an error.
+
+        Raises:
+            Exception: Logs an error message if an exception occurs during the process.
+        """
         try:
             return self.check_affectability(message['name'])
-        except Exception as e:
-            self.logger.error(f"Error in get affections callback: {str(e)}")
+        except Exception as e: # pylint: disable=broad-except
+            self.logger.error("Error in get affections callback: %s", str(e))
             return {}
 
     def check_lines_orientation(self, p, q, r):
+        """
+        Determines the orientation of the triplet (p, q, r).
+
+        Parameters:
+        p (tuple): The first point as a tuple (x, y).
+        q (tuple): The second point as a tuple (x, y).
+        r (tuple): The third point as a tuple (x, y).
+
+        Returns:
+        int: Returns 1 if the orientation is clockwise, 
+             2 if the orientation is counterclockwise, 
+             and 0 if the points are collinear.
+        """
         val = (float(q[1] - p[1]) * (r[0] - q[0])) - \
             (float(q[0] - p[0]) * (r[1] - q[1]))
-        if (val > 0):
+        if val > 0:
             # Clockwise orientation
             return 1
-        elif (val < 0):
+        if val < 0:
             # Counterclockwise orientation
             return 2
-        else:
-            # Colinear orientation
-            return 0
+        # Colinear orientation
+        return 0
 
     def check_lines_on_segment(self, p, q, r):
+        """
+        Check if point q lies on the line segment defined by points p and r.
+
+        Args:
+            p (tuple): A tuple representing the coordinates of the first endpoint of the segment 
+                (x1, y1).
+            q (tuple): A tuple representing the coordinates of the point to check (x2, y2).
+            r (tuple): A tuple representing the coordinates of the second endpoint of the segment 
+                (x3, y3).
+
+        Returns:
+            bool: True if point q lies on the line segment defined by points p and r, 
+                False otherwise.
+        """
         if ( (q[0] <= max(p[0], r[0])) and (q[0] >= min(p[0], r[0])) and
                (q[1] <= max(p[1], r[1])) and (q[1] >= min(p[1], r[1]))):
             return True
         return False
 
     def check_lines_intersection(self, p1, q1, p2, q2):
+        """
+        Check if two lines (or segments) intersect.
+
+        This function determines if the line segment 'p1q1' and 'p2q2' intersect.
+        It uses the orientation method to check for general and special cases of intersection.
+
+        Parameters:
+        p1 (tuple): The first point of the first line segment.
+        q1 (tuple): The second point of the first line segment.
+        p2 (tuple): The first point of the second line segment.
+        q2 (tuple): The second point of the second line segment.
+
+        Returns:
+        bool: True if the line segments intersect, False otherwise.
+        """
         # Find the 4 orientations required for
         # the general and special cases
         o1 = self.check_lines_orientation(p1, q1, p2)
@@ -625,19 +763,60 @@ class TfController:
         return False
 
     def calc_distance(self, p1, p2):
+        """
+        Calculate the Euclidean distance between two points.
+
+        Args:
+            p1 (tuple): The first point as a tuple of (x, y) coordinates.
+            p2 (tuple): The second point as a tuple of (x, y) coordinates.
+
+        Returns:
+            float: The Euclidean distance between the two points.
+        """
         return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
     def check_distance(self, xy, aff):
+        """
+        Calculate the distance between a given point and a reference point, and return the distance 
+        along with associated properties.
+
+        Args:
+            xy (list or tuple): The coordinates (x, y) of the point to check.
+            aff (str): The identifier for the reference point.
+
+        Returns:
+            dict: A dictionary containing:
+                - 'distance' (float): The calculated distance between the given point and the 
+                    reference point.
+                - 'properties' (dict): The properties associated with the reference point.
+        """
         pl_aff = self.places_absolute[aff]
         xyt = [pl_aff['x'], pl_aff['y']]
         d = self.calc_distance(xy, xyt)
-        # d = math.sqrt((xy[0] - xyt[0])**2 + (xy[1] - xyt[1])**2)
         return {
             'distance': d,
             'properties': self.declarations_info[aff]["properties"]
         }
 
-    def handle_affection_ranged(self, xy, f, type):
+    def handle_affection_ranged(self, xy, f, type_):
+        """
+        Handles the affection of a point within a specified range.
+
+        This method checks if the distance between a given point `xy` and a reference point `f` 
+        is within the range specified in `self.declarations_info[f]`. If the distance is within 
+        range, it returns a dictionary containing the type of affection, properties, distance, 
+        range, name, and id of the reference point. If the distance is not within range, 
+        it returns None.
+
+        Args:
+            xy (tuple): The coordinates of the point to check.
+            f (str): The reference point identifier.
+            type (str): The type of affection.
+
+        Returns:
+            dict or None: A dictionary with affection details if the point is within range, 
+            otherwise None.
+        """
         dd = self.check_distance(xy, f)
         d = dd['distance']
         # print(self.declarations_info[f])
@@ -645,7 +824,7 @@ class TfController:
             if self.declarations_info[f]["properties"] is None:
                 self.declarations_info[f]["properties"] = {}
             return {
-                'type': type,
+                'type': type_,
                 'info': self.declarations_info[f]["properties"],
                 'distance': d,
                 'range': self.declarations_info[f]['range'],
@@ -654,7 +833,30 @@ class TfController:
             }
         return None
 
-    def handle_affection_arced(self, name, f, type):
+    def handle_affection_arced(self, name, f, type_):
+        """
+        Handles the affection of an arced sensor.
+        This method calculates the distance between two points and checks if the 
+        second point (f) is within the range and field of view (FOV) of the first 
+        point (name). If the second point is within the range and FOV, it returns 
+        a dictionary with information about the affection.
+        Args:
+            name (str): The name of the first point (sensor).
+            f (str): The name of the second point (target).
+            type (str): The type of the second point (e.g., "robot" or other).
+        Returns:
+            dict or None: A dictionary containing information about the affection 
+            if the second point is within range and FOV, otherwise None. The 
+            dictionary contains the following keys:
+                - 'type': The type of the second point.
+                - 'info': Properties of the second point.
+                - 'distance': The distance between the two points.
+                - 'min_sensor_ang': The minimum angle of the sensor's FOV.
+                - 'max_sensor_ang': The maximum angle of the sensor's FOV.
+                - 'actor_ang': The angle of the second point relative to the first.
+                - 'name': The name of the second point.
+                - 'id': The ID of the second point (if applicable).
+        """
         p_d = self.places_absolute[name]
         p_f = self.places_absolute[f]
 
@@ -682,29 +884,42 @@ class TfController:
 
             if ok:
                 props = None
-                if type == "robot":
+                if type_ == "robot":
                     props = f
                     name = f
-                    id = None
+                    id_ = None
                 else:
                     props = self.declarations_info[f]["properties"]
                     name = self.declarations_info[f]['name']
-                    id = self.declarations_info[f]['id']
+                    id_ = self.declarations_info[f]['id']
                 return {
-                    'type': type,
+                    'type': type_,
                     'info': props,
                     'distance': d,
                     'min_sensor_ang': min_a,
                     'max_sensor_ang': max_a,
                     'actor_ang': ang,
                     'name': name,
-                    'id': id
+                    'id': id_
                 }
 
         return None
 
     # Affected by thermostats and fires
     def handle_env_sensor_temperature(self, name):
+        """
+        Handles the temperature data for an environmental sensor.
+        This method processes the temperature data for a given environmental sensor by 
+        checking the influence of thermostats and fires on the sensor's location.
+        Args:
+            name (str): The name of the environmental sensor.
+        Returns:
+            dict: A dictionary containing the temperature data influenced by thermostats 
+                  and fires, keyed by the influencing factor.
+        Raises:
+            Exception: If an error occurs during the processing, it logs the error and 
+                       raises an exception with the error message.
+        """
         try:
             ret = {}
             pl = self.places_absolute[name]
@@ -712,17 +927,18 @@ class TfController:
 
             for f in self.per_type['env']['actuator']['thermostat']:
                 r = self.handle_affection_ranged(x_y, f, 'thermostat')
-                if r != None:
+                if r is not None:
                     th_t = self.effectors_get_rpcs[f].call({})
                     r['info']['temperature'] = th_t['temperature']
                     ret[f] = r
             for f in self.per_type['actor']['fire']:
                 r = self.handle_affection_ranged(x_y, f, 'fire')
-                if r != None:
+                if r is not None:
                     ret[f] = r
         except Exception as e:
             self.logger.error(str(e))
-            raise Exception(str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         return ret
 
@@ -730,16 +946,17 @@ class TfController:
     def handle_env_sensor_humidity(self, name):
         """
         Handles the humidity sensor for a given environment sensor.
-        This method processes the humidity data for a specified environment sensor by calculating the 
-        effect of humidifiers and water sources on the sensor's location. It returns a dictionary 
-        containing the humidity information for each affecting actuator.
+        This method processes the humidity data for a specified environment sensor by 
+        calculating the  effect of humidifiers and water sources on the sensor's location. 
+        It returns a dictionary  containing the humidity information for each affecting actuator.
         Args:
             name (str): The name of the environment sensor.
         Returns:
             dict: A dictionary where keys are actuator names and values are dictionaries containing 
               humidity information and random noise.
         Raises:
-            Exception: If an error occurs during processing, it logs the error and raises an exception.
+            Exception: If an error occurs during processing, it logs the error and raises an 
+            exception.
         """
         try:
             ret = {}
@@ -758,12 +975,27 @@ class TfController:
                     ret[f] = r
         except Exception as e:
             self.logger.error(str(e))
-            raise Exception(str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         return ret
 
     # Affected by humans, fire
-    def handle_env_sensor_gas(self, name, robot = None):
+    def handle_env_sensor_gas(self, name):
+        """
+        Handles the environmental sensor for gas detection.
+        This method processes the environmental sensor data for gas detection by 
+        determining the effect of various actors (humans and fire) on the sensor 
+        based on their proximity.
+        Args:
+            name (str): The name of the place where the sensor is located.
+        Returns:
+            dict: A dictionary containing the actors and their respective effects 
+                  on the sensor.
+        Raises:
+            Exception: If an error occurs during processing, it logs the error and 
+                       raises an Exception.
+        """
         try:
             ret = {}
             pl = self.places_absolute[name]
@@ -772,22 +1004,39 @@ class TfController:
             # - env actuator thermostat
             for f in self.per_type['actor']['human']:
                 r = self.handle_affection_ranged(x_y, f, 'human')
-                if r != None:
+                if r is not None:
                     ret[f] = r
             # - env actor fire
             for f in self.per_type['actor']['fire']:
                 r = self.handle_affection_ranged(x_y, f, 'fire')
-                if r != None:
+                if r is not None:
                     ret[f] = r
         except Exception as e:
             self.logger.error(str(e))
-            raise Exception(str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         return ret
 
     # Affected by humans with sound, sound sources, speakers (when playing smth),
     # robots (when moving)
     def handle_sensor_microphone(self, name):
+        """
+        Handles the microphone sensor for a given place name.
+        This method processes the microphone sensor data for a specified place,
+        identifying and handling sound-related information for human actors and
+        sound sources within the range of the microphone.
+        Args:
+            name (str): The name of the place where the microphone sensor is located.
+        Returns:
+            dict: A dictionary containing the affected human actors and sound sources
+                  within the range of the microphone. The keys are the identifiers of
+                  the actors or sound sources, and the values are the results of the
+                  affection handling.
+        Raises:
+            Exception: If an error occurs during the processing, an exception is raised
+                       and logged.
+        """
         try:
             ret = {}
             pl = self.places_absolute[name]
@@ -797,29 +1046,35 @@ class TfController:
             for f in self.per_type['actor']['human']:
                 if self.declarations_info[f]['properties']['sound'] == 1:
                     r = self.handle_affection_ranged(x_y, f, 'human')
-                    if r != None:
+                    if r is not None:
                         ret[f] = r
             # - actor sound sources
             for f in self.per_type['actor']['sound_source']:
                 r = self.handle_affection_ranged(x_y, f, 'sound_source')
-                if r != None:
+                if r is not None:
                     ret[f] = r
         except Exception as e:
             self.logger.error(str(e))
-            raise Exception(str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         return ret
 
     def compute_luminosity(self, name, print_debug = False):
         """
-        Computes the luminosity for a given place.
-        This method calculates the luminosity for a specified place by considering the light sources 
-        in the environment. It returns the luminosity value for the place.
+        Compute the luminosity at a given place identified by `name`.
+        This method calculates the luminosity at a specific location by considering
+        the contributions from environmental light sources, robot LEDs, and actor fires.
+        It also factors in the environmental luminosity and ensures the final luminosity
+        value is within the range [0, 100]. Optionally, it can print debug information
+        during the computation process.
         Args:
-            place (dict): A dictionary containing the place information.
+            name (str): The name of the place for which to compute the luminosity.
+            print_debug (bool, optional): If True, prints debug information. Defaults to False.
         Returns:
-            float: The luminosity value for the place.
+            float: The computed luminosity value, with a small random variation added.
         """
+
         place = self.places_absolute[name]
         x_y = [place['x'], place['y']]
         lum = 0
@@ -879,6 +1134,19 @@ class TfController:
 
     # Affected by light, fire
     def handle_env_light_sensor(self, name):
+        """
+        Handles the environmental light sensor for a given place.
+        This method processes the environmental light sensor data for a specified place
+        by calculating the affection range of light and fire actuators and retrieving
+        relevant information from the effectors.
+        Args:
+            name (str): The name of the place to handle the environmental light sensor for.
+        Returns:
+            dict: A dictionary containing the processed data for light and fire actuators
+                  that affect the specified place.
+        Raises:
+            Exception: If an error occurs during processing, an exception is raised and logged.
+        """
         try:
             ret = {}
             pl = self.places_absolute[name]
@@ -895,11 +1163,12 @@ class TfController:
             # - actor fire
             for f in self.per_type['actor']['fire']:
                 r = self.handle_affection_ranged(x_y, f, 'fire')
-                if r != None:
+                if r is not None:
                     ret[f] = r
         except Exception as e:
             self.logger.error(str(e))
-            raise Exception(str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         return ret
 
@@ -910,7 +1179,8 @@ class TfController:
         (human, qr, barcode, color, text) and optionally robots.
         Args:
             name (str): The name of the place or sensor.
-            with_robots (bool, optional): If True, includes robots in the processing. Defaults to False.
+            with_robots (bool, optional): If True, includes robots in the processing. 
+            Defaults to False.
         Returns:
             dict: A dictionary containing the detected actors and their respective processed data.
         Raises:
@@ -918,9 +1188,11 @@ class TfController:
         The function performs the following steps:
         1. Retrieves the absolute place data for the given name.
         2. Computes the luminosity of the place.
-        3. Processes different types of actors (human, qr, barcode, color, text) and stores the results.
+        3. Processes different types of actors (human, qr, barcode, color, text) and stores the 
+            results.
         4. Optionally processes robots if `with_robots` is True.
-        5. Filters the results based on the luminosity, simulating detection failure in low light conditions.
+        5. Filters the results based on the luminosity, simulating detection failure in low light 
+            conditions.
         6. Logs and raises an exception if any error occurs during processing.
         """
         tmp_ret = {}
@@ -968,88 +1240,147 @@ class TfController:
                 if rnd < luminosity:
                     tmp_ret[key] = val
 
-        except Exception as e:
-            self.logger.error("handle_sensor_camera:" + str(e))
-            raise Exception(str(e))
+        except Exception as e: # pylint: disable=broad-except
+            self.logger.error("handle_sensor_camera: %s", str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         ret = tmp_ret
         return ret
 
     # Affected by rfid_tags
     def handle_sensor_rfid_reader(self, name):
+        """
+        Handles the RFID reader sensor data for a given place name.
+        This method processes the RFID reader sensor data associated with a specific place
+        identified by the given name. It retrieves the absolute position (x, y) and orientation 
+        (theta) of the place, and then processes the RFID tags associated with actors in that place.
+        Args:
+            name (str): The name of the place to handle the RFID reader sensor data for.
+        Returns:
+            dict: A dictionary containing the processed RFID tag data for actors in the specified 
+            place.
+        Raises:
+            Exception: If an error occurs during the processing of the RFID reader sensor data.
+        """
         try:
             ret = {}
-            pl = self.places_absolute[name]
-            x_y = [pl['x'], pl['y']]
-            th = pl['theta']
 
-            # - actor human
             for f in self.per_type['actor']['rfid_tag']:
                 r = self.handle_affection_arced(name, f, 'rfid_tag')
-                if r != None:
+                if r is not None:
                     ret[f] = r
 
         except Exception as e:
             self.logger.error(str(e))
-            raise Exception(str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         return ret
 
     # Affected by robots
     def handle_area_alarm(self, name):
+        """
+        Handle area alarm for a given place name.
+        This method checks if any robots are within the specified range of the given place.
+        If a robot is within range, it adds the robot's name and its distance from the place
+        to the return dictionary.
+        Args:
+            name (str): The name of the place to check for area alarms.
+        Returns:
+            dict: A dictionary where the keys are the names of the robots within range,
+                  and the values are dictionaries containing the distance of the robot
+                  from the place and the range.
+        Raises:
+            Exception: If an error occurs during the process, it logs the error and raises 
+            an exception.
+        """
         try:
             ret = {}
             pl = self.places_absolute[name]
             xy = [pl['x'], pl['y']]
-            th = pl['theta']
-            range = self.declarations_info[name]['range']
+            range_ = self.declarations_info[name]['range']
 
             # Check all robots if in there
             for r in self.robots:
                 pl_aff = self.places_absolute[r]
                 xyt = [pl_aff['x'], pl_aff['y']]
                 d = math.sqrt((xy[0] - xyt[0])**2 + (xy[1] - xyt[1])**2)
-                if d < range:
+                if d < range_:
                     ret[r] = {
                         "distance": d,
-                        "range": range
+                        "range": range_
                     }
 
         except Exception as e:
             self.logger.error(str(e))
-            raise Exception(str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         return ret
 
     # Affected by robots
     def handle_env_distance(self, name):
+        """
+        Calculate the distance of all robots from a specified place and determine if they are 
+        within range.
+        Args:
+            name (str): The name of the place to check distances from.
+        Returns:
+            dict: A dictionary where the keys are robot names and the values are dictionaries 
+            containing:
+                - "distance" (float): The distance of the robot from the specified place.
+                - "range" (float): The range within which the robot is considered to be.
+        Raises:
+            Exception: If an error occurs during the calculation, it logs the error and raises an 
+            Exception.
+        """
         try:
             ret = {}
 
             pl = self.places_absolute[name]
             xy = [pl['x'], pl['y']]
-            th = pl['theta']
-            range = self.declarations_info[name]['range']
+            range_ = self.declarations_info[name]['range']
 
             # Check all robots if in there
             for r in self.robots:
                 pl_aff = self.places_absolute[r]
                 xyt = [pl_aff['x'], pl_aff['y']]
                 d = math.sqrt((xy[0] - xyt[0])**2 + (xy[1] - xyt[1])**2)
-                if d < range:
+                if d < range_:
                     ret[r] = {
                         "distance": d,
-                        "range": range
+                        "range": range_
                     }
 
         except Exception as e:
             self.logger.error(str(e))
-            raise Exception(str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         return ret
 
     # Affected by robots
     def handle_linear_alarm(self, name):
+        """
+        Handles linear alarms for robots based on their positions and declared linear paths.
+        Args:
+            name (str): The name of the linear declaration to check against.
+        Returns:
+            dict: A dictionary where keys are robot identifiers and values are True if an 
+            intersection with the linear path is detected.
+        Raises:
+            Exception: If any error occurs during the processing, it logs the error and raises 
+            an Exception.
+        This method performs the following steps:
+        1. Retrieves the start and end positions of the linear declaration.
+        2. Calculates the distance between the start and end positions.
+        3. Iterates through all robots to check if their current path intersects with the linear 
+            declaration.
+        4. Updates the robot's previous and current positions.
+        5. Checks for intersections between the robot's path and the linear declaration.
+        6. Logs and raises any exceptions encountered during processing.
+        """
         try:
             lin_start = self.declarations_info[name]['pose']['start']
             lin_end = self.declarations_info[name]['pose']['end']
@@ -1061,7 +1392,6 @@ class TfController:
                 lin_end['x'], #* self.resolution
                 lin_end['y'] #* self.resolution
             ]
-            inter = self.calc_distance(sta, end)
             ret = {}
 
             # Check all robots
@@ -1084,28 +1414,38 @@ class TfController:
                     self.lin_alarms_robots[r]["curr"],
                     self.lin_alarms_robots[r]["prev"]
                 )
-                # print(sta, end, "||", self.lin_alarms_robots[r]["curr"], \
-                #     self.lin_alarms_robots[r]["prev"], "||", intersection)
 
-                if intersection == True:
+                if intersection is True:
                     ret[r] = intersection
 
         except Exception as e:
             self.logger.error(str(e))
-            raise Exception(str(e))
+            # pylint: disable=broad-exception-raised
+            raise Exception(str(e)) from e
 
         return ret
 
     def check_affectability(self, name):
+        """
+        Check the affectability of a device based on its type and subtype.
+        Parameters:
+        name (str): The name of the device to check.
+        Returns:
+        dict: A dictionary containing the results of the affectability check.
+        Raises:
+        Exception: If the device name is not found in declarations_info or if there is an 
+        error in device handling.
+        """
         try:
-            type = self.declarations_info[name]['type']
+            type_ = self.declarations_info[name]['type']
             subt = self.declarations_info[name]['subtype']
-        except Exception as e:
-            raise Exception(f"{name} not in devices")
+        except Exception as e: # pylint: disable=broad-except
+            # pylint: disable=broad-exception-raised
+            raise Exception(f"{name} not in devices") from e
 
         try:
             ret = {}
-            if type == "env":
+            if type_ == "env":
                 if 'temperature' in subt['subclass']:
                     ret = self.handle_env_sensor_temperature(name)
                 if 'humidity' in subt['subclass']:
@@ -1126,7 +1466,7 @@ class TfController:
                     ret = self.handle_env_light_sensor(name)
                 if 'distance' in subt['subclass']:
                     ret = self.handle_env_distance(name)
-            elif type == "robot":
+            elif type_ == "robot":
                 if 'microphone' in subt['subclass']:
                     ret = self.handle_sensor_microphone(name)
                 if 'camera' in subt['subclass']:
@@ -1142,17 +1482,29 @@ class TfController:
                         'gas': self.handle_env_sensor_gas(name)
                     }
         except Exception as e:
-            raise Exception(f"Error in device handling: {str(e)}")
+            # pylint: disable=broad-exception-raised
+            raise Exception(f"Error in device handling: {str(e)}") from e
 
         return ret
 
     def get_sim_detection_callback(self, message):
+        """
+        Handles the simulation detection callback based on the provided message.
+        Args:
+            message (dict): A dictionary containing the detection message with keys 'name' and 
+            'type'.
+        Returns:
+            dict: A dictionary containing the detection result with keys:
+                - "result" (bool): The detection decision.
+                - "info" (str or dict): Additional information about the detection.
+                - "frm" (dict or None): The frame information related to the detection.
+        """
         try:
             name = message['name']
-            type = message['type']
+            type_ = message['type']
             decl = self.declarations_info[name]
-        except Exception as e:
-            self.logger.error(f"{name} not in devices")
+        except Exception: # pylint: disable=broad-except
+            self.logger.error("%s not in devices", message['name'])
             return
 
         if decl['subtype']['subclass'][0] not in ['camera', 'microphone']:
@@ -1161,13 +1513,13 @@ class TfController:
                 "info": "Wrong detection device. Not microphone nor camera."
             }
 
-        id = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 6))
+        id_ = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 6))
         print(f"Detection request for {name} with id {id}")
         self.detections_publisher.publish({
             "name": name,
             "device_type": decl['subtype']['subclass'][0],
-            "type": type,
-            "id": id,
+            "type": type_,
+            "id": id_,
             "state": "start",
             "result": None
         })
@@ -1186,28 +1538,28 @@ class TfController:
             print("===============", ret)
 
             if type == "sound":
-                if ret != None:
+                if ret is not None:
                     if len(ret) >= 1:
                         for ff in ret:
                             decision = True
                             info = ret[ff]['info']['sound']
                             frm = ret[ff]
             elif type == "language":
-                if ret != None:
+                if ret is not None:
                     if len(ret) >= 1:
                         for x in ret:
                             decision = True
                             info = ret[x]['info']['language'] # gets the last one
                             frm = ret[x]
             elif type == "emotion":
-                if ret != None:
+                if ret is not None:
                     if len(ret) >= 1:
                         for x in ret:
                             decision = True
                             info = ret[x]['info']['emotion'] # gets the last one
                             frm = ret[x]
             elif type == "speech2text":
-                if ret != None:
+                if ret is not None:
                     if len(ret) >= 1:
                         for x in ret:
                             if ret[x]['type'] == 'human':
@@ -1217,7 +1569,7 @@ class TfController:
                 if info == "":
                     decision = False
             else:
-                self.logger.error(f"Wrong detection type: {type}")
+                self.logger.error("Wrong detection type: %s", type_)
 
         elif decl['subtype']['subclass'][0] == "camera":
             # possible types: face, qr, barcode, gender, age, motion, color, emotion
@@ -1229,13 +1581,13 @@ class TfController:
 
             lum = amb_luminosity
             add_lum = 0
-            for a in res:
-                rel_range = (1 - res[a]['distance'] / res[a]['range'])
-                if res[a]['type'] == 'fire':
+            for _, item in res.items():
+                rel_range = 1 - item['distance'] / item['range']
+                if item['type'] == 'fire':
                     # assumed 100% luminosity there
                     add_lum += 100 * rel_range
-                elif res[a]['type'] == "light":
-                    add_lum += rel_range * res[a]['info']['luminosity']
+                elif item['type'] == "light":
+                    add_lum += rel_range * item['info']['luminosity']
 
             if add_lum < lum:
                 lum = add_lum * 0.1 + lum
@@ -1247,77 +1599,74 @@ class TfController:
 
             lum = lum / 100.0
 
-            if type == "face":
-                for x in ret:
-                    if ret[x]['type'] == 'human': # gets the last one
+            if type_ == "face":
+                for x, item in ret.items():
+                    if item['type'] == 'human': # gets the last one
                         decision = True
                         info = "" # no info, just a face
-                        frm = ret[x]
-            elif type == "gender":
-                for x in ret:
-                    if ret[x]['type'] == 'human' and ret[x]['info']['gender'] != "none": # gets the last one
+                        frm = item
+            elif type_ == "gender":
+                for x, item in ret.items():
+                    if item['type'] == 'human' and item['info']['gender'] != "none": # gets the last
                         decision = True
-                        info = ret[x]['info']['gender']
-                        frm = ret[x]
-            elif type == "age":
-                for x in ret:
-                    if ret[x]['type'] == 'human' and ret[x]['info']['age'] != -1: # gets the last one
+                        info = item['info']['gender']
+                        frm = item
+            elif type_ == "age":
+                for x, item in ret.items():
+                    if item['type'] == 'human' and item['info']['age'] != -1: # gets the last one
                         decision = True
-                        info = ret[x]['info']['age']
-                        frm = ret[x]
-            elif type == "emotion":
-                for x in ret:
-                    if ret[x]['type'] == 'human': # gets the last one
+                        info = item['info']['age']
+                        frm = item
+            elif type_ == "emotion":
+                for x, item in ret:
+                    if item['type'] == 'human': # gets the last one
                         decision = True
-                        info = ret[x]['info']['emotion']
-                        frm = ret[x]
-            elif type == "motion":
-                for x in ret:
-                    if ret[x]['type'] == 'human' and ret[x]['info']['motion'] == 1: # gets the last one
+                        info = item['info']['emotion']
+                        frm = item
+            elif type_ == "motion":
+                for x, item in ret.items():
+                    if item['type'] == 'human' and item['info']['motion'] == 1: # gets the last one
                         decision = True
                         info = ""
-                        frm = ret[x]
-            elif type == "qr":
-                for x in ret:
-                    if ret[x]['type'] == 'qr':
+                        frm = item
+            elif type_ == "qr":
+                for x, item in ret.items():
+                    if item['type'] == 'qr':
                         decision = True
-                        info = ret[x]['info']['message']
-                        frm = ret[x]
-            elif type == "barcode":
-                for x in ret:
-                    if ret[x]['type'] == 'barcode':
+                        info = item['info']['message']
+                        frm = item
+            elif type_ == "barcode":
+                for x, item in ret.items():
+                    if item['type'] == 'barcode':
                         decision = True
-                        info = ret[x]['info']['message']
-                        frm = ret[x]
-            elif type == "text":
-                for x in ret:
-                    if ret[x]['type'] == 'text':
+                        info = item['info']['message']
+                        frm = item
+            elif type_ == "text":
+                for x, item in ret.items():
+                    if item['type'] == 'text':
                         decision = True
-                        info = ret[x]['info']['text']
-                        frm = ret[x]
-            elif type == "color":
-                # {'result': True, 'info': {'r': 0, 'g': 255, 'b': 0}, 'frm': {'type': 'color', 'info': {'r': 0, 'g': 255, 'b': 0}, 'distance': 2.5, 'min_sensor_ang': 1.4613539971898075, 'max_sensor_ang': 2.5085515483864054, 'actor_ang': 2.498091544796509}}
-
+                        info = item['info']['text']
+                        frm = item
+            elif type_ == "color":
                 if len(ret) == 0:
                     info = {'r': 0, 'g': 0, 'b': 0}
                     frm = None
-                for x in ret:
-                    if ret[x]['type'] == 'color':
+                for x, item in ret.items():
+                    if item['type'] == 'color':
                         decision = True
-                        info = ret[x]['info']
-                        frm = ret[x]
-            elif type == "robot":
-                for x in ret:
-                    if ret[x]['type'] == 'robot':
+                        info = item['info']
+                        frm = item
+            elif type_ == "robot":
+                for x, item in ret.items():
+                    if item['type'] == 'robot':
                         decision = True
-                        info = ret[x]['info']
-                        frm = ret[x]
+                        info = item['info']
+                        frm = item
             else:
-                self.logger.error(f"Wrong detection type: {type}")
+                self.logger.error("Wrong detection type: %s", type_)
                 return
 
-
-            if decision == True:
+            if decision is True:
                 roulette = random.uniform(0, 1)
                 if math.pow(roulette, 2) > lum:
                     self.logger.warning("Camera detection: too dark")
@@ -1326,12 +1675,13 @@ class TfController:
         else: # possible types: face, qr, barcode, gender, age, color, motion, emotion
             pass
 
-        print(f"Detection result for {name} with id {id}: {decision}, {info}, {frm}")
+        self.logger.info("Detection result for %s with id %s: %s, %s, %s",\
+            name, id_, decision, info, frm)
         self.detections_publisher.publish({
             "name": name,
             "device_type": decl['subtype']['subclass'][0],
-            "type": type,
-            "id": id,
+            "type": type_,
+            "id": id_,
             "state": "end",
             "result": decision
         })
@@ -1341,8 +1691,8 @@ class TfController:
             data = {
                 "name": name,
                 "device_type": decl['subtype']['subclass'][0],
-                "type": type,
-                "id": id,
+                "type": type_,
+                "id": id_,
                 "state": "end",
                 "result": decision,
                 "info": info,
@@ -1355,6 +1705,12 @@ class TfController:
             "info": info,
             "frm": frm
         }
-    
+
     def stop(self):
+        """
+        Stops the communication library factory.
+
+        This method calls the stop method on the commlib_factory instance to 
+        terminate any ongoing communication processes.
+        """
         self.commlib_factory.stop()

@@ -1,3 +1,7 @@
+"""
+File that exposes the simulator.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 

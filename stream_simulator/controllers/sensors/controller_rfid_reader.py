@@ -42,7 +42,7 @@ class RfidReaderController(BaseThing):
             self.logger = package["logger"]
 
         id_ = "d_rfid_reader_" + str(BaseThing.id + 1)
-        name = id
+        name = id_
         if 'name' in conf:
             name = conf['name']
         _category = "sensor"
