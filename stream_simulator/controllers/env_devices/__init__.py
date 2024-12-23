@@ -1,3 +1,7 @@
+"""
+File that exposes the environment devices.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 

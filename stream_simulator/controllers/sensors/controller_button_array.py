@@ -1,43 +1,87 @@
+"""
+File that contains the button array controller.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import math
 import logging
 import threading
 import random
-from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
 
-current_milli_time = lambda: int(round(time.time() * 1000))
+def current_milli_time():
+    """
+    Returns the current time in milliseconds since the epoch.
+
+    This function uses the `time` module to get the current time in seconds
+    since the epoch, multiplies it by 1000 to convert it to milliseconds,
+    and then rounds and converts it to an integer.
+
+    Returns:
+        int: The current time in milliseconds.
+    """
+    return int(round(time.time() * 1000))
 
 class ButtonArrayController(BaseThing):
+    """
+    ButtonArrayController is a class that manages a button array sensor. It handles the 
+    initialization, configuration, and communication of the button array sensor.
+
+    Attributes:
+        logger (logging.Logger): Logger for the controller.
+        info (dict): Information about the button array sensor.
+        name (str): Name of the button array sensor.
+        conf (dict): Sensor configuration.
+        base_topic (str): Base topic for communication.
+        buttons_base_topics (list): List of base topics for each button.
+        publishers (dict): Dictionary of publishers for each button.
+        number_of_buttons (int): Number of buttons in the array.
+        values (list): List of boolean values representing the state of each button.
+        button_places (list): List of places for each button.
+        prev (int): Previous state of the button array.
+        enable_rpc_server (RPCService): RPC service for enabling the sensor.
+        disable_rpc_server (RPCService): RPC service for disabling the sensor.
+        sim_button_pressed_sub (Subscriber): Subscriber for simulated button presses.
+        sensor_read_thread (threading.Thread): Thread for reading sensor data.
+
+    Methods:
+        __init__(conf=None, package=None): Initializes the ButtonArrayController with the given 
+        configuration and package.
+        dispatch_information(_data, _button): Publishes button data to the stream.
+        sim_button_pressed(data): Handles simulated button presses.
+        sensor_read(): Reads sensor data and dispatches information.
+        start(): Starts the sensor.
+        stop(): Stops the sensor.
+        enable_callback(message): Callback for enabling the sensor.
+        disable_callback(message): Callback for disabling the sensor.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
-        id = "d_button_array_" + str(BaseThing.id + 1)
+        id_ = "d_button_array_" + str(BaseThing.id + 1)
 
-        name = id
+        name = id_
         _category = "sensor"
         _class = "button_array"
         _subclass = "tactile"
         _pack = package["name"]
         _namespace = package["namespace"]
 
-        super().__init__(id, auto_start=False)
+        super().__init__(id_, auto_start=False)
 
         info = {
             "type": "BUTTON_ARRAY",
             "brand": "simple",
             "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
-            "name": "button_array_" + str(id),
+            "name": "button_array_" + str(id_),
             "place": "UNKNOWN",
-            "id": id,
+            "id": id_,
             "enabled": True,
             "orientation": 0,
             "hz": 4,
@@ -86,7 +130,19 @@ class ButtonArrayController(BaseThing):
 
         self.commlib_factory.run()
 
+        self.sensor_read_thread = None
+
     def dispatch_information(self, _data, _button):
+        """
+        Dispatches information by publishing data to the specified button's stream.
+
+        Args:
+            _data (any): The data to be published.
+            _button (str): The identifier for the button whose stream will receive the data.
+
+        Returns:
+            None
+        """
         # Publish to stream
         self.publishers[_button].publish({
             "data": _data,
@@ -94,7 +150,18 @@ class ButtonArrayController(BaseThing):
         })
 
     def sim_button_pressed(self, data):
-        self.logger.warning(f"Button controller: Pressed from sim! {data}")
+        """
+        Handles the simulated button press event.
+
+        This method logs a warning indicating that a button has been pressed in the simulation.
+        It then dispatches information about the button press and release events.
+
+        Args:
+            data (dict): A dictionary containing information about the button event.
+                 Expected to have a key "button" which indicates the button identifier.
+
+        """
+        self.logger.warning("Button controller: Pressed from sim! %s", data)
         # Simulated press
         self.dispatch_information(1, data["button"])
         time.sleep(0.1)
@@ -102,7 +169,29 @@ class ButtonArrayController(BaseThing):
         self.dispatch_information(0, data["button"])
 
     def sensor_read(self):
-        self.logger.info(f"Button {self.info['id']} sensor read thread started")
+        """
+        Reads sensor data for a button and dispatches the information.
+
+        This method starts a thread that continuously reads sensor data for a button
+        at a frequency specified by `self.info["hz"]`. If the sensor is in "mock" mode,
+        it generates random values for the button state and randomly selects a button
+        place to dispatch the information.
+
+        The method logs the start and stop of the sensor read thread.
+
+        Attributes:
+            self.info (dict): A dictionary containing sensor configuration.
+                - "id" (str): The identifier for the button.
+                - "enabled" (bool): Flag to enable or disable the sensor read thread.
+                - "hz" (float): Frequency at which the sensor data is read.
+                - "mode" (str): Mode of operation, e.g., "mock".
+            self.button_places (list): A list of possible button places.
+            self.logger (Logger): Logger instance for logging information.
+
+        Dispatches:
+            Calls `self.dispatch_information` with the generated value and button place.
+        """
+        self.logger.info("Button %s sensor read thread started", self.info['id'])
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
             if self.info["mode"] == "mock":
@@ -111,9 +200,21 @@ class ButtonArrayController(BaseThing):
 
                 self.dispatch_information(_val, self.button_places[_place])
 
-        self.logger.info(f"Button {self.info['id']} sensor read thread stopped")
+        self.logger.info("Button %s sensor read thread stopped", self.info['id'])
 
     def start(self):
+        """
+        Starts the sensor and begins reading data if the simulator has started.
+
+        This method logs the initial state of the sensor and waits for the simulator to start.
+        Once the simulator has started, it logs the start event and, if the sensor is in "mock" 
+        mode, it starts a new thread to read sensor data at the specified frequency.
+
+        Attributes:
+            simulator_started (bool): A flag indicating whether the simulator has started.
+            info (dict): A dictionary containing sensor information, including mode, id, and hz.
+            sensor_read_thread (threading.Thread): The thread responsible for reading sensor data.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
@@ -122,13 +223,32 @@ class ButtonArrayController(BaseThing):
         if self.info["mode"] == "mock":
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
-            self.logger.info(f"Button {self.info['id']} reads with {self.info['hz']} Hz")
+            self.logger.info("Button %s reads with %s Hz", self.info['id'], self.info['hz'])
 
     def stop(self):
+        """
+        Stops the button array controller.
+
+        This method disables the button array controller by setting the "enabled" 
+        key in the info dictionary to False. It also stops the communication 
+        library factory associated with the controller.
+        """
         self.info["enabled"] = False
         self.commlib_factory.stop()
 
     def enable_callback(self, message):
+        """
+        Enables the sensor callback and updates the sensor configuration.
+
+        Args:
+            message (dict): A dictionary containing the sensor configuration with keys:
+                - "hz" (int): The frequency at which the sensor operates.
+                - "queue_size" (int): The size of the message queue.
+
+        Returns:
+            dict: A dictionary indicating that the sensor has been enabled with the key:
+                - "enabled" (bool): Always True indicating the sensor is enabled.
+        """
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -139,7 +259,17 @@ class ButtonArrayController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the sensor callback and stops the sensor read thread.
+
+        Args:
+            message (dict): A dictionary containing the sensor configuration.
+
+        Returns:
+            dict: A dictionary indicating that the sensor has been disabled with the key:
+                - "enabled" (bool): Always False indicating the sensor is disabled.
+        """
         self.info["enabled"] = False
-        self.logger.info(f"Button {self.info['id']} stops reading")
+        self.logger.info("Button %s stops reading", self.info['id'])
         return {"enabled": False}

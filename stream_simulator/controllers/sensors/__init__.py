@@ -1,3 +1,7 @@
+"""
+File that exposes the sensors controllers.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 

@@ -1,3 +1,7 @@
+"""
+File that contains the environment sensor controller.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -10,14 +14,38 @@ import statistics
 from stream_simulator.base_classes import BaseThing
 
 class EnvController(BaseThing):
+    """
+    EnvController is a class that simulates an environmental sensor. It inherits from BaseThing 
+    and is responsible for
+    initializing the sensor, setting up communication, and reading sensor data.
+    Attributes:
+        logger (logging.Logger): Logger for the controller.
+        info (dict): Information about the sensor.
+        name (str): Name of the sensor.
+        base_topic (str): Base topic for communication.
+        derp_data_key (str): Key for raw data.
+        env_properties (dict): Environmental properties from the package.
+        publisher (Publisher): Publisher for sensor data.
+        enable_rpc_server (RPCService): RPC service for enabling the sensor.
+        disable_rpc_server (RPCService): RPC service for disabling the sensor.
+        sensor_read_thread (threading.Thread): Thread for reading sensor data.
+    Methods:
+        __init__(conf=None, package=None): Initializes the EnvController with configuration and
+        package details.
+        sensor_read(): Reads sensor data and publishes it at a specified frequency.
+        enable_callback(message): Callback to enable the sensor.
+        disable_callback(message): Callback to disable the sensor.
+        start(): Starts the sensor.
+        stop(): Stops the sensor.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf["name"])
         else:
             self.logger = package["logger"]
 
-        id = "d_env_" + str(BaseThing.id + 1)
-        name = id
+        id_ = "d_env_" + str(BaseThing.id + 1)
+        name = id_
         if 'name' in conf:
             name = conf['name']
         _category = "sensor"
@@ -25,8 +53,8 @@ class EnvController(BaseThing):
         _subclass = "temp_hum_pressure_gas"
         _pack = package["name"]
         _namespace = package["namespace"]
-        
-        super().__init__(id, auto_start=False)
+
+        super().__init__(id_, auto_start=False)
         self.set_simulation_communication(_namespace)
 
         info = {
@@ -35,7 +63,7 @@ class EnvController(BaseThing):
             "base_topic": f"{_pack}.{_category}.{_class}.{_subclass}.{name}",
             "name": name,
             "place": conf["place"],
-            "id": id,
+            "id": id_,
             "enabled": True,
             "orientation": float(conf["orientation"]),
             "hz": conf["hz"],
@@ -94,11 +122,32 @@ class EnvController(BaseThing):
         )
 
         self.commlib_factory.run()
-        
+
         self.tf_declare_rpc.call(tf_package)
 
+        self.sensor_read_thread = None
+
     def sensor_read(self):
-        self.logger.info("Env {} sensor read thread started".format(self.info["id"]))
+        """
+        Reads sensor data in a loop and publishes it at a specified frequency.
+        This method starts a thread that continuously reads sensor data based on the mode specified
+        in `self.info["mode"]`.
+        It supports two modes: "mock" and "simulation". In "mock" mode, it generates random sensor 
+        values. In "simulation" mode, it retrieves sensor data from a remote procedure call (RPC)
+        and calculates the values based on environmental properties and affections.
+        The sensor data includes temperature, pressure, humidity, and gas levels. 
+        The data is published with a timestamp using `self.publisher.publish()`.
+        The loop runs until `self.info["enabled"]` is set to False.
+        Logging:
+            Logs the start and stop of the sensor read thread.
+        Raises:
+            KeyError: If required keys are missing in `self.info` or `self.env_properties`.
+        Note:
+            This method assumes that `self.logger`, `self.info`, `self.tf_affection_rpc`, 
+            `self.env_properties`, and `self.publisher` are properly initialized before calling 
+            this method.
+        """
+        self.logger.info("Env %s sensor read thread started", self.info["id"])
         while self.info["enabled"]:
             time.sleep(1.0 / self.info["hz"])
 
@@ -119,7 +168,6 @@ class EnvController(BaseThing):
                     'name': self.name
                 })
 
-                
                 gas_aff = res["gas"]
                 hum_aff = res["humidity"]
                 tem_aff = res["temperature"]
@@ -128,7 +176,8 @@ class EnvController(BaseThing):
                 amb = self.env_properties['temperature']
                 temps = []
                 for a in tem_aff:
-                    r = (1 - tem_aff[a]['distance'] / tem_aff[a]['range']) * tem_aff[a]['info']['temperature']
+                    r = (1 - tem_aff[a]['distance'] / tem_aff[a]['range']) * \
+                        tem_aff[a]['info']['temperature']
                     temps.append(r)
                 val["temperature"] = amb
                 if len(temps) != 0:
@@ -141,7 +190,8 @@ class EnvController(BaseThing):
                     val["humidity"] = ambient + random.uniform(-0.5, 0.5)
                 vs = []
                 for a in hum_aff:
-                    vs.append((1 - hum_aff[a]['distance'] / hum_aff[a]['range']) * hum_aff[a]['info']['humidity'])
+                    vs.append((1 - hum_aff[a]['distance'] / hum_aff[a]['range']) * \
+                        hum_aff[a]['info']['humidity'])
                 if len(vs) > 0:
                     affections = statistics.mean(vs)
                     if ambient > affections:
@@ -153,7 +203,7 @@ class EnvController(BaseThing):
                 # gas
                 ppm = 400 # typical environmental
                 for a in gas_aff:
-                    rel_range = (1 - gas_aff[a]['distance'] / gas_aff[a]['range'])
+                    rel_range = 1 - gas_aff[a]['distance'] / gas_aff[a]['range']
                     if gas_aff[a]['type'] == 'human':
                         ppm += 1000.0 * rel_range
                     elif gas_aff[a]['type'] == 'fire':
@@ -170,9 +220,19 @@ class EnvController(BaseThing):
             })
             # print(val)
 
-        self.logger.info("Env {} sensor read thread stopped".format(self.info["id"]))
+        self.logger.info("Env %s sensor read thread stopped", self.info["id"])
 
     def enable_callback(self, message):
+        """
+        Enables the sensor callback and starts the sensor reading thread.
+        Args:
+            message (dict): A dictionary containing the following keys:
+                - "hz" (int): The frequency at which the sensor should read data.
+                - "queue_size" (int): The size of the queue for sensor data.
+        Returns:
+            dict: A dictionary indicating that the sensor callback has been enabled with the key 
+            "enabled" set to True.
+        """
         self.info["enabled"] = True
         self.info["hz"] = message["hz"]
         self.info["queue_size"] = message["queue_size"]
@@ -181,12 +241,36 @@ class EnvController(BaseThing):
         self.sensor_read_thread.start()
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the callback for the environment sensor.
+
+        This method sets the "enabled" status of the environment sensor to False
+        and logs an informational message indicating that the sensor has stopped reading.
+
+        Args:
+            _ (Any): A placeholder argument that is not used.
+
+        Returns:
+            dict: A dictionary with the key "enabled" set to False.
+        """
         self.info["enabled"] = False
-        self.logger.info("Env {} stops reading".format(self.info["id"]))
+        self.logger.info("Env %s stops reading", self.info["id"])
         return {"enabled": False}
 
     def start(self):
+        """
+        Starts the sensor and begins reading data if enabled.
+        This method logs the initial state of the sensor and waits for the simulator to start.
+        Once the simulator has started, it checks if the sensor is enabled. If enabled, it starts
+        a new thread to read sensor data at the specified frequency.
+        Logging:
+            Logs the waiting state of the sensor.
+            Logs when the sensor has started.
+            Logs the sensor reading frequency if the sensor is enabled.
+        Threading:
+            Starts a new thread to read sensor data if the sensor is enabled.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
@@ -195,8 +279,16 @@ class EnvController(BaseThing):
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
-            self.logger.info("Env {} reads with {} Hz".format(self.info["id"], self.info["hz"]))
+            self.logger.info("Env %s reads with %s Hz", self.info["id"], self.info["hz"])
 
     def stop(self):
+        """
+        Stops the sensor controller by disabling it and stopping the communication library.
+
+        This method sets the "enabled" flag in the info dictionary to False, indicating that the 
+        sensor controller is no longer active. 
+        It also calls the stop method on the commlib_factory to halt any ongoing communication
+        processes.
+        """
         self.info["enabled"] = False
         self.commlib_factory.stop()
