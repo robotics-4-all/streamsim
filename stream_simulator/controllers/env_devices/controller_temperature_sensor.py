@@ -1,3 +1,7 @@
+"""
+This file contains the controller class for an environmental temperature sensor.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -26,7 +30,8 @@ class EnvTemperatureSensorController(BasicSensor):
         Initialize the Temperature Sensor Controller.
         Args:
             conf (dict, optional): Configuration dictionary for the controller. Defaults to None.
-            package (dict, optional): Package containing environment properties and other necessary information. Defaults to None.
+            package (dict, optional): Package containing environment properties and other necessary 
+            information. Defaults to None.
         Attributes:
             env_properties (dict): Environment properties extracted from the package.
             host (str, optional): Host information if available in the configuration.
@@ -74,16 +79,16 @@ class EnvTemperatureSensorController(BasicSensor):
     def get_simulation_value(self):
         """
         Calculate the simulated temperature value based on environmental properties and sensor data.
-        This method retrieves temperature-affecting data from a remote procedure call (RPC) and calculates
-        the final temperature value by considering the ambient temperature and the influence of other
-        temperature sources within a certain range.
+        This method retrieves temperature-affecting data from a remote procedure call (RPC) and 
+        calculates the final temperature value by considering the ambient temperature and the 
+        influence of other temperature sources within a certain range.
         Returns:
             float: The final simulated temperature value.
         """
         res = self.tf_affection_rpc.call({
             'name': self.name
         })
-        
+
         # Logic
         amb = self.env_properties['temperature']
         temps = []

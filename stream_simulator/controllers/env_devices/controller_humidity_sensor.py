@@ -1,13 +1,29 @@
+"""
+File that contains the humidity sensor controller.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from stream_simulator.base_classes import BasicSensor
-from stream_simulator.connectivity import CommlibFactory
 import statistics
-import time
 import random
 
+from stream_simulator.base_classes import BasicSensor
+
 class EnvHumiditySensorController(BasicSensor):
+    """
+    Controller class for an environmental humidity sensor.
+    Args:
+        conf (dict, optional): Configuration dictionary for the sensor.
+        package (dict, optional): Package dictionary containing sensor details.
+    Attributes:
+        env_properties (dict): Environmental properties from the package.
+        host (str): Host information for the sensor, if available.
+    Methods:
+        get_simulation_value():
+            Retrieves the simulated humidity value based on environmental properties and sensor 
+            affections.
+    """
     def __init__(self, conf = None, package = None):
 
         _type = "HUMIDITY"
@@ -51,6 +67,15 @@ class EnvHumiditySensorController(BasicSensor):
         self.tf_declare_rpc.call(tf_package)
 
     def get_simulation_value(self):
+        """
+        Calculate the simulated humidity value based on environmental properties and external 
+            factors.
+        This method retrieves the current humidity affection values from an external source,
+        calculates the mean affection, and adjusts the ambient humidity accordingly. It also
+        adds a small random variation to simulate natural fluctuations.
+        Returns:
+            float: The simulated humidity value.
+        """
         res = self.tf_affection_rpc.call({
             'name': self.name
         })

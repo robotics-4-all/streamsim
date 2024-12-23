@@ -1,3 +1,7 @@
+"""
+File that contains the microphone controller.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -10,6 +14,38 @@ import wave
 from stream_simulator.base_classes import BaseThing
 
 class EnvMicrophoneController(BaseThing):
+    """
+    EnvMicrophoneController is a class that simulates a microphone sensor in an environment.
+    Attributes:
+        logger (logging.Logger): Logger for the controller.
+        info (dict): Information about the microphone sensor.
+        name (str): Name of the microphone sensor.
+        base_topic (str): Base topic for communication.
+        mode (str): Mode of the microphone sensor (e.g., "mock", "simulation").
+        place (str): Place where the microphone sensor is located.
+        pose (dict): Pose information of the microphone sensor.
+        host (str): Host information if available.
+        blocked (bool): Flag to indicate if the microphone is blocked.
+    Methods:
+        __init__(conf=None, package=None):
+            Initializes the EnvMicrophoneController with configuration and package information.
+        set_communication_layer(package):
+            Sets up the communication layer for the microphone sensor.
+        speech_detected(message):
+            Callback function for handling detected speech messages.
+        enable_callback(message):
+            Callback function for enabling the microphone sensor.
+        disable_callback(message):
+            Callback function for disabling the microphone sensor.
+        start():
+            Starts the microphone sensor.
+        stop():
+            Stops the microphone sensor.
+        on_goal_record(goalh):
+            Handles the goal for recording audio.
+        load_wav(path):
+            Loads a WAV file and returns its base64 encoded content.
+    """
     def __init__(self,
                  conf = None,
                  package = None
@@ -31,7 +67,6 @@ class EnvMicrophoneController(BaseThing):
         _pack = package["base"]
         _place = conf["place"]
         _namespace = package["namespace"]
-        id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
             "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
@@ -86,10 +121,22 @@ class EnvMicrophoneController(BaseThing):
         self.blocked = False
 
     def set_communication_layer(self, package):
+        """
+        Sets up the communication layer for the microphone controller.
+        This method initializes various communication interfaces required for the
+        microphone controller to function. It sets up simulation communication,
+        TF communication, and enables/disables RPCs. Additionally, it sets up
+        action servers, publishers, and subscribers for recording and speech
+        detection functionalities.
+        Args:
+            package (dict): A dictionary containing configuration parameters for
+                            setting up the communication layer. Expected keys are:
+                            - "namespace": The namespace for the simulation communication.
+        """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
-        
+
         self.record_action_server = self.commlib_factory.getActionServer(
             callback = self.on_goal_record,
             action_name = self.base_topic + ".record"
@@ -103,12 +150,31 @@ class EnvMicrophoneController(BaseThing):
         )
 
     def speech_detected(self, message):
+        """
+        Handles the event when speech is detected.
+
+        Args:
+            message (dict): A dictionary containing information about the detected speech.
+                - "speaker" (str): The source of the speech.
+                - "text" (str): The detected speech text.
+                - "language" (str): The language of the detected speech.
+
+        Logs:
+            Logs the detected speech information including the source, language, and text.
+        """
         source = message["speaker"]
         text = message["text"]
         language = message["language"]
-        self.logger.info(f"Speech detected from {source} [{language}]: {text}")
+        self.logger.info("Speech detected from %s [%s]: %s", source, language, text)
 
-    def enable_callback(self, message):
+    def enable_callback(self, _):
+        """
+        Enables the microphone callback and updates the internal state.
+        Args:
+            _ (Any): Placeholder argument, not used.
+        Returns:
+            dict: A dictionary indicating that the microphone has been enabled.
+        """
         self.info["enabled"] = True
 
         # self.enable_rpc_server.run()
@@ -118,11 +184,31 @@ class EnvMicrophoneController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the microphone callback.
+
+        This method sets the "enabled" status of the microphone to False 
+        and returns a dictionary indicating the disabled status.
+
+        Args:
+            _ (any): A placeholder argument that is not used.
+
+        Returns:
+            dict: A dictionary with the key "enabled" set to False.
+        """
         self.info["enabled"] = False
         return {"enabled": False}
 
     def start(self):
+        """
+        Starts the sensor and waits for the simulator to start.
+        This method logs a message indicating that the sensor is waiting to start.
+        It then enters a loop, checking if the simulator has started, and sleeps for 1 second
+        intervals until the simulator is started. Once the simulator is started, it logs a message
+        indicating that the sensor has started.
+        Note: The RPC server actions (enable, disable, record) are currently commented out.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
@@ -134,17 +220,44 @@ class EnvMicrophoneController(BaseThing):
         # self.record_action_server.run()
 
     def stop(self):
+        """
+        Stops the microphone controller by disabling the enabled flag and stopping
+        the RPC servers and the record action server.
+        This method performs the following actions:
+        1. Sets the "enabled" flag in the info dictionary to False.
+        2. Stops the enable RPC server.
+        3. Stops the disable RPC server.
+        4. Stops the record action server.
+        """
         self.info["enabled"] = False
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()
 
-        self.record_action_server._goal_rpc.stop()
-        self.record_action_server._cancel_rpc.stop()
-        self.record_action_server._result_rpc.stop()
+        self.record_action_server.stop()
 
     def on_goal_record(self, goalh):
-        self.logger.info("{} recording started".format(self.name))
-        if self.info["enabled"] == False:
+        """
+        Handles the goal to start recording from the microphone.
+        Args:
+            goalh (GoalHandle): The goal handle containing the recording parameters.
+        Returns:
+            dict: A dictionary containing the timestamp of the recording and, if applicable, the 
+            recorded data and volume.
+        Behavior:
+            - Logs the start of the recording.
+            - Checks if the microphone is enabled. If not, returns an empty dictionary.
+            - Waits if the microphone is currently blocked by another process.
+            - Extracts the duration from the goal handle.
+            - Publishes the recording duration.
+            - Depending on the mode ("mock" or "simulation"), handles the recording process:
+                - In "mock" mode, simulates a recording for the specified duration.
+                - In "simulation" mode, interacts with a tf_affection_rpc service to determine 
+                the closest sound source or human and simulates recording based on the proximity.
+            - Handles cancellation events during the recording process.
+            - Logs the completion of the recording and unblocks the microphone.
+        """
+        self.logger.info("%s recording started", self.name)
+        if self.info["enabled"] is False:
             return {}
 
         # Concurrent speaker calls handling
@@ -155,8 +268,8 @@ class EnvMicrophoneController(BaseThing):
 
         try:
             duration = goalh.data["duration"]
-        except Exception as e:
-            self.logger.error("{} goal had no duration as parameter".format(self.name))
+        except Exception: # pylint: disable=broad-except
+            self.logger.error("%s goal had no duration as parameter", self.name)
 
         self.record_pub.publish({
             "duration": duration
@@ -230,6 +343,15 @@ class EnvMicrophoneController(BaseThing):
         return ret
 
     def load_wav(self, path):
+        """
+        Load a WAV file, read its contents, and encode it in base64.
+
+        Args:
+            path (str): The relative path to the WAV file within the resources directory.
+
+        Returns:
+            str: The base64 encoded string of the WAV file's binary data.
+        """
         # Read from file
         dirname = Path(__file__).resolve().parent
         fil = str(dirname) + '/../../resources/' + path

@@ -1,3 +1,7 @@
+"""
+This file contains the controller class for an environmental pH sensor.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -13,9 +17,11 @@ class EnvPhSensorController(BasicSensor):
         package (dict, optional): Package information dictionary. Defaults to None.
     Attributes:
         host (str): Host information for the sensor, if available.
-        tf_declare_rpc (RPCClient): RPC client for declaring the sensor to the transformation framework.
+        tf_declare_rpc (RPCClient): RPC client for declaring the sensor to the transformation 
+        framework.
     Methods:
-        __init__(conf=None, package=None): Initializes the EnvPhSensorController with the given configuration and package.
+        __init__(conf=None, package=None): Initializes the EnvPhSensorController with the given 
+        configuration and package.
     """
     def __init__(self, conf = None, package = None):
 

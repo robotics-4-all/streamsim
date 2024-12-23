@@ -1,18 +1,40 @@
+"""
+File that contains the humidifier controller.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
-import json
-import math
 import logging
-import threading
-import random
-
-from colorama import Fore, Style
 
 from stream_simulator.base_classes import BaseThing
 
 class EnvHumidifierController(BaseThing):
+    """
+    EnvHumidifierController is a controller class for managing an environmental humidifier device.
+    Attributes:
+        logger (logging.Logger): Logger for the controller.
+        info (dict): Information about the humidifier including type, base_topic, name, place, 
+            enabled status, mode, configuration, and categorization.
+        pose (dict): Pose information from the configuration.
+        name (str): Name of the humidifier.
+        base_topic (str): Base topic for communication.
+        place (str): Place where the humidifier is located.
+        humidity (float): Current humidity level.
+        range (dict): Range of the humidifier.
+        host (str): Host information if available.
+    Methods:
+        __init__(conf=None, package=None): Initializes the EnvHumidifierController with the given 
+            configuration and package.
+        set_communication_layer(package): Sets up the communication layer for the controller.
+        enable_callback(message): Callback to enable the humidifier.
+        disable_callback(message): Callback to disable the humidifier.
+        get_callback(message): Callback to get the current humidity level.
+        set_callback(message): Callback to set the humidity level.
+        start(): Starts the humidifier controller.
+        stop(): Stops the humidifier controller.
+    """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf["name"])
@@ -30,7 +52,6 @@ class EnvHumidifierController(BaseThing):
         _pack = package["base"]
         _place = conf["place"]
         _namespace = package["namespace"]
-        id = "d_" + str(BaseThing.id)
         info = {
             "type": _type,
             "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
@@ -84,13 +105,32 @@ class EnvHumidifierController(BaseThing):
         self.tf_declare_rpc.call(tf_package)
 
     def set_communication_layer(self, package):
+        """
+        Configures the communication layer for the humidifier controller.
+
+        This method sets up various communication channels and RPCs (Remote Procedure Calls) 
+        required for the humidifier controller to function properly within the simulation 
+        environment.
+
+        Args:
+            package (dict): A dictionary containing configuration details. 
+                            Expected keys include:
+                            - "namespace": The namespace for the simulation communication.
+        """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
         self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
         self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
 
-    def enable_callback(self, message):
+    def enable_callback(self, _):
+        """
+        Enables the humidifier by setting the "enabled" status to True.
+        Args:
+            _ (Any): Placeholder argument, not used.
+        Returns:
+            dict: A dictionary with the key "enabled" set to True.
+        """
         self.info["enabled"] = True
 
         # self.enable_rpc_server.run()
@@ -100,14 +140,39 @@ class EnvHumidifierController(BaseThing):
 
         return {"enabled": True}
 
-    def disable_callback(self, message):
+    def disable_callback(self, _):
+        """
+        Disables the humidifier by setting the "enabled" key in the info dictionary to False.
+
+        Args:
+            _ (Any): Unused argument.
+
+        Returns:
+            dict: A dictionary with the "enabled" key set to False.
+        """
         self.info["enabled"] = False
         return {"enabled": False}
 
-    def get_callback(self, message):
+    def get_callback(self, _):
+        """
+        Callback function to retrieve the current humidity level.
+
+        Args:
+            _ (Any): Placeholder argument, not used in the function.
+
+        Returns:
+            dict: A dictionary containing the current humidity level with the key 'humidity'.
+        """
         return {"humidity": self.humidity}
 
     def set_callback(self, message):
+        """
+        Sets the callback for handling humidity messages.
+        Args:
+            message (dict): A dictionary containing the humidity data.
+        Returns:
+            dict: An empty dictionary.
+        """
         self.humidity = message["humidity"]
         self.publisher.publish({
             "humidity": self.humidity
@@ -125,6 +190,14 @@ class EnvHumidifierController(BaseThing):
         return {}
 
     def start(self):
+        """
+        Starts the sensor and waits for the simulator to start.
+        This method logs a message indicating that the sensor is waiting to start.
+        It then enters a loop, sleeping for 1 second at a time, until the simulator
+        has started. Once the simulator has started, it logs another message indicating
+        that the sensor has started.
+        Note: The RPC server methods are currently commented out.
+        """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
             time.sleep(1)
@@ -136,6 +209,16 @@ class EnvHumidifierController(BaseThing):
         # self.set_rpc_server.run()
 
     def stop(self):
+        """
+        Stops the humidifier by disabling its functionality and stopping all associated RPC servers.
+
+        This method performs the following actions:
+        - Sets the "enabled" status of the humidifier to False.
+        - Stops the enable RPC server.
+        - Stops the disable RPC server.
+        - Stops the get RPC server.
+        - Stops the set RPC server.
+        """
         self.info["enabled"] = False
         self.enable_rpc_server.stop()
         self.disable_rpc_server.stop()

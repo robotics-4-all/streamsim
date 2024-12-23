@@ -1,3 +1,7 @@
+"""
+This file contains the controller class for an environmental gas sensor.
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
