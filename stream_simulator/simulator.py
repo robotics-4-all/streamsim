@@ -248,7 +248,7 @@ class Simulator:
                 self.logger.info("\t%s %s: %d", t, k, inner_stat)
         self.logger.info("Total connections: %d", total)
 
-        # self.commlib_factory.print_topics()
+        self.commlib_factory.print_topics()
         # Just to be informed for pose
         for _, robot in enumerate(self.robots):
             robot.dispatch_pose_local()

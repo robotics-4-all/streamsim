@@ -232,7 +232,8 @@ class CommlibFactory(Node):
         # NOTE: Check if this works
         ret = self.create_wpublisher(self.mpub, topic)
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
-        self.internal_handle(auto_run, ret, CommlibFactory.publisher_topics, topic, calframe, broker)
+        self.internal_handle(auto_run, ret, CommlibFactory.publisher_topics, topic, calframe, \
+            broker)
         return ret
 
     def getSubscriber(self, broker = "mqtt", topic = None, callback = None, auto_run = True):
@@ -258,12 +259,13 @@ class CommlibFactory(Node):
         #     topic = topic,
         #     on_message = callback
         # )
-        
+
         # NOTE: Check if this works
         self.wsub.subscribe(topic, callback)
         ret = None
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
-        self.internal_handle(auto_run, ret, CommlibFactory.subscriber_topics, topic, calframe, broker)
+        self.internal_handle(auto_run, ret, CommlibFactory.subscriber_topics, topic, calframe, \
+            broker)
         return ret
 
     def getRPCService(self, broker = "mqtt", rpc_name = None, callback = None, auto_run = True):
@@ -284,7 +286,8 @@ class CommlibFactory(Node):
             rpc_name = rpc_name
         )
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
-        self.internal_handle(auto_run, ret, CommlibFactory.rpc_server_topics, rpc_name, calframe, broker)
+        self.internal_handle(auto_run, ret, CommlibFactory.rpc_server_topics, rpc_name, calframe, \
+            broker)
         return ret
 
     def getRPCClient(self, broker = "mqtt", rpc_name = None, auto_run = True):
@@ -302,7 +305,8 @@ class CommlibFactory(Node):
             rpc_name = rpc_name
         )
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
-        self.internal_handle(auto_run, ret, CommlibFactory.rpc_client_topics, rpc_name, calframe, broker)
+        self.internal_handle(auto_run, ret, CommlibFactory.rpc_client_topics, rpc_name, calframe, \
+            broker)
         return ret
 
     def getActionServer(
@@ -328,7 +332,8 @@ class CommlibFactory(Node):
             action_name = action_name
         )
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
-        self.internal_handle(auto_run, ret, CommlibFactory.action_server_topics, action_name, calframe, broker)
+        self.internal_handle(auto_run, ret, CommlibFactory.action_server_topics, action_name, \
+            calframe, broker)
         return ret
 
     def getActionClient(self, broker = "mqtt", action_name = None, auto_run = True):
@@ -350,5 +355,6 @@ class CommlibFactory(Node):
             action_name = action_name
         )
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
-        self.internal_handle(auto_run, ret, CommlibFactory.action_client_topics, action_name, calframe, broker)
+        self.internal_handle(auto_run, ret, CommlibFactory.action_client_topics, action_name, \
+            calframe, broker)
         return ret
