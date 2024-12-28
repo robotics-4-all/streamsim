@@ -112,15 +112,6 @@ class EnvController(BaseThing):
             topic = self.base_topic + ".data"
         )
 
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
-        )
-
         self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
@@ -221,42 +212,6 @@ class EnvController(BaseThing):
             # print(val)
 
         self.logger.info("Env %s sensor read thread stopped", self.info["id"])
-
-    def enable_callback(self, message):
-        """
-        Enables the sensor callback and starts the sensor reading thread.
-        Args:
-            message (dict): A dictionary containing the following keys:
-                - "hz" (int): The frequency at which the sensor should read data.
-                - "queue_size" (int): The size of the queue for sensor data.
-        Returns:
-            dict: A dictionary indicating that the sensor callback has been enabled with the key 
-            "enabled" set to True.
-        """
-        self.info["enabled"] = True
-        self.info["hz"] = message["hz"]
-        self.info["queue_size"] = message["queue_size"]
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the callback for the environment sensor.
-
-        This method sets the "enabled" status of the environment sensor to False
-        and logs an informational message indicating that the sensor has stopped reading.
-
-        Args:
-            _ (Any): A placeholder argument that is not used.
-
-        Returns:
-            dict: A dictionary with the key "enabled" set to False.
-        """
-        self.info["enabled"] = False
-        self.logger.info("Env %s stops reading", self.info["id"])
-        return {"enabled": False}
 
     def start(self):
         """

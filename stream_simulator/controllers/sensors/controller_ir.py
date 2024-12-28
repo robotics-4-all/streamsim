@@ -118,14 +118,6 @@ class IrController(BaseThing):
         self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
-        )
 
         if self.info["mode"] == "simulation":
             self.robot_pose_sub = self.commlib_factory.getSubscriber(
@@ -206,42 +198,6 @@ class IrController(BaseThing):
             # self.logger.info("Ir %s sensor read: %f", self.info["id"], val)
 
         self.logger.info("Ir %s sensor read thread stopped", self.info["id"])
-
-    def enable_callback(self, message):
-        """
-        Enables the sensor callback and starts the sensor read thread.
-        Args:
-            message (dict): A dictionary containing the following keys:
-                - "hz" (int): The frequency in hertz at which the sensor should read data.
-                - "queue_size" (int): The size of the queue for sensor data.
-        Returns:
-            dict: A dictionary indicating that the sensor has been enabled with the key "enabled" 
-            set to True.
-        """
-        self.info["enabled"] = True
-        self.info["hz"] = message["hz"]
-        self.info["queue_size"] = message["queue_size"]
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the IR sensor callback.
-
-        This method sets the "enabled" status of the IR sensor to False and logs 
-        an informational message indicating that the IR sensor has stopped reading.
-
-        Args:
-            message (dict): A dictionary containing the message data (not used in this method).
-
-        Returns:
-            dict: A dictionary with the "enabled" status set to False.
-        """
-        self.info["enabled"] = False
-        self.logger.info("Ir %s stops reading", self.info["id"])
-        return {"enabled": False}
 
     def start(self):
         """

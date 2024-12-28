@@ -15,10 +15,6 @@ class BaseThing:
         commlib_factory (CommlibFactory): The communication library factory.
         tf_declare_rpc (RPCClient): The RPC client for the tf_declare_rpc_topic.
         tf_affection_rpc (RPCClient): The RPC client for the tf_affection_rpc_topic.
-        enable_rpc_server (RPCService): The RPC service for enabling the thing.
-        disable_rpc_server (RPCService): The RPC service for disabling the thing.
-        set_mode_rpc_server (RPCService): The RPC service for setting the thing's mode.
-        get_mode_rpc_server (RPCService): The RPC service for getting the thing's mode.
         publisher (Publisher): The publisher for publishing data.
         publisher_triggers (Publisher): The publisher for publishing triggers.
     """
@@ -39,10 +35,6 @@ class BaseThing:
         self.namespace = None
         self.tf_declare_rpc = None
         self.tf_affection_rpc = None
-        self.enable_rpc_server = None
-        self.disable_rpc_server = None
-        self.set_mode_rpc_server = None
-        self.get_mode_rpc_server = None
         self.publisher = None
         self.publisher_triggers = None
         self.set_rpc_server = None
@@ -97,42 +89,6 @@ class BaseThing:
 
         self.tf_affection_rpc = self.commlib_factory.getRPCClient(
             rpc_name=package["tf_affection_rpc_topic"]
-        )
-
-    def set_enable_disable_rpcs(self, base_topic, enable_cb, disable_cb):
-        """
-        Sets up the enable and disable RPC services for the thing.
-
-        Args:
-            base_topic (str): The base topic for the RPC services.
-            enable_cb (callable): The callback function for enabling the thing.
-            disable_cb (callable): The callback function for disabling the thing.
-        """
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback=enable_cb,
-            rpc_name=base_topic + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback=disable_cb,
-            rpc_name=self.base_topic + ".disable"
-        )
-
-    def set_mode_get_set_rpcs(self, base_topic, set_cb, get_cb):
-        """
-        Sets up the set_mode and get_mode RPC services for the thing.
-
-        Args:
-            base_topic (str): The base topic for the RPC services.
-            set_cb (callable): The callback function for setting the thing's mode.
-            get_cb (callable): The callback function for getting the thing's mode.
-        """
-        self.set_mode_rpc_server = self.commlib_factory.getRPCService(
-            callback=set_cb,
-            rpc_name=base_topic + ".set_mode"
-        )
-        self.get_mode_rpc_server = self.commlib_factory.getRPCService(
-            callback=get_cb,
-            rpc_name=base_topic + ".get_mode"
         )
 
     def set_data_publisher(self, base_topic):

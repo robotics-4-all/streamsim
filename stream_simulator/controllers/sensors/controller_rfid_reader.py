@@ -113,14 +113,6 @@ class RfidReaderController(BaseThing):
         self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
-        )
 
         self.commlib_factory.run()
 
@@ -183,41 +175,6 @@ class RfidReaderController(BaseThing):
                 )
 
         self.logger.info("RFID reader %s sensor read thread stopped", self.info["id"])
-
-    def enable_callback(self, message):
-        """
-        Enables the RFID reader sensor and starts a thread to read sensor data.
-        Args:
-            message (dict): A dictionary containing configuration for the sensor.
-                            Expected keys:
-                            - "hz" (int): The frequency at which the sensor should read data.
-        Returns:
-            dict: A dictionary indicating the enabled status of the sensor.
-                  Example: {"enabled": True}
-        """
-        self.info["enabled"] = True
-        self.info["hz"] = message["hz"]
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the RFID reader sensor callback.
-
-        This method sets the sensor's "enabled" status to False and logs an 
-        informational message indicating that the sensor has stopped reading.
-
-        Args:
-            message (dict): The message triggering the callback (not used in this method).
-
-        Returns:
-            dict: A dictionary with the "enabled" status set to False.
-        """
-        self.info["enabled"] = False
-        self.logger.info("Sensor %s stops reading", self.info["id"])
-        return {"enabled": False}
 
     def start(self):
         """

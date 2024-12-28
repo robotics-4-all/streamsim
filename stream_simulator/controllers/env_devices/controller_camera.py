@@ -167,11 +167,6 @@ class EnvCameraController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
-        self.set_enable_disable_rpcs(
-            self.base_topic,
-            self.enable_callback,
-            self.disable_callback
-        )
 
     def sensor_read(self):
         """
@@ -276,7 +271,9 @@ class EnvCameraController(BaseThing):
                         # Also adjust to text size
                         x = -1
                         while x < 0:
-                            (text_width, text_height), _ = cv2.getTextSize(final_text, font, font_scale, thickness) # pylint: disable=no-member
+                            # pylint: disable=no-member
+                            (text_width, text_height), _ = \
+                                cv2.getTextSize(final_text, font, font_scale, thickness)
                             x = (width - text_width) // 2
                             y = (height + text_height) // 2
                             if x < 0:
@@ -284,13 +281,16 @@ class EnvCameraController(BaseThing):
                                 thickness = thickness - 1 if thickness > 1 else 1
 
                         # Draw the text on the image
-                        cv2.putText(image, final_text, (x, y), font, font_scale, color, thickness, lineType=cv2.LINE_AA) # pylint: disable=no-member
+                        # pylint: disable=no-member
+                        cv2.putText(image, final_text, (x, y), font, \
+                            font_scale, color, thickness, lineType=cv2.LINE_AA)
 
                         # Save the image to a file
                         cv2.imwrite(dirname + "/resources/" + img, image) # pylint: disable=no-member
 
                     except Exception as e: # pylint: disable=broad-except
-                        self.logger.error("CameraController: Error with text image generation: %s", str(e))
+                        self.logger.error("CameraController: Error with \
+                            text image generation: %s", str(e))
 
                 # print("Image: ", img)
 
@@ -312,34 +312,6 @@ class EnvCameraController(BaseThing):
                         "timestamp": time.time()
                     })
 
-    def enable_callback(self, _):
-        """
-        Enables the camera sensor by setting the "enabled" flag to True and starting a new thread
-        to read sensor data.
-        Args:
-            _ (Any): Placeholder argument, not used.
-        Returns:
-            dict: A dictionary indicating that the camera sensor has been enabled.
-        """
-        self.info["enabled"] = True
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the camera by setting the 'enabled' status to False.
-
-        Args:
-            _ (Any): Placeholder argument, not used in the method.
-
-        Returns:
-            dict: A dictionary with the 'enabled' status set to False.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
-
     def start(self):
         """
         Starts the sensor and waits for the simulator to start.
@@ -358,9 +330,6 @@ class EnvCameraController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
@@ -369,9 +338,8 @@ class EnvCameraController(BaseThing):
         """
         Stops the camera controller by disabling the camera and stopping the RPC servers.
 
-        This method sets the "enabled" flag in the info dictionary to False, indicating that the camera is no longer active.
+        This method sets the "enabled" flag in the info dictionary to False, 
+        indicating that the camera is no longer active.
         It also stops the RPC servers responsible for enabling and disabling the camera.
         """
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()

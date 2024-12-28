@@ -128,15 +128,6 @@ class ImuController(BaseThing):
                 "theta": 0
             }
 
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
-        )
-
         # Start commlib factory due to robot subscriptions (msub)
         self.commlib_factory.run()
 
@@ -238,44 +229,6 @@ class ImuController(BaseThing):
             })
 
         self.logger.info("IMU %s sensor read thread stopped", self.info["id"])
-
-    def enable_callback(self, message):
-        """
-        Enables the sensor callback and starts the sensor reading thread.
-        This method updates the sensor information with the provided message
-        and starts a new thread to handle sensor readings.
-        Args:
-            message (dict): A dictionary containing the sensor configuration.
-                - "hz" (int): The frequency at which the sensor should read data.
-                - "queue_size" (int): The size of the queue for sensor data.
-        Returns:
-            dict: A dictionary indicating that the sensor has been enabled.
-                - "enabled" (bool): Always True.
-        """
-        self.info["enabled"] = True
-        self.info["hz"] = message["hz"]
-        self.info["queue_size"] = message["queue_size"]
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the IMU sensor callback.
-
-        This method sets the "enabled" status of the IMU sensor to False and logs
-        an informational message indicating that the IMU has stopped reading.
-
-        Args:
-            message (dict): The message triggering the callback (not used in this method).
-
-        Returns:
-            dict: A dictionary with the "enabled" status set to False.
-        """
-        self.info["enabled"] = False
-        self.logger.info("IMU %s stops reading", self.info["id"])
-        return {"enabled": False}
 
     def start(self):
         """

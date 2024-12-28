@@ -26,6 +26,7 @@ class Test(unittest.TestCase):
     def setUp(self):
         self.cfact = CommlibFactory(node_name = "Test")
         sim_name = "streamsim.testinguid"
+        self.pose = None
 
         self.teleport_rpc = self.cfact.getRPCClient(
             rpc_name = f"{sim_name}.robot_1.teleport",

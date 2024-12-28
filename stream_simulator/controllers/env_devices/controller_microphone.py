@@ -135,7 +135,6 @@ class EnvMicrophoneController(BaseThing):
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
-        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
 
         self.record_action_server = self.commlib_factory.getActionServer(
             callback = self.on_goal_record,
@@ -167,39 +166,6 @@ class EnvMicrophoneController(BaseThing):
         language = message["language"]
         self.logger.info("Speech detected from %s [%s]: %s", source, language, text)
 
-    def enable_callback(self, _):
-        """
-        Enables the microphone callback and updates the internal state.
-        Args:
-            _ (Any): Placeholder argument, not used.
-        Returns:
-            dict: A dictionary indicating that the microphone has been enabled.
-        """
-        self.info["enabled"] = True
-
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-
-        # self.record_action_server.run()
-
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the microphone callback.
-
-        This method sets the "enabled" status of the microphone to False 
-        and returns a dictionary indicating the disabled status.
-
-        Args:
-            _ (any): A placeholder argument that is not used.
-
-        Returns:
-            dict: A dictionary with the key "enabled" set to False.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
-
     def start(self):
         """
         Starts the sensor and waits for the simulator to start.
@@ -214,11 +180,6 @@ class EnvMicrophoneController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-
-        # self.record_action_server.run()
-
     def stop(self):
         """
         Stops the microphone controller by disabling the enabled flag and stopping
@@ -230,8 +191,6 @@ class EnvMicrophoneController(BaseThing):
         4. Stops the record action server.
         """
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
 
         self.record_action_server.stop()
 

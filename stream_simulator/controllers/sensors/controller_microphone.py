@@ -132,14 +132,6 @@ class MicrophoneController(BaseThing):
             callback = self.on_goal_listen,
             action_name = self.base_topic  + ".listen"
         )
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = self.base_topic  + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = self.base_topic  + ".disable"
-        )
 
         self.record_pub = self.commlib_factory.getPublisher(
             topic = self.base_topic  + ".record.notify"
@@ -346,35 +338,6 @@ class MicrophoneController(BaseThing):
         self.logger.info("Listening finished: %s", )
         self.blocked = False
         return {'text': text}
-
-    def enable_callback(self, _):
-        """
-        Enables the microphone sensor callback.
-
-        This method sets the "enabled" key in the info dictionary to True and returns a dictionary 
-        indicating that the microphone sensor is enabled.
-
-        Args:
-            _ (Any): Unused parameter.
-
-        Returns:
-            dict: A dictionary with the key "enabled" set to True.
-        """
-        self.info["enabled"] = True
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the microphone callback by setting the "enabled" status to False.
-
-        Args:
-            _ (Any): Unused parameter.
-
-        Returns:
-            dict: A dictionary with the "enabled" status set to False.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
 
     def start(self):
         """

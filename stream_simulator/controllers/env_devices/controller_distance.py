@@ -188,8 +188,6 @@ class EnvDistanceController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
-        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
-        self.set_mode_get_set_rpcs(self.base_topic, self.set_mode_callback, self.get_mode_callback)
 
     def robot_pose_callback(self, message):
         """
@@ -216,52 +214,6 @@ class EnvDistanceController(BaseThing):
             }
         self.robots_poses[nm]['x'] = message['x'] / self.resolution
         self.robots_poses[nm]['y'] = message['y'] / self.resolution
-
-    def get_mode_callback(self, _):
-        """
-        Callback function to retrieve the current operation mode and its parameters.
-
-        Args:
-            _ (Any): Placeholder argument, not used in the function.
-
-        Returns:
-            dict: A dictionary containing the current operation mode and its associated parameters.
-                  The dictionary has the following structure:
-                  {
-                      "mode": <current_operation_mode>,
-                      "parameters": <parameters_for_current_operation_mode>
-        """
-        return {
-                "mode": self.operation,
-                "parameters": self.operation_parameters[self.operation]
-        }
-
-    def set_mode_callback(self, message):
-        """
-        Callback function to set the operation mode based on the provided message.
-        Parameters:
-        message (dict): A dictionary containing the mode information. 
-            Expected keys:
-            - "mode" (str): The mode to set. Possible values are "triangle", "sinus", or other.
-        Returns:
-        dict: An empty dictionary.
-        Behavior:
-        - If the mode is "triangle", sets self.prev to the minimum value of the 
-            "triangle" operation parameters and self.way to 1.
-        - If the mode is "sinus", sets self.prev to 0.
-        - For any other mode, sets self.prev to None.
-        - Updates self.operation to the provided mode.
-        """
-        if message["mode"] == "triangle":
-            self.prev = self.operation_parameters["triangle"]['min']
-            self.way = 1
-        elif message["mode"] == "sinus":
-            self.prev = 0
-        else:
-            self.prev = None
-
-        self.operation = message["mode"]
-        return {}
 
     def sensor_read(self):
         """
@@ -381,41 +333,6 @@ class EnvDistanceController(BaseThing):
             })
             # print(val)
 
-    def enable_callback(self, _):
-        """
-        Enables the callback by setting the 'enabled' flag to True and starting the 
-        sensor read thread.
-        Args:
-            _ (Any): Placeholder argument, not used in the method.
-        Returns:
-            dict: A dictionary indicating that the callback has been enabled with 
-            the key 'enabled' set to True.
-        """
-        self.info["enabled"] = True
-
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-        # self.get_mode_rpc_server.run()
-        # self.set_mode_rpc_server.run()
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the callback by setting the "enabled" status to False.
-
-        Args:
-            message (dict): The message received (not used in this method).
-
-        Returns:
-            dict: A dictionary indicating that the "enabled" status is now False.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
-
     def get_callback(self, _):
         """
         Callback function to handle incoming messages.
@@ -466,11 +383,6 @@ class EnvDistanceController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-        # self.get_mode_rpc_server.run()
-        # self.set_mode_rpc_server.run()
-
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
@@ -486,7 +398,3 @@ class EnvDistanceController(BaseThing):
         - set_mode_rpc_server
         """
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-        self.get_mode_rpc_server.stop()
-        self.set_mode_rpc_server.stop()

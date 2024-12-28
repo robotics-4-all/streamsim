@@ -112,8 +112,6 @@ class BasicSensor(BaseThing):
 
         # Communication
         self.set_data_publisher(self.base_topic)
-        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
-        self.set_mode_get_set_rpcs(self.base_topic, self.set_mode_callback, self.get_mode_callback)
 
         if self.mode == 'mock':
             if self.operation not in self.operation_parameters:
@@ -297,11 +295,6 @@ class BasicSensor(BaseThing):
         """
         self.info["enabled"] = True
 
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_mode_rpc_server.run()
-        self.set_mode_rpc_server.run()
-
         self.sensor_read_thread = threading.Thread(target = self.sensor_read)
         self.sensor_read_thread.start()
 
@@ -368,11 +361,6 @@ class BasicSensor(BaseThing):
         while not self.simulator_started:
             time.sleep(1)
 
-        self.enable_rpc_server.run()
-        self.disable_rpc_server.run()
-        self.get_mode_rpc_server.run()
-        self.set_mode_rpc_server.run()
-
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
@@ -390,7 +378,3 @@ class BasicSensor(BaseThing):
         - set_mode_rpc_server
         """
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-        self.get_mode_rpc_server.stop()
-        self.set_mode_rpc_server.stop()

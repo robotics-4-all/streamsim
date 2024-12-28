@@ -147,7 +147,6 @@ class EnvAmbientLightController(BaseThing):
         self.sensor_read_thread = None
         self.state = None
 
-
     def set_communication_layer(self, package):
         """
         Configures the communication layer for the ambient light controller.
@@ -163,52 +162,6 @@ class EnvAmbientLightController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
-        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
-        self.set_mode_get_set_rpcs(self.base_topic, self.set_mode_callback, self.get_mode_callback)
-
-    def get_mode_callback(self, _):
-        """
-        Callback function to get the current mode and its parameters.
-
-        Args:
-            _ (Any): Placeholder argument, not used.
-
-        Returns:
-            dict: A dictionary containing the current mode and its parameters.
-                - "mode" (str): The current operation mode.
-                - "parameters" (dict): The parameters associated with the current operation mode.
-        """
-        return {
-            "mode": self.operation,
-            "parameters": self.operation_parameters[self.operation]
-        }
-
-    def set_mode_callback(self, message):
-        """
-        Sets the mode of operation based on the provided message.
-        Parameters:
-        message (dict): A dictionary containing the mode of operation. 
-            Expected keys:
-            - "mode" (str): The mode to set. Can be "triangle", "sinus", or other values.
-        Behavior:
-        - If the mode is "triangle", sets `self.prev` to the minimum value of the 
-            "triangle" operation parameters and `self.way` to 1.
-        - If the mode is "sinus", sets `self.prev` to 0.
-        - For other modes, sets `self.prev` to None.
-        - Updates `self.operation` to the provided mode.
-        Returns:
-        dict: An empty dictionary.
-        """
-        if message["mode"] == "triangle":
-            self.prev = self.operation_parameters["triangle"]['min']
-            self.way = 1
-        elif message["mode"] == "sinus":
-            self.prev = 0
-        else:
-            self.prev = None
-
-        self.operation = message["mode"]
-        return {}
 
     def sensor_read(self):
         """
@@ -321,34 +274,6 @@ class EnvAmbientLightController(BaseThing):
                 "timestamp": time.time()
             })
 
-    def enable_callback(self, _):
-        """
-        Enables the ambient light sensor and starts a thread to read sensor data.
-        Args:
-            _ (Any): Placeholder argument, not used.
-        Returns:
-            dict: A dictionary indicating that the sensor has been enabled.
-        """
-        self.info["enabled"] = True
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the ambient light controller callback.
-
-        Args:
-            _ (Any): Placeholder argument, not used.
-
-        Returns:
-            dict: A dictionary indicating that the ambient light controller is disabled.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
-
     def get_callback(self, _):
         """
         Callback function to retrieve the current state.
@@ -425,7 +350,3 @@ class EnvAmbientLightController(BaseThing):
         - Stops the `set_mode_rpc_server`.
         """
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-        self.get_mode_rpc_server.stop()
-        self.set_mode_rpc_server.stop()

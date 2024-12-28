@@ -113,15 +113,6 @@ class ButtonArrayController(BaseThing):
                 topic = self.buttons_base_topics[b] + ".data"
             )
 
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = info["base_topic"] + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = info["base_topic"] + ".disable"
-        )
-
         if self.info["mode"] == "simulation":
             self.sim_button_pressed_sub = self.commlib_factory.getSubscriber(
                 topic = _namespace + "." + self.info['device_name'] + ".buttons_sim.internal",
@@ -235,41 +226,3 @@ class ButtonArrayController(BaseThing):
         """
         self.info["enabled"] = False
         self.commlib_factory.stop()
-
-    def enable_callback(self, message):
-        """
-        Enables the sensor callback and updates the sensor configuration.
-
-        Args:
-            message (dict): A dictionary containing the sensor configuration with keys:
-                - "hz" (int): The frequency at which the sensor operates.
-                - "queue_size" (int): The size of the message queue.
-
-        Returns:
-            dict: A dictionary indicating that the sensor has been enabled with the key:
-                - "enabled" (bool): Always True indicating the sensor is enabled.
-        """
-        self.info["enabled"] = True
-        self.info["hz"] = message["hz"]
-        self.info["queue_size"] = message["queue_size"]
-
-        if self.info["mode"] == "mock":
-            self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-            self.sensor_read_thread.start()
-
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the sensor callback and stops the sensor read thread.
-
-        Args:
-            message (dict): A dictionary containing the sensor configuration.
-
-        Returns:
-            dict: A dictionary indicating that the sensor has been disabled with the key:
-                - "enabled" (bool): Always False indicating the sensor is disabled.
-        """
-        self.info["enabled"] = False
-        self.logger.info("Button %s stops reading", self.info['id'])
-        return {"enabled": False}

@@ -148,15 +148,6 @@ class CameraController(BaseThing):
                 callback = self.robot_pose_update
             )
 
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
-        )
-
         self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
@@ -183,37 +174,6 @@ class CameraController(BaseThing):
             message: The new pose information for the robot.
         """
         self.robot_pose = message
-
-    def enable_callback(self, _):
-        """
-        Enables the camera sensor and starts the sensor reading thread.
-
-        Args:
-            _ (Any): Placeholder argument, not used.
-
-        Returns:
-            dict: A dictionary indicating that the sensor has been enabled.
-        """
-        self.info["enabled"] = True
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the camera sensor callback.
-
-        This method sets the "enabled" status of the camera sensor to False and 
-        returns a dictionary indicating that the sensor is disabled.
-
-        Args:
-            message (dict): The message triggering the callback (not used in this method).
-
-        Returns:
-            dict: A dictionary with the key "enabled" set to False.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
 
     def start(self):
         """

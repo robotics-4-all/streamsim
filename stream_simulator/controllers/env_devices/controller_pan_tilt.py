@@ -156,42 +156,8 @@ class EnvPanTiltController(BaseThing):
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
-        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
         self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
         self.set_data_publisher(self.base_topic)
-        self.set_mode_get_set_rpcs(self.base_topic, self.set_mode_callback, self.get_mode_callback)
-
-    def set_mode_callback(self, message):
-        """
-        Callback function to set the operation mode.
-
-        Args:
-            message (dict): A dictionary containing the mode information. 
-                            Expected to have a key "mode" with the desired operation mode as its 
-                            value.
-
-        Returns:
-            dict: An empty dictionary.
-        """
-        self.operation = message["mode"]
-        return {}
-
-    def get_mode_callback(self, _):
-        """
-        Callback function to get the current mode and its parameters.
-
-        Args:
-            _ (Any): Placeholder argument, not used.
-
-        Returns:
-            dict: A dictionary containing the current mode and its associated parameters.
-                - "mode" (str): The current operation mode.
-                - "parameters" (dict): The parameters associated with the current operation mode.
-        """
-        return {
-            "mode": self.operation,
-            "parameters": self.operation_parameters[self.operation]
-        }
 
     # Only for mock mode
     def thread_fun(self):
@@ -224,42 +190,6 @@ class EnvPanTiltController(BaseThing):
                 'tilt': self.tilt,
                 'name': self.name
             })
-
-    def enable_callback(self, _):
-        """
-        Enables the callback function and sets the "enabled" status to True.
-        This method updates the `info` dictionary to indicate that the callback
-        function is enabled. If the mode is set to "mock", it starts a new thread
-        to run the `thread_fun` method.
-        Args:
-            _ (Any): Placeholder argument, not used.
-        Returns:
-            dict: A dictionary with the key "enabled" set to True.
-        """
-        self.info["enabled"] = True
-
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-        # self.get_rpc_server.run()
-
-        if self.mode == "mock":
-            self.data_thread = threading.Thread(target = self.thread_fun)
-            self.data_thread.start()
-
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the callback by setting the "enabled" key in the info dictionary to False.
-
-        Args:
-            _ (Any): Unused parameter.
-
-        Returns:
-            dict: A dictionary with the "enabled" key set to False.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
 
     def get_callback(self, _):
         """
@@ -318,11 +248,6 @@ class EnvPanTiltController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-        # self.get_rpc_server.run()
-        # self.set_rpc_server.run()
-
         if self.mode == "mock":
             if self.info['enabled']:
                 self.data_thread = threading.Thread(target = self.thread_fun)
@@ -340,7 +265,5 @@ class EnvPanTiltController(BaseThing):
         5. Stops the set RPC server.
         """
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
         self.get_rpc_server.stop()
         self.set_rpc_server.stop()

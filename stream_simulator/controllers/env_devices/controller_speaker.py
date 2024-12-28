@@ -129,7 +129,6 @@ class EnvSpeakerController(BaseThing):
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
-        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
 
         self.play_action_server = self.commlib_factory.getActionServer(
             callback = self.on_goal_play,
@@ -147,37 +146,6 @@ class EnvSpeakerController(BaseThing):
             topic = self.base_topic + ".speak.notify"
         )
 
-    def enable_callback(self, _):
-        """
-        Enables the callback by setting the "enabled" key in the info dictionary to True.
-        Args:
-            _ (Any): Placeholder argument, not used.
-        Returns:
-            dict: A dictionary with the key "enabled" set to True.
-        """
-        self.info["enabled"] = True
-
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-
-        # self.play_action_server.run()
-        # self.speak_action_server.run()
-
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the speaker by setting the "enabled" status to False.
-
-        Args:
-            message (dict): The message containing information to process (not used in this method).
-
-        Returns:
-            dict: A dictionary indicating the new "enabled" status of the speaker.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
-
     def start(self):
         """
         Starts the sensor and waits for the simulator to start.
@@ -193,12 +161,6 @@ class EnvSpeakerController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-
-        # self.play_action_server.run()
-        # self.speak_action_server.run()
-
     def stop(self):
         """
         Stops the speaker controller by disabling the RPC servers and action servers.
@@ -208,9 +170,6 @@ class EnvSpeakerController(BaseThing):
         - Stops the goal, cancel, and result RPCs for both the play and speak action servers.
         """
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()
-
         self.play_action_server.stop()
 
     def on_goal_play(self, goalh):

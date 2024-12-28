@@ -134,7 +134,6 @@ class EnvLinearAlarmController(BaseThing):
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
         self.set_triggers_publisher(self.base_topic)
-        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
 
     def sensor_read(self):
         """
@@ -192,39 +191,6 @@ class EnvLinearAlarmController(BaseThing):
 
             prev = val
 
-    def enable_callback(self, _):
-        """
-        Enables the callback by setting the 'enabled' flag to True and starting the sensor 
-        read thread.
-        Args:
-            _ (Any): Placeholder argument, not used in the method.
-        Returns:
-            dict: A dictionary indicating that the callback has been enabled with the key 
-            'enabled' set to True.
-        """
-        self.info["enabled"] = True
-
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the callback by setting the "enabled" key in the info dictionary to False.
-
-        Args:
-            _ (Any): Unused parameter.
-
-        Returns:
-            dict: A dictionary with the "enabled" key set to False.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
-
     def start(self):
         """
         Starts the sensor and waits for the simulator to start.
@@ -240,9 +206,6 @@ class EnvLinearAlarmController(BaseThing):
         while not self.simulator_started:
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
-
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
 
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
@@ -260,5 +223,3 @@ class EnvLinearAlarmController(BaseThing):
             Any exceptions raised by the stop methods of the RPC servers.
         """
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()

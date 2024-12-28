@@ -139,7 +139,6 @@ class EnvAreaAlarmController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
-        self.set_enable_disable_rpcs(self.base_topic, self.enable_callback, self.disable_callback)
         self.set_triggers_publisher(self.base_topic)
         self.logger.info("Communication done")
 
@@ -205,36 +204,6 @@ class EnvAreaAlarmController(BaseThing):
 
             prev = val
 
-    def enable_callback(self, _):
-        """
-        Enables the callback by setting the 'enabled' flag to True and starting a new 
-        thread to read sensor data.
-        Args:
-            _ (Any): Placeholder argument, not used in the method.
-        Returns:
-            dict: A dictionary indicating that the callback has been enabled with 
-            the key 'enabled' set to True.
-        """
-        self.info["enabled"] = True
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the callback by setting the "enabled" key in the info dictionary to False.
-
-        Args:
-            _ (Any): A placeholder argument that is not used.
-
-        Returns:
-            dict: A dictionary with the "enabled" key set to False.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
-
     def start(self):
         """
         Starts the sensor and its associated processes.
@@ -253,9 +222,6 @@ class EnvAreaAlarmController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
@@ -268,5 +234,3 @@ class EnvAreaAlarmController(BaseThing):
         and disable RPC servers.
         """
         self.info["enabled"] = False
-        self.enable_rpc_server.stop()
-        self.disable_rpc_server.stop()

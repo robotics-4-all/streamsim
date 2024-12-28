@@ -119,14 +119,6 @@ class SpeakerController(BaseThing):
             callback = self.on_goal_speak,
             action_name = self.base_topic + ".speak"
         )
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = self.base_topic + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = self.base_topic + ".disable"
-        )
 
         self.play_pub = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".play.notify"
@@ -305,32 +297,6 @@ class SpeakerController(BaseThing):
         self.logger.info("%s Playing finished", self.name)
         self.blocked = False
         return ret
-
-    def enable_callback(self, _):
-        """
-        Enables the speaker controller by setting the "enabled" key in the info dictionary to True.
-
-        Args:
-            _ (Any): Unused argument.
-
-        Returns:
-            dict: A dictionary with the key "enabled" set to True.
-        """
-        self.info["enabled"] = True
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the speaker by setting the "enabled" key in the info dictionary to False.
-
-        Args:
-            _ (Any): Unused parameter.
-
-        Returns:
-            dict: A dictionary with the "enabled" key set to False.
-        """
-        self.info["enabled"] = False
-        return {"enabled": False}
 
     def start(self):
         """

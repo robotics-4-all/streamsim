@@ -120,14 +120,6 @@ class SonarController(BaseThing):
         self.publisher = self.commlib_factory.getPublisher(
             topic = self.base_topic + ".data"
         )
-        self.enable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.enable_callback,
-            rpc_name = self.base_topic  + ".enable"
-        )
-        self.disable_rpc_server = self.commlib_factory.getRPCService(
-            callback = self.disable_callback,
-            rpc_name = self.base_topic  + ".disable"
-        )
 
         # print(self.info)
 
@@ -223,42 +215,6 @@ class SonarController(BaseThing):
             # self.logger.info("Sonar reads: %f",  val)
 
         self.logger.debug("Sonar %s sensor read thread stopped", self.info["id"])
-
-    def enable_callback(self, message):
-        """
-        Enables the sonar sensor and initializes its parameters.
-        This method sets the sensor to enabled state, updates its frequency (hz) and queue size
-        based on the provided message. It also initializes the memory buffer for sensor readings
-        and starts a new thread to handle sensor data reading.
-        Args:
-            message (dict): A dictionary containing the following keys:
-                - "hz" (int): The frequency at which the sensor operates.
-                - "queue_size" (int): The size of the queue for storing sensor readings.
-        Returns:
-            dict: A dictionary indicating that the sensor has been enabled with the key "enabled" 
-                set to True.
-        """
-        self.info["enabled"] = True
-        self.info["hz"] = message["hz"]
-        self.info["queue_size"] = message["queue_size"]
-
-        self.sensor_read_thread = threading.Thread(target = self.sensor_read)
-        self.sensor_read_thread.start()
-        return {"enabled": True}
-
-    def disable_callback(self, _):
-        """
-        Disables the sonar sensor callback.
-
-        Args:
-            message (dict): The message triggering the callback.
-
-        Returns:
-            dict: A dictionary indicating that the sonar sensor is disabled.
-        """
-        self.info["enabled"] = False
-        self.logger.info("Sonar %s stops reading", self.info["id"])
-        return {"enabled": False}
 
     def start(self):
         """

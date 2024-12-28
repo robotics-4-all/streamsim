@@ -236,7 +236,9 @@ class CommlibFactory(Node):
             broker, "publishers")
         return ret
 
-    def getSubscriber(self, broker = "mqtt", topic = None, callback = None, auto_run = True, old_way = False):
+    def getSubscriber(
+        self, broker = "mqtt", topic = None, callback = None, 
+        auto_run = True, old_way = False):
         """
         Creates and runs a subscriber for the specified broker and topic, and logs the creation.
 
