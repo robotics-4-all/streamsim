@@ -15,4 +15,4 @@
 ## Running the tests
 
 - Execute the streamsim like this: `python3 stream_simulator/bin/bootstrap.py testing testinguid`
-- Execute the tests: `pytest tests/final_tests`
+- Execute the tests: `pytest tests`
