@@ -58,9 +58,12 @@ class Test(unittest.TestCase):
         This test performs the following steps:
         1. Teleports the robot to a specified position (x=500, y=500) with an orientation (theta=0).
         2. Waits for 1 second to ensure the teleportation is complete.
-        3. Moves the robot by a specified angle (angle=0.3) with a given angular velocity (angular=0.1).
-        4. Asserts that the robot's orientation (theta) is approximately 0.3 with a tolerance of 0.05.
-        If any exception occurs during the test, it prints the traceback and fails the test with an appropriate message.
+        3. Moves the robot by a specified angle (angle=0.3) with a given angular velocity 
+            (angular=0.1).
+        4. Asserts that the robot's orientation (theta) is approximately 0.3 with a 
+            tolerance of 0.05.
+        If any exception occurs during the test, it prints the traceback and fails the test 
+            with an appropriate message.
         """
         try:
             print("Teleporting robot")
