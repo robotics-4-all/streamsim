@@ -34,8 +34,6 @@ class Robot:
         Looks up and registers devices for the robot.
     leds_redis(message):
         Handles LED messages from Redis.
-    leds_wipe_redis(message):
-        Handles LED wipe messages from Redis.
     execution_nodes_redis(message):
         Handles execution node messages from Redis.
     detects_redis(message):
@@ -171,7 +169,6 @@ class Robot:
             final_top = self.name + ".pose"
             final_dete_top = self.name + ".detect"
             final_leds_top = self.name + ".leds"
-            final_leds_wipe_top = self.name + ".leds.wipe"
             final_exec = self.name + ".execution"
 
             # AMQP Publishers  -----------------------------------------------
@@ -183,9 +180,6 @@ class Robot:
             )
             self.leds_pub = self.commlib_factory.getPublisher(
                 topic = final_leds_top
-            )
-            self.leds_wipe_pub = self.commlib_factory.getPublisher(
-                topic = final_leds_wipe_top
             )
             self.execution_pub = self.commlib_factory.getPublisher(
                 topic = final_exec
@@ -225,10 +219,6 @@ class Robot:
             self.leds_redis_sub = self.commlib_factory.getSubscriber(
                 topic = self.name + ".leds.internal",
                 callback = self.leds_redis
-            )
-            self.leds_wipe_redis_sub = self.commlib_factory.getSubscriber(
-                topic = self.name + ".leds.wipe.internal",
-                callback = self.leds_wipe_redis
             )
 
         # Start the CommlibFactory
@@ -380,21 +370,6 @@ class Robot:
         self.logger.debug("Got leds from redis %s", message)
         self.logger.warning("Sending to amqp notifier: %s", message)
         self.leds_pub.publish(message)
-
-    def leds_wipe_redis(self, message):
-        """
-        Handles the LED wipe message received from Redis.
-
-        This method logs the received message, sends a warning log indicating
-        that the message is being sent to the AMQP notifier, and publishes the
-        message to the `leds_wipe_pub` publisher.
-
-        Args:
-            message (str): The message received from Redis to be processed.
-        """
-        self.logger.debug("Got leds wipe from redis %s", message)
-        self.logger.warning("Sending to amqp notifier: %s", message)
-        self.leds_wipe_pub.publish(message)
 
     def execution_nodes_redis(self, message):
         """

@@ -118,9 +118,6 @@ class LedsController(BaseThing):
         self.leds_pub = self.commlib_factory.getPublisher(
             topic = self.info['device_name'] + ".leds"
         )
-        self.leds_wipe_pub = self.commlib_factory.getPublisher(
-            topic = self.base_topic + ".wipe"
-        )
 
         self.set_rpc_server = self.commlib_factory.getRPCService(
             callback = self.leds_set_callback,
@@ -129,10 +126,6 @@ class LedsController(BaseThing):
         self.get_rpc_server = self.commlib_factory.getRPCService(
             callback = self.leds_get_callback,
             rpc_name = self.base_topic + ".get"
-        )
-        self.leds_wipe_server = self.commlib_factory.getRPCService(
-            callback = self.leds_wipe_callback,
-            rpc_name = self.base_topic + ".wipe"
         )
 
         self.commlib_factory.run()
@@ -226,56 +219,6 @@ class LedsController(BaseThing):
 
         except Exception as e: # pylint: disable=broad-except
             self.logger.error("%s: leds_set is wrongly formatted: %s - %s", \
-                self.name, str(e.__class__), str(e))
-
-        return {}
-
-    def leds_wipe_callback(self, message):
-        """
-        Handles the LED wipe command by extracting the color and intensity values from the message,
-        updating the internal state, and notifying the UI.
-        Args:
-            message (dict): A dictionary containing the LED wipe command with the following keys:
-                - "r" (int): Red color component (0-255).
-                - "g" (int): Green color component (0-255).
-                - "b" (int): Blue color component (0-255).
-                - "luminosity" (int): Intensity of the color (0-255).
-                - "wait_ms" (int): Wait time in milliseconds.
-        Returns:
-            dict: An empty dictionary.
-        Raises:
-            Exception: If the message is wrongly formatted.
-        """
-        try:
-            response = message
-            r = response["r"]
-            g = response["g"]
-            b = response["b"]
-            intensity = response["luminosity"]
-            self._color = [r, g, b, intensity]
-
-            self.commlib_factory.notify_ui(
-                type_ = "effector_command",
-                data = {
-                    "name": self.name,
-                    "value": {
-                        'r': r,
-                        'g': g,
-                        'b': b,
-                        'luminosity': intensity
-                    }
-                }
-            )
-
-            if self.info["mode"] == "mock":
-                pass
-            elif self.info["mode"] == "simulation":
-                pass
-
-            self.logger.info("%s: New leds wipe command: %s", self.name, message)
-
-        except Exception as e: # pylint: disable=broad-except
-            self.logger.error("%s: leds_wipe is wrongly formatted: %s - %s", \
                 self.name, str(e.__class__), str(e))
 
         return {}
