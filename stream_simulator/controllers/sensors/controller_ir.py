@@ -72,7 +72,6 @@ class IrController(BaseThing):
             "hz": conf["hz"],
             "queue_size": 100,
             "mode": package["mode"],
-            "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
             "device_name": package["device_name"],
             "max_range": conf["max_range"],

@@ -65,7 +65,6 @@ class LedsController(BaseThing):
             "orientation": float(conf["orientation"]),
             "queue_size": 0,
             "mode": package["mode"],
-            "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
             "device_name": package["device_name"],
             "categorization": {

@@ -56,15 +56,15 @@ class Test(unittest.TestCase):
         try:
             print("Teleporting robot")
             self.teleport_rpc.call({
-                'x': 111,
-                'y': 222,
+                'x': 50.6,
+                'y': 49.5,
                 'theta': 0.99
             })
             time.sleep(1)
 
             self.assertIsNotNone(self.pose)
-            self.assertEqual(self.pose['x'], 111)
-            self.assertEqual(self.pose['y'], 222)
+            self.assertAlmostEqual(self.pose['x'], 50.6, places = 1)
+            self.assertAlmostEqual(self.pose['y'], 49.5, places = 1)
             self.assertAlmostEqual(self.pose['theta'], 0.99, places = 2)
 
         except: # pylint: disable=bare-except

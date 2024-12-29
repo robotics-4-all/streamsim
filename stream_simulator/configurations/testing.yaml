@@ -2,13 +2,13 @@ simulation:
   name: "6569d9fd137514fe16b106dc"
 
 map:
-  width: 1000
-  height: 1000
-  resolution: 0.1
+  width:  1000 # in pixels
+  height: 1000 # in pixels
+  resolution: 0.1 # meters per pixel
   obstacles:
     lines:
-      - {x1: 510, y1: 400, x2: 510, y2: 600}
-      - {x1: 5, y1: 4, x2: 8, y2: 4}
+      - {x1: 510, y1: 400, x2: 510, y2: 600} # in pixels
+      - {x1: 5, y1: 4, x2: 8, y2: 4} # in pixels
 
 world:
   name: "simple_world"
@@ -22,10 +22,7 @@ world:
 robots:
   - name: robot_1
     mode: simulation # [simulation, mock, real]
-    speak_mode: espeak # [google, espeak] - in case of real mode
-    wait_for: [] #[rhasspy] # in case of real mode
     remote_inform: true
-    step_by_step_execution: false
     devices:
       microphone:
         - source: "robot_devices/microphone"
@@ -93,7 +90,7 @@ env_devices:
   alarms_linear:
     - source: "env_devices/alarm_linear"
 
-actors:
+actors: # all x, y are in pixels
   humans:
     - {id: 1, x: 510, y: 500, move: 1, sound: 1, lang: EN, range: 80, speech: Hey there, emotion: angry, gender: male, age: 56}
   superman:

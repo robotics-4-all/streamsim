@@ -27,7 +27,6 @@ class ButtonController(BaseThing):
                 - name (str): The name of the package.
                 - namespace (str): The namespace of the package.
                 - mode (str): The mode of the package.
-                - speak_mode (str): The speak mode of the package.
                 - device_name (str): The device name of the package.
     """
     def __init__(self, conf = None, package = None):
@@ -57,7 +56,6 @@ class ButtonController(BaseThing):
             "orientation": float(conf["orientation"]),
             "hz": 1,
             "mode": package["mode"],
-            "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
             "device_name": package["device_name"],
             "categorization": {

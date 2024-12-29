@@ -65,7 +65,6 @@ class RfidReaderController(BaseThing):
             "orientation": float(conf["orientation"]),
             "hz": conf["hz"],
             "mode": package["mode"],
-            "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
             "device_name": package["device_name"],
             "categorization": {

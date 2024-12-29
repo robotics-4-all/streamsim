@@ -61,7 +61,6 @@ class PanTiltController(BaseThing):
             "enabled": True,
             "orientation": float(conf["orientation"]),
             "mode": package["mode"],
-            "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
             "device_name": package["device_name"],
             "categorization": {

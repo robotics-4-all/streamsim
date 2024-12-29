@@ -40,8 +40,6 @@ class Robot:
         Handles detection messages from Redis.
     button_amqp(message):
         Handles button press messages from AMQP.
-    step_by_step_amqp(message):
-        Handles step-by-step execution messages from AMQP.
     start():
         Starts the robot and its controllers.
     stop():
@@ -118,8 +116,8 @@ class Robot:
         self._theta = 0
         if "starting_pose" in self.configuration:
             pose = self.configuration['starting_pose']
-            self._init_x = pose['x'] #* self.resolution
-            self._init_y = pose['y'] #* self.resolution
+            self._init_x = pose['x'] * self.resolution
+            self._init_y = pose['y'] * self.resolution
             self._init_theta = pose['theta'] / 180.0 * math.pi
             self.logger.info("Robot %s pose set: %s, %s, %s",
                 self.name, self._x, self._y, self._theta)
@@ -128,11 +126,7 @@ class Robot:
             self._y = self._init_y
             self._theta = self._init_theta
 
-        self.step_by_step_execution = self.configuration['step_by_step_execution']
-        self.logger.warning("Step by step execution is %s", self.step_by_step_execution)
-
         # Devices set
-        self.speak_mode = self.configuration["speak_mode"]
         self.mode = self.configuration["mode"]
         if self.mode not in ["mock", "simulation"]:
             self.logger.error("Selected mode is invalid: %s", self.mode)
@@ -190,12 +184,6 @@ class Robot:
                 topic = self.name + ".buttons",
                 callback = self.button_amqp
             )
-
-            if self.step_by_step_execution:
-                self.commlib_factory.getSubscriber(
-                    topic = self.name + ".step_by_step",
-                    callback = self.step_by_step_amqp
-                )
 
             # REDIS Publishers  -----------------------------------------------
 
@@ -293,7 +281,6 @@ class Robot:
         p = {
             "name": self.name,
             "mode": self.mode,
-            "speak_mode": self.speak_mode,
             "namespace": self.namespace,
             "device_name": self.configuration["name"],
             "logger": self.logger,
@@ -441,19 +428,6 @@ class Robot:
         self.buttons_sim_pub.publish({
             "button": message["button"]
         })
-
-    def step_by_step_amqp(self, _):
-        """
-        Processes the next step message received from AMQP.
-
-        Args:
-            message (dict): The message received from AMQP containing the next step information.
-
-        Returns:
-            None
-        """
-        self.logger.info("Got next step from amqp")
-        self.next_step_pub.publish({})
 
     def start(self):
         """

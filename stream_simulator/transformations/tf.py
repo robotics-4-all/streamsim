@@ -552,6 +552,16 @@ class TfController:
             temp['pose']['theta'] = float(temp['pose']['theta'])
             temp['pose']['theta'] *= math.pi/180.0
 
+        # Fix by resolution
+        if 'start' not in temp['pose']:
+            temp['pose']['x'] = float(temp['pose']['x'] * self.resolution)
+            temp['pose']['y'] = float(temp['pose']['y'] * self.resolution)
+        else:
+            temp['pose']['start']['x'] = float(temp['pose']['start']['x'] * self.resolution)
+            temp['pose']['start']['y'] = float(temp['pose']['start']['y'] * self.resolution)
+            temp['pose']['end']['x'] = float(temp['pose']['end']['x'] * self.resolution)
+            temp['pose']['end']['y'] = float(temp['pose']['end']['y'] * self.resolution)
+
         self.declarations.append(temp)
         self.declarations_info[temp['name']] = temp
 

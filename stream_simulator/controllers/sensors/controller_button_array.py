@@ -86,7 +86,6 @@ class ButtonArrayController(BaseThing):
             "orientation": 0,
             "hz": 4,
             "mode": package["mode"],
-            "speak_mode": package["speak_mode"],
             "namespace": package["namespace"],
             "sensor_configuration": conf["sensor_configuration"],
             "device_name": package["device_name"]

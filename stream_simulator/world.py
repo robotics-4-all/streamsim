@@ -347,6 +347,7 @@ class World:
             "logger": None,
             'tf_declare_rpc_topic': self.tf_base + '.declare',
             'tf_affection_rpc_topic': self.tf_base + '.get_affections',
+            'resolution': self.resolution,
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
