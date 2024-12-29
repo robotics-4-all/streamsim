@@ -522,7 +522,7 @@ class Robot:
         Returns:
             dict: An empty dictionary.
         """
-        self.logger.warning("Teleporting robot")
+        self.logger.warning("Teleporting robot @ %s, %s, %s", msg["x"], msg["y"], msg["theta"])
         self._x = msg["x"]
         self._y = msg["y"]
         self._theta = msg["theta"]

@@ -210,10 +210,10 @@ class World:
             # Add obstacles information in map
             self.obstacles = self.configuration['map']['obstacles']['lines']
             for obst in self.obstacles:
-                x1 = max(min(int(obst['x1'] / self.resolution), self.width - 1), 0)
-                x2 = max(min(int(obst['x2'] / self.resolution), self.width - 1), 0)
-                y1 = max(min(int(obst['y1'] / self.resolution), self.height - 1), 0)
-                y2 = max(min(int(obst['y2'] / self.resolution), self.height - 1), 0)
+                x1 = max(min(int(obst['x1']), self.width - 1), 0)
+                x2 = max(min(int(obst['x2']), self.width - 1), 0)
+                y1 = max(min(int(obst['y1']), self.height - 1), 0)
+                y2 = max(min(int(obst['y2']), self.height - 1), 0)
 
                 if x1 == x2:
                     if y1 > y2:

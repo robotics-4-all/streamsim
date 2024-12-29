@@ -7,11 +7,10 @@ map:
   resolution: 0.1 # meters per pixel
   obstacles:
     lines:
-      - {x1: 510, y1: 400, x2: 510, y2: 600} # in pixels
-      - {x1: 5, y1: 4, x2: 8, y2: 4} # in pixels
+      - {x1: 900, y1: 10, x2: 900, y2: 990} # in pixels
 
 world:
-  name: "simple_world"
+  name: "testing_world"
   places: []
   properties:
     temperature: 16 # celcius
@@ -27,7 +26,13 @@ robots:
       microphone:
         - source: "robot_devices/microphone"
       sonar:
-        - source: "robot_devices/sonars/sonar_front"
+        - pose: {theta: 0}
+          name: sonar_front_on_pt1
+          orientation: 0 # degrees
+          place: FR
+          hz: 5
+          max_range: 10 # meters
+          host: pt1
       ir:
         - source: "robot_devices/irs/ir_front"
       tof:
@@ -45,7 +50,10 @@ robots:
       leds:
         - source: "robot_devices/leds"
       pan_tilt:
-        - source: "robot_devices/pan_tilt"
+        - pose: {x: 0, y: 0, theta: 0} # in meters
+          name: pt1
+          orientation: 0
+          place: UNDER
       skid_steer:
         - source: "robot_devices/skid_steer"
       rfid_reader:
