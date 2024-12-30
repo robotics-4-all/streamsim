@@ -13,3 +13,4 @@ from .simulator import Simulator
 from .transformations import TfController
 from .connectivity import CommlibFactory
 from .bin import SimulatorStartup
+from .mqtt_notifier import MQTTNotifier

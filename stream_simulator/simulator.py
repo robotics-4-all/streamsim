@@ -15,6 +15,7 @@ from stream_simulator.controllers import IrController # pylint: disable=unused-i
 
 from .robot import Robot
 from .world import World
+from .mqtt_notifier import MQTTNotifier
 
 ### Dont know why but if I remove this no controllers are found
 
@@ -104,6 +105,9 @@ class Simulator:
         # Start the CommlibFactory
         self.commlib_factory.run()
 
+        # Create the MQTTNotifier
+        self.mqtt_notifier = MQTTNotifier(uid = self.uid)
+
         self.tf = None
         self.world = None
         self.world_name = None
@@ -162,10 +166,11 @@ class Simulator:
             resolution = resolution,
             logger = None,
             env_properties = self.configuration["world"]["properties"],
+            mqtt_notifier = self.mqtt_notifier,
         )
 
         # Initializing world
-        self.world = World(uid=self.uid)
+        self.world = World(uid=self.uid, mqtt_notifier=self.mqtt_notifier)
         self.world.load_environment(configuration = self.configuration)
         self.world_name = self.world.name
 
@@ -181,6 +186,7 @@ class Simulator:
                         map_ = self.world.map,
                         tick = self.tick,
                         namespace = self.name,
+                        mqtt_notifier = self.mqtt_notifier,
                     )
                 )
                 self.robot_names.append(r["name"])
@@ -190,12 +196,8 @@ class Simulator:
             _robot = value
             _robot.start()
 
-            self.commlib_factory.notify_ui(
-                type_ = "new_message",
-                data = {
-                    "type": "logs",
-                    "message": f"Robot {_robot.name} launched"
-                }
+            self.mqtt_notifier.dispatch_log(
+                f"Robot {_robot.name} launched"
             )
 
         # Initializing tf
@@ -253,12 +255,8 @@ class Simulator:
         for _, robot in enumerate(self.robots):
             robot.dispatch_pose_local()
 
-        self.commlib_factory.notify_ui(
-            type_ = "new_message",
-            data = {
-                "type": "logs",
-                "message": "Simulator started"
-            }
+        self.mqtt_notifier.dispatch_log(
+            "Simulator started"
         )
 
         self.logger.warning("Simulation started")

@@ -178,16 +178,10 @@ class EnvLinearAlarmController(BaseThing):
                 triggers += 1
                 self.publisher_triggers.publish({
                     "value": triggers,
-                    "timestamp": time.time()
+                    "timestamp": time.time(),
+                    "trigger": val,
+                    "name": self.name,
                 })
-
-                self.commlib_factory.notify_ui(
-                    type_ = "alarm",
-                    data = {
-                        "name": self.name,
-                        "triggers": triggers
-                    }
-                )
 
             prev = val
 

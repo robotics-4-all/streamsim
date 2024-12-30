@@ -16,11 +16,14 @@ class TfController:
     """
     A class to handle transformations for the simulator.
     """
-    def __init__(self, base = None, resolution = None, logger = None, env_properties = None):
+    def __init__(self, base = None, resolution = None, logger = None, \
+        env_properties = None, mqtt_notifier = None):
+
         self.logger = logging.getLogger(__name__) if logger is None else logger
         self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
         self.base = base
         self.resolution = resolution
+        self.mqtt_notifier = mqtt_notifier
 
         self.commlib_factory = CommlibFactory(node_name = "Tf")
 
@@ -405,25 +408,14 @@ class TfController:
         Updates:
             self.places_absolute (dict): Updates the absolute positions and orientations
                 of the robot and its associated devices.
-            self.commlib_factory.notify_ui: Notifies the UI with the updated robot pose.
             self.update_pan_tilt: Updates the angles of devices mounted on pan-tilt units.
         """
-        nm = message['name'].split(".")[-1]
+        nm = message['raw_name']
         if nm not in self.places_absolute:
             self.places_absolute[nm] = {'x': 0, 'y': 0, 'theta': 0}
         self.places_absolute[nm]['x'] = message['x']
         self.places_absolute[nm]['y'] = message['y']
         self.places_absolute[nm]['theta'] = message['theta']
-
-        self.commlib_factory.notify_ui(
-            type_ = "robot_pose",
-            data = {
-                "name": nm,
-                "x": message['x'],
-                "y": message['y'],
-                "theta": message['theta']
-            }
-        )
 
         # Update all thetas of devices
         for d in self.tree[nm]:
@@ -480,15 +472,13 @@ class TfController:
                         self.places_relative[i]['theta'] + \
                         abs_pt_theta
 
-                    self.commlib_factory.notify_ui(
-                        type_ = 'sensor_pose',
-                        data = {
-                            "name": i,
-                            "x": self.places_absolute[i]['x'],
-                            "y": self.places_absolute[i]['y'],
-                            "theta": self.places_absolute[i]['theta']
-                        }
-                    )
+                    self.mqtt_notifier.dispatch_sensor_pose({
+                        "name": i,
+                        "x": self.places_absolute[i]['x'],
+                        "y": self.places_absolute[i]['y'],
+                        "theta": self.places_absolute[i]['theta'],
+                        "resolution": self.resolution
+                    })
 
     def pan_tilt_callback(self, message):
         """
@@ -1690,6 +1680,8 @@ class TfController:
 
         self.logger.info("Detection result for %s with id %s: %s, %s, %s",\
             name, id_, decision, info, frm)
+
+        # NOTE: Is this needed?
         self.detections_publisher.publish({
             "name": name,
             "device_type": decl['subtype']['subclass'][0],
@@ -1699,19 +1691,16 @@ class TfController:
             "result": decision
         })
 
-        self.commlib_factory.notify_ui(
-            type_ = "detection",
-            data = {
-                "name": name,
-                "device_type": decl['subtype']['subclass'][0],
-                "type": type_,
-                "id": id_,
-                "state": "end",
-                "result": decision,
-                "info": info,
-                "frm": frm
-            }
-        )
+        self.mqtt_notifier.dispatch_detection({
+            "name": name,
+            "device_type": decl['subtype']['subclass'][0],
+            "type": type_,
+            "id": id_,
+            "state": "end",
+            "result": decision,
+            "info": info,
+            "frm": frm
+        })
 
         return {
             "result": decision,

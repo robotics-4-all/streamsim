@@ -62,7 +62,8 @@ class Robot:
                  world = None,
                  map_ = None,
                  tick = 0.1,
-                 namespace = "_default_"):
+                 namespace = "_default_",
+                 mqtt_notifier = None):
 
         self.env_properties = world.env_properties
         world = world.configuration
@@ -70,6 +71,7 @@ class Robot:
         self.configuration = configuration
         self.logger = logging.getLogger(__name__)
         self.namespace = namespace
+        self.mqtt_notifier = mqtt_notifier
 
         # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = self.configuration["name"])
@@ -160,23 +162,15 @@ class Robot:
 
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['remote_inform'] is True:
-            final_top = self.name + ".pose"
             final_dete_top = self.name + ".detect"
             final_leds_top = self.name + ".leds"
-            final_exec = self.name + ".execution"
 
             # AMQP Publishers  -----------------------------------------------
-            self.pose_pub = self.commlib_factory.getPublisher(
-                topic = final_top
-            )
             self.detects_pub = self.commlib_factory.getPublisher(
                 topic = final_dete_top
             )
             self.leds_pub = self.commlib_factory.getPublisher(
                 topic = final_leds_top
-            )
-            self.execution_pub = self.commlib_factory.getPublisher(
-                topic = final_exec
             )
 
             # AMQP Subscribers  -----------------------------------------------
@@ -190,16 +184,8 @@ class Robot:
             self.buttons_sim_pub = self.commlib_factory.getPublisher(
                 topic = self.name + ".buttons_sim.internal"
             )
-            self.next_step_pub = self.commlib_factory.getPublisher(
-                topic = self.name + ".next_step.internal"
-            )
 
             # REDIS Subscribers -----------------------------------------------
-
-            self.execution_nodes_redis_sub = self.commlib_factory.getSubscriber(
-                topic = self.name + ".execution.nodes.internal",
-                callback = self.execution_nodes_redis
-            )
             self.detects_redis_sub = self.commlib_factory.getSubscriber(
                 topic = self.name + ".detects.internal",
                 callback = self.detects_redis
@@ -345,6 +331,7 @@ class Robot:
             }
             self.register_controller(map_["button_array"](conf = m, package = p))
 
+    # Change this
     def leds_redis(self, message):
         """
         Handles LED messages received from Redis.
@@ -357,24 +344,6 @@ class Robot:
         self.logger.debug("Got leds from redis %s", message)
         self.logger.warning("Sending to amqp notifier: %s", message)
         self.leds_pub.publish(message)
-
-    def execution_nodes_redis(self, message):
-        """
-        Handles execution nodes received from Redis.
-
-        This method processes a message received from Redis, logs the message,
-        adds the device name to the message, and publishes it to an AMQP notifier.
-
-        Args:
-            message (dict): The message received from Redis. It is expected to be a dictionary.
-
-        Returns:
-            None
-        """
-        self.logger.debug("Got execution node from redis %s", message)
-        self.logger.warning("Sending to amqp notifier: %s", message)
-        message["device"] = self.raw_name
-        self.execution_pub.publish(message)
 
     # NOTE: Change this
     def detects_redis(self, message):
@@ -623,7 +592,8 @@ class Robot:
             "y": self._y,
             "theta": self._theta,
             "resolution": self.resolution,
-            "name": self.name
+            "name": self.name, # is this needed?
+            "raw_name": self.raw_name
         })
 
     def simulation_thread(self):
@@ -684,15 +654,9 @@ class Robot:
                 theta2 = round(float(self._theta), 2)
 
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
-                    self.pose_pub.publish({
-                        "x": xx,
-                        "y": yy,
-                        "theta": theta2,
-                        "resolution": self.resolution
-                    })
                     self.logger.info("%s: New pose: %f, %f, %f", self.raw_name, xx, yy, theta2)
 
-                    # Send internal pose for distance sensors
+                    # Send internal pose
                     self.dispatch_pose_local()
 
                 if self.check_ok(self._x, self._y, prev_x, prev_y):
@@ -700,13 +664,9 @@ class Robot:
                     self._y = prev_y
                     self._theta = prev_th
 
-                    # notify ui about the error in robot's position
-                    self.commlib_factory.notify_ui(
-                        type_ = "new_message",
-                        data = {
-                            "type": "logs",
-                            "message": f"Robot: {self.raw_name} {self.error_log_msg}"
-                        }
+                    # notify mqtt about the error in robot's position
+                    self.mqtt_notifier.dispatch_log(
+                        f"Robot: {self.raw_name} {self.error_log_msg}"
                     )
 
             time.sleep(self.dt)

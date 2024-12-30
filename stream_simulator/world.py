@@ -59,7 +59,7 @@ class World:
         stop():
             Stops the communication library factory.
     """
-    def __init__(self, uid):
+    def __init__(self, uid, mqtt_notifier = None):
         self.commlib_factory = CommlibFactory(node_name = "World")
         self.logger = logging.getLogger(__name__)
         self.uid = uid
@@ -78,6 +78,7 @@ class World:
         self.obstacles = None
         self.actors_configurations = None
         self.actors_controllers = None
+        self.mqtt_notifier = mqtt_notifier
 
         self.name = self.uid
         self.env_properties = {

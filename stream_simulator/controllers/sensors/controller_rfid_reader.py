@@ -157,21 +157,9 @@ class RfidReaderController(BaseThing):
             val['tags'] = tags
             self.publisher.publish({
                 "data": val,
-                "timestamp": time.time()
+                "timestamp": time.time(),
+                "name": self.name
             })
-
-            # print(Fore.CYAN + f"RFID {self.info['id']} read: {val}" + Style.RESET_ALL)
-
-            if len(tags) > 0:
-                self.commlib_factory.notify_ui(
-                    type_ = "rfid_tags",
-                    data = {
-                        "name": self.name,
-                        "value": {
-                            "tags": tags
-                        }
-                    }
-                )
 
         self.logger.info("RFID reader %s sensor read thread stopped", self.info["id"])
 

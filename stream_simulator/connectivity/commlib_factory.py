@@ -26,8 +26,6 @@ class CommlibFactory(Node):
         __init__(*args, **kwargs):
             Initializes the CommlibFactory instance, sets up logging, and initializes 
             connection parameters.
-        notify_ui(type=None, data=None):
-            Publishes a notification to the UI if the notify attribute is set.
         inform(broker, topic, type, extras=""):
             Logs information about the communication entity being created.
         getPublisher(broker="mqtt", topic=None):
@@ -78,6 +76,13 @@ class CommlibFactory(Node):
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         self._logger = logging.getLogger(__name__)
+        self.interface = None
+
+        if 'interface' in kwargs:
+            self.interface = kwargs['interface']
+            del kwargs['interface']
+            self._logger.info("CommlibFactory [%s]: Interface set to %s", \
+                kwargs['node_name'], self.interface)
 
         self.notify = None
         self.get_tf_affection = None
@@ -86,7 +91,7 @@ class CommlibFactory(Node):
         load_dotenv()
         self.use_redis = os.getenv('USE_REDIS', "False")
         try:
-            if self.use_redis == "False":
+            if self.use_redis == "False" or self.interface == "mqtt":
                 broker_host = os.getenv('BROKER_HOST', 'broker.emqx.io')
                 broker_port = int(os.getenv('BROKER_PORT', "8883"))
                 broker_ssl = bool(os.getenv('BROKER_SSL', "True"))
@@ -146,24 +151,6 @@ class CommlibFactory(Node):
         for topic, place in CommlibFactory.action_client_topics.items():
             self._logger.info("- %s \n\t@ %s", topic, place)
         self._logger.info("")
-
-    def notify_ui(self, type_ = None, data = None):
-        """
-        Notify the UI with a specific type and data.
-
-        Args:
-            type (str, optional): The type of notification to send. Defaults to None.
-            data (any, optional): The data to include in the notification. Defaults to None.
-
-        Returns:
-            None
-        """
-        if self.notify is not None:
-            self.notify.publish({
-                'type': type_,
-                'data': data
-            })
-            self._logger.info("UI inform %s: %s", type, data)
 
     def inform(self, broker, topic, type_, extras = ""):
         """
