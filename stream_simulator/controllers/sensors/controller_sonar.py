@@ -116,19 +116,19 @@ class SonarController(BaseThing):
 
         self.tf_declare_rpc.call(tf_package)
 
-        self.publisher = self.commlib_factory.getPublisher(
+        self.publisher = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".data"
         )
 
         # print(self.info)
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = self.commlib_factory.getSubscriber(
+            self.robot_pose_sub = self.commlib_factory.get_subscriber(
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )
 
-            self.get_tf_rpc = self.commlib_factory.getRPCClient(
+            self.get_tf_rpc = self.commlib_factory.get_rpc_client(
                 rpc_name = self.info['namespace'] + ".tf.get_tf"
             )
 

@@ -163,16 +163,6 @@ class EnvRelayController(BaseThing):
             self.logger.critical("Relay %s does not allow %s state", self.name, state)
             return {"state": self.state}
 
-        self.commlib_factory.notify_ui(
-            type_ = "effector_command",
-            data = {
-                "name": self.name,
-                "value": {
-                    "state": message["state"]
-                }
-            }
-        )
-
         self.publisher.publish(message)
         self.state = state
         return {"state": self.state}

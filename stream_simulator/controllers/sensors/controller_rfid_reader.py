@@ -109,7 +109,7 @@ class RfidReaderController(BaseThing):
             tf_package['host'] = conf['host']
             tf_package['host_type'] = 'pan_tilt'
 
-        self.publisher = self.commlib_factory.getPublisher(
+        self.publisher = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".data"
         )
 

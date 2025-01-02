@@ -184,13 +184,6 @@ class EnvLightController(BaseThing):
             self.luminosity = message["luminosity"]
             self.color['a'] = self.luminosity * 255.0 / 100.0
 
-        self.commlib_factory.notify_ui(
-            type_ = "effector_command",
-            data = {
-                "name": self.name,
-                "value": message
-            }
-        )
         self.publisher.publish(message)
 
         return {}

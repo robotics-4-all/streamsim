@@ -123,20 +123,20 @@ class MicrophoneController(BaseThing):
                 h["type"] = i
                 self.actors.append(k)
 
-        self.record_action_server = self.commlib_factory.getActionServer(
+        self.record_action_server = self.commlib_factory.get_action_server(
             callback = self.on_goal,
             action_name = self.base_topic + ".record"
         )
-        self.listen_action_server = self.commlib_factory.getActionServer(
+        self.listen_action_server = self.commlib_factory.get_action_server(
             callback = self.on_goal_listen,
             action_name = self.base_topic  + ".listen"
         )
 
-        self.record_pub = self.commlib_factory.getPublisher(
+        self.record_pub = self.commlib_factory.get_publisher(
             topic = self.base_topic  + ".record.notify"
         )
 
-        self.detect_speech_sub = self.commlib_factory.getSubscriber(
+        self.detect_speech_sub = self.commlib_factory.get_subscriber(
             topic = self.base_topic  + ".speech_detected",
             callback = self.speech_detected
         )

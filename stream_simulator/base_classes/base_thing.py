@@ -62,7 +62,7 @@ class BaseThing:
                                                  'simulation_started' topic.
         """
         self.namespace = namespace
-        self.simulation_started_sub = self.commlib_factory.getSubscriber(
+        self.simulation_started_sub = self.commlib_factory.get_subscriber(
             topic=f"{namespace}.simulation_started",
             callback=self.simulation_started_cb
         )
@@ -83,11 +83,11 @@ class BaseThing:
         Args:
             package (dict): The package containing the TF communication details.
         """
-        self.tf_declare_rpc = self.commlib_factory.getRPCClient(
+        self.tf_declare_rpc = self.commlib_factory.get_rpc_client(
             rpc_name=package["tf_declare_rpc_topic"]
         )
 
-        self.tf_affection_rpc = self.commlib_factory.getRPCClient(
+        self.tf_affection_rpc = self.commlib_factory.get_rpc_client(
             rpc_name=package["tf_affection_rpc_topic"]
         )
 
@@ -98,7 +98,7 @@ class BaseThing:
         Args:
             base_topic (str): The base topic for the data publisher.
         """
-        self.publisher = self.commlib_factory.getPublisher(
+        self.publisher = self.commlib_factory.get_publisher(
             topic=base_topic + ".data"
         )
 
@@ -109,7 +109,7 @@ class BaseThing:
         Args:
             base_topic (str): The base topic for the triggers publisher.
         """
-        self.publisher_triggers = self.commlib_factory.getPublisher(
+        self.publisher_triggers = self.commlib_factory.get_publisher(
             topic=base_topic + ".triggers"
         )
 
@@ -122,11 +122,11 @@ class BaseThing:
             set_cb (callable): The callback function for setting the effector attributes.
             get_cb (callable): The callback function for getting the effector attributes.
         """
-        self.set_rpc_server = self.commlib_factory.getRPCService(
+        self.set_rpc_server = self.commlib_factory.get_rpc_service(
             callback=set_cb,
             rpc_name=base_topic + ".set"
         )
-        self.get_rpc_server = self.commlib_factory.getRPCService(
+        self.get_rpc_server = self.commlib_factory.get_rpc_service(
             callback=get_cb,
             rpc_name=base_topic + ".get"
         )

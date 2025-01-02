@@ -33,19 +33,19 @@ class Test(unittest.TestCase):
         sim_name = "streamsim.testinguid"
         self.pose = None
 
-        self.teleport_rpc = self.cfact.getRPCClient(
+        self.teleport_rpc = self.cfact.get_rpc_client(
             rpc_name = f"{sim_name}.robot_1.teleport",
             auto_run = False
         )
 
-        self.cfact.getSubscriber(
+        self.cfact.get_subscriber(
             topic = f"{sim_name}.robot_1.pose.internal",
             callback = self.robot_pose_callback,
             auto_run = False
         )
 
         # RPC for moving by angle
-        self.move_angle_rpc = self.cfact.getRPCClient(
+        self.move_angle_rpc = self.cfact.get_rpc_client(
             rpc_name = f"{sim_name}.robot_1.actuator.motion.twist.skid_steer_robot_1.move.turn",
             auto_run = False
         )

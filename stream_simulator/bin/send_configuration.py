@@ -50,7 +50,7 @@ class SimulatorStartup:
         self.commlib_factory.run()
 
         # Generate a random 10-character UID
-        self.devices_rpc_client = self.commlib_factory.getRPCClient(
+        self.devices_rpc_client = self.commlib_factory.get_rpc_client(
             rpc_name = f'streamsim.{uid}.set_configuration',
         )
         # print(f'streamsim.{uid}.set_configuration')

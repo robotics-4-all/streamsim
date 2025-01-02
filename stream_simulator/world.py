@@ -114,7 +114,7 @@ class World:
         self.configuration = configuration
 
         self.tf_base = self.configuration['tf_base']
-        self.tf_declare_rpc = self.commlib_factory.getRPCClient(
+        self.tf_declare_rpc = self.commlib_factory.get_rpc_client(
             rpc_name = self.tf_base + ".declare"
         )
 
@@ -137,7 +137,7 @@ class World:
         self.devices = []
         self.controllers = {}
 
-        self.devices_rpc_server = self.commlib_factory.getRPCService(
+        self.devices_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.devices_callback,
             rpc_name = \
                 f"{self.tf_base.split('.')[0]}.{self.name}.nodes_detector.get_connected_devices"

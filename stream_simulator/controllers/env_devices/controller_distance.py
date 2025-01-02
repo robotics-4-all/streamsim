@@ -142,7 +142,7 @@ class EnvDistanceController(BaseThing):
 
         self.set_communication_layer(package)
 
-        self.get_tf = self.commlib_factory.getRPCClient(
+        self.get_tf = self.commlib_factory.get_rpc_client(
             rpc_name = package["namespace"] + ".tf.get_tf"
         )
 
@@ -236,7 +236,7 @@ class EnvDistanceController(BaseThing):
         None
         """
         # Get all devices and check pan-tilts exist
-        get_devices_rpc = self.commlib_factory.getRPCClient(
+        get_devices_rpc = self.commlib_factory.get_rpc_client(
             rpc_name = self.get_device_groups_rpc_topic
         )
 
@@ -244,7 +244,7 @@ class EnvDistanceController(BaseThing):
 
         # create subscribers
         for r in res['robots']:
-            self.robots_subscribers[r] = self.commlib_factory.getSubscriber(
+            self.robots_subscribers[r] = self.commlib_factory.get_subscriber(
                 topic = f"robot.{r}.pose", # get poses from all robots
                 callback = self.robot_pose_callback
             )

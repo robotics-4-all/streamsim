@@ -77,7 +77,7 @@ class Robot:
         self.commlib_factory = CommlibFactory(node_name = self.configuration["name"])
 
         self.tf_base = world['tf_base']
-        self.tf_declare_rpc = self.commlib_factory.getRPCClient(
+        self.tf_declare_rpc = self.commlib_factory.get_rpc_client(
             rpc_name=self.tf_base + ".declare"
         )
 
@@ -143,19 +143,19 @@ class Robot:
         self.device_lookup()
 
         # rpc service which resets the robot pose to the initial given values
-        self.reset_pose_rpc_server = self.commlib_factory.getRPCService(
+        self.reset_pose_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.reset_pose_callback,
             rpc_name = self.name + '.reset_robot_pose'
         )
-        self.set_pose_rpc_server = self.commlib_factory.getRPCService(
+        self.set_pose_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.set_pose_callback,
             rpc_name = self.name + '.teleport'
         )
-        self.devices_rpc_server = self.commlib_factory.getRPCService(
+        self.devices_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.devices_callback,
             rpc_name = self.name + '.nodes_detector.get_connected_devices'
         )
-        self.internal_pose_pub = self.commlib_factory.getPublisher(
+        self.internal_pose_pub = self.commlib_factory.get_publisher(
             topic = self.name + ".pose.internal"
         )
         # print("IN ROBOT: ", self.name, self.name + ".pose.internal")
@@ -166,31 +166,31 @@ class Robot:
             final_leds_top = self.name + ".leds"
 
             # AMQP Publishers  -----------------------------------------------
-            self.detects_pub = self.commlib_factory.getPublisher(
+            self.detects_pub = self.commlib_factory.get_publisher(
                 topic = final_dete_top
             )
-            self.leds_pub = self.commlib_factory.getPublisher(
+            self.leds_pub = self.commlib_factory.get_publisher(
                 topic = final_leds_top
             )
 
             # AMQP Subscribers  -----------------------------------------------
-            self.commlib_factory.getSubscriber(
+            self.commlib_factory.get_subscriber(
                 topic = self.name + ".buttons",
                 callback = self.button_amqp
             )
 
             # REDIS Publishers  -----------------------------------------------
 
-            self.buttons_sim_pub = self.commlib_factory.getPublisher(
+            self.buttons_sim_pub = self.commlib_factory.get_publisher(
                 topic = self.name + ".buttons_sim.internal"
             )
 
             # REDIS Subscribers -----------------------------------------------
-            self.detects_redis_sub = self.commlib_factory.getSubscriber(
+            self.detects_redis_sub = self.commlib_factory.get_subscriber(
                 topic = self.name + ".detects.internal",
                 callback = self.detects_redis
             )
-            self.leds_redis_sub = self.commlib_factory.getSubscriber(
+            self.leds_redis_sub = self.commlib_factory.get_subscriber(
                 topic = self.name + ".leds.internal",
                 callback = self.leds_redis
             )

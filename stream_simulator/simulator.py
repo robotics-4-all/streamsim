@@ -84,21 +84,21 @@ class Simulator:
         self.commlib_factory = CommlibFactory(node_name = "Simulator")
 
         self.logger.info("Created %s.notifications publisher!", self.name)
-        self.commlib_factory.notify = self.commlib_factory.getPublisher(
+        self.commlib_factory.notify = self.commlib_factory.get_publisher(
             topic = f"{self.name}.notifications"
         )
 
-        self.devices_rpc_server = self.commlib_factory.getRPCService(
+        self.devices_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.devices_callback,
             rpc_name = self.name + '.get_device_groups'
         )
 
-        self.configuration_rpc_server = self.commlib_factory.getRPCService(
+        self.configuration_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.configuration_callback,
             rpc_name = self.name + '.set_configuration'
         )
 
-        self.simulation_start_pub = self.commlib_factory.getPublisher(
+        self.simulation_start_pub = self.commlib_factory.get_publisher(
             topic = f"{self.name}.simulation_started"
         )
 

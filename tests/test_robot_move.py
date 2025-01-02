@@ -32,19 +32,19 @@ class Test(unittest.TestCase):
         sim_name = "streamsim.testinguid"
         self.pose = None
 
-        self.teleport_rpc = self.cfact.getRPCClient(
+        self.teleport_rpc = self.cfact.get_rpc_client(
             rpc_name = f"{sim_name}.robot_1.teleport",
             auto_run = False
         )
 
-        self.cfact.getSubscriber(
+        self.cfact.get_subscriber(
             topic = f"{sim_name}.robot_1.pose.internal",
             callback = self.robot_pose_callback,
             auto_run = False
         )
 
         # Publisher to set speed to robot
-        self.velocity_publisher = self.cfact.getPublisher(
+        self.velocity_publisher = self.cfact.get_publisher(
             topic = f"{sim_name}.robot_1.actuator.motion.twist.skid_steer_robot_1.set",
             auto_run = False
         )

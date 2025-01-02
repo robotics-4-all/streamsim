@@ -147,15 +147,6 @@ class EnvHumidifierController(BaseThing):
             "humidity": self.humidity
         })
 
-        self.commlib_factory.notify_ui(
-            type_ = "effector_command",
-            data = {
-                "name": self.name,
-                "value": {
-                    "humidity": self.humidity
-                }
-            }
-        )
         return {}
 
     def start(self):

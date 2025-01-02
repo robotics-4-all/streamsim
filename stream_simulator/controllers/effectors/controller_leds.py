@@ -114,15 +114,15 @@ class LedsController(BaseThing):
         }
         self._luminosity = 0
 
-        self.leds_pub = self.commlib_factory.getPublisher(
+        self.leds_pub = self.commlib_factory.get_publisher(
             topic = self.info['device_name'] + ".leds"
         )
 
-        self.set_rpc_server = self.commlib_factory.getRPCService(
+        self.set_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.leds_set_callback,
             rpc_name = self.base_topic + ".set"
         )
-        self.get_rpc_server = self.commlib_factory.getRPCService(
+        self.get_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.leds_get_callback,
             rpc_name = self.base_topic + ".get"
         )
@@ -197,14 +197,6 @@ class LedsController(BaseThing):
                 'b': b,
                 'luminosity': intensity,
             }
-
-            self.commlib_factory.notify_ui(
-                type_ = "effector_command",
-                data = {
-                    "name": self.name,
-                    "value": _values
-                }
-            )
 
             if self.info["mode"] == "mock":
                 pass

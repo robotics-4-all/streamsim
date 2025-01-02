@@ -61,7 +61,7 @@ class MQTTNotifier:
             interface = "mqtt",
         )
 
-        self.notify_pub = self.commlib_factory.getPublisher(
+        self.notify_pub = self.commlib_factory.get_publisher(
             topic = f"streamsim.{uid}.notify",
         )
 
@@ -70,22 +70,22 @@ class MQTTNotifier:
             node_name = "MQTTNotifierLocal",
         )
 
-        self.robot_pose_sub = self.local_commlib.getSubscriber(
+        self.robot_pose_sub = self.local_commlib.get_subscriber(
             topic = "streamsim.testinguid.*.pose.internal",
             callback = self.robot_pose_callback,
         )
 
-        self.linear_alarms_sub = self.local_commlib.getSubscriber(
+        self.linear_alarms_sub = self.local_commlib.get_subscriber(
             topic = "streamsim.*.world.*.sensor.alarm.linear_alarm.*.triggers",
             callback = self.linear_alarm_triggers_callback,
         )
 
-        self.area_alarms_sub = self.local_commlib.getSubscriber(
+        self.area_alarms_sub = self.local_commlib.get_subscriber(
             topic = "streamsim.*.world.*.sensor.alarm.area_alarm.*.triggers",
             callback = self.area_alarm_triggers_callback,
         )
 
-        self.rfid_reader_sub = self.local_commlib.getSubscriber(
+        self.rfid_reader_sub = self.local_commlib.get_subscriber(
             topic = "streamsim.*.*.sensor.rf.rfid_reader.*.data",
             callback = self.rfid_reader_callback,
         )

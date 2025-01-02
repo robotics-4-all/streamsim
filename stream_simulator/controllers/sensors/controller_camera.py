@@ -130,7 +130,7 @@ class CameraController(BaseThing):
             tf_package['host_type'] = 'pan_tilt'
 
 
-        self.publisher = self.commlib_factory.getPublisher(
+        self.publisher = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".data"
         )
 
@@ -143,7 +143,7 @@ class CameraController(BaseThing):
                 self.actors.append(k)
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = self.commlib_factory.getSubscriber(
+            self.robot_pose_sub = self.commlib_factory.get_subscriber(
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )

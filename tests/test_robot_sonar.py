@@ -34,12 +34,12 @@ class Test(unittest.TestCase):
         sim_name = "streamsim.testinguid"
         self.measurement = None
 
-        self.teleport_rpc = self.cfact.getRPCClient(
+        self.teleport_rpc = self.cfact.get_rpc_client(
             rpc_name = f"{sim_name}.robot_1.teleport",
             auto_run = False
         )
 
-        self.cfact.getSubscriber(
+        self.cfact.get_subscriber(
             topic = f"{sim_name}.robot_1.sensor.distance.sonar.sonar_front_on_pt1.data",
             callback = self.sonar_callback,
             auto_run = False

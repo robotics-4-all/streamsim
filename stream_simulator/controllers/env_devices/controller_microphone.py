@@ -136,14 +136,14 @@ class EnvMicrophoneController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
 
-        self.record_action_server = self.commlib_factory.getActionServer(
+        self.record_action_server = self.commlib_factory.get_action_server(
             callback = self.on_goal_record,
             action_name = self.base_topic + ".record"
         )
-        self.record_pub = self.commlib_factory.getPublisher(
+        self.record_pub = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".record.notify"
         )
-        self.detect_speech_sub = self.commlib_factory.getSubscriber(
+        self.detect_speech_sub = self.commlib_factory.get_subscriber(
             topic = self.base_topic + ".speech_detected",
             callback = self.speech_detected
         )

@@ -31,47 +31,47 @@ class TfController:
         self.env_properties = env_properties
         self.logger.info("TF set environmental variables: %s", self.env_properties)
 
-        self.declare_rpc_server = self.commlib_factory.getRPCService(
+        self.declare_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.declare_callback,
             rpc_name = self.base_topic + ".declare",
             auto_run = False,
         )
 
-        self.get_declarations_rpc_server = self.commlib_factory.getRPCService(
+        self.get_declarations_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.get_declarations_callback,
             rpc_name = self.base_topic + ".get_declarations",
             auto_run = False,
         )
 
-        self.get_tf_rpc_server = self.commlib_factory.getRPCService(
+        self.get_tf_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.get_tf_callback,
             rpc_name = self.base_topic + ".get_tf",
             auto_run = False,
         )
 
-        self.get_affectability_rpc_server = self.commlib_factory.getRPCService(
+        self.get_affectability_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.get_affections_callback,
             rpc_name = self.base_topic + ".get_affections",
             auto_run = False,
         )
 
-        self.get_sim_detection_rpc_server = self.commlib_factory.getRPCService(
+        self.get_sim_detection_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.get_sim_detection_callback,
             rpc_name = self.base_topic + ".simulated_detection",
             auto_run = False,
         )
 
-        self.detections_publisher = self.commlib_factory.getPublisher(
+        self.detections_publisher = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".detections.notify",
             auto_run = False,
         )
 
-        self.get_devices_rpc = self.commlib_factory.getRPCClient(
+        self.get_devices_rpc = self.commlib_factory.get_rpc_client(
             rpc_name = self.base + ".get_device_groups",
             auto_run = False,
         )
 
-        self.pan_tilts_rpc = self.commlib_factory.getRPCClient(
+        self.pan_tilts_rpc = self.commlib_factory.get_rpc_client(
             rpc_name = f"{self.base}.nodes_detector.get_connected_devices",
             auto_run = False,
         )
@@ -598,7 +598,7 @@ class TfController:
             self.per_type[type_][category][subclass].append(d['name'])
 
             if subclass in ["thermostat", "humidifier", "leds"]:
-                self.effectors_get_rpcs[d['name']] = self.commlib_factory.getRPCClient(
+                self.effectors_get_rpcs[d['name']] = self.commlib_factory.get_rpc_client(
                     rpc_name = d['base_topic'] + ".get"
                 )
         elif type_ == "robot":
@@ -611,7 +611,7 @@ class TfController:
                 self.per_type[type_][category][subclass].append(d['name'])
 
             if subclass in ["leds"]:
-                self.effectors_get_rpcs[d['name']] = self.commlib_factory.getRPCClient(
+                self.effectors_get_rpcs[d['name']] = self.commlib_factory.get_rpc_client(
                     rpc_name = d['base_topic'] + ".get"
                 )
 
@@ -620,11 +620,11 @@ class TfController:
                 self.robots.append(d['host'])
                 self.existing_hosts.append(d['host'])
 
-                self.robots_get_devices_rpcs[d['host']] = self.commlib_factory.getRPCClient(
+                self.robots_get_devices_rpcs[d['host']] = self.commlib_factory.get_rpc_client(
                     rpc_name = f"{d['namespace']}.{d['host']}.nodes_detector.get_connected_devices"
                 )
 
-                self.subs[d['host']] = self.commlib_factory.getSubscriber(
+                self.subs[d['host']] = self.commlib_factory.get_subscriber(
                     topic = d['namespace'] + "." + d["host"] + ".pose.internal",
                     callback = self.robot_pose_callback,
                     old_way = True,
@@ -633,7 +633,7 @@ class TfController:
 
         # Handle pan tilts
         if "pan_tilt" in  d['subtype']['subclass']:
-            self.subs[d['name']] = self.commlib_factory.getSubscriber(
+            self.subs[d['name']] = self.commlib_factory.get_subscriber(
                 topic = d["base_topic"] + ".data",
                 callback = self.pan_tilt_callback,
                 old_way = True,
@@ -647,14 +647,14 @@ class TfController:
 
         # Handle speakers
         if "speaker" in d['subtype']['subclass']:
-            self.speaker_subs[d['name']] = self.commlib_factory.getSubscriber(
+            self.speaker_subs[d['name']] = self.commlib_factory.get_subscriber(
                 topic = d["base_topic"] + ".speak.notify",
                 callback = self.speak_callback
             )
 
         # Handle microphones
         if "microphone" in d['subtype']['subclass']:
-            self.microphone_pubs[d['name']] = self.commlib_factory.getPublisher(
+            self.microphone_pubs[d['name']] = self.commlib_factory.get_publisher(
                 topic = d["base_topic"] + ".speech_detected"
             )
 

@@ -117,19 +117,19 @@ class MotionController(BaseThing):
         self._linear = 0
         self._angular = 0
 
-        self.vel_sub = self.commlib_factory.getSubscriber(
+        self.vel_sub = self.commlib_factory.get_subscriber(
             topic = self.base_topic + ".set",
             callback = self.cmd_vel
         )
-        self.motion_duration_sub = self.commlib_factory.getRPCService(
+        self.motion_duration_sub = self.commlib_factory.get_rpc_service(
             rpc_name = self.base_topic + ".move.duration",
             callback = self.move_duration_callback
         )
-        self.motion_distance_sub = self.commlib_factory.getRPCService(
+        self.motion_distance_sub = self.commlib_factory.get_rpc_service(
             rpc_name = self.base_topic + ".move.distance",
             callback = self.move_distance_callback
         )
-        self.turn_sub = self.commlib_factory.getRPCService(
+        self.turn_sub = self.commlib_factory.get_rpc_service(
             rpc_name = self.base_topic + ".move.turn",
             callback = self.turn_callback
         )

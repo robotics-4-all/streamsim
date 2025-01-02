@@ -60,7 +60,7 @@ class EnvPhSensorController(BasicSensor):
             tf_package['host_type'] = 'pan_tilt'
 
         # Create the RPC client to declare to tf
-        self.tf_declare_rpc = self.commlib_factory.getRPCClient(
+        self.tf_declare_rpc = self.commlib_factory.get_rpc_client(
             rpc_name = package["tf_declare_rpc_topic"]
         )
 

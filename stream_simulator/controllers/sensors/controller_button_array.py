@@ -108,12 +108,12 @@ class ButtonArrayController(BaseThing):
         self.prev = 0
 
         for b in self.buttons_base_topics:
-            self.publishers[b] = self.commlib_factory.getPublisher(
+            self.publishers[b] = self.commlib_factory.get_publisher(
                 topic = self.buttons_base_topics[b] + ".data"
             )
 
         if self.info["mode"] == "simulation":
-            self.sim_button_pressed_sub = self.commlib_factory.getSubscriber(
+            self.sim_button_pressed_sub = self.commlib_factory.get_subscriber(
                 topic = _namespace + "." + self.info['device_name'] + ".buttons_sim.internal",
                 callback = self.sim_button_pressed
             )

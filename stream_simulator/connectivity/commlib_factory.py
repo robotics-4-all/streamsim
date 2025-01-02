@@ -198,7 +198,7 @@ class CommlibFactory(Node):
             comm_lst[name] = \
                 [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
 
-    def getPublisher(self, broker = "mqtt", topic = None, auto_run = True):
+    def get_publisher(self, broker = "mqtt", topic = None, auto_run = True):
         """
         Creates and runs a publisher for the specified broker and topic.
         Args:
@@ -223,7 +223,7 @@ class CommlibFactory(Node):
             broker, "publishers")
         return ret
 
-    def getSubscriber(
+    def get_subscriber(
         self, broker = "mqtt", topic = None, callback = None,
         auto_run = True, old_way = False):
         """
@@ -259,7 +259,7 @@ class CommlibFactory(Node):
             broker, "subscribers")
         return ret
 
-    def getRPCService(self, broker = "mqtt", rpc_name = None, callback = None, auto_run = True):
+    def get_rpc_service(self, broker = "mqtt", rpc_name = None, callback = None, auto_run = True):
         """
         Creates and runs an RPC service, then informs the broker about the new service.
 
@@ -281,7 +281,7 @@ class CommlibFactory(Node):
             broker, "rpc servers")
         return ret
 
-    def getRPCClient(self, broker = "mqtt", rpc_name = None, auto_run = True):
+    def get_rpc_client(self, broker = "mqtt", rpc_name = None, auto_run = True):
         """
         Creates and runs an RPC client, informs about its creation, and updates the statistics.
 
@@ -300,7 +300,7 @@ class CommlibFactory(Node):
             broker, "rpc clients")
         return ret
 
-    def getActionServer(
+    def get_action_server(
         self,
         broker = "mqtt",
         action_name = None,
@@ -327,7 +327,7 @@ class CommlibFactory(Node):
             calframe, broker, "action servers")
         return ret
 
-    def getActionClient(self, broker = "mqtt", action_name = None, auto_run = True):
+    def get_action_client(self, broker = "mqtt", action_name = None, auto_run = True):
         """
         Creates and runs an action client, then logs the action and updates statistics.
 

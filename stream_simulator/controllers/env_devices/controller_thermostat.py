@@ -153,16 +153,6 @@ class EnvThermostatController(BaseThing):
         self.temperature = message["temperature"]
         self.publisher.publish(message)
 
-        self.commlib_factory.notify_ui(
-            type_ = "effector_command",
-            data = {
-                "name": self.name,
-                "value": {
-                    "temperature": message["temperature"]
-                }
-            }
-        )
-
         return {}
 
     def start(self):

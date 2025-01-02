@@ -110,19 +110,19 @@ class SpeakerController(BaseThing):
         self.global_volume = None
         self.blocked = False
 
-        self.play_action_server = self.commlib_factory.getActionServer(
+        self.play_action_server = self.commlib_factory.get_action_server(
             callback = self.on_goal_play,
             action_name = self.base_topic + ".play"
         )
-        self.speak_action_server = self.commlib_factory.getActionServer(
+        self.speak_action_server = self.commlib_factory.get_action_server(
             callback = self.on_goal_speak,
             action_name = self.base_topic + ".speak"
         )
 
-        self.play_pub = self.commlib_factory.getPublisher(
+        self.play_pub = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".play.notify"
         )
-        self.speak_pub = self.commlib_factory.getPublisher(
+        self.speak_pub = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".speak.notify"
         )
 
@@ -155,16 +155,6 @@ class SpeakerController(BaseThing):
             time.sleep(0.1)
         self.logger.info("Speaker unlocked")
         self.blocked = True
-
-        self.commlib_factory.notify_ui(
-            type_ = "effector_command",
-            data = {
-                "name": self.name,
-                "value": {
-                    "text": goalh.data["text"]
-                }
-            }
-        )
 
         try:
             texts = goalh.data["text"]

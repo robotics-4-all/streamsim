@@ -107,15 +107,15 @@ class PanTiltController(BaseThing):
         self._yaw = 0.0
         self._pitch = 0.0
 
-        self.pan_tilt_set_sub = self.commlib_factory.getSubscriber(
+        self.pan_tilt_set_sub = self.commlib_factory.get_subscriber(
             topic = self.base_topic + ".set",
             callback = self.pan_tilt_set_callback
         )
-        self.pan_tilt_get_rpc_server = self.commlib_factory.getRPCService(
+        self.pan_tilt_get_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.get_pan_tilt_callback,
             rpc_name = self.base_topic + ".get"
         )
-        self.data_publisher = self.commlib_factory.getPublisher(
+        self.data_publisher = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".data"
         )
 

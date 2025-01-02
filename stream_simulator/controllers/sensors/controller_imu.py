@@ -110,12 +110,12 @@ class ImuController(BaseThing):
 
         self.tf_declare_rpc.call(tf_package)
 
-        self.publisher = self.commlib_factory.getPublisher(
+        self.publisher = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".data"
         )
 
         if self.info["mode"] == "simulation":
-            self.robot_pose_sub = self.commlib_factory.getSubscriber(
+            self.robot_pose_sub = self.commlib_factory.get_subscriber(
                 topic = self.info['namespace'] + '.' + self.info['device_name'] + ".pose.internal",
                 callback = self.robot_pose_update
             )

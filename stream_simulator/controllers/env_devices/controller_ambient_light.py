@@ -328,11 +328,6 @@ class EnvAmbientLightController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-        # self.enable_rpc_server.run()
-        # self.disable_rpc_server.run()
-        # self.get_mode_rpc_server.run()
-        # self.set_mode_rpc_server.run()
-
         if self.info["enabled"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
