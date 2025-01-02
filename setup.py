@@ -1,3 +1,7 @@
+"""
+File that handles the package installation
+"""
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 

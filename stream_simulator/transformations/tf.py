@@ -276,8 +276,8 @@ class TfController:
             pose['theta'] = self.places_relative[name]['theta'] + \
                 self.pantilts[name]['pan'] + base_th
             return pose
-        else:
-            return self.places_absolute[name]
+
+        return self.places_absolute[name]
 
     def setup(self):
         """
@@ -592,7 +592,8 @@ class TfController:
         if type_ == 'actor':
             self.per_type[type_][sub].append(d['name'])
             return
-        elif type_ == "env":
+
+        if type_ == "env":
             subclass = sub['subclass'][0]
             category = sub['category']
             self.per_type[type_][category][subclass].append(d['name'])
@@ -875,7 +876,7 @@ class TfController:
             # print(min_a, max_a, f_ang)
             ok = False
             ang = None
-            if min_a < f_ang and f_ang < max_a:
+            if min_a < f_ang < max_a:
                 ok = True
                 ang = f_ang
             elif min_a < (f_ang + 2 * math.pi) and (f_ang + 2 * math.pi) < max_a:
