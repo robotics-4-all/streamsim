@@ -11,7 +11,7 @@ import string
 
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.transformations import TfController
-from stream_simulator.controllers import IrController # pylint: disable=unused-import
+from stream_simulator.controllers import SonarController # pylint: disable=unused-import
 
 from .robot import Robot
 from .world import World

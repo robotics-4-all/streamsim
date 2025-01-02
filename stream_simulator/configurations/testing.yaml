@@ -33,10 +33,6 @@ robots:
           hz: 5
           max_range: 10 # meters
           host: pt1
-      ir:
-        - source: "robot_devices/irs/ir_front"
-      tof:
-        - source: "robot_devices/tof"
       camera:
         - source: "robot_devices/camera"
       imu:

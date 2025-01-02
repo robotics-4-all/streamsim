@@ -280,9 +280,7 @@ class Robot:
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
         map_ = {
-           "ir": getattr(str_contro, "IrController"),
            "sonar": getattr(str_contro, "SonarController"),
-           "tof": getattr(str_contro, "TofController"),
            "camera": getattr(str_contro, "CameraController"),
            "skid_steer": getattr(str_contro, "MotionController"),
            "microphone": getattr(str_contro, "MicrophoneController"),

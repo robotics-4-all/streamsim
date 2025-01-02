@@ -8,14 +8,12 @@ File that exposes the controllers.
 from __future__ import absolute_import
 
 from .sensors import \
-    IrController, \
     ButtonArrayController, \
     CameraController, \
     EnvController, \
     ImuController, \
     MicrophoneController, \
     SonarController, \
-    TofController, \
     ButtonController, \
     RfidReaderController
 
