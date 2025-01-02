@@ -8,3 +8,4 @@ The configuration used for the Streamsim integration testing is `testing.yaml`, 
 - The robot is equipped with:
     - A pan-tilt mechanism, placed in the middle of the robot, named `pt1`
     - A sonar named `sonar_front_on_pt1`, placed on top of `pt1`, with orientation equal to 0 degrees, posting distance measurements with 5 Hz
+- An area alarm is placed in `(10.0, 10.0)` with a radius of 5.0 meters

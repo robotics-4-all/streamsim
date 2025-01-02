@@ -166,7 +166,7 @@ class EnvAreaAlarmController(BaseThing):
             None
         """
         self.logger.info("Sensor %s read thread started", self.name)
-        prev = None
+        prev = []
         triggers = 0
 
         while self.info["enabled"]:
@@ -186,8 +186,7 @@ class EnvAreaAlarmController(BaseThing):
                 "value": val,
                 "timestamp": time.time()
             })
-
-            if prev is None and val not in [None, []]:
+            if not prev and val not in [None, []]:
                 triggers += 1
                 self.publisher_triggers.publish({
                     "value": triggers,

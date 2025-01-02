@@ -53,7 +53,7 @@ class MQTTNotifier:
                  ):
 
         self.logger = logging.getLogger(__name__)
-        self.prints = True
+        self.prints = False
 
         # Remote CommlibFactory
         self.commlib_factory = CommlibFactory(

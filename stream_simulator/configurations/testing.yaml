@@ -90,7 +90,13 @@ env_devices:
   humidifiers:
     - source: "env_devices/humidifier"
   alarms_area:
-    - source: "env_devices/alarm_area"
+    - pose: {x: 100, y: 100}
+      range: 5.0 # in meters
+      name: areaalarm
+      hz: 2
+      mode: simulation # mock, simulation
+      place: office
+
   alarms_linear:
     - source: "env_devices/alarm_linear"
 
