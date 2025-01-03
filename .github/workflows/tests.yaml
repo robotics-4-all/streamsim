@@ -19,13 +19,13 @@ jobs:
         redis-version: ${{ matrix.redis-version }}
 
     - name: Set up Python
-      script: |
+      run: |
         pip install -r requirements.txt
         pip install -e .
         pip install https://github.com/robotics-4-all/commlib-py/archive/devel.zip -U
 
     - name: Execute streamsim and tests in parallel
       run: |
-      python3 stream_simulator/bin/bootstrap.py testing testinguid &
-      sleep 5
-      pytest tests
+        python3 stream_simulator/bin/bootstrap.py testing testinguid &
+        sleep 5
+        pytest tests
