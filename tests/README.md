@@ -12,3 +12,4 @@ The configuration used for the Streamsim integration testing is `testing.yaml`, 
 - A linear alarm is placed in `(10.0, 4.5) to (10.0, 5.5)`
 - A humidity sensor is placed in `(20.0, 10.0)` and a humidifier in `(20.0, 12.0)`
 - A pH sensor placed at `(60.0, 10.0)`
+- A temperature sensor is placed at `(20.0, 20.0)` and a thermostat at `(20.0, 22.0)` with a range of 2 meters. Also a fire exists at `(24.0, 20.0)` with a radius of 15 meters.
