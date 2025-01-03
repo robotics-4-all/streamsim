@@ -6,3 +6,4 @@ wave
 qrcode[pil]
 opencv-python
 python-dotenv
+pytest

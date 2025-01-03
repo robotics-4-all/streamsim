@@ -8,6 +8,7 @@ File that contains the Simulator class.
 import logging
 import random
 import string
+import time
 
 from stream_simulator.connectivity import CommlibFactory
 from stream_simulator.transformations import TfController
@@ -68,6 +69,7 @@ class Simulator:
 
         self.tick = tick
         self.logger = logging.getLogger(__name__)
+        self.mqtt_notifier = None
 
         characters = string.ascii_lowercase + string.digits
         self.uid = uid
@@ -149,6 +151,10 @@ class Simulator:
             dict: A dictionary indicating the success of the configuration 
                   setup with a key "success" set to True.
         """
+        # Wait for mqtt notifier setup
+        while self.mqtt_notifier is None:
+            time.sleep(0.1)
+
         self.logger.info("Received configuration")
         self.configuration = message
         self.configuration['tf_base'] = self.name + ".tf"
