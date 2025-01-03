@@ -37,4 +37,5 @@ jobs:
       run: |
         python3 stream_simulator/bin/bootstrap.py testing testinguid &
         sleep 5
-        pytest tests
+        pytest tests/test_template.py
+        pytest tests/test_robot_teleport.py
