@@ -75,6 +75,7 @@ class BaseThing:
             msg (str): The message received on the topic.
         """
         self.simulator_started = True
+        print(f"{self.name} simulation started.")
 
     def set_tf_communication(self, package):
         """

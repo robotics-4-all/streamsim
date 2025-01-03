@@ -10,3 +10,4 @@ The configuration used for the Streamsim integration testing is `testing.yaml`, 
     - A sonar named `sonar_front_on_pt1`, placed on top of `pt1`, with orientation equal to 0 degrees, posting distance measurements with 5 Hz
 - An area alarm is placed in `(10.0, 10.0)` with a radius of 5.0 meters
 - A linear alarm is placed in `(10.0, 4.5) to (10.0, 5.5)`
+- A humidity sensor is placed in `(20.0, 10.0)` and a humidifier in `(20.0, 12.0)`

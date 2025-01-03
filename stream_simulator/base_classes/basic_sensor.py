@@ -70,7 +70,7 @@ class BasicSensor(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(BasicSensor, self).__init__(conf["name"])
+        super(BasicSensor, self).__init__(conf["name"], auto_start=False)
 
         self.set_tf_communication(package)
         self.set_simulation_communication(package["namespace"])
@@ -144,6 +144,8 @@ class BasicSensor(BaseThing):
         self.sinus_step = None
         self.sensor_read_thread = None
         self.state = None
+
+        self.commlib_factory.run()
 
     def get_mode_callback(self, _):
         """
@@ -359,6 +361,7 @@ class BasicSensor(BaseThing):
         """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
+            self.logger.info("Waiting for simulator to start %s", self.name)
             time.sleep(1)
 
         if self.info["enabled"]:
