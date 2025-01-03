@@ -73,7 +73,30 @@ env_devices:
   camera_sensors:
     - source: "env_devices/camera"
   distance_sensors:
-    - source: "env_devices/distance_sensor"
+    - pose: {x: 0, y: 0, theta: 0}
+      name: dist_X
+      place: office
+      hz: 1
+      max_range: 10
+      mode: simulation # mock, simulation, real
+      operation: sinus # constant, triangle, random, normal, sinus
+      operation_parameters:
+        constant:
+          value: 7.4
+        random:
+          min: 4
+          max: 9
+        triangle:
+          min: 4
+          max: 9
+          step: 0.3
+        normal:
+          mean: 7
+          std: 0.3
+        sinus:
+          dc: 7
+          amplitude: 2
+          step: 0.1
   ambient_light_sensor:
     - source: "env_devices/ambient_light_sensor"
   pan_tilt:
@@ -96,9 +119,14 @@ env_devices:
       hz: 2
       mode: simulation # mock, simulation
       place: office
-
   alarms_linear:
-    - source: "env_devices/alarm_linear"
+    - pose:
+        start: {x: 100, y: 450}
+        end: {x: 100, y: 550}
+      name: alarm_linear
+      hz: 2
+      mode: simulation # mock, simulation, real
+      place: "office" # or "gym.bathroom" for nested
 
 actors: # all x, y are in pixels
   humans:

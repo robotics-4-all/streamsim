@@ -298,6 +298,7 @@ class EnvDistanceController(BaseThing):
                 pp = self.get_tf.call({
                     "name": self.name
                 })
+                # print(pp)
                 xx = pp['x'] / self.resolution
                 yy = pp['y'] / self.resolution
                 th = pp['theta']
@@ -331,7 +332,6 @@ class EnvDistanceController(BaseThing):
                 "value": val,
                 "timestamp": time.time()
             })
-            # print(val)
 
     def get_callback(self, _):
         """
