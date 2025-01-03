@@ -18,6 +18,15 @@ jobs:
       with:
         redis-version: ${{ matrix.redis-version }}
 
+    - name: Create .env file
+      run: |
+        echo "USE_REDIS=${{ secrets.USE_REDIS }}" > .env
+        echo "BROKER_HOST=${{ secrets.BROKER_HOST }}" >> .env
+        echo "BROKER_PORT=${{ secrets.BROKER_PORT }}" >> .env
+        echo "BROKER_SSL=${{ secrets.BROKER_SSL }}" >> .env
+        echo "BROKER_USERNAME=${{ secrets.BROKER_USERNAME }}" >> .env
+        echo "BROKER_PASSWORD=${{ secrets.BROKER_PASSWORD }}" >> .env
+  
     - name: Set up Python
       run: |
         pip install -r requirements.txt
