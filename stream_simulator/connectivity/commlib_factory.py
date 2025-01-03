@@ -106,10 +106,10 @@ class CommlibFactory(Node):
                     password=broker_password,
                     reconnect_attempts=0,
                 )
-                self.logger.info("Using MQTT connection parameters")
+                self._logger.info("Using MQTT connection parameters")
             else:
                 self.conn_params = RedisConnectionParameters()
-                self.logger.info("Using Redis connection parameters")
+                self._logger.info("Using Redis connection parameters")
 
             super().__init__(
                 connection_params=self.conn_params,
