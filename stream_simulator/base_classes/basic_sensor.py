@@ -361,7 +361,6 @@ class BasicSensor(BaseThing):
         """
         self.logger.info("Sensor %s waiting to start", self.name)
         while not self.simulator_started:
-            self.logger.info("Waiting for simulator to start %s", self.name)
             time.sleep(1)
 
         if self.info["enabled"]:

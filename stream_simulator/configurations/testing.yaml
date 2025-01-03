@@ -18,52 +18,74 @@ world:
     luminosity: 10 # out of 100
     ph: 7.4
 
-# robots:
-#   - name: robot_1
-#     mode: simulation # [simulation, mock, real]
-#     remote_inform: true
-#     devices:
-#       microphone:
-#         - source: "robot_devices/microphone"
-#       sonar:
-#         - pose: {theta: 0}
-#           name: sonar_front_on_pt1
-#           orientation: 0 # degrees
-#           place: FR
-#           hz: 5
-#           max_range: 10 # meters
-#           host: pt1
-#       camera:
-#         - source: "robot_devices/camera"
-#       imu:
-#         - source: "robot_devices/imu"
-#       button:
-#         - source: "robot_devices/buttons/button_F"
-#       env:
-#         - source: "robot_devices/env"
-#       speaker:
-#         - source: "robot_devices/speaker"
-#       leds:
-#         - source: "robot_devices/leds"
-#       pan_tilt:
-#         - pose: {x: 0, y: 0, theta: 0} # in meters
-#           name: pt1
-#           orientation: 0
-#           place: UNDER
-#       skid_steer:
-#         - source: "robot_devices/skid_steer"
-#       rfid_reader:
-#         - source: "robot_devices/rfid_reader"
-#     starting_pose:
-#       x: 500 # in pixels
-#       y: 500 # in pixels
-#       theta: 0 # in degrees
+robots:
+  - name: robot_1
+    mode: simulation # [simulation, mock, real]
+    remote_inform: true
+    devices:
+      microphone:
+        - source: "robot_devices/microphone"
+      sonar:
+        - pose: {theta: 0}
+          name: sonar_front_on_pt1
+          orientation: 0 # degrees
+          place: FR
+          hz: 5
+          max_range: 10 # meters
+          host: pt1
+      camera:
+        - source: "robot_devices/camera"
+      imu:
+        - source: "robot_devices/imu"
+      button:
+        - source: "robot_devices/buttons/button_F"
+      env:
+        - source: "robot_devices/env"
+      speaker:
+        - source: "robot_devices/speaker"
+      leds:
+        - source: "robot_devices/leds"
+      pan_tilt:
+        - pose: {x: 0, y: 0, theta: 0} # in meters
+          name: pt1
+          orientation: 0
+          place: UNDER
+      skid_steer:
+        - source: "robot_devices/skid_steer"
+      rfid_reader:
+        - source: "robot_devices/rfid_reader"
+    starting_pose:
+      x: 500 # in pixels
+      y: 500 # in pixels
+      theta: 0 # in degrees
 
 env_devices:
   relays:
     - source: "env_devices/relay"
   ph_sensors:
-    - source: "env_devices/ph_sensor"
+    - pose: {x: 600, y: 100, theta: 0}
+      name: ph_sensor
+      place: field
+      hz: 3
+      mode: simulation # mock, simulation, real
+      operation: sinus # constant, triangle, random, normal, sinus
+      operation_parameters:
+        constant:
+          value: 7.4
+        random:
+          min: 4
+          max: 9
+        triangle:
+          min: 4
+          max: 9
+          step: 0.3
+        normal:
+          mean: 7
+          std: 0.3
+        sinus:
+          dc: 7
+          amplitude: 2
+          step: 0.1
   temperature_sensors:
     - source: "env_devices/temperature"
   humidity_sensors:
