@@ -13,7 +13,26 @@ import time
 from stream_simulator.connectivity import CommlibFactory
 
 class Test(unittest.TestCase):
-
+    """
+    Test class for testing the environment humidity humidifier.
+    This class contains unit tests for verifying the functionality of the
+    humidity humidifier in a simulated environment. It uses the unittest
+    framework to define test cases and assertions.
+    Methods:
+        setUp():
+            Initializes the test environment, including creating RPC clients
+            and subscribers, and running the communication factory.
+        humidity_sensor_callback(message):
+            Callback function for handling humidity sensor data. Updates the
+            humidity value with the received message.
+        test_get():
+            Tests the functionality of setting and getting humidity values
+            using the humidifier RPC clients. Asserts that the humidity values
+            are set and retrieved correctly.
+        tearDown():
+            Cleans up the test environment after each test case. Stops the
+            communication factory.
+    """
     def setUp(self):
         self.cfact = CommlibFactory(node_name = "Test")
         sim_name = "streamsim.testinguid"
@@ -38,10 +57,28 @@ class Test(unittest.TestCase):
         self.cfact.run()
 
     def humidity_sensor_callback(self, message):
+        """
+        Callback function to handle incoming humidity sensor messages.
+
+        Args:
+            message (float): The humidity value received from the sensor.
+        """
         self.humidity_value = message
         print(f"Humidity value: {message}")
 
     def test_get(self):
+        """
+        Test the `get` method of the humidifier.
+        This test performs the following steps:
+        1. Sets the humidity to 0.0 and verifies that the humidity value is not 
+            None and is approximately 60.0.
+        2. Sets the humidity to 80.0 and verifies that the stored humidity value 
+            is approximately 80.0.
+        3. Verifies that the humidity value is greater than or equal to 63.0 after a delay.
+        If any exception occurs during the test, it prints the traceback and fails the test.
+        Raises:
+            AssertionError: If any of the assertions fail.
+        """
 
         try:
             self.humidifier_set_rpc.call({'humidity': 0.0})
