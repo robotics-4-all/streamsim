@@ -1,0 +1,31 @@
+name: Run tests
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        redis-version: [6, 7]
+
+    steps:
+    - name: Git checkout
+      uses: actions/checkout@v3
+
+    - name: Start Redis
+      uses: supercharge/redis-github-action@1.7.0
+      with:
+        redis-version: ${{ matrix.redis-version }}
+
+    - name: Set up Python
+      script: |
+        pip install -r requirements.txt
+        pip install -e .
+        pip install https://github.com/robotics-4-all/commlib-py/archive/devel.zip -U
+
+    - name: Execute streamsim and tests in parallel
+      run: |
+      python3 stream_simulator/bin/bootstrap.py testing testinguid &
+      sleep 5
+      pytest tests
