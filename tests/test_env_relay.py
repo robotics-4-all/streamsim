@@ -55,11 +55,17 @@ class Test(unittest.TestCase):
         """
 
         try:
+            self.relay_set_rpc.call({'state': 0})
+            time.sleep(0.5)
             res = self.relay_get_rpc.call({})
             self.assertEqual(res['state'], 0)
 
             self.relay_set_rpc.call({'state': 1})
             time.sleep(0.5)
+            res = self.relay_get_rpc.call({})
+            self.assertEqual(res['state'], 1)
+
+            self.relay_set_rpc.call({'state': 0})
 
         except: # pylint: disable=bare-except
             traceback.print_exc(file=sys.stdout)

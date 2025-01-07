@@ -40,18 +40,24 @@ robots:
       button:
         - source: "robot_devices/buttons/button_F"
       env:
-        - source: "robot_devices/env"
+        - orientation: 0
+          place: FRONT
+          hz: 1
       speaker:
         - source: "robot_devices/speaker"
       leds:
-        - source: "robot_devices/leds"
+        - orientation: 0
+          place: FRONT
+          range: 10
       pan_tilt:
         - pose: {x: 0, y: 0, theta: 0} # in meters
           name: pt1
           orientation: 0
           place: UNDER
       skid_steer:
-        - source: "robot_devices/skid_steer"
+        - name: skid_steer_robot_1
+          orientation: 0
+          place: UNDER
       rfid_reader:
         - source: "robot_devices/rfid_reader"
     starting_pose:
@@ -281,4 +287,4 @@ actors: # all x, y are in pixels
   fires:
     - {id: 11, x: 240, y: 200, temperature: 220, range: 15.0} # in meters
   waters:
-    - {id: 12, x: 520, y: 490, range: 20}
+    - {id: 12, x: 400, y: 700, range: 20}

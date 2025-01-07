@@ -61,6 +61,12 @@ class TfController:
             auto_run = False,
         )
 
+        self.get_luminosity_rpc_server = self.commlib_factory.get_rpc_service(
+            callback = self.get_luminosity_callback,
+            rpc_name = self.base_topic + ".get_luminosity",
+            auto_run = False,
+        )
+
         self.detections_publisher = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".detections.notify",
             auto_run = False,
@@ -278,6 +284,20 @@ class TfController:
             return pose
 
         return self.places_absolute[name]
+
+    def get_luminosity_callback(self, message):
+        """
+        Callback function to compute the luminosity for a given message.
+
+        Args:
+            message (dict): A dictionary containing the message data. 
+                            It should have a key "name" which is used to compute the luminosity.
+
+        Returns:
+            dict: A dictionary containing the computed luminosity with the key "luminosity".
+        """
+        lum = self.compute_luminosity(message["name"], print_debug = False)
+        return {"luminosity": lum}
 
     def setup(self):
         """
@@ -1579,29 +1599,8 @@ class TfController:
             # possible types: face, qr, barcode, gender, age, motion, color, emotion
             ret = self.handle_sensor_camera(name, with_robots = True)
 
-            # experimental
-            amb_luminosity = self.declarations_info[name]['properties']['ambient_luminosity']
-            res = self.handle_env_light_sensor(name) # just to get the sources
-
-            lum = amb_luminosity
-            add_lum = 0
-            for _, item in res.items():
-                rel_range = 1 - item['distance'] / item['range']
-                if item['type'] == 'fire':
-                    # assumed 100% luminosity there
-                    add_lum += 100 * rel_range
-                elif item['type'] == "light":
-                    add_lum += rel_range * item['info']['luminosity']
-
-            if add_lum < lum:
-                lum = add_lum * 0.1 + lum
-            else:
-                lum = lum * 0.1 + add_lum
-
-            if lum > 100:
-                lum = 100
-
-            lum = lum / 100.0
+            # gt luminosity
+            lum = self.compute_luminosity(name, print_debug = False)
 
             if type_ == "face":
                 for x, item in ret.items():

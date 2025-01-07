@@ -101,6 +101,7 @@ class EnvAmbientLightController(BaseThing):
         self.env_properties = package["env"]
         self.allowed_states = info["conf"]["states"]
 
+        self.tf_luminosity_rpc = None
         self.set_communication_layer(package)
         self.commlib_factory.run()
 
@@ -162,6 +163,11 @@ class EnvAmbientLightController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
+
+        self.tf_luminosity_rpc = self.commlib_factory.get_rpc_client(
+            rpc_name = f"{package['namespace']}.tf.get_luminosity",
+            auto_run = False
+        )
 
     def sensor_read(self):
         """
@@ -242,31 +248,10 @@ class EnvAmbientLightController(BaseThing):
                 val += random.uniform(-0.25, 0.25)
 
             elif self.mode == "simulation":
-                res = self.tf_affection_rpc.call({
+                res = self.tf_luminosity_rpc.call({
                     'name': self.name
                 })
-
-                lum = self.env_properties['luminosity']
-                add_lum = 0
-                for a in res:
-                    rel_range = 1 - res[a]['distance'] / res[a]['range']
-                    if res[a]['type'] == 'fire':
-                        # assumed 100% luminosity there
-                        add_lum += 100 * rel_range
-                    elif res[a]['type'] == "light":
-                        add_lum += rel_range * res[a]['info']['luminosity']
-
-                if add_lum < lum:
-                    lum = add_lum * 0.1 + lum
-                else:
-                    lum = lum * 0.1 + add_lum
-
-                if lum > 100:
-                    lum = 100
-                if lum < 0:
-                    lum = 0
-
-                val = lum + random.uniform(-0.25, 0.25)
+                val = res["luminosity"] + random.uniform(-0.25, 0.25)
                 # print(val)
 
             # Publishing value:

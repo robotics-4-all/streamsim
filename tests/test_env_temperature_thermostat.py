@@ -93,6 +93,8 @@ class Test(unittest.TestCase):
             time.sleep(0.5)
             self.assertGreaterEqual(float(self.temperature['value']), 117.0)
 
+            self.set_rpc.call({'temperature': 0.0})
+
         except: # pylint: disable=bare-except
             traceback.print_exc(file=sys.stdout)
             self.fail("Test failed due to exception")

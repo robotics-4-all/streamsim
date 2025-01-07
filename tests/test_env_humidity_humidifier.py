@@ -94,6 +94,8 @@ class Test(unittest.TestCase):
             time.sleep(0.5)
             self.assertGreaterEqual(float(self.humidity_value['value']), 63.0)
 
+            self.humidifier_set_rpc.call({'humidity': 0.0})
+
         except: # pylint: disable=bare-except
             traceback.print_exc(file=sys.stdout)
             self.fail("Test failed due to exception")

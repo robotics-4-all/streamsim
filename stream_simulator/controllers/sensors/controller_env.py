@@ -204,6 +204,7 @@ class EnvController(BaseThing):
                 val["pressure"] = 27.3 + random.uniform(-3, 3)
 
             # Publishing value:
+            # print(val)
             self.publisher.publish({
                 "data": val,
                 "timestamp": time.time()

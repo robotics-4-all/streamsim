@@ -13,27 +13,21 @@ import time
 from stream_simulator.connectivity import CommlibFactory
 
 class Test(unittest.TestCase):
-    """
-    Test class for verifying the ambient light and bulb functionality.
-    This class contains unit tests to verify the behavior of the ambient light sensor
-    and the bulb actuator in a simulated environment. It uses the CommlibFactory to
-    create RPC clients and subscribers for communication with the simulation.
-    Methods:
-        setUp(): Initializes the test environment, including the RPC client and subscriber.
-        ambient_light_callback(message): Callback function to handle ambient light messages.
-        test_get(): Tests the functionality of turning the bulb on and off and verifies
-                    the ambient light sensor readings.
-        tearDown(): Cleans up the test environment after each test case.
-    """
+
     def setUp(self):
 
         self.cfact = CommlibFactory(node_name = "Test")
         sim_name = "streamsim.testinguid"
         self.ambient_light_value = None
 
-        # RPC for lighting the env bulb
+        self.teleport_rpc = self.cfact.get_rpc_client(
+            rpc_name = f"{sim_name}.robot_1.teleport",
+            auto_run = False
+        )
+
+        # RPC for lighting the robot leds
         self.bulb_rpc = self.cfact.get_rpc_client(
-            rpc_name = f"{sim_name}.world.office.actuator.visual.leds.light_X.set",
+            rpc_name = f"{sim_name}.robot_1.actuator.visual.leds.d_leds_37.set",
             auto_run = False
         )
 
@@ -78,9 +72,16 @@ class Test(unittest.TestCase):
             self.assertIsNotNone(self.ambient_light_value)
             self.assertAlmostEqual(self.ambient_light_value['value'], 10.0, delta = 0.5)
 
+            self.teleport_rpc.call({
+                'x': 70.0,
+                'y': 70.0,
+                'theta': 0
+            })
+            time.sleep(1)
+
             print("Turn on light")
             self.bulb_rpc.call({
-                'luminosity': 60.0,
+                'luminosity': 100.0,
                 'r': 255,
                 'g': 255,
                 'b': 255,

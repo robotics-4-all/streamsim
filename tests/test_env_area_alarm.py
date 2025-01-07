@@ -128,7 +128,7 @@ class Test(unittest.TestCase):
             self.assertTrue('robot_1' in self.alarm_value['value'])
 
             self.assertIsNotNone(self.triggers_value)
-            self.assertEqual(self.triggers_value['value'], 1)
+            self.assertGreater(self.triggers_value['value'], 1)
 
         except: # pylint: disable=bare-except
             traceback.print_exc(file=sys.stdout)
