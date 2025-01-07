@@ -267,6 +267,7 @@ class EnvAmbientLightController(BaseThing):
                     lum = 0
 
                 val = lum + random.uniform(-0.25, 0.25)
+                # print(val)
 
             # Publishing value:
             self.publisher.publish({

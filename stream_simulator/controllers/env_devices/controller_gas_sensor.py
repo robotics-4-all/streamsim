@@ -80,4 +80,5 @@ class EnvGasSensorController(BasicSensor):
             elif res[a]['type'] == 'fire':
                 ppm += 5000.0 * rel_range
 
+        # print(f"Gas sensor {self.name} ppm: {ppm}")
         return ppm + random.uniform(-10, 10)

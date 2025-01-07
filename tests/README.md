@@ -13,3 +13,6 @@ The configuration used for the Streamsim integration testing is `testing.yaml`, 
 - A humidity sensor is placed in `(20.0, 10.0)` and a humidifier in `(20.0, 12.0)`
 - A pH sensor placed at `(60.0, 10.0)`
 - A temperature sensor is placed at `(20.0, 20.0)` and a thermostat at `(20.0, 22.0)` with a range of 2 meters. Also a fire exists at `(24.0, 20.0)` with a radius of 15 meters.
+- A relay is placed at `(10.0, 10.0)` with available states 0 and 1
+- An environmental gas sensor is placed at `(20.0, 15.0)` (near the fire), therefore a large value is expected
+- An ambient light sensor placed at `(70.0, 70.0)` and a bulb placed at `(75.0, 75.0)`
