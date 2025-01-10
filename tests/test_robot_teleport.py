@@ -39,7 +39,7 @@ class Test(unittest.TestCase):
             auto_run = False
         )
 
-        self.cfact.run()
+        self.cfact.run(wait=2.0)
 
     def test_get(self):
         """

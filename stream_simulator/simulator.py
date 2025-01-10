@@ -101,7 +101,7 @@ class Simulator:
 
         self.configuration_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.configuration_callback,
-            rpc_name = self.name + '.set_configuration'
+            rpc_name = self.name + '.set_configuration_local'
         )
 
         # MQTT Connection for Locsys

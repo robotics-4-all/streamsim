@@ -49,7 +49,7 @@ class SimulatorStartup:
         self.commlib_factory = CommlibFactory(node_name = "SimulatorStartup")
 
         self.devices_rpc_client = self.commlib_factory.get_rpc_client(
-            rpc_name = f'streamsim.{uid}.set_configuration',
+            rpc_name = f'streamsim.{uid}.set_configuration_local',
         )
 
         self.commlib_factory.run()
