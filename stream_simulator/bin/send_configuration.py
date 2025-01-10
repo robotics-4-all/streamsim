@@ -47,14 +47,12 @@ class SimulatorStartup:
 
         # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = "SimulatorStartup")
-        self.commlib_factory.run()
 
-        # Generate a random 10-character UID
         self.devices_rpc_client = self.commlib_factory.get_rpc_client(
             rpc_name = f'streamsim.{uid}.set_configuration',
         )
-        # print(f'streamsim.{uid}.set_configuration')
-        # self.devices_rpc_client.run()
+
+        self.commlib_factory.run()
 
     def parse_configuration(self, conf_file):
         """

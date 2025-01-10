@@ -95,17 +95,28 @@ class Simulator:
             rpc_name = self.name + '.get_device_groups'
         )
 
+        self.simulation_start_pub = self.commlib_factory.get_publisher(
+            topic = f"{self.name}.simulation_started"
+        )
+
         self.configuration_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.configuration_callback,
             rpc_name = self.name + '.set_configuration'
         )
 
-        self.simulation_start_pub = self.commlib_factory.get_publisher(
-            topic = f"{self.name}.simulation_started"
+        # MQTT Connection for Locsys
+        self.mqtt_commlib_factory = CommlibFactory(node_name = "SimulatorMQTT", interface = "mqtt")
+
+        self.configuration_subscriber = self.mqtt_commlib_factory.get_subscriber(
+            callback = self.configuration_callback,
+            topic = self.name + '.set_configuration'
         )
 
         # Start the CommlibFactory
         self.commlib_factory.run()
+        self.mqtt_commlib_factory.run()
+
+        self.mqtt_commlib_factory.print_topics()
 
         # Create the MQTTNotifier
         self.mqtt_notifier = MQTTNotifier(uid = self.uid)
@@ -218,7 +229,6 @@ class Simulator:
 
         self.start()
         self.logger.info("Configuration setup done")
-        return {"success": True}
 
     def stop(self):
         """
