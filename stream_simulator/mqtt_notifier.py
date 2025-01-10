@@ -70,24 +70,24 @@ class MQTTNotifier:
             node_name = "MQTTNotifierLocal",
         )
 
-        self.robot_pose_sub = self.local_commlib.get_subscriber(
+        self.robot_pose_sub = self.local_commlib.create_psubscriber(
             topic = "streamsim.testinguid.*.pose.internal",
-            callback = self.robot_pose_callback,
+            on_message = self.robot_pose_callback,
         )
 
-        self.linear_alarms_sub = self.local_commlib.get_subscriber(
+        self.linear_alarms_sub = self.local_commlib.create_psubscriber(
             topic = "streamsim.*.world.*.sensor.alarm.linear_alarm.*.triggers",
-            callback = self.linear_alarm_triggers_callback,
+            on_message = self.linear_alarm_triggers_callback,
         )
 
-        self.area_alarms_sub = self.local_commlib.get_subscriber(
+        self.area_alarms_sub = self.local_commlib.create_psubscriber(
             topic = "streamsim.*.world.*.sensor.alarm.area_alarm.*.triggers",
-            callback = self.area_alarm_triggers_callback,
+            on_message = self.area_alarm_triggers_callback,
         )
 
-        self.rfid_reader_sub = self.local_commlib.get_subscriber(
+        self.rfid_reader_sub = self.local_commlib.create_psubscriber(
             topic = "streamsim.*.*.sensor.rf.rfid_reader.*.data",
-            callback = self.rfid_reader_callback,
+            on_message = self.rfid_reader_callback,
         )
 
         # Start the CommlibFactory
@@ -96,7 +96,7 @@ class MQTTNotifier:
 
         self.logger.info("MQTT Notifier started")
 
-    def linear_alarm_triggers_callback(self, message):
+    def linear_alarm_triggers_callback(self, message, _):
         """
         Callback function to handle linear alarm triggers.
 
@@ -113,7 +113,7 @@ class MQTTNotifier:
         if self.prints:
             self.logger.info("UI inform %s: %s", "linear_alarm_triggers", message)
 
-    def area_alarm_triggers_callback(self, message):
+    def area_alarm_triggers_callback(self, message, _):
         """
         Callback function to handle area alarm triggers.
 
@@ -130,7 +130,7 @@ class MQTTNotifier:
         if self.prints:
             self.logger.info("UI inform %s: %s", "area_alarm_triggers", message)
 
-    def rfid_reader_callback(self, message):
+    def rfid_reader_callback(self, message, _):
         """
         Callback function for handling RFID reader messages.
         This function is triggered when an RFID reader message is received. 
@@ -212,7 +212,7 @@ class MQTTNotifier:
         if self.prints:
             self.logger.info("UI inform %s: %s", "detection", message)
 
-    def robot_pose_callback(self, message):
+    def robot_pose_callback(self, message, _):
         """
         Callback function to handle robot pose messages.
 
