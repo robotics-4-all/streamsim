@@ -7,7 +7,7 @@ File that contains the CommlibFactory class.
 import logging
 import inspect
 import os
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from commlib.node import Node
 from commlib.transports.mqtt import ConnectionParameters as MQTTConnectionParameters
@@ -88,7 +88,7 @@ class CommlibFactory(Node):
         self.get_tf_affection = None
         self.get_tf = None
 
-        load_dotenv()
+        load_dotenv(find_dotenv(usecwd=True))
         self.use_redis = os.getenv('USE_REDIS', "False")
         try:
             if self.use_redis == "False" or self.interface == "mqtt":
