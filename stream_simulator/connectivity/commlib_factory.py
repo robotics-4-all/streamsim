@@ -88,7 +88,11 @@ class CommlibFactory(Node):
         self.get_tf_affection = None
         self.get_tf = None
 
-        load_dotenv(find_dotenv(usecwd=True))
+        # get the current directory
+        curr_dir = os.path.dirname(os.path.realpath(__file__))
+        env_file = os.path.join(curr_dir, '../../.env')
+        load_dotenv(env_file)
+        print(f"Using .env file at {env_file}")
         self.use_redis = os.getenv('USE_REDIS', "False")
         try:
             if self.use_redis == "False" or self.interface == "mqtt":
