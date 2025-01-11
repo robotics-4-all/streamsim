@@ -111,6 +111,7 @@ class CommlibFactory(Node):
                     username=broker_username,
                     password=broker_password,
                     reconnect_attempts=0,
+                    tls_insecure=True,
                 )
                 self._logger.info("Using MQTT connection parameters")
             else:
