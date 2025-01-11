@@ -92,7 +92,9 @@ class CommlibFactory(Node):
         curr_dir = os.path.dirname(os.path.realpath(__file__))
         env_file = os.path.join(curr_dir, '../../.env')
         load_dotenv(env_file)
-        print(f"Broker found: {os.getenv('BROKER_HOST', 'broker.emqx.io')}")
+        print(f"Broker: {os.getenv('BROKER_HOST', 'broker.emqx.io')}")
+        print(f"Port: {os.getenv('BROKER_PORT', '8883')}")
+        print(f"SSL: {os.getenv('BROKER_SSL', 'True')}")
         self.use_redis = os.getenv('USE_REDIS', "False")
         try:
             if self.use_redis == "False" or self.interface == "mqtt":
