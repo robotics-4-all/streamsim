@@ -137,6 +137,14 @@ class Test(unittest.TestCase):
 
             self.assertGreater(self.humidity, 70)
 
+            print("Teleporting robot back to start")
+            self.teleport_rpc.call({
+                'x': 50.0,
+                'y': 50.0,
+                'theta': 0
+            })
+            time.sleep(1)
+
         except: # pylint: disable=bare-except
             traceback.print_exc(file=sys.stdout)
             self.fail("Test failed due to exception")

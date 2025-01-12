@@ -151,6 +151,13 @@ class Test(unittest.TestCase):
             self.assertTrue("robot_1" in self.triggers_value['trigger'])
             self.assertGreaterEqual(self.triggers_value['value'], 1)
 
+            print("Teleporting robot back to start")
+            self.teleport_rpc.call({
+                'x': 50.0,
+                'y': 50.0,
+                'theta': 0
+            })
+
         except: # pylint: disable=bare-except
             traceback.print_exc(file=sys.stdout)
             self.fail("Test failed due to exception")
