@@ -11,6 +11,8 @@ import random
 import string
 
 from stream_simulator.connectivity import CommlibFactory
+from stream_simulator.transformations.check_lines_intersection import check_lines_intersection
+from stream_simulator.transformations.calc_distance import calc_distance
 
 class TfController:
     """
@@ -168,11 +170,6 @@ class TfController:
             }
         }
 
-    # def start(self):
-    #     self.declare_rpc_server.run()
-
-    # def stop(self):
-    #     self.declare_rpc_server.stop()
 
     def print_tf_tree(self):
         """
@@ -401,7 +398,7 @@ class TfController:
 
                 xy = [pose['x'], pose['y']]
                 m_xy = [m_pose['x'], m_pose['y']]
-                d = self.calc_distance(xy, m_xy)
+                d = calc_distance(xy, m_xy)
                 # print(d)
 
                 # lets say 4 meters
@@ -700,105 +697,6 @@ class TfController:
             self.logger.error("Error in get affections callback: %s", str(e))
             return {}
 
-    def check_lines_orientation(self, p, q, r):
-        """
-        Determines the orientation of the triplet (p, q, r).
-
-        Parameters:
-        p (tuple): The first point as a tuple (x, y).
-        q (tuple): The second point as a tuple (x, y).
-        r (tuple): The third point as a tuple (x, y).
-
-        Returns:
-        int: Returns 1 if the orientation is clockwise, 
-             2 if the orientation is counterclockwise, 
-             and 0 if the points are collinear.
-        """
-        val = (float(q[1] - p[1]) * (r[0] - q[0])) - \
-            (float(q[0] - p[0]) * (r[1] - q[1]))
-        if val > 0:
-            # Clockwise orientation
-            return 1
-        if val < 0:
-            # Counterclockwise orientation
-            return 2
-        # Colinear orientation
-        return 0
-
-    def check_lines_on_segment(self, p, q, r):
-        """
-        Check if point q lies on the line segment defined by points p and r.
-
-        Args:
-            p (tuple): A tuple representing the coordinates of the first endpoint of the segment 
-                (x1, y1).
-            q (tuple): A tuple representing the coordinates of the point to check (x2, y2).
-            r (tuple): A tuple representing the coordinates of the second endpoint of the segment 
-                (x3, y3).
-
-        Returns:
-            bool: True if point q lies on the line segment defined by points p and r, 
-                False otherwise.
-        """
-        if ( (q[0] <= max(p[0], r[0])) and (q[0] >= min(p[0], r[0])) and
-               (q[1] <= max(p[1], r[1])) and (q[1] >= min(p[1], r[1]))):
-            return True
-        return False
-
-    def check_lines_intersection(self, p1, q1, p2, q2):
-        """
-        Check if two lines (or segments) intersect.
-
-        This function determines if the line segment 'p1q1' and 'p2q2' intersect.
-        It uses the orientation method to check for general and special cases of intersection.
-
-        Parameters:
-        p1 (tuple): The first point of the first line segment.
-        q1 (tuple): The second point of the first line segment.
-        p2 (tuple): The first point of the second line segment.
-        q2 (tuple): The second point of the second line segment.
-
-        Returns:
-        bool: True if the line segments intersect, False otherwise.
-        """
-        # Find the 4 orientations required for
-        # the general and special cases
-        o1 = self.check_lines_orientation(p1, q1, p2)
-        o2 = self.check_lines_orientation(p1, q1, q2)
-        o3 = self.check_lines_orientation(p2, q2, p1)
-        o4 = self.check_lines_orientation(p2, q2, q1)
-        # General case
-        if ((o1 != o2) and (o3 != o4)):
-            return True
-        # Special Cases
-        # p1 , q1 and p2 are colinear and p2 lies on segment p1q1
-        if ((o1 == 0) and self.check_lines_on_segment(p1, p2, q1)):
-            return True
-        # p1 , q1 and q2 are colinear and q2 lies on segment p1q1
-        if ((o2 == 0) and self.check_lines_on_segment(p1, q2, q1)):
-            return True
-        # p2 , q2 and p1 are colinear and p1 lies on segment p2q2
-        if ((o3 == 0) and self.check_lines_on_segment(p2, p1, q2)):
-            return True
-        # p2 , q2 and q1 are colinear and q1 lies on segment p2q2
-        if ((o4 == 0) and self.check_lines_on_segment(p2, q1, q2)):
-            return True
-        # If none of the cases
-        return False
-
-    def calc_distance(self, p1, p2):
-        """
-        Calculate the Euclidean distance between two points.
-
-        Args:
-            p1 (tuple): The first point as a tuple of (x, y) coordinates.
-            p2 (tuple): The second point as a tuple of (x, y) coordinates.
-
-        Returns:
-            float: The Euclidean distance between the two points.
-        """
-        return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
-
     def check_distance(self, xy, aff):
         """
         Calculate the distance between a given point and a reference point, and return the distance 
@@ -816,7 +714,7 @@ class TfController:
         """
         pl_aff = self.places_absolute[aff]
         xyt = [pl_aff['x'], pl_aff['y']]
-        d = self.calc_distance(xy, xyt)
+        d = calc_distance(xy, xyt)
         return {
             'distance': d,
             'properties': self.declarations_info[aff]["properties"]
@@ -1433,7 +1331,7 @@ class TfController:
 
                 self.lin_alarms_robots[r]["curr"] = xyt
 
-                intersection = self.check_lines_intersection(sta, end, \
+                intersection = check_lines_intersection(sta, end, \
                     self.lin_alarms_robots[r]["curr"],
                     self.lin_alarms_robots[r]["prev"]
                 )
