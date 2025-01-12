@@ -83,7 +83,7 @@ class Test(unittest.TestCase):
         try:
             self.humidifier_set_rpc.call({'humidity': 0.0})
 
-            time.sleep(0.5)
+            time.sleep(1.5)
             self.assertIsNotNone(self.humidity_value)
             self.assertAlmostEqual(float(self.humidity_value['value']), 60.0, delta=0.5)
 

@@ -17,8 +17,6 @@ class EnvPhSensorController(BasicSensor):
         package (dict, optional): Package information dictionary. Defaults to None.
     Attributes:
         host (str): Host information for the sensor, if available.
-        tf_declare_rpc (RPCClient): RPC client for declaring the sensor to the transformation 
-        framework.
     Methods:
         __init__(conf=None, package=None): Initializes the EnvPhSensorController with the given 
         configuration and package.
@@ -58,11 +56,6 @@ class EnvPhSensorController(BasicSensor):
             tf_package['host'] = self.host
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
-
-        # Create the RPC client to declare to tf
-        self.tf_declare_rpc = self.commlib_factory.get_rpc_client(
-            rpc_name = package["tf_declare_rpc_topic"]
-        )
 
         self.tf_declare_rpc.call(tf_package)
 
