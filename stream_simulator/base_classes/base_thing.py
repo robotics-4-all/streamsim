@@ -42,6 +42,21 @@ class BaseThing:
         self.simulation_started_sub = None
         self.simulator_started = False
 
+        # Define self attributes
+        self.mock_parameters = {
+            "constant_value": None,
+            "random_min": None,
+            "random_max": None,
+            "triangle_min": None,
+            "triangle_max": None,
+            "triangle_step": None,
+            "normal_std": None,
+            "normal_mean": None,
+            "sinus_dc": None,
+            "sinus_amp": None,
+            "sinus_step": None
+        }
+
         self.tf_declare_pub = None
 
         self.commlib_factory = CommlibFactory(node_name=self.name)

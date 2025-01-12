@@ -70,7 +70,7 @@ class BasicSensor(BaseThing):
         else:
             self.logger = package["logger"]
 
-        super(BasicSensor, self).__init__(conf["name"], auto_start=False)
+        super().__init__(conf["name"], auto_start=False)
 
         self.set_tf_communication(package)
         self.set_simulation_communication(package["namespace"])
@@ -129,22 +129,6 @@ class BasicSensor(BaseThing):
             else:
                 self.prev = None
 
-        # Do not execute the factory yet, wait for the sensor to be initialized
-
-        # Define self attributes
-        self.mock_parameters = {
-            "constant_value": None,
-            "random_min": None,
-            "random_max": None,
-            "triangle_min": None,
-            "triangle_max": None,
-            "triangle_step": None,
-            "normal_std": None,
-            "normal_mean": None,
-            "sinus_dc": None,
-            "sinus_amp": None,
-            "sinus_step": None
-        }
         self.sensor_read_thread = None
         self.state = None
 
@@ -261,7 +245,8 @@ class BasicSensor(BaseThing):
                     )
                 elif self.operation == "triangle":
                     val = self.prev + self.way * self.mock_parameters['triangle_step']
-                    if val >= self.mock_parameters['triangle_max'] or val <= self.mock_parameters['triangle_min']:
+                    if val >= self.mock_parameters['triangle_max'] or \
+                        val <= self.mock_parameters['triangle_min']:
                         self.way *= -1
                     self.prev = val
                 elif self.operation == "sinus":

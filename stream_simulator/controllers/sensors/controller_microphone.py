@@ -242,8 +242,8 @@ class MicrophoneController(BaseThing):
         }
         if self.info["mode"] == "mock":
             now = time.time()
+            self.logger.info("Recording...")
             while time.time() - now < duration:
-                self.logger.info("Recording...")
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
                     self.blocked = False
