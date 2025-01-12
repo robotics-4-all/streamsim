@@ -48,6 +48,47 @@ class BaseThing:
         if auto_start:
             self.commlib_factory.run()
 
+    def generate_info(self, conf, package, _type, _category, _class, _subclass):
+        """
+        Generates a dictionary containing information based on the provided configuration 
+        and package details.
+        Args:
+            conf (dict): Configuration dictionary containing details such as 'name', 'place', 
+            and 'mode'.
+            package (dict): Package dictionary containing 'base' and 'namespace'.
+            _type (str): The type of the item.
+            _category (str): The category of the item.
+            _class (str): The class of the item.
+            _subclass (str): The subclass of the item.
+        Returns:
+            dict: A dictionary containing the generated information, including the base topic, 
+            name, place, 
+                  enabled status, mode, configuration, and categorization details.
+        """
+        _name = conf["name"]
+        _pack = package["base"]
+        _namespace = package["namespace"]
+        _place = conf["place"]
+
+        info = {
+            "type": _type,
+            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+            "name": _name,
+            "place": conf["place"],
+            "enabled": True,
+            "mode": conf["mode"],
+            "conf": conf,
+            "categorization": {
+                "host_type": _pack,
+                "place": _place,
+                "category": _category,
+                "class": _class,
+                "subclass": [_subclass],
+                "name": _name
+            }
+        }
+        return info
+
     def set_simulation_communication(self, namespace):
         """
         Sets up the communication for the simulation by subscribing to the 

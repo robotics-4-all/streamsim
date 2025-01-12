@@ -132,17 +132,19 @@ class BasicSensor(BaseThing):
         # Do not execute the factory yet, wait for the sensor to be initialized
 
         # Define self attributes
-        self.constant_value = None
-        self.random_min = None
-        self.random_max = None
-        self.triangle_min = None
-        self.triangle_max = None
-        self.triangle_step = None
-        self.normal_std = None
-        self.normal_mean = None
-        self.sinus_dc = None
-        self.sinus_amp = None
-        self.sinus_step = None
+        self.mock_parameters = {
+            "constant_value": None,
+            "random_min": None,
+            "random_max": None,
+            "triangle_min": None,
+            "triangle_max": None,
+            "triangle_step": None,
+            "normal_std": None,
+            "normal_mean": None,
+            "sinus_dc": None,
+            "sinus_amp": None,
+            "sinus_step": None
+        }
         self.sensor_read_thread = None
         self.state = None
 
@@ -222,17 +224,19 @@ class BasicSensor(BaseThing):
 
         if self.mode == "mock":
             try:
-                self.constant_value = self.operation_parameters["constant"]['value']
-                self.random_min = self.operation_parameters["random"]['min']
-                self.random_max = self.operation_parameters["random"]['max']
-                self.triangle_min = self.operation_parameters["triangle"]['min']
-                self.triangle_max = self.operation_parameters["triangle"]['max']
-                self.triangle_step = self.operation_parameters["triangle"]['step']
-                self.normal_std = self.operation_parameters["normal"]['std']
-                self.normal_mean = self.operation_parameters["normal"]['mean']
-                self.sinus_dc = self.operation_parameters["sinus"]['dc']
-                self.sinus_amp = self.operation_parameters["sinus"]['amplitude']
-                self.sinus_step = self.operation_parameters["sinus"]['step']
+                self.mock_parameters = {
+                    "constant_value": self.operation_parameters["constant"]['value'],
+                    "random_min": self.operation_parameters["random"]['min'],
+                    "random_max": self.operation_parameters["random"]['max'],
+                    "triangle_min": self.operation_parameters["triangle"]['min'],
+                    "triangle_max": self.operation_parameters["triangle"]['max'],
+                    "triangle_step": self.operation_parameters["triangle"]['step'],
+                    "normal_std": self.operation_parameters["normal"]['std'],
+                    "normal_mean": self.operation_parameters["normal"]['mean'],
+                    "sinus_dc": self.operation_parameters["sinus"]['dc'],
+                    "sinus_amp": self.operation_parameters["sinus"]['amplitude'],
+                    "sinus_step": self.operation_parameters["sinus"]['step']
+                }
             except Exception as e: # pylint: disable=broad-exception-caught
                 self.logger.warning(
                     "Missing operation parameters for %s: %s. Change operation with caution!", 
@@ -244,25 +248,26 @@ class BasicSensor(BaseThing):
             val = None
             if self.mode in ["mock"]:
                 if self.operation == "constant":
-                    val = self.constant_value
+                    val = self.mock_parameters['constant_value']
                 elif self.operation == "random":
                     val = random.uniform(
-                        self.random_min,
-                        self.random_max
+                        self.mock_parameters['random_min'],
+                        self.mock_parameters['random_max']
                     )
                 elif self.operation == "normal":
                     val = random.gauss(
-                        self.normal_mean,
-                        self.normal_std
+                        self.mock_parameters['normal_mean'],
+                        self.mock_parameters['normal_std']
                     )
                 elif self.operation == "triangle":
-                    val = self.prev + self.way * self.triangle_step
-                    if val >= self.triangle_max or val <= self.triangle_min:
+                    val = self.prev + self.way * self.mock_parameters['triangle_step']
+                    if val >= self.mock_parameters['triangle_max'] or val <= self.mock_parameters['triangle_min']:
                         self.way *= -1
                     self.prev = val
                 elif self.operation == "sinus":
-                    val = self.sinus_dc + self.sinus_amp * math.sin(self.prev)
-                    self.prev += self.sinus_step
+                    val = self.mock_parameters['sinus_dc'] + \
+                        self.mock_parameters['sinus_amp'] * math.sin(self.prev)
+                    self.prev += self.mock_parameters['sinus_step']
                 else:
                     self.logger.warning("Unsupported operation: %s", self.operation)
 

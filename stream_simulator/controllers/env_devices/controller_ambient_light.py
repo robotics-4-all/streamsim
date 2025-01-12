@@ -65,29 +65,29 @@ class EnvAmbientLightController(BaseThing):
         _class = "visual"
         _subclass = "light_sensor"
 
-        _name = conf["name"]
-        _pack = package["base"]
-        _namespace = package["namespace"]
-        _place = conf["place"]
+        # _name = conf["name"]
+        # _pack = package["base"]
+        # _namespace = package["namespace"]
+        # _place = conf["place"]
 
-        info = {
-            "type": _type,
-            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
-            "name": _name,
-            "place": conf["place"],
-            "enabled": True,
-            "mode": conf["mode"],
-            "conf": conf,
-            "categorization": {
-                "host_type": _pack,
-                "place": _place,
-                "category": _category,
-                "class": _class,
-                "subclass": [_subclass],
-                "name": _name
-            }
-        }
-
+        # info = {
+        #     "type": _type,
+        #     "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
+        #     "name": _name,
+        #     "place": conf["place"],
+        #     "enabled": True,
+        #     "mode": conf["mode"],
+        #     "conf": conf,
+        #     "categorization": {
+        #         "host_type": _pack,
+        #         "place": _place,
+        #         "category": _category,
+        #         "class": _class,
+        #         "subclass": [_subclass],
+        #         "name": _name
+        #     }
+        # }
+        info = self.generate_info(conf, package, _type, _category, _class, _subclass)
         self.info = info
         self.name = info["name"]
         self.base_topic = info["base_topic"]

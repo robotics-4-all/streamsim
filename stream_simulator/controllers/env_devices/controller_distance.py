@@ -68,28 +68,7 @@ class EnvDistanceController(BaseThing):
         _category = "sensor"
         _class = "distance"
         _subclass = "sonar"
-        _name = conf["name"]
-        _pack = package["base"]
-        _place = conf["place"]
-        _namespace = package["namespace"]
-        info = {
-            "type": _type,
-            "base_topic": f"{_namespace}.{_pack}.{_place}.{_category}.{_class}.{_subclass}.{_name}",
-            "name": _name,
-            "place": conf["place"],
-            "enabled": True,
-            "mode": conf["mode"],
-            "conf": conf,
-            "categorization": {
-                "host_type": _pack,
-                "place": _place,
-                "category": _category,
-                "class": _class,
-                "subclass": [_subclass],
-                "name": _name
-            }
-        }
-
+        
         self.robots_poses = {}
         self.robots_subscribers = {}
         self.constant_value = None
@@ -104,6 +83,7 @@ class EnvDistanceController(BaseThing):
         self.sinus_amp = None
         self.sinus_step = None
 
+        info = self.generate_info(conf, package, _type, _category, _class, _subclass)
         self.info = info
         self.name = info["name"]
         self.base_topic = info["base_topic"]
