@@ -79,96 +79,24 @@ env_devices:
       place: field
       hz: 3
       mode: simulation # mock, simulation, real
-      operation: sinus # constant, triangle, random, normal, sinus
-      operation_parameters:
-        constant:
-          value: 7.4
-        random:
-          min: 4
-          max: 9
-        triangle:
-          min: 4
-          max: 9
-          step: 0.3
-        normal:
-          mean: 7
-          std: 0.3
-        sinus:
-          dc: 7
-          amplitude: 2
-          step: 0.1
   temperature_sensors:
     - pose: {x: 200, y: 200, theta: 0}
       name: temperature_env
       place: office
       hz: 2
       mode: simulation # mock, simulation, real
-      operation: sinus # constant, triangle, random, normal, sinus
-      operation_parameters:
-        constant:
-          value: 7.4
-        random:
-          min: 4
-          max: 9
-        triangle:
-          min: 4
-          max: 9
-          step: 0.3
-        normal:
-          mean: 7
-          std: 0.3
-        sinus:
-          dc: 7
-          amplitude: 2
-          step: 0.1
   humidity_sensors:
     - pose: {x: 200, y: 100, theta: 0}
       name: humidity_sensor
       place: office
       hz: 2
       mode: simulation # mock, simulation, real
-      operation: sinus # constant, triangle, random, normal, sinus
-      operation_parameters:
-        constant:
-          value: 7.4
-        random:
-          min: 4
-          max: 9
-        triangle:
-          min: 4
-          max: 9
-          step: 0.3
-        normal:
-          mean: 7
-          std: 0.3
-        sinus:
-          dc: 7
-          amplitude: 2
-          step: 0.1
   gas_sensors:
     - pose: {x: 200, y: 150, theta: 0}
       name: gas_X
       place: office
       hz: 2
       mode: simulation # mock, simulation, real
-      operation: sinus # constant, triangle, random, normal, sinus
-      operation_parameters:
-        constant:
-          value: 7.4
-        random:
-          min: 4
-          max: 9
-        triangle:
-          min: 4
-          max: 9
-          step: 0.3
-        normal:
-          mean: 7
-          std: 0.3
-        sinus:
-          dc: 7
-          amplitude: 2
-          step: 0.1
   camera_sensors:
     - source: "env_devices/camera"
   distance_sensors:
@@ -178,49 +106,13 @@ env_devices:
       hz: 1
       max_range: 10
       mode: simulation # mock, simulation, real
-      operation: sinus # constant, triangle, random, normal, sinus
-      operation_parameters:
-        constant:
-          value: 7.4
-        random:
-          min: 4
-          max: 9
-        triangle:
-          min: 4
-          max: 9
-          step: 0.3
-        normal:
-          mean: 7
-          std: 0.3
-        sinus:
-          dc: 7
-          amplitude: 2
-          step: 0.1
   ambient_light_sensor:
     - pose: {x: 700, y: 700, theta: 0}
       name: ambient_light_X
       place: office
       hz: 2
       mode: simulation # mock, simulation, real
-      operation: sinus # constant, triangle, random, normal, sinus
       states: ["on", "off"]
-      operation_parameters:
-        constant:
-          value: 0.3
-        random:
-          min: 0
-          max: 1
-        triangle:
-          min: 0
-          max: 1
-          step: 0.01
-        normal:
-          mean: 0.5
-          std: 0.05
-        sinus:
-          dc: 0.5
-          amplitude: 0.5
-          step: 0.02
   pan_tilt:
     - source: "env_devices/pan_tilt"
     - source: "env_devices/pan_tilt_dist_X"

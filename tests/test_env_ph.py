@@ -59,8 +59,10 @@ class Test(unittest.TestCase):
         This test method performs the following steps:
         1. Waits for 1 second to simulate delay.
         2. Asserts that the `ph_value` attribute is not None.
-        3. Asserts that the `value` key in the `ph_value` dictionary is approximately 7.4 with a delta of 0.1.
-        If any exception occurs during the test, it prints the traceback and fails the test with an appropriate message.
+        3. Asserts that the `value` key in the `ph_value` dictionary is approximately 7.4 with a 
+            delta of 0.1.
+        If any exception occurs during the test, it prints the traceback and fails the test with 
+            an appropriate message.
         Raises:
             AssertionError: If any of the assertions fail.
             Exception: If any other exception occurs during the test execution.

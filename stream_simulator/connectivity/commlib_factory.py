@@ -7,7 +7,7 @@ File that contains the CommlibFactory class.
 import logging
 import inspect
 import os
-from dotenv import find_dotenv, load_dotenv
+from dotenv import load_dotenv
 
 from commlib.node import Node
 from commlib.transports.mqtt import ConnectionParameters as MQTTConnectionParameters

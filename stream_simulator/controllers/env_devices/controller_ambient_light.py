@@ -93,8 +93,9 @@ class EnvAmbientLightController(BaseThing):
         self.base_topic = info["base_topic"]
         self.hz = info['conf']['hz']
         self.mode = info["mode"]
-        self.operation = info['conf']['operation']
-        self.operation_parameters = info['conf']['operation_parameters']
+        self.operation = info['conf']['operation'] if 'operation' in info['conf'] else None
+        self.operation_parameters = info['conf']['operation_parameters'] \
+            if 'operation_parameters' in info['conf'] else None
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
@@ -205,17 +206,18 @@ class EnvAmbientLightController(BaseThing):
         self.logger.info("Sensor %s read thread started", self.name)
 
         # Operation parameters
-        self.constant_value = self.operation_parameters["constant"]['value']
-        self.random_min = self.operation_parameters["random"]['min']
-        self.random_max = self.operation_parameters["random"]['max']
-        self.triangle_min = self.operation_parameters["triangle"]['min']
-        self.triangle_max = self.operation_parameters["triangle"]['max']
-        self.triangle_step = self.operation_parameters["triangle"]['step']
-        self.normal_std = self.operation_parameters["normal"]['std']
-        self.normal_mean = self.operation_parameters["normal"]['mean']
-        self.sinus_dc = self.operation_parameters["sinus"]['dc']
-        self.sinus_amp = self.operation_parameters["sinus"]['amplitude']
-        self.sinus_step = self.operation_parameters["sinus"]['step']
+        if self.mode == "mock":
+            self.constant_value = self.operation_parameters["constant"]['value']
+            self.random_min = self.operation_parameters["random"]['min']
+            self.random_max = self.operation_parameters["random"]['max']
+            self.triangle_min = self.operation_parameters["triangle"]['min']
+            self.triangle_max = self.operation_parameters["triangle"]['max']
+            self.triangle_step = self.operation_parameters["triangle"]['step']
+            self.normal_std = self.operation_parameters["normal"]['std']
+            self.normal_mean = self.operation_parameters["normal"]['mean']
+            self.sinus_dc = self.operation_parameters["sinus"]['dc']
+            self.sinus_amp = self.operation_parameters["sinus"]['amplitude']
+            self.sinus_step = self.operation_parameters["sinus"]['step']
 
         val = None
         while self.info["enabled"]:
