@@ -74,7 +74,7 @@ class Test(unittest.TestCase):
                 'b': 255,
             })
 
-            time.sleep(1)
+            time.sleep(2)
             self.assertIsNotNone(self.ambient_light_value)
             self.assertAlmostEqual(self.ambient_light_value['value'], 10.0, delta = 0.5)
 
@@ -86,7 +86,7 @@ class Test(unittest.TestCase):
                 'b': 255,
             })
 
-            time.sleep(1)
+            time.sleep(2)
             self.assertGreater(self.ambient_light_value['value'], 20.0)
 
             print("Turn off light")
