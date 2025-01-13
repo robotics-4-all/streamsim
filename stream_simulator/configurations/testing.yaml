@@ -42,7 +42,7 @@ robots:
       env:
         - orientation: 0
           place: FRONT
-          hz: 1
+          hz: 2
       speaker:
         - source: "robot_devices/speaker"
       leds:
