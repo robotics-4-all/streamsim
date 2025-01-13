@@ -112,7 +112,6 @@ env_devices:
       place: office
       hz: 2
       mode: simulation # mock, simulation, real
-      states: ["on", "off"]
   pan_tilt:
     - source: "env_devices/pan_tilt"
     - source: "env_devices/pan_tilt_dist_X"

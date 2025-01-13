@@ -109,7 +109,6 @@ class BasicSensor(BaseThing):
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
-        self.allowed_states = []
 
         # Communication
         self.set_data_publisher(self.base_topic)
@@ -306,36 +305,6 @@ class BasicSensor(BaseThing):
         """
         self.info["enabled"] = False
         return {"enabled": False}
-
-    def get_callback(self, _):
-        """
-        Retrieve the current state of the sensor.
-
-        Args:
-            _ (Any): Placeholder argument, not used in the method.
-
-        Returns:
-            dict: A dictionary containing the current state of the sensor.
-        """
-        return {"state": self.state}
-
-    def set_callback(self, message):
-        """
-        Sets the state of the sensor based on the provided message and returns the updated state.
-        Args:
-            message (dict): A dictionary containing the state to be set. 
-            The dictionary must have a key "state".
-        Returns:
-            dict: A dictionary containing the updated state of the sensor.
-        Raises:
-            Exception: If the provided state is not in the list of allowed states.
-        """
-        state = message["state"]
-        if state not in self.allowed_states:
-            raise Exception(f"{self.name} does not allow state {state}") # pylint: disable=broad-exception-raised
-
-        self.state = state
-        return {"state": self.state}
 
     def start(self):
         """

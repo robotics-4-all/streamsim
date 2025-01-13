@@ -34,7 +34,6 @@ class EnvDistanceController(BaseThing):
         resolution (float): Resolution of the map.
         max_range (float): Maximum range of the sensor.
         get_device_groups_rpc_topic (str): RPC topic to get device groups.
-        allowed_states (list): List of allowed states for the sensor.
         host (str): Host of the sensor.
         get_tf (RPCClient): RPC client to get the transform.
         sensor_read_thread (threading.Thread): Thread for reading sensor data.
@@ -88,7 +87,6 @@ class EnvDistanceController(BaseThing):
         self.resolution = package["resolution"]
         self.max_range = info['conf']['max_range']
         self.get_device_groups_rpc_topic = package["namespace"] + ".get_device_groups"
-        self.allowed_states = ["enabled", "disabled"]
 
         # tf handling
         tf_package = {
@@ -318,24 +316,6 @@ class EnvDistanceController(BaseThing):
         Returns:
             dict: A dictionary containing the current state.
         """
-        return {"state": self.state}
-
-    def set_callback(self, message):
-        """
-        Sets the state of the device based on the provided message.
-        Args:
-            message (dict): A dictionary containing the state information. 
-                            It must have a key "state" with the desired state as its value.
-        Raises:
-            Exception: If the provided state is not in the list of allowed states.
-        Returns:
-            dict: A dictionary containing the updated state of the device.
-        """
-        state = message["state"]
-        if state not in self.allowed_states:
-            raise Exception(f"{self.name} does not allow {state} state") # pylint: disable=broad-exception-raised
-
-        self.state = state
         return {"state": self.state}
 
     def start(self):

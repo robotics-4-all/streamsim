@@ -29,7 +29,6 @@ class EnvAmbientLightController(BaseThing):
         pose (dict): Pose of the sensor.
         derp_data_key (str): Key for raw data.
         env_properties (dict): Environmental properties.
-        allowed_states (list): List of allowed states for the sensor.
         host (str): Host information.
         prev (float): Previous value for certain operations.
         way (int): Direction for triangle operation.
@@ -78,7 +77,6 @@ class EnvAmbientLightController(BaseThing):
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
         self.env_properties = package["env"]
-        self.allowed_states = info["conf"]["states"]
 
         self.tf_luminosity_rpc = None
         self.set_communication_layer(package)
@@ -241,25 +239,6 @@ class EnvAmbientLightController(BaseThing):
         Returns:
             dict: A dictionary containing the current state.
         """
-        return {"state": self.state}
-
-    def set_callback(self, message):
-        """
-        Sets the callback for the ambient light controller.
-        Args:
-            message (dict): A dictionary containing the state to be set. 
-                The dictionary must have a key "state" with a value that is one of 
-                the allowed states.
-        Raises:
-            Exception: If the state provided in the message is not in the list of allowed states.
-        Returns:
-            dict: A dictionary containing the new state of the ambient light controller.
-        """
-        state = message["state"]
-        if state not in self.allowed_states:
-            raise Exception(f"{self.name} does not allow {state} state") # pylint: disable=broad-exception-raised
-
-        self.state = state
         return {"state": self.state}
 
     def start(self):
