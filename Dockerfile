@@ -14,6 +14,10 @@ COPY ./ /streamsim
 
 RUN pip install .
 
+WORKDIR /
+
+COPY ./entrypoint.sh /entrypoint.sh
+
 ENV BROKER_HOST=0.0.0.0
 ENV BROKER_PORT=1883
 ENV BROKER_SSL=False
@@ -21,4 +25,4 @@ ENV BROKER_USERNAME=
 ENV BROKER_PASSWORD=
 ENV USE_REDIS=True
 
-CMD ["python", "stream_simulator/bin/main.py", "test"]
+CMD ["python", "/streamsim/stream_simulator/bin/main.py", "test"]
