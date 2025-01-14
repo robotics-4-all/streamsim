@@ -78,6 +78,8 @@ class EnvAmbientLightController(BaseThing):
         self.derp_data_key = info["base_topic"] + ".raw"
         self.env_properties = package["env"]
 
+        self.mock_parameters = {}
+
         self.tf_luminosity_rpc = None
         self.set_communication_layer(package)
         self.commlib_factory.run()

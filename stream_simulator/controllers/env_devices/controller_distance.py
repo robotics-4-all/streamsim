@@ -128,6 +128,7 @@ class EnvDistanceController(BaseThing):
 
         self.sensor_read_thread = None
         self.state = "enabled"
+        self.mock_parameters = {}
 
     def set_communication_layer(self, package):
         """

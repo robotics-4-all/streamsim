@@ -110,6 +110,8 @@ class BasicSensor(BaseThing):
         self.pose = info["conf"]["pose"]
         self.derp_data_key = info["base_topic"] + ".raw"
 
+        self.mock_parameters = {}
+
         # Communication
         self.set_data_publisher(self.base_topic)
 
