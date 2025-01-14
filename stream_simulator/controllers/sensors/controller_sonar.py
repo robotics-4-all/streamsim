@@ -197,6 +197,10 @@ class SonarController(BaseThing):
                         d += 1
                         tmpx = originx + d * math.cos(ths)
                         tmpy = originy + d * math.sin(ths)
+                        if int(tmpx) < 0 or int(tmpy) < 0 or int(tmpx) >= self.map.shape[0] or \
+                            int(tmpy) >= self.map.shape[1]:
+                            val = limit
+                            break
                     val = d * self.robot_pose["resolution"] + random.uniform(-0.03, 0.03)
                     if val > self.info["max_range"]:
                         val = self.info["max_range"]

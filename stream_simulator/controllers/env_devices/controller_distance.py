@@ -298,6 +298,11 @@ class EnvDistanceController(BaseThing):
                             print(d * self.resolution)
                             robot = True
 
+                    if int(tmpx) < 0 or int(tmpy) < 0 or int(tmpx) >= self.map.shape[0] or \
+                        int(tmpy) >= self.map.shape[1]:
+                        val = limit
+                        break
+
                 val = d * self.resolution
 
             val += random.uniform(-0.02, 0.02)
