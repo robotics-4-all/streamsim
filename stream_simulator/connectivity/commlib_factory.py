@@ -144,22 +144,22 @@ class CommlibFactory(Node):
         """
         self._logger.warning("\nPublisher topics:")
         for topic, place in CommlibFactory.publisher_topics.items():
-            self._logger.info("- %s \n\t@ %s", topic, place)
+            self._logger.info("- %s @ %s", topic, place)
         self._logger.warning("Subscriber topics:")
         for topic, place in CommlibFactory.subscriber_topics.items():
-            self._logger.info("- %s \n\t@ %s", topic, place)
+            self._logger.info("- %s @ %s", topic, place)
         self._logger.warning("RPC server topics:")
         for topic, place in CommlibFactory.rpc_server_topics.items():
-            self._logger.info("- %s \n\t@ %s", topic, place)
+            self._logger.info("- %s @ %s", topic, place)
         self._logger.warning("RPC client topics:")
         for topic, place in CommlibFactory.rpc_client_topics.items():
-            self._logger.info("- %s \n\t@ %s", topic, place)
+            self._logger.info("- %s @ %s", topic, place)
         self._logger.warning("Action server topics:")
         for topic, place in CommlibFactory.action_server_topics.items():
-            self._logger.info("- %s \n\t@ %s", topic, place)
+            self._logger.info("- %s @ %s", topic, place)
         self._logger.warning("Action client topics:")
         for topic, place in CommlibFactory.action_client_topics.items():
-            self._logger.info("- %s \n\t@ %s", topic, place)
+            self._logger.info("- %s @ %s", topic, place)
         self._logger.info("")
 
     def inform(self, broker, topic, type_, extras = ""):
