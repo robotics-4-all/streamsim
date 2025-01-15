@@ -165,6 +165,7 @@ class EnvLightController(BaseThing):
             self.color['a'] = self.luminosity * 255.0 / 100.0
 
         self.publisher.publish(message)
+        self.logger.info("{%s: New lights command: %s", self.name, message)
 
         return {}
 
