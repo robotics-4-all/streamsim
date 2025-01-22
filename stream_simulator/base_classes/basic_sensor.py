@@ -131,6 +131,7 @@ class BasicSensor(BaseThing):
                 self.prev = None
 
         self.sensor_read_thread = None
+        self.stopped = False
         self.state = None
 
         self.commlib_factory.run()
@@ -267,6 +268,8 @@ class BasicSensor(BaseThing):
                 "timestamp": time.time()
             })
 
+        self.stopped = True
+
     @abc.abstractmethod
     def get_simulation_value(self):
         """
@@ -343,3 +346,7 @@ class BasicSensor(BaseThing):
         - set_mode_rpc_server
         """
         self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)
+        super().stop()

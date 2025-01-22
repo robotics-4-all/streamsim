@@ -116,6 +116,7 @@ class EnvController(BaseThing):
         self.tf_declare_rpc.call(tf_package)
 
         self.sensor_read_thread = None
+        self.stopped = False
 
     def sensor_read(self):
         """
@@ -212,6 +213,7 @@ class EnvController(BaseThing):
             # print(val)
 
         self.logger.info("Env %s sensor read thread stopped", self.info["id"])
+        self.stopped = True
 
     def start(self):
         """
@@ -246,4 +248,7 @@ class EnvController(BaseThing):
         processes.
         """
         self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)
         self.commlib_factory.stop()

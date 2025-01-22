@@ -131,6 +131,7 @@ class ImuController(BaseThing):
         self.commlib_factory.run()
 
         self.sensor_read_thread = None
+        self.stopped = False
 
     def robot_pose_update(self, message):
         """
@@ -227,6 +228,7 @@ class ImuController(BaseThing):
                 "timestamp": time.time()
             })
 
+        self.stopped = True
         self.logger.info("IMU %s sensor read thread stopped", self.info["id"])
 
     def start(self):
@@ -261,4 +263,7 @@ class ImuController(BaseThing):
         library factory to cease any ongoing communication processes.
         """
         self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)
         self.commlib_factory.stop()

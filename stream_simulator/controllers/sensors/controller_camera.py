@@ -165,6 +165,7 @@ class CameraController(BaseThing):
 
         self.robot_pose = None
         self.sensor_read_thread = None
+        self.stopped = False
 
     def robot_pose_update(self, message):
         """
@@ -207,6 +208,10 @@ class CameraController(BaseThing):
         This method halts any ongoing processes or communications managed by the
         commlib_factory instance.
         """
+        self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)
         self.commlib_factory.stop()
 
     def sensor_read(self):
@@ -339,3 +344,5 @@ class CameraController(BaseThing):
                         "timestamp": time.time()
                     })
                     # print(f"CameraController: Published image {cl_type}")
+
+        self.stopped = True

@@ -138,6 +138,7 @@ class SonarController(BaseThing):
         self.commlib_factory.run()
 
         self.sensor_read_thread = None
+        self.stopped = False
 
     def robot_pose_update(self, message):
         """
@@ -217,6 +218,7 @@ class SonarController(BaseThing):
             })
             # self.logger.info("Sonar reads: %f",  val)
 
+        self.stopped = True
         self.logger.debug("Sonar %s sensor read thread stopped", self.info["id"])
 
     def start(self):
@@ -256,4 +258,7 @@ class SonarController(BaseThing):
         stop method on the commlib_factory to halt any ongoing communication processes.
         """
         self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)
         self.commlib_factory.stop()

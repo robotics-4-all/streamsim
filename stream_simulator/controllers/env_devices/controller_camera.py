@@ -128,6 +128,7 @@ class EnvCameraController(BaseThing):
         }
 
         self.sensor_read_thread = None
+        self.stopped = False
 
     def set_communication_layer(self, package):
         """
@@ -291,6 +292,8 @@ class EnvCameraController(BaseThing):
                         "timestamp": time.time()
                     })
 
+        self.stopped = True
+
     def start(self):
         """
         Starts the sensor and waits for the simulator to start.
@@ -322,3 +325,6 @@ class EnvCameraController(BaseThing):
         It also stops the RPC servers responsible for enabling and disabling the camera.
         """
         self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)

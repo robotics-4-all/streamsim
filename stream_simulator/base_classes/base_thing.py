@@ -186,3 +186,9 @@ class BaseThing:
             callback=get_cb,
             rpc_name=base_topic + ".get"
         )
+
+    def stop(self):
+        """
+        Stops the communication for the thing.
+        """
+        self.commlib_factory.stop()

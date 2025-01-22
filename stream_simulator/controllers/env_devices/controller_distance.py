@@ -127,6 +127,7 @@ class EnvDistanceController(BaseThing):
             self.prev = None
 
         self.sensor_read_thread = None
+        self.stopped = False
         self.state = "enabled"
         self.mock_parameters = {}
 
@@ -312,6 +313,8 @@ class EnvDistanceController(BaseThing):
                 "timestamp": time.time()
             })
 
+        self.stopped = True
+
     def get_callback(self, _):
         """
         Callback function to handle incoming messages.
@@ -359,3 +362,6 @@ class EnvDistanceController(BaseThing):
         - set_mode_rpc_server
         """
         self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)

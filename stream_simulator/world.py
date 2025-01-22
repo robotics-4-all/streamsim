@@ -383,4 +383,14 @@ class World:
         communication within the simulation. It ensures that all communication
         processes are properly terminated.
         """
+        # Clean actors
+        for _, c in self.actors_controllers.items():
+            c.stop()
+            del c
+
+        # Clean devices
+        for _, c in self.controllers.items():
+            c.stop()
+            del c
+
         self.commlib_factory.stop()

@@ -101,6 +101,7 @@ class EnvAreaAlarmController(BaseThing):
         self.tf_declare_rpc.call(tf_package)
 
         self.sensor_read_thread = None
+        self.stopped = False
 
     def set_communication_layer(self, package):
         """
@@ -177,6 +178,8 @@ class EnvAreaAlarmController(BaseThing):
 
             prev = val
 
+        self.stopped = True
+
     def start(self):
         """
         Starts the sensor and its associated processes.
@@ -207,3 +210,6 @@ class EnvAreaAlarmController(BaseThing):
         and disable RPC servers.
         """
         self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)

@@ -114,6 +114,7 @@ class EnvAmbientLightController(BaseThing):
             self.prev = None
 
         self.sensor_read_thread = None
+        self.stopped = False
         self.state = None
 
     def set_communication_layer(self, package):
@@ -231,6 +232,8 @@ class EnvAmbientLightController(BaseThing):
                 "timestamp": time.time()
             })
 
+        self.stopped = True
+
     def get_callback(self, _):
         """
         Callback function to retrieve the current state.
@@ -283,3 +286,6 @@ class EnvAmbientLightController(BaseThing):
         - Stops the `set_mode_rpc_server`.
         """
         self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)

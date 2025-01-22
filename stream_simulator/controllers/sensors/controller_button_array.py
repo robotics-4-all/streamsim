@@ -121,6 +121,7 @@ class ButtonArrayController(BaseThing):
         self.commlib_factory.run()
 
         self.sensor_read_thread = None
+        self.stopped = False
 
     def dispatch_information(self, _data, _button):
         """
@@ -191,6 +192,7 @@ class ButtonArrayController(BaseThing):
                 self.dispatch_information(_val, self.button_places[_place])
 
         self.logger.info("Button %s sensor read thread stopped", self.info['id'])
+        self.stopped = True
 
     def start(self):
         """
@@ -224,4 +226,7 @@ class ButtonArrayController(BaseThing):
         library factory associated with the controller.
         """
         self.info["enabled"] = False
+        while not self.stopped:
+            time.sleep(0.1)
+        self.logger.warning("Sensor %s stopped", self.name)
         self.commlib_factory.stop()

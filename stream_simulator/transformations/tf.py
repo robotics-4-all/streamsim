@@ -18,75 +18,24 @@ class TfController:
     """
     A class to handle transformations for the simulator.
     """
-    def __init__(self, base = None, resolution = None, logger = None, \
-        env_properties = None, mqtt_notifier = None):
-
+    def __init__(self, logger = None, mqtt_notifier = None):
         self.logger = logging.getLogger(__name__) if logger is None else logger
-        self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
-        self.base = base
-        self.resolution = resolution
+        self.base_topic = None
+        self.base = None
+        self.resolution = None
         self.mqtt_notifier = mqtt_notifier
-
-        self.commlib_factory = CommlibFactory(node_name = "Tf")
-
+        self.commlib_factory = None
         self.lin_alarms_robots = {}
-        self.env_properties = env_properties
-        self.logger.info("TF set environmental variables: %s", self.env_properties)
-
-        self.declare_rpc_server = self.commlib_factory.get_rpc_service(
-            callback = self.declare_callback,
-            rpc_name = self.base_topic + ".declare",
-            auto_run = False,
-        )
-
-        self.get_declarations_rpc_server = self.commlib_factory.get_rpc_service(
-            callback = self.get_declarations_callback,
-            rpc_name = self.base_topic + ".get_declarations",
-            auto_run = False,
-        )
-
-        self.get_tf_rpc_server = self.commlib_factory.get_rpc_service(
-            callback = self.get_tf_callback,
-            rpc_name = self.base_topic + ".get_tf",
-            auto_run = False,
-        )
-
-        self.get_affectability_rpc_server = self.commlib_factory.get_rpc_service(
-            callback = self.get_affections_callback,
-            rpc_name = self.base_topic + ".get_affections",
-            auto_run = False,
-        )
-
-        self.get_sim_detection_rpc_server = self.commlib_factory.get_rpc_service(
-            callback = self.get_sim_detection_callback,
-            rpc_name = self.base_topic + ".simulated_detection",
-            auto_run = False,
-        )
-
-        self.get_luminosity_rpc_server = self.commlib_factory.get_rpc_service(
-            callback = self.get_luminosity_callback,
-            rpc_name = self.base_topic + ".get_luminosity",
-            auto_run = False,
-        )
-
-        self.detections_publisher = self.commlib_factory.get_publisher(
-            topic = self.base_topic + ".detections.notify",
-            auto_run = False,
-        )
-
-        self.get_devices_rpc = self.commlib_factory.get_rpc_client(
-            rpc_name = self.base + ".get_device_groups",
-            auto_run = False,
-        )
-
-        self.pan_tilts_rpc = self.commlib_factory.get_rpc_client(
-            rpc_name = f"{self.base}.nodes_detector.get_connected_devices",
-            auto_run = False,
-        )
-
-        # Start the CommlibFactory
-        self.commlib_factory.run()
-
+        self.env_properties = None
+        self.declare_rpc_server = None
+        self.get_declarations_rpc_server = None
+        self.get_tf_rpc_server = None
+        self.get_affectability_rpc_server = None
+        self.get_sim_detection_rpc_server = None
+        self.get_luminosity_rpc_server = None
+        self.detections_publisher = None
+        self.get_devices_rpc = None
+        self.pan_tilts_rpc = None
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
             'host', 'host_type', 'properties', 'id', 'namespace'
@@ -170,6 +119,152 @@ class TfController:
             }
         }
 
+    def initialize(self, base = None, resolution = None, env_properties = None, ):
+        """
+        Initialize the transformation module with the given parameters.
+        """
+
+        self.base_topic = base + ".tf" if base is not None else "streamsim.tf"
+        self.base = base
+        self.resolution = resolution
+
+        self.commlib_factory = CommlibFactory(node_name = "Tf")
+
+        self.lin_alarms_robots = {}
+        self.env_properties = env_properties
+        self.logger.info("TF set environmental variables: %s", self.env_properties)
+
+        self.declare_rpc_server = self.commlib_factory.get_rpc_service(
+            callback = self.declare_callback,
+            rpc_name = self.base_topic + ".declare",
+            auto_run = False,
+        )
+
+        self.get_declarations_rpc_server = self.commlib_factory.get_rpc_service(
+            callback = self.get_declarations_callback,
+            rpc_name = self.base_topic + ".get_declarations",
+            auto_run = False,
+        )
+
+        self.get_tf_rpc_server = self.commlib_factory.get_rpc_service(
+            callback = self.get_tf_callback,
+            rpc_name = self.base_topic + ".get_tf",
+            auto_run = False,
+        )
+
+        self.get_affectability_rpc_server = self.commlib_factory.get_rpc_service(
+            callback = self.get_affections_callback,
+            rpc_name = self.base_topic + ".get_affections",
+            auto_run = False,
+        )
+
+        self.get_sim_detection_rpc_server = self.commlib_factory.get_rpc_service(
+            callback = self.get_sim_detection_callback,
+            rpc_name = self.base_topic + ".simulated_detection",
+            auto_run = False,
+        )
+
+        self.get_luminosity_rpc_server = self.commlib_factory.get_rpc_service(
+            callback = self.get_luminosity_callback,
+            rpc_name = self.base_topic + ".get_luminosity",
+            auto_run = False,
+        )
+
+        self.detections_publisher = self.commlib_factory.get_publisher(
+            topic = self.base_topic + ".detections.notify",
+            auto_run = False,
+        )
+
+        self.get_devices_rpc = self.commlib_factory.get_rpc_client(
+            rpc_name = self.base + ".get_device_groups",
+            auto_run = False,
+        )
+
+        self.pan_tilts_rpc = self.commlib_factory.get_rpc_client(
+            rpc_name = f"{self.base}.nodes_detector.get_connected_devices",
+            auto_run = False,
+        )
+
+        # Start the CommlibFactory
+        self.commlib_factory.run()
+
+        self.declarations = []
+        self.declarations_info = {}
+        self.names = []
+
+        self.effectors_get_rpcs = {}
+        self.robots_get_devices_rpcs = {}
+
+        self.subs = {} # Filled
+        self.places_relative = {}
+        self.places_absolute = {}
+        self.tree = {} # filled
+        self.items_hosts_dict = {}
+        self.existing_hosts = []
+        self.pantilts = {}
+        self.robots = []
+
+        self.speaker_subs = {}
+        self.microphone_pubs = {}
+
+        self.per_type = {
+            'robot': {
+                'sensor': {
+                    'microphone': [],
+                    'sonar': [],
+                    'ir': [],
+                    'tof': [],
+                    'imu': [],
+                    'camera': [],
+                    'button': [],
+                    'env': [],
+                    'encoder': [],
+                    'line_follow': [],
+                    'rfid_reader': [],
+                },
+                'actuator': {
+                    'speaker': [],
+                    'leds': [],
+                    'pan_tilt': [],
+                    'screen': [],
+                    'twist': [],
+                }
+            },
+            'env': {
+                'sensor': {
+                    'ph': [],
+                    'temperature': [],
+                    'humidity': [],
+                    'gas': [],
+                    'camera': [],
+                    'sonar': [],
+                    'linear_alarm': [],
+                    'area_alarm': [],
+                    'light_sensor': [],
+                    'microphone': [],
+                },
+                'actuator': {
+                    'thermostat': [],
+                    'relay': [],
+                    'pan_tilt': [],
+                    'speaker': [],
+                    'leds': [],
+                    'humidifier': [],
+                }
+            },
+            'actor': {
+                'human': [],
+                'superman': [],
+                'sound_source': [],
+                'qr': [],
+                'barcode': [],
+                'color': [],
+                'text': [],
+                'rfid_tag': [],
+                'fire': [],
+                'water': [],
+            }
+        }
 
     def print_tf_tree(self):
         """
@@ -435,6 +530,10 @@ class TfController:
         self.places_absolute[nm]['theta'] = message['theta']
 
         # Update all thetas of devices
+        # NOTE: Check that this works!
+        if nm not in self.tree:
+            return
+
         for d in self.tree[nm]:
             if self.places_absolute[d]['theta'] is not None and d not in self.pantilts:
                 self.places_absolute[d]['theta'] = \
@@ -1613,4 +1712,83 @@ class TfController:
         This method calls the stop method on the commlib_factory instance to 
         terminate any ongoing communication processes.
         """
-        self.commlib_factory.stop()
+        self.declarations = []
+        self.declarations_info = {}
+        self.names = []
+
+        self.effectors_get_rpcs = {}
+        self.robots_get_devices_rpcs = {}
+
+        self.subs = {} # Filled
+        self.places_relative = {}
+        self.places_absolute = {}
+        self.tree = {} # filled
+        self.items_hosts_dict = {}
+        self.existing_hosts = []
+        self.pantilts = {}
+        self.robots = []
+
+        self.speaker_subs = {}
+        self.microphone_pubs = {}
+
+        self.per_type = {
+            'robot': {
+                'sensor': {
+                    'microphone': [],
+                    'sonar': [],
+                    'ir': [],
+                    'tof': [],
+                    'imu': [],
+                    'camera': [],
+                    'button': [],
+                    'env': [],
+                    'encoder': [],
+                    'line_follow': [],
+                    'rfid_reader': [],
+                },
+                'actuator': {
+                    'speaker': [],
+                    'leds': [],
+                    'pan_tilt': [],
+                    'screen': [],
+                    'twist': [],
+                }
+            },
+            'env': {
+                'sensor': {
+                    'ph': [],
+                    'temperature': [],
+                    'humidity': [],
+                    'gas': [],
+                    'camera': [],
+                    'sonar': [],
+                    'linear_alarm': [],
+                    'area_alarm': [],
+                    'light_sensor': [],
+                    'microphone': [],
+                },
+                'actuator': {
+                    'thermostat': [],
+                    'relay': [],
+                    'pan_tilt': [],
+                    'speaker': [],
+                    'leds': [],
+                    'humidifier': [],
+                }
+            },
+            'actor': {
+                'human': [],
+                'superman': [],
+                'sound_source': [],
+                'qr': [],
+                'barcode': [],
+                'color': [],
+                'text': [],
+                'rfid_tag': [],
+                'fire': [],
+                'water': [],
+            }
+        }
+
+        if self.commlib_factory is not None:
+            self.commlib_factory.stop()

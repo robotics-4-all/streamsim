@@ -425,7 +425,7 @@ class Robot:
         that the robot thread is being stopped.
         Finally, it sets the robot's stopped attribute to True.
         """
-        for c, controller in self.controllers:
+        for c, controller in self.controllers.items():
             self.logger.warning("Trying to stop controller %s", c)
             controller.stop()
 
