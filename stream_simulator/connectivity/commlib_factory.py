@@ -7,11 +7,14 @@ File that contains the CommlibFactory class.
 import logging
 import inspect
 import os
+from typing import Union
 from dotenv import load_dotenv
 
 from commlib.node import Node
 from commlib.transports.mqtt import ConnectionParameters as MQTTConnectionParameters
 from commlib.transports.redis import ConnectionParameters as RedisConnectionParameters
+from commlib.msg import PubSubMessage
+
 
 class CommlibFactory(Node):
     """
@@ -208,7 +211,8 @@ class CommlibFactory(Node):
             comm_lst[name] = \
                 [f"{calframe[1][1].split('/')[-1]}:{calframe[1][2]}"]
 
-    def get_publisher(self, broker = "mqtt", topic = None, auto_run = True):
+    def get_publisher(self, broker: str = "mqtt", topic: str = None,
+                      auto_run: bool = True, msg_type: Union[PubSubMessage, None] = None):
         """
         Creates and runs a publisher for the specified broker and topic.
         Args:
@@ -227,10 +231,16 @@ class CommlibFactory(Node):
         # )
 
         # NOTE: Check if this works
-        ret = self.create_wpublisher(self.mpub, topic)
+        ret = self.create_wpublisher(self.mpub, topic, msg_type=msg_type)
         calframe = inspect.getouterframes(inspect.currentframe(), 2)
-        self.internal_handle(auto_run, ret, CommlibFactory.publisher_topics, topic, calframe, \
-            broker, "publishers")
+        self.internal_handle(
+            auto_run, ret,
+            CommlibFactory.publisher_topics,
+            topic,
+            calframe,
+            broker,
+            "publishers"
+        )
         return ret
 
     def get_subscriber(

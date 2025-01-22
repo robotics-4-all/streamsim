@@ -10,6 +10,38 @@ import logging
 import threading
 
 from stream_simulator.connectivity import CommlibFactory
+from commlib.msg import PubSubMessage
+
+
+class PositionMsg(PubSubMessage):
+    x: float
+    y: float
+    z: float
+
+
+class RPYOrientationMsg(PubSubMessage):
+    roll: float
+    pitch: float
+    yaw: float
+
+
+class XYZOrientationMsg(PubSubMessage):
+    x: float
+    y: float
+    z: float
+
+
+class QuaternionMsg(PubSubMessage):
+    x: float
+    y: float
+    z: float
+    w: float
+
+
+class PoseMsg(PubSubMessage):
+    position: PositionMsg
+    orientation: RPYOrientationMsg
+
 
 class Robot:
     """
@@ -157,6 +189,10 @@ class Robot:
         )
         self.internal_pose_pub = self.commlib_factory.get_publisher(
             topic = self.name + ".pose.internal"
+        )
+        self.pose_pub = self.commlib_factory.get_publisher(
+            topic=f"{self.name}.pose",
+            msg_type=PoseMsg
         )
         # print("IN ROBOT: ", self.name, self.name + ".pose.internal")
 
@@ -593,6 +629,13 @@ class Robot:
             "name": self.name, # is this needed?
             "raw_name": self.raw_name
         })
+        # Publish a more generic PoseMessage
+        pose = PoseMsg(
+            position=PositionMsg(x=self._x, y=self._y, z=0.0),
+            orientation=RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
+            # orientation=QuaternionMsg(x=0.0, y=0.0, z=math.sin(self._theta / 2), w=math.cos(self._theta / 2))
+        )
+        self.pose_pub.publish(pose)
 
     def simulation_thread(self):
         """
