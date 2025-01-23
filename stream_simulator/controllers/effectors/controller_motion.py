@@ -170,15 +170,6 @@ class MotionController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-    def stop(self):
-        """
-        Stops the motion controller by invoking the stop method of the commlib_factory.
-
-        This method is used to halt any ongoing operations or movements controlled by the 
-        commlib_factory.
-        """
-        self.commlib_factory.stop()
-
     def move_duration_callback(self, message):
         """
         Callback function to handle movement duration messages.
@@ -239,8 +230,8 @@ class MotionController(BaseThing):
         """
         try:
             response = message
-
             # Checks for types
+            print(response)
             try:
                 float(response['linear'])
                 float(response['distance'])

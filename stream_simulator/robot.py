@@ -133,6 +133,7 @@ class Robot:
 
         self._curr_node = -1
         self.stopped = False
+        self.terminated = False
         self.error_log_msg = ""
 
         self.detection_threshold = 1
@@ -464,11 +465,21 @@ class Robot:
         for c, controller in self.controllers.items():
             self.logger.warning("Trying to stop controller %s", c)
             controller.stop()
+            del controller
 
-        self.commlib_factory.stop()
+        # Stopping the motion controller
+        if self.motion_controller is not None:
+            self.logger.warning("Trying to stop motion controller")
+            self.motion_controller.stop()
+            del self.motion_controller
 
         self.logger.warning("Trying to stop robot thread")
         self.stopped = True
+        while not self.terminated:
+            time.sleep(0.1)
+        self.logger.warning("Robot thread stopped")
+        self.commlib_factory.stop()
+        del self.commlib_factory
 
     def devices_callback(self, _):
         """
@@ -711,3 +722,6 @@ class Robot:
                     )
 
             time.sleep(self.dt)
+
+        self.logger.warning("Stopped %s simulation thread", self.name)
+        self.terminated = True

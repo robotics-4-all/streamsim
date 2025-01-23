@@ -30,6 +30,7 @@ class BaseThing:
         """
         BaseThing.id += 1
 
+        self.commlib_factory = None
         self.name = _name
         self.base_topic = None
         self.namespace = None
