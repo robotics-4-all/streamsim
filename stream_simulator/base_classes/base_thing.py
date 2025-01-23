@@ -192,4 +192,4 @@ class BaseThing:
         """
         Stops the communication for the thing.
         """
-        self.commlib_factory.stop()
+        self.commlib_factory.stop(wait=True)

@@ -468,10 +468,10 @@ class Robot:
             del controller
 
         # Stopping the motion controller
-        if self.motion_controller is not None:
-            self.logger.warning("Trying to stop motion controller")
-            self.motion_controller.stop()
-            del self.motion_controller
+        # if self.motion_controller is not None:
+        #     self.logger.warning("Trying to stop motion controller")
+        #     self.motion_controller.stop()
+        del self.motion_controller
 
         self.logger.warning("Trying to stop robot thread")
         self.stopped = True
