@@ -112,6 +112,17 @@ class EnvCameraController(BaseThing):
 
         self.set_communication_layer(package)
 
+        self.detection_rpc = self.commlib_factory.get_rpc_service(
+            broker = "redis",
+            rpc_name = self.base_topic + ".detect",
+            callback = self.detection_callback,
+            auto_run = False,
+        )
+
+        self.tf_detection_rpc_client = self.commlib_factory.get_rpc_client(
+            rpc_name=package["tf_detect_rpc_topic"]
+        )
+
         self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
@@ -129,6 +140,28 @@ class EnvCameraController(BaseThing):
 
         self.sensor_read_thread = None
         self.stopped = False
+
+    def detection_callback(self, message):
+        """
+        Callback function for handling detection messages.
+
+        Args:
+            message (dict): A dictionary containing the detection message. 
+                            It must have a 'detection' key indicating the type of detection.
+
+        Returns:
+            None
+
+        The function sends a request to the tf_detection_rpc_client with the detection type 
+        and the name of the current instance. The response from the client is printed.
+        """
+        detection_type = message['detection'] # to be detected
+        ret = self.tf_detection_rpc_client.call({
+            'name': self.name,
+            # face, gender, age, emotion, motion, qr, barcode, text, color, robot
+            'detection': detection_type 
+        })
+        print(ret)
 
     def set_communication_layer(self, package):
         """

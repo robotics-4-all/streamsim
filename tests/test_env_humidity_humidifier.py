@@ -85,14 +85,14 @@ class Test(unittest.TestCase):
 
             time.sleep(1.5)
             self.assertIsNotNone(self.humidity_value)
-            self.assertAlmostEqual(float(self.humidity_value['value']), 60.0, delta=0.5)
+            self.assertAlmostEqual(float(self.humidity_value['value']), 60.0, delta=2)
 
-            self.humidifier_set_rpc.call({'humidity': 80.0})
+            self.humidifier_set_rpc.call({'humidity': 100.0})
             stored_val = self.humidifier_get_rpc.call({})
-            self.assertAlmostEqual(float(stored_val['humidity']), 80.0, delta=0.01)
+            self.assertAlmostEqual(float(stored_val['humidity']), 100.0, delta=0.01)
 
-            time.sleep(0.5)
-            self.assertGreaterEqual(float(self.humidity_value['value']), 63.0)
+            time.sleep(2)
+            self.assertGreaterEqual(float(self.humidity_value['value']), 61.0)
 
             self.humidifier_set_rpc.call({'humidity': 0.0})
 

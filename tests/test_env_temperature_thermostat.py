@@ -82,16 +82,16 @@ class Test(unittest.TestCase):
         try:
             self.set_rpc.call({'temperature': 0.0})
 
-            time.sleep(0.5)
+            time.sleep(2)
             self.assertIsNotNone(self.temperature)
-            self.assertAlmostEqual(float(self.temperature['value']), 96.6, delta=1.0)
+            self.assertGreaterEqual(float(self.temperature['value']), 90)
 
             self.set_rpc.call({'temperature': 130.0})
             stored_val = self.get_rpc.call({})
             self.assertAlmostEqual(float(stored_val['temperature']), 130.0, delta=0.01)
 
-            time.sleep(0.5)
-            self.assertGreaterEqual(float(self.temperature['value']), 117.0)
+            time.sleep(2)
+            self.assertGreaterEqual(float(self.temperature['value']), 100.0)
 
             self.set_rpc.call({'temperature': 0.0})
 

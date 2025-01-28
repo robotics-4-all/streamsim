@@ -291,6 +291,7 @@ class World:
             "namespace": self.configuration["simulation"]["name"],
             'tf_declare_rpc_topic': self.tf_base + '.declare',
             'tf_affection_rpc_topic': self.tf_base + '.get_affections',
+            'tf_detect_rpc_topic': self.tf_base + '.simulated_detection',
             'env': self.env_properties,
             "map": self.map,
             "resolution": self.resolution

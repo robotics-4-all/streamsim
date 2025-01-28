@@ -313,6 +313,7 @@ class Robot:
             "env_properties": self.env_properties,
             'tf_declare_rpc_topic': self.tf_base + '.declare',
             'tf_affection_rpc_topic': self.tf_base + '.get_affections',
+            'tf_detect_rpc_topic': self.tf_base + '.simulated_detection',
         }
         str_sim = __import__("stream_simulator")
         str_contro = getattr(str_sim, "controllers")
