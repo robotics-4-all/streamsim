@@ -118,6 +118,13 @@ class EnvController(BaseThing):
         self.sensor_read_thread = None
         self.stopped = False
 
+        self.dynamic_value = {
+            "temperature": None,
+            "pressure": None,
+            "humidity": None,
+            "gas": None
+        }
+
     def sensor_read(self):
         """
         Reads sensor data in a loop and publishes it at a specified frequency.
@@ -144,7 +151,6 @@ class EnvController(BaseThing):
 
             val = {
                 "temperature": 0,
-                "pressure": 0,
                 "humidity": 0,
                 "gas": 0
             }
@@ -170,10 +176,14 @@ class EnvController(BaseThing):
                     r = (1 - tem_aff[a]['distance'] / tem_aff[a]['range']) * \
                         tem_aff[a]['info']['temperature']
                     temps.append(r)
-                val["temperature"] = amb
+                final_temp = amb
                 if len(temps) != 0:
-                    val["temperature"] = amb + statistics.mean(temps)
-                val["temperature"] += random.uniform(-0.25, 0.25)
+                    final_temp = amb + statistics.mean(temps)
+                if self.dynamic_value['temperature'] is None:
+                    self.dynamic_value['temperature'] = final_temp
+                else:
+                    self.dynamic_value['temperature'] += (final_temp - self.dynamic_value['temperature'])/6
+                val["temperature"] = self.dynamic_value['temperature'] + random.uniform(-0.1, 0.1)
 
                 # humidity
                 ambient = self.env_properties['humidity']
@@ -189,7 +199,13 @@ class EnvController(BaseThing):
                         ambient += affections * 0.1
                     else:
                         ambient = affections - (affections - ambient) * 0.1
-                val["humidity"] = ambient + random.uniform(-0.5, 0.5)
+
+                final_hum = ambient
+                if self.dynamic_value['humidity'] is None:
+                    self.dynamic_value['humidity'] = final_hum
+                else:
+                    self.dynamic_value['humidity'] += (final_hum - self.dynamic_value['humidity'])/6
+                val["humidity"] = self.dynamic_value['humidity'] + random.uniform(-0.1, 0.1)
 
                 # gas
                 ppm = 400 # typical environmental
@@ -199,7 +215,13 @@ class EnvController(BaseThing):
                         ppm += 1000.0 * rel_range
                     elif gas_aff[a]['type'] == 'fire':
                         ppm += 5000.0 * rel_range
-                val["gas"] = ppm + random.uniform(-5, 5)
+
+                final_gas = ppm
+                if self.dynamic_value['gas'] is None:
+                    self.dynamic_value['gas'] = final_gas
+                else:
+                    self.dynamic_value['gas'] += (final_gas - self.dynamic_value['gas'])/6
+                val["gas"] = self.dynamic_value['gas'] + random.uniform(-5, 5)
 
                 # pressure
                 val["pressure"] = 27.3 + random.uniform(-3, 3)
@@ -210,7 +232,6 @@ class EnvController(BaseThing):
                 "data": val,
                 "timestamp": time.time()
             })
-            # print(val)
 
         self.logger.info("Env %s sensor read thread stopped", self.info["id"])
         self.stopped = True

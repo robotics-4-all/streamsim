@@ -64,6 +64,8 @@ class EnvHumiditySensorController(BasicSensor):
 
         self.tf_declare_rpc.call(tf_package)
 
+        self.dynamic_value = None
+
     def get_simulation_value(self):
         """
         Calculate the simulated humidity value based on environmental properties and external 
@@ -92,6 +94,9 @@ class EnvHumiditySensorController(BasicSensor):
         else:
             ambient = affections - (affections - ambient) * 0.1
 
-        ambient += random.uniform(-0.5, 0.5)
-
-        return ambient
+        final_value = ambient
+        if self.dynamic_value is None:
+            self.dynamic_value = final_value
+        else:
+            self.dynamic_value += (final_value - self.dynamic_value)/6
+        return self.dynamic_value + random.uniform(-0.5, 0.5)

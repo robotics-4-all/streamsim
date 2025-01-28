@@ -62,6 +62,8 @@ class EnvGasSensorController(BasicSensor):
 
         self.tf_declare_rpc.call(tf_package)
 
+        self.dynamic_value = None
+
     def get_simulation_value(self):
         res = self.tf_affection_rpc.call({
             'name': self.name
@@ -80,5 +82,9 @@ class EnvGasSensorController(BasicSensor):
             elif res[a]['type'] == 'fire':
                 ppm += 5000.0 * rel_range
 
-        # print(f"Gas sensor {self.name} ppm: {ppm}")
-        return ppm + random.uniform(-10, 10)
+        final_value = ppm
+        if self.dynamic_value is None:
+            self.dynamic_value = final_value
+        else:
+            self.dynamic_value += (final_value - self.dynamic_value)/6
+        return self.dynamic_value + random.uniform(-10, 10)

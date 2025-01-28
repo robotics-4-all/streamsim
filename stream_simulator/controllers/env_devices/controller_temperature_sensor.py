@@ -76,6 +76,8 @@ class EnvTemperatureSensorController(BasicSensor):
 
         self.tf_declare_rpc.call(tf_package)
 
+        self.dynamic_value = None
+
     def get_simulation_value(self):
         """
         Calculate the simulated temperature value based on environmental properties and sensor data.
@@ -102,5 +104,11 @@ class EnvTemperatureSensorController(BasicSensor):
         mms = 0
         if len(temps) > 0:
             mms = statistics.mean(temps)
-        final = amb + mms + random.uniform(-0.1, 0.1)
-        return final
+
+        final_value = amb + mms
+        if self.dynamic_value is None:
+            self.dynamic_value = final_value
+        else:
+            self.dynamic_value += (final_value - self.dynamic_value)/6
+        return self.dynamic_value + random.uniform(-0.1, 0.1)
+ 
