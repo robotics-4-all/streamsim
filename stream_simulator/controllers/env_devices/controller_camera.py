@@ -156,12 +156,11 @@ class EnvCameraController(BaseThing):
         and the name of the current instance. The response from the client is printed.
         """
         detection_type = message['detection'] # to be detected
-        ret = self.tf_detection_rpc_client.call({
+        return self.tf_detection_rpc_client.call({
             'name': self.name,
             # face, gender, age, emotion, motion, qr, barcode, text, color, robot
-            'detection': detection_type 
+            'type': detection_type,
         })
-        print(ret)
 
     def set_communication_layer(self, package):
         """
@@ -345,7 +344,7 @@ class EnvCameraController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-        if self.info["enabled"]:
+        if self.info["enabled"] and "generate_images" in self.info and self.info["generate_images"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
 

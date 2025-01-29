@@ -148,6 +148,17 @@ class CameraController(BaseThing):
                 callback = self.robot_pose_update
             )
 
+        self.detection_rpc = self.commlib_factory.get_rpc_service(
+            broker = "redis",
+            rpc_name = self.base_topic + ".detect",
+            callback = self.detection_callback,
+            auto_run = False,
+        )
+
+        self.tf_detection_rpc_client = self.commlib_factory.get_rpc_client(
+            rpc_name=package["tf_detect_rpc_topic"]
+        )
+
         self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
@@ -166,6 +177,27 @@ class CameraController(BaseThing):
         self.robot_pose = None
         self.sensor_read_thread = None
         self.stopped = False
+
+    def detection_callback(self, message):
+        """
+        Callback function for handling detection messages.
+
+        Args:
+            message (dict): A dictionary containing the detection message. 
+                            It must have a 'detection' key indicating the type of detection.
+
+        Returns:
+            None
+
+        The function sends a request to the tf_detection_rpc_client with the detection type 
+        and the name of the current instance. The response from the client is printed.
+        """
+        detection_type = message['detection'] # to be detected
+        return self.tf_detection_rpc_client.call({
+            'name': self.name,
+            # face, gender, age, emotion, motion, qr, barcode, text, color, robot
+            'type': detection_type,
+        })
 
     def robot_pose_update(self, message):
         """
@@ -196,7 +228,7 @@ class CameraController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-        if self.info["enabled"]:
+        if self.info["enabled"] and "generate_images" in self.info and self.info["generate_images"]:
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
             self.logger.info("Camera %s reads with %s Hz", self.info['id'], self.info['hz'])

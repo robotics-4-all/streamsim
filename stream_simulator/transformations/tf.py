@@ -878,10 +878,16 @@ class TfController:
                 - 'name': The name of the second point.
                 - 'id': The ID of the second point (if applicable).
         """
+            
         p_d = self.places_absolute[name]
         p_f = self.places_absolute[f]
 
         d = math.sqrt((p_d['x'] - p_f['x'])**2 + (p_d['y'] - p_f['y'])**2)
+
+        if type_ == "human":
+            print(p_d)
+            print(p_f)
+            print(d)
 
         # print(name, p_d, p_f, d)
         if d < self.declarations_info[name]['range']: # range of arced sensor
@@ -1219,12 +1225,11 @@ class TfController:
         tmp_ret = {}
         ret = {}
         try:
-            # pl = self.places_absolute[name]
-            luminosity = self.compute_luminosity(name, print_debug = False)
-
             # - actor human
             for f in self.per_type['actor']['human']:
+                print(f"Checking {f}")
                 r = self.handle_affection_arced(name, f, 'human')
+                print(r)
                 if r is not None:
                     ret[f] = r
             # - actor qr
@@ -1255,18 +1260,12 @@ class TfController:
                     if r is not None:
                         ret[rob] = r
 
-            # Filtering by luminosity. If darkness, do not detect things.
-            for key, val in ret.items():
-                rnd = random.uniform(0, 100)
-                if rnd < luminosity:
-                    tmp_ret[key] = val
-
         except Exception as e: # pylint: disable=broad-except
             self.logger.error("handle_sensor_camera: %s", str(e))
             # pylint: disable=broad-exception-raised
             raise Exception(str(e)) from e
 
-        ret = tmp_ret
+        ret = ret
         return ret
 
     # Affected by rfid_tags
@@ -1525,7 +1524,7 @@ class TfController:
             type_ = message['type']
             decl = self.declarations_info[name]
         except Exception: # pylint: disable=broad-except
-            self.logger.error("%s not in devices", message['name'])
+            self.logger.error("'%s' not in devices", message['name'])
             return
 
         if decl['subtype']['subclass'][0] not in ['camera', 'microphone']:
@@ -1545,50 +1544,68 @@ class TfController:
             "result": None
         })
 
-        decision = False
-        info = None
         frm = None
+
+        final_detection = {}
 
         if decl['subtype']['subclass'][0] == "microphone":
             # possible types: sound, language, emotion, speech2text
+            final_detection = {
+                "sound": {
+                    "result": False,
+                    "value": None,
+                },
+                "language": {
+                    "result": False,
+                    "value": None,
+                },
+                "emotion": {
+                    "result": False,
+                    "value": None,
+                },
+                "speech2text": {
+                    "result": False,
+                    "value": None,
+                }
+            }
+            
             ret = self.check_affectability(name)
-            decision = False
-            info = ""
             frm = ret
             print(message)
             print("===============", ret)
 
-            if type == "sound":
+            if type_ == "sound":
                 if ret is not None:
                     if len(ret) >= 1:
                         for ff in ret:
-                            decision = True
-                            info = ret[ff]['info']['sound']
+                            final_detection['sound']['result'] = True
+                            final_detection['sound']['value'] = "sound"
                             frm = ret[ff]
-            elif type == "language":
+            elif type_ == "language":
                 if ret is not None:
                     if len(ret) >= 1:
                         for x in ret:
-                            decision = True
-                            info = ret[x]['info']['language'] # gets the last one
+                            final_detection['language']['result'] = True
+                            final_detection['language']['value'] = ret[x]['info']['language'] # gets the last one
                             frm = ret[x]
-            elif type == "emotion":
+            elif type_ == "emotion":
                 if ret is not None:
                     if len(ret) >= 1:
                         for x in ret:
-                            decision = True
-                            info = ret[x]['info']['emotion'] # gets the last one
+                            final_detection['emotion']['result'] = True
+                            final_detection['emotion']['value'] = ret[x]['info']['emotion']
                             frm = ret[x]
-            elif type == "speech2text":
+            elif type_ == "speech2text":
                 if ret is not None:
                     if len(ret) >= 1:
                         for x in ret:
                             if ret[x]['type'] == 'human':
-                                decision = True
-                                info = ret[x]['info']['speech']
+                                final_detection['speech2text']['result'] = True
+                                final_detection['speech2text']['value'] = ret[x]['info']['speech']
                                 frm = ret[x]
-                if info == "":
-                    decision = False
+                if ret[x]['info']['speech'] == "":
+                    final_detection['speech2text']['result'] = False
+                    final_detection['speech2text']['value'] = ""
             else:
                 self.logger.error("Wrong detection type: %s", type_)
 
@@ -1599,84 +1616,128 @@ class TfController:
             # gt luminosity
             lum = self.compute_luminosity(name, print_debug = False)
 
+            final_detection = {
+                "face": {
+                    "result": False,
+                    "value": None,
+                },
+                "gender": {
+                    "result": False,
+                    "value": None,
+                },
+                "age": {
+                    "result": False,
+                    "value": None,
+                },
+                "emotion": {
+                    "result": False,
+                    "value": None,
+                },
+                "motion": {
+                    "result": False,
+                    "value": None,
+                },
+                "qr": {
+                    "result": False,
+                    "value": None,
+                },
+                "barcode": {
+                    "result": False,
+                    "value": None,
+                },
+                "text": {
+                    "result": False,
+                    "value": None,
+                },
+                "color": {
+                    "result": False,
+                    "value": None,
+                },
+                "robot": {
+                    "result": False,
+                    "value": None,
+                }
+            }
+            decision = True
+            roulette = random.uniform(0, 1)
+            if math.pow(roulette, 2) > lum:
+                self.logger.warning("Camera detection: too dark")
+                decision = False
+
+            print(ret.items())
             if type_ == "face":
                 for x, item in ret.items():
                     if item['type'] == 'human': # gets the last one
-                        decision = True
-                        info = "" # no info, just a face
+                        final_detection['face']['result'] = True and decision
+                        final_detection['face']['value'] = ""
                         frm = item
             elif type_ == "gender":
                 for x, item in ret.items():
                     if item['type'] == 'human' and item['info']['gender'] != "none": # gets the last
-                        decision = True
-                        info = item['info']['gender']
+                        final_detection['gender']['result'] = True and decision
+                        final_detection['gender']['value'] = item['info']['gender']
                         frm = item
             elif type_ == "age":
                 for x, item in ret.items():
                     if item['type'] == 'human' and item['info']['age'] != -1: # gets the last one
-                        decision = True
-                        info = item['info']['age']
+                        final_detection['age']['result'] = True and decision
+                        final_detection['age']['value'] = item['info']['age']
                         frm = item
             elif type_ == "emotion":
                 for x, item in ret:
                     if item['type'] == 'human': # gets the last one
-                        decision = True
-                        info = item['info']['emotion']
+                        final_detection['emotion']['result'] = True and decision
+                        final_detection['emotion']['value'] = item['info']['emotion']
                         frm = item
             elif type_ == "motion":
                 for x, item in ret.items():
                     if item['type'] == 'human' and item['info']['motion'] == 1: # gets the last one
-                        decision = True
-                        info = ""
+                        final_detection['motion']['result'] = True and decision
+                        final_detection['motion']['value'] = ""
                         frm = item
             elif type_ == "qr":
                 for x, item in ret.items():
                     if item['type'] == 'qr':
-                        decision = True
-                        info = item['info']['message']
+                        final_detection['qr']['result'] = True and decision
+                        final_detection['qr']['value'] = item['info']['message']
                         frm = item
             elif type_ == "barcode":
                 for x, item in ret.items():
                     if item['type'] == 'barcode':
-                        decision = True
-                        info = item['info']['message']
+                        final_detection['barcode']['result'] = True and decision
+                        final_detection['barcode']['value'] = item['info']['message']
                         frm = item
             elif type_ == "text":
                 for x, item in ret.items():
                     if item['type'] == 'text':
-                        decision = True
-                        info = item['info']['text']
+                        final_detection['text']['result'] = True and decision
+                        final_detection['text']['value'] = item['info']['text']
                         frm = item
             elif type_ == "color":
                 if len(ret) == 0:
-                    info = {'r': 0, 'g': 0, 'b': 0}
                     frm = None
+                    final_detection['color']['result'] = False
+                    final_detection['color']['value'] = {'r': 0, 'g': 0, 'b': 0}
                 for x, item in ret.items():
                     if item['type'] == 'color':
-                        decision = True
-                        info = item['info']
+                        final_detection['color']['result'] = True and decision
+                        final_detection['color']['value'] = item['info']
                         frm = item
             elif type_ == "robot":
                 for x, item in ret.items():
                     if item['type'] == 'robot':
-                        decision = True
-                        info = item['info']
+                        final_detection['robot']['result'] = True and decision
+                        final_detection['robot']['value'] = item['info']
                         frm = item
             else:
                 self.logger.error("Wrong detection type: %s", type_)
                 return
 
-            if decision is True:
-                roulette = random.uniform(0, 1)
-                if math.pow(roulette, 2) > lum:
-                    self.logger.warning("Camera detection: too dark")
-                    decision = False
-
         else: # possible types: face, qr, barcode, gender, age, color, motion, emotion
             pass
 
-        self.logger.info("Detection result for %s with id %s: %s, %s, %s",\
-            name, id_, decision, info, frm)
+        self.logger.info("Detection result for %s with id %s: %s, %s",\
+            name, id_, final_detection, frm)
 
         # NOTE: Is this needed?
         self.detections_publisher.publish({
@@ -1685,7 +1746,7 @@ class TfController:
             "type": type_,
             "id": id_,
             "state": "end",
-            "result": decision
+            "result": final_detection
         })
 
         self.mqtt_notifier.dispatch_detection({
@@ -1694,15 +1755,13 @@ class TfController:
             "type": type_,
             "id": id_,
             "state": "end",
-            "result": decision,
-            "info": info,
+            "result": final_detection,
             "frm": frm
         })
 
         return {
-            "result": decision,
-            "info": info,
-            "frm": frm
+            "detection": final_detection,
+            "frm": frm,
         }
 
     def stop(self):
