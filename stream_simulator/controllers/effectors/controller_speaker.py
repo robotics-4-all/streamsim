@@ -198,7 +198,7 @@ class SpeakerController(BaseThing):
         elif self.info["mode"] == "simulation":
             now = time.time()
             self.logger.info("Speaking...")
-            while time.time() - now < 5:
+            while time.time() - now < len(texts) * 0.1:
                 if goalh.cancel_event.is_set():
                     self.logger.info("Cancel got")
                     self.blocked = False
