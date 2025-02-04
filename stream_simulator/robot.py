@@ -244,6 +244,10 @@ class Robot:
             topic=f"{self.name}.pose",
             msg_type=PoseMsg
         )
+        self.crash_pub = self.commlib_factory.get_publisher(
+            topic=f"{self.name}.crash",
+            msg_type=PoseMsg
+        )
         # print("IN ROBOT: ", self.name, self.name + ".pose.internal")
 
         # SIMULATOR ------------------------------------------------------------
@@ -863,6 +867,11 @@ class Robot:
                     self.mqtt_notifier.dispatch_log(
                         f"Robot: {self.raw_name} {self.error_log_msg}"
                     )
+
+                    self.crash_pub.publish({
+                        "position": PositionMsg(x=self._x, y=self._y, z=0.0),
+                        "orientation": RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
+                    })
 
             time.sleep(self.dt)
 
