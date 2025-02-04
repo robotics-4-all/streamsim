@@ -244,3 +244,21 @@ class MQTTNotifier:
         })
         if self.prints:
             self.logger.info("UI inform %s: %s", "robot_pose", payload)
+
+    def dispatch_env_properties(self, message):
+        """
+        Dispatches environmental properties message to the notifier.
+
+        This method publishes a message containing environmental properties to the
+        notify_pub publisher. If the 'prints' attribute is set to True, it also logs
+        the information.
+
+        Args:
+            message (dict): The environmental properties data to be dispatched.
+        """
+        self.notify_pub.publish({
+            'type': "env_properties",
+            'data': message,
+        })
+        if self.prints:
+            self.logger.info("UI inform %s: %s", "env_properties", message)

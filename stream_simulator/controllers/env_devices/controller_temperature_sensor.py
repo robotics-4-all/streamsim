@@ -92,13 +92,14 @@ class EnvTemperatureSensorController(BasicSensor):
         })
 
         # Logic
-        amb = self.env_properties['temperature']
+        amb = res['env_properties']['temperature']
+        affections = res['affections']
         temps = []
-        if res is None:
+        if affections is None:
             return amb
 
-        for a in res:
-            r = (1 - res[a]['distance'] / res[a]['range']) * res[a]['info']['temperature']
+        for a in affections:
+            r = (1 - affections[a]['distance'] / affections[a]['range']) * affections[a]['info']['temperature']
             temps.append(r)
 
         mms = 0

@@ -236,11 +236,11 @@ class Simulator:
         self.tf.initialize(
             base = self.name,
             resolution = resolution,
-            env_properties = self.configuration["world"]["properties"],
+            # env_properties = self.configuration["world"]["properties"],
         )
 
         # Initializing world
-        self.world = World(uid=self.uid, mqtt_notifier=self.mqtt_notifier)
+        self.world = World(uid=self.uid, mqtt_notifier=self.mqtt_notifier, tf=self.tf)
         self.world.load_environment(configuration = self.configuration)
         self.world_name = self.world.name
 

@@ -119,6 +119,13 @@ class TfController:
             }
         }
 
+    def set_env_properties(self, env_properties):
+        """
+        Set the environmental properties for the transformation module.
+        """
+        self.env_properties = env_properties
+        self.logger.info("TF set environmental variables: %s", self.env_properties)
+
     def initialize(self, base = None, resolution = None, env_properties = None, ):
         """
         Initialize the transformation module with the given parameters.
@@ -1505,7 +1512,10 @@ class TfController:
             # pylint: disable=broad-exception-raised
             raise Exception(f"Error in device handling: {str(e)}") from e
 
-        return ret
+        return {
+            "affections": ret,
+            "env_properties": self.env_properties,
+        }
 
     def get_sim_detection_callback(self, message):
         """

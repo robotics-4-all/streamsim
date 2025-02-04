@@ -76,14 +76,15 @@ class EnvPhSensorController(BasicSensor):
         res = self.tf_affection_rpc.call({
             'name': self.name
         })
+        affections = res['affections']
 
         # Logic
-        amb = self.env_properties['ph']
+        amb = res['env_properties']['ph']
         ph_values = []
-        if res is None:
+        if affections is None:
             return amb
 
-        for a in res:
+        for a in affections:
             ph_values.append(a['ph'])
 
         if len(ph_values) == 0:

@@ -283,19 +283,20 @@ class CameraController(BaseThing):
                 res = self.tf_affection_rpc.call({
                     'name': self.name
                 })
+                affections = res['affections']
 
                 # Get the closest:
                 clos = None
                 clos_d = 100000.0
-                for x in res:
-                    if res[x]['distance'] < clos_d:
+                for x in affections:
+                    if affections[x]['distance'] < clos_d:
                         clos = x
-                        clos_d = res[x]['distance']
+                        clos_d = affections[x]['distance']
 
                 if clos is None:
                     cl_type = None
                 else:
-                    cl_type = res[clos]['type']
+                    cl_type = affections[clos]['type']
 
                 # print(self.name, cl_type)
 
@@ -305,7 +306,7 @@ class CameraController(BaseThing):
                     img = random.choice(["face.jpg", "face_inverted.jpg"])
                 elif cl_type == "qr":
                     try:
-                        im = qrcode.make(res[clos]["info"]["message"])
+                        im = qrcode.make(affections[clos]["info"]["message"])
                     except: # pylint: disable=bare-except
                         self.logger.error("QR creator could not produce string or qrcode library \
                             is not installed")
@@ -317,9 +318,9 @@ class CameraController(BaseThing):
                     img = 'col_tmp.png'
                     tmp = np.zeros((height, width, 3), np.uint8)
                     tmp[:] = (
-                        res[clos]['info']["b"],
-                        res[clos]['info']["g"],
-                        res[clos]['info']["r"]
+                        affections[clos]['info']["b"],
+                        affections[clos]['info']["g"],
+                        affections[clos]['info']["r"]
                     )
                     cv2.imwrite(dirname + "/resources/" + img, tmp) # pylint: disable=no-member
                 elif cl_type == "text":
@@ -327,7 +328,7 @@ class CameraController(BaseThing):
                     try:
                         image = np.zeros((height, width, 3), dtype=np.uint8)
                         # Define the text and its properties
-                        final_text = res[clos]['info']["text"]
+                        final_text = affections[clos]['info']["text"]
                         font = cv2.FONT_HERSHEY_SIMPLEX # pylint: disable=no-member
                         font_scale = 2
                         color = (255, 255, 255)  # White color

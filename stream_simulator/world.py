@@ -13,6 +13,7 @@ import logging
 import math
 import threading
 import numpy
+import random
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -59,7 +60,7 @@ class World:
         stop():
             Stops the communication library factory.
     """
-    def __init__(self, uid, mqtt_notifier = None):
+    def __init__(self, uid, mqtt_notifier = None, tf = None):
         self.commlib_factory = CommlibFactory(node_name = "World")
         self.logger = logging.getLogger(__name__)
         self.uid = uid
@@ -79,14 +80,20 @@ class World:
         self.actors_configurations = None
         self.actors_controllers = None
         self.mqtt_notifier = mqtt_notifier
+        self.tf = tf
 
         self.name = self.uid
         self.env_properties = {
-            'temperature': 20,
-            'humidity': 50,
-            'luminosity': 100,
-            'ph': 7,
+            'temperature': None,
+            'humidity': None,
+            'luminosity': None,
+            'ph': None,
         }
+        self.env_parameters = None
+
+        self.stopped = False
+        self.active = False
+        self.dynamic_properties_thread = None
 
     def load_environment(self, configuration = None):
         """
@@ -120,10 +127,7 @@ class World:
 
         if "world" in self.configuration:
             if 'properties' in self.configuration['world']:
-                prop = self.configuration['world']['properties']
-                for p, _ in self.env_properties.items():
-                    if p in prop:
-                        self.env_properties[p] = prop[p]
+                self.env_parameters = self.configuration['world']['properties']
 
         self.env_devices = []
         if "env_devices" in self.configuration:
@@ -157,6 +161,11 @@ class World:
         for c in self.controllers:
             # start controllers in threads
             threading.Thread(target = self.controllers[c].start).start()
+
+        self.stopped = False
+        self.active = True
+        self.dynamic_properties_thread = threading.Thread(target = self.dynamic_properties)
+        self.dynamic_properties_thread.start()
 
     def devices_callback(self, _):
         """
@@ -394,4 +403,80 @@ class World:
             c.stop()
             del c
 
+        # Stopping the thread
+        self.active = False
+        while not self.stopped:
+            time.sleep(0.1)
+
         self.commlib_factory.stop()
+
+    def dynamic_properties(self):
+        """
+        Manages the dynamic properties of the environment based on specified operations.
+        This method runs in a loop while `self.active` is True, updating the environment properties
+        according to their defined operations. Supported operations include "constant", "random",
+        "normal", "triangle", and "sinus". The updated properties are stored in `self.env_properties`.
+        The method also logs the start and stop of the thread, and prints the current environment
+        parameters and properties.
+        Operations:
+            - "constant": Sets the property to a constant value.
+            - "random": Sets the property to a random value within a specified range.
+            - "normal": Sets the property to a value based on a normal distribution.
+            - "triangle": Sets the property to a value that oscillates in a triangular wave pattern.
+            - "sinus": Sets the property to a value that oscillates in a sinusoidal wave pattern.
+        Attributes:
+            self.env_parameters (dict): Dictionary containing the environment parameters and their operations.
+            self.env_properties (dict): Dictionary to store the updated environment properties.
+            self.active (bool): Flag to control the execution of the loop.
+            self.logger (Logger): Logger instance for logging information and warnings.
+            self.stopped (bool): Flag to indicate if the thread has stopped.
+        Raises:
+            Warning: Logs a warning if an unsupported operation is encountered.
+        """
+        self.logger.info("Environmental dynamic properties thread started")
+        print(self.env_parameters)
+        prev = {propkey : None for propkey, _ in self.env_parameters.items()}
+        way = {propkey : 1 for propkey, _ in self.env_parameters.items()}
+        for prop_key, prop in self.env_parameters.items():
+            if prop['operation'] == "sinus":
+                prev[prop_key] = prop['operation_parameters']['sinus']['dc']
+            elif prop['operation'] == "triangle":
+                prev[prop_key] = prop['operation_parameters']['triangle']['min']
+
+        while self.active:
+            time.sleep(1.0)
+
+            for prop_key, prop in self.env_parameters.items():
+                if prop['operation'] == "constant":
+                    val = prop['operation_parameters']['constant']['value']
+                elif prop['operation'] == "random":
+                    val = random.uniform(
+                        prop['operation_parameters']['random']['min'],
+                        prop['operation_parameters']['random']['max'],
+                    )
+                elif prop['operation'] == "normal":
+                    val = random.gauss(
+                        prop['operation_parameters']['normal']['mean'],
+                        prop['operation_parameters']['normal']['std'],
+                    )
+                elif prop["operation"] == "triangle":
+                    val = prev[prop_key] + way[prop_key] * prop['operation_parameters']['triangle']['step']
+                    if val >= prop['operation_parameters']['triangle']['max'] or \
+                        val <= prop['operation_parameters']['triangle']['min']:
+                        way[prop_key] *= -1
+                    prev[prop_key] = val
+                elif prop["operation"] == "sinus":
+                    val = prop['operation_parameters']['sinus']['dc'] + \
+                        prop['operation_parameters']['sinus']['amplitude'] * math.sin(prev[prop_key])
+                    prev[prop_key] += prop['operation_parameters']['triangle']['step']
+                else:
+                    self.logger.warning("Unsupported operation: %s", prop["operation"])
+
+                self.env_properties[prop_key] = val
+
+            # Update tf
+            self.tf.set_env_properties(self.env_properties)
+            self.mqtt_notifier.dispatch_env_properties(self.env_properties)
+
+        self.stopped = True
+        self.logger.warning("Environmental dynamic properties thread stopped")

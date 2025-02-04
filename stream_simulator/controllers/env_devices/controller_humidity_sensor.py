@@ -79,14 +79,15 @@ class EnvHumiditySensorController(BasicSensor):
         res = self.tf_affection_rpc.call({
             'name': self.name
         })
+        affections = res['affections']
 
-        ambient = self.env_properties['humidity']
-        if len(res) == 0:
+        ambient = res['env_properties']['humidity']
+        if len(affections) == 0:
             return ambient + random.uniform(-0.5, 0.5)
 
         vs = []
-        for a in res:
-            vs.append((1 - res[a]['distance'] / res[a]['range']) * res[a]['info']['humidity'])
+        for a in affections:
+            vs.append((1 - affections[a]['distance'] / affections[a]['range']) * affections[a]['info']['humidity'])
         affections = statistics.mean(vs)
 
         if ambient > affections:

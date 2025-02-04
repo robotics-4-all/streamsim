@@ -160,7 +160,8 @@ class EnvAreaAlarmController(BaseThing):
                 res = self.tf_affection_rpc.call({
                     'name': self.name
                 })
-                val = [x for x in res]
+                affections = res['affections']
+                val = [x for x in affections]
 
             # Publishing value:
             self.publisher.publish({

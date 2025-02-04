@@ -289,31 +289,32 @@ class MicrophoneController(BaseThing):
             res = self.tf_affection_rpc.call({
                 'name': self.name
             })
+            affections = res['affections']
             # Get the closest:
             clos = None
             clos_type = None
             clos_info = None
             clos_d = 100000.0
-            for x in res:
-                if res[x]['distance'] < clos_d:
+            for x in affections:
+                if affections[x]['distance'] < clos_d:
                     clos = x
-                    clos_d = res[x]['distance']
+                    clos_d = affections[x]['distance']
 
             wav = "Silent.wav"
             if clos is None:
                 pass
-            elif res[clos]['type'] == 'sound_source':
+            elif affections[clos]['type'] == 'sound_source':
                 clos_type = 'sound_source'
-                clos_info = res[clos]['info']
-                if res[clos]['info']['language'] == 'EL':
+                clos_info = affections[clos]['info']
+                if affections[clos]['info']['language'] == 'EL':
                     wav = "greek_sentence.wav"
                 else:
                     wav = "english_sentence.wav"
-            elif res[clos]['type'] == "human":
+            elif affections[clos]['type'] == "human":
                 clos_type = 'human'
-                clos_info = res[clos]['info']
-                if res[clos]['info']["sound"] == 1:
-                    if res[clos]['info']["language"] == "EL":
+                clos_info = affections[clos]['info']
+                if affections[clos]['info']["sound"] == 1:
+                    if affections[clos]['info']["language"] == "EL":
                         wav = "greek_sentence.wav"
                     else:
                         wav = "english_sentence.wav"

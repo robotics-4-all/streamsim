@@ -151,8 +151,9 @@ class RfidReaderController(BaseThing):
                 res = self.tf_affection_rpc.call({
                     'name': self.name
                 })
-                for t in res:
-                    tags[res[t]['info']['id']] = res[t]['info']['message']
+                affections = res['affections']
+                for t in affections:
+                    tags[affections[t]['info']['id']] = affections[t]['info']['message']
 
             # Publishing value:
             val['tags'] = tags

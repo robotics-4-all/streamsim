@@ -68,6 +68,7 @@ class EnvGasSensorController(BasicSensor):
         res = self.tf_affection_rpc.call({
             'name': self.name
         })
+        affections = res['affections']
 
         # humans max: 1000 ppm each
         # fires max: 5000 ppm
@@ -75,11 +76,11 @@ class EnvGasSensorController(BasicSensor):
         ppm = 400 # typical environmental
 
         # Logic
-        for a in res:
-            rel_range = res[a]['distance'] / res[a]['range']
-            if res[a]['type'] == 'human':
+        for a in affections:
+            rel_range = affections[a]['distance'] / affections[a]['range']
+            if affections[a]['type'] == 'human':
                 ppm += 1000.0 * rel_range
-            elif res[a]['type'] == 'fire':
+            elif affections[a]['type'] == 'fire':
                 ppm += 5000.0 * rel_range
 
         final_value = ppm

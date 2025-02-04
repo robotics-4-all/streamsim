@@ -163,8 +163,6 @@ class EnvAmbientLightController(BaseThing):
             self.mode (str): Mode of operation, either "mock" or "simulation".
             self.operation (str): Type of operation for generating sensor values in "mock" mode.
             self.info (dict): Dictionary containing sensor status information.
-            self.tf_affection_rpc (object): RPC client for interacting with external service 
-                in "simulation" mode.
             self.env_properties (dict): Dictionary containing environmental properties.
             self.publisher (object): Publisher object for publishing sensor data.
             self.logger (object): Logger object for logging information.

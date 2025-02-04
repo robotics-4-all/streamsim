@@ -165,12 +165,12 @@ class EnvController(BaseThing):
                     'name': self.name
                 })
 
-                gas_aff = res["gas"]
-                hum_aff = res["humidity"]
-                tem_aff = res["temperature"]
+                gas_aff = res['affections']["gas"]
+                hum_aff = res['affections']["humidity"]
+                tem_aff = res['affections']["temperature"]
 
                 # temperature
-                amb = self.env_properties['temperature']
+                amb = res['env_properties']['temperature']
                 temps = []
                 for a in tem_aff:
                     r = (1 - tem_aff[a]['distance'] / tem_aff[a]['range']) * \
@@ -186,7 +186,7 @@ class EnvController(BaseThing):
                 val["temperature"] = self.dynamic_value['temperature'] + random.uniform(-0.1, 0.1)
 
                 # humidity
-                ambient = self.env_properties['humidity']
+                ambient = res['env_properties']['humidity']
                 if len(hum_aff) == 0:
                     val["humidity"] = ambient + random.uniform(-0.5, 0.5)
                 vs = []
