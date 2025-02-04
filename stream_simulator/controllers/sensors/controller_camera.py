@@ -192,6 +192,7 @@ class CameraController(BaseThing):
         The function sends a request to the tf_detection_rpc_client with the detection type 
         and the name of the current instance. The response from the client is printed.
         """
+        self.logger.critical("CameraController: Detection callback: %s", message)
         detection_type = message['detection'] # to be detected
         return self.tf_detection_rpc_client.call({
             'name': self.name,

@@ -1230,6 +1230,8 @@ class TfController:
         6. Logs and raises an exception if any error occurs during processing.
         """
         ret = {}
+        pl = self.places_absolute[name]
+        x_y = [pl['x'], pl['y']]
         try:
             # - actor human
             for f in self.per_type['actor']['human']:
@@ -1253,6 +1255,15 @@ class TfController:
                 r = self.handle_affection_arced(name, f, 'color')
                 if r is not None:
                     ret[f] = r
+            # - env lights
+            for f in self.per_type['env']['actuator']['leds']:
+                r = self.handle_affection_ranged(x_y, f, 'light')
+                if r is not None:
+                    th_t = self.effectors_get_rpcs[f].call({})
+                    print(th_t)
+                    new_r = r
+                    new_r['info'] = th_t
+                    ret[f] = new_r
             # - actor text
             for f in self.per_type['actor']['text']:
                 r = self.handle_affection_arced(name, f, 'text')
@@ -1728,6 +1739,10 @@ class TfController:
                     final_detection['color']['value'] = {'r': 0, 'g': 0, 'b': 0}
                 for x, item in ret.items():
                     if item['type'] == 'color':
+                        final_detection['color']['result'] = True and decision
+                        final_detection['color']['value'] = item['info']
+                        frm = item
+                    if item['type'] == 'light':
                         final_detection['color']['result'] = True and decision
                         final_detection['color']['value'] = item['info']
                         frm = item
