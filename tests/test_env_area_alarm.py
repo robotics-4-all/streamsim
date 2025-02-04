@@ -60,7 +60,7 @@ class Test(unittest.TestCase):
             auto_run = False
         )
 
-        self.alarm_value = []
+        self.alarm_value = {'value': []}
         self.triggers_value = None
 
         self.cfact.run()
