@@ -373,7 +373,7 @@ class TfController:
 
         if name in self.robots:
             return self.places_absolute[name]
-        elif name in self.pantilts:
+        if name in self.pantilts:
             pose = self.places_absolute[name]
             base_th = 0
             if self.items_hosts_dict[name] is not None:
@@ -885,7 +885,7 @@ class TfController:
                 - 'name': The name of the second point.
                 - 'id': The ID of the second point (if applicable).
         """
-            
+
         p_d = self.places_absolute[name]
         p_f = self.places_absolute[f]
 
@@ -1229,7 +1229,6 @@ class TfController:
             conditions.
         6. Logs and raises an exception if any error occurs during processing.
         """
-        tmp_ret = {}
         ret = {}
         try:
             # - actor human
@@ -1272,7 +1271,6 @@ class TfController:
             # pylint: disable=broad-exception-raised
             raise Exception(str(e)) from e
 
-        ret = ret
         return ret
 
     # Affected by rfid_tags
@@ -1578,7 +1576,7 @@ class TfController:
                     "value": None,
                 }
             }
-            
+
             ret = self.check_affectability(name)
             frm = ret
             print(message)

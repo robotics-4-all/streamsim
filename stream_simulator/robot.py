@@ -14,31 +14,68 @@ from commlib.msg import PubSubMessage
 
 
 class PositionMsg(PubSubMessage):
+    """
+    PositionMsg is a message class used for publishing and subscribing to position data.
+
+    Attributes:
+        x (float): The x-coordinate of the position.
+        y (float): The y-coordinate of the position.
+        z (float): The z-coordinate of the position.
+    """
     x: float
     y: float
     z: float
 
-
 class RPYOrientationMsg(PubSubMessage):
+    """
+    RPYOrientationMsg is a message class for representing roll, pitch, and yaw orientation.
+
+    Attributes:
+        roll (float): The roll angle in radians.
+        pitch (float): The pitch angle in radians.
+        yaw (float): The yaw angle in radians.
+    """
     roll: float
     pitch: float
     yaw: float
 
-
 class XYZOrientationMsg(PubSubMessage):
+    """
+    XYZOrientationMsg is a message class for publishing and subscribing to XYZ orientation data.
+
+    Attributes:
+        x (float): The X coordinate of the orientation.
+        y (float): The Y coordinate of the orientation.
+        z (float): The Z coordinate of the orientation.
+    """
     x: float
     y: float
     z: float
 
-
 class QuaternionMsg(PubSubMessage):
+    """
+    QuaternionMsg is a message class for representing a quaternion.
+
+    Attributes:
+        x (float): The x component of the quaternion.
+        y (float): The y component of the quaternion.
+        z (float): The z component of the quaternion.
+        w (float): The w component of the quaternion.
+    """
     x: float
     y: float
     z: float
     w: float
 
-
 class PoseMsg(PubSubMessage):
+    """
+    PoseMsg is a message class used for publishing and subscribing to pose information.
+
+    Attributes:
+        position (PositionMsg): The position component of the pose message.
+        orientation (RPYOrientationMsg): The orientation component of the pose message, 
+        represented in roll, pitch, and yaw.
+    """
     position: PositionMsg
     orientation: RPYOrientationMsg
 
@@ -657,7 +694,8 @@ class Robot:
         pose = PoseMsg(
             position=PositionMsg(x=self._x, y=self._y, z=0.0),
             orientation=RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
-            # orientation=QuaternionMsg(x=0.0, y=0.0, z=math.sin(self._theta / 2), w=math.cos(self._theta / 2))
+            # orientation=QuaternionMsg(x=0.0, y=0.0, z=math.sin(self._theta / 2),\
+                # w=math.cos(self._theta / 2))
         )
         self.pose_pub.publish(pose)
 
@@ -753,16 +791,19 @@ class Robot:
                             elif self.automation['reverse'] is True and reverse_mode is True:
                                 if self.automation['loop'] is True:
                                     self.automation['points'].reverse()
-                                    self.logger.critical("In loop: Reversed POIs %s", self.automation['points'])
+                                    self.logger.critical("In loop: Reversed POIs %s", \
+                                        self.automation['points'])
                                     self.pois_index = 0
                                     has_target = True
                                     reverse_mode = False
                                 else:
                                     self.stopped = True
-                            elif self.automation['reverse'] is False and self.automation['loop'] is True:
+                            elif self.automation['reverse'] is False and \
+                                self.automation['loop'] is True:
                                 self.pois_index = 0
                                 has_target = True
-                            elif self.automation['reverse'] is False and self.automation['loop'] is False:
+                            elif self.automation['reverse'] is False and \
+                                self.automation['loop'] is False:
                                 self.stopped = True
                         else:
                             self.pois_index += 1

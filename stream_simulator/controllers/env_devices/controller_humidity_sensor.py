@@ -87,7 +87,8 @@ class EnvHumiditySensorController(BasicSensor):
 
         vs = []
         for a in affections:
-            vs.append((1 - affections[a]['distance'] / affections[a]['range']) * affections[a]['info']['humidity'])
+            vs.append((1 - affections[a]['distance'] / affections[a]['range']) * \
+                affections[a]['info']['humidity'])
         affections = statistics.mean(vs)
 
         if ambient > affections:

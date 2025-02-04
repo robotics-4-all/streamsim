@@ -182,7 +182,8 @@ class EnvController(BaseThing):
                 if self.dynamic_value['temperature'] is None:
                     self.dynamic_value['temperature'] = final_temp
                 else:
-                    self.dynamic_value['temperature'] += (final_temp - self.dynamic_value['temperature'])/6
+                    self.dynamic_value['temperature'] += \
+                        (final_temp - self.dynamic_value['temperature'])/6
                 val["temperature"] = self.dynamic_value['temperature'] + random.uniform(-0.1, 0.1)
 
                 # humidity

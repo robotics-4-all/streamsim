@@ -12,8 +12,8 @@ import time
 import logging
 import math
 import threading
-import numpy
 import random
+import numpy
 
 from stream_simulator.connectivity import CommlibFactory
 
@@ -415,7 +415,8 @@ class World:
         Manages the dynamic properties of the environment based on specified operations.
         This method runs in a loop while `self.active` is True, updating the environment properties
         according to their defined operations. Supported operations include "constant", "random",
-        "normal", "triangle", and "sinus". The updated properties are stored in `self.env_properties`.
+        "normal", "triangle", and "sinus". The updated properties are stored in 
+        `self.env_properties`.
         The method also logs the start and stop of the thread, and prints the current environment
         parameters and properties.
         Operations:
@@ -425,7 +426,8 @@ class World:
             - "triangle": Sets the property to a value that oscillates in a triangular wave pattern.
             - "sinus": Sets the property to a value that oscillates in a sinusoidal wave pattern.
         Attributes:
-            self.env_parameters (dict): Dictionary containing the environment parameters and their operations.
+            self.env_parameters (dict): Dictionary containing the environment parameters and their 
+                operations.
             self.env_properties (dict): Dictionary to store the updated environment properties.
             self.active (bool): Flag to control the execution of the loop.
             self.logger (Logger): Logger instance for logging information and warnings.
@@ -460,14 +462,16 @@ class World:
                         prop['operation_parameters']['normal']['std'],
                     )
                 elif prop["operation"] == "triangle":
-                    val = prev[prop_key] + way[prop_key] * prop['operation_parameters']['triangle']['step']
+                    val = prev[prop_key] + \
+                        way[prop_key] * prop['operation_parameters']['triangle']['step']
                     if val >= prop['operation_parameters']['triangle']['max'] or \
                         val <= prop['operation_parameters']['triangle']['min']:
                         way[prop_key] *= -1
                     prev[prop_key] = val
                 elif prop["operation"] == "sinus":
                     val = prop['operation_parameters']['sinus']['dc'] + \
-                        prop['operation_parameters']['sinus']['amplitude'] * math.sin(prev[prop_key])
+                        prop['operation_parameters']['sinus']['amplitude'] * \
+                            math.sin(prev[prop_key])
                     prev[prop_key] += prop['operation_parameters']['triangle']['step']
                 else:
                     self.logger.warning("Unsupported operation: %s", prop["operation"])

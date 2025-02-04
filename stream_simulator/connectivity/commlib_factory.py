@@ -97,7 +97,7 @@ class CommlibFactory(Node):
         load_dotenv(env_file)
         self._logger.info("Broker: %s @ %s with SSL %s",
                         os.getenv('BROKER_HOST', 'broker.emqx.io'),
-                        os.getenv('BROKER_PORT', '8883'), 
+                        os.getenv('BROKER_PORT', '8883'),
                         os.getenv('BROKER_SSL', 'True'))
         self.use_redis = os.getenv('USE_REDIS', "False")
         try:

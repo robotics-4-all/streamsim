@@ -105,7 +105,7 @@ class EnvMicrophoneController(BaseThing):
         self.tf_detection_rpc_client = self.commlib_factory.get_rpc_client(
             rpc_name=package["tf_detect_rpc_topic"]
         )
-        
+
         self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)

@@ -67,7 +67,7 @@ class EnvDistanceController(BaseThing):
         _category = "sensor"
         _class = "distance"
         _subclass = "sonar"
-        
+
         self.robots_poses = {}
         self.robots_subscribers = {}
 

@@ -99,7 +99,8 @@ class EnvTemperatureSensorController(BasicSensor):
             return amb
 
         for a in affections:
-            r = (1 - affections[a]['distance'] / affections[a]['range']) * affections[a]['info']['temperature']
+            r = (1 - affections[a]['distance'] / affections[a]['range']) * \
+                affections[a]['info']['temperature']
             temps.append(r)
 
         mms = 0

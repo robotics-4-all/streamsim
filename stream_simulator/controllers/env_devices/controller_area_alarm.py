@@ -62,7 +62,7 @@ class EnvAreaAlarmController(BaseThing):
         _category = "sensor"
         _class = "alarm"
         _subclass = "area_alarm"
-        
+
         info = self.generate_info(conf, package, _type, _category, _class, _subclass)
         self.info = info
         self.name = info["name"]
