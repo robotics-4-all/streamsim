@@ -124,7 +124,7 @@ class TfController:
         Set the environmental properties for the transformation module.
         """
         self.env_properties = env_properties
-        self.logger.info("TF set environmental variables: %s", self.env_properties)
+        # self.logger.info("TF set environmental variables: %s", self.env_properties)
 
     def initialize(self, base = None, resolution = None, env_properties = None, ):
         """
