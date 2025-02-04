@@ -437,6 +437,20 @@ class World:
         """
         self.logger.info("Environmental dynamic properties thread started")
         print(self.env_parameters)
+
+        # Back-compatibility check
+        for prop_key, prop in self.env_parameters.items():
+            if isinstance(prop, (int, float)):
+                self.env_parameters[prop_key] = {
+                    "operation": "constant",
+                    "operation_parameters": {
+                        "constant": {
+                            "value": prop
+                        }
+                    }
+                }
+
+        # Dynamic parameters    
         prev = {propkey : None for propkey, _ in self.env_parameters.items()}
         way = {propkey : 1 for propkey, _ in self.env_parameters.items()}
         for prop_key, prop in self.env_parameters.items():

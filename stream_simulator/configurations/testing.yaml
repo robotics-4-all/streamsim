@@ -13,82 +13,10 @@ world:
   name: "testing_world"
   places: []
   properties:
-    temperature: # celcius
-      operation: constant
-      operation_parameters:
-        constant:
-          value: 16
-        random:
-          min: 15
-          max: 17
-        triangle:
-          min: 15
-          max: 20
-          step: 0.01
-        normal:
-          mean: 16.0
-          std: 1.0
-        sinus:
-          dc: 16
-          amplitude: 2
-          step: 0.02
-    humidity: # out of 100
-      operation: constant
-      operation_parameters:
-        constant:
-          value: 60
-        random:
-          min: 50
-          max: 70
-        triangle:
-          min: 55
-          max: 75
-          step: 0.3
-        normal:
-          mean: 60
-          std: 5.0
-        sinus:
-          dc: 60
-          amplitude: 10
-          step: 0.05
-    luminosity: # out of 100
-      operation: constant
-      operation_parameters:
-        constant:
-          value: 10
-        random:
-          min: 50
-          max: 55
-        triangle:
-          min: 40
-          max: 60
-          step: 0.5
-        normal:
-          mean: 50
-          std: 5.0
-        sinus:
-          dc: 50
-          amplitude: 50
-          step: 0.5
-    ph:
-      operation: constant
-      operation_parameters:
-        constant:
-          value: 7.4
-        random:
-          min: 7.3
-          max: 7.5
-        triangle:
-          min: 7
-          max: 7.7
-          step: 0.01
-        normal:
-          mean: 7.4
-          std: 0.3
-        sinus:
-          dc: 7.4
-          amplitude: 0.3
-          step: 0.03
+    temperature: 16
+    humidity: 60
+    luminosity: 10
+    ph: 7.4
 
 robots:
   - name: robot_1
