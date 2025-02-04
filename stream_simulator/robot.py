@@ -161,6 +161,18 @@ class Robot:
             self._y = self._init_y
             self._theta = self._init_theta
 
+        self.automation = None
+        self.pois_index = None
+        if "automation" in self.configuration and self.configuration["mode"] == "mock":
+            self.logger.critical("Robot %s is in mock mode and has automation", self.name)
+            self.automation = self.configuration["automation"]
+            self.pois_index = 0
+            for p in self.automation['points']:
+                p['x'] *= self.resolution
+                p['y'] *= self.resolution
+            self.logger.info("Robot %s: automation set", self.name)
+            self.logger.info("Pois: %s", self.automation['points'])
+
         # Devices set
         self.mode = self.configuration["mode"]
         if self.mode not in ["mock", "simulation"]:
@@ -649,6 +661,41 @@ class Robot:
         )
         self.pose_pub.publish(pose)
 
+    def calculate_velocities_for_point(self, x, y):
+        """
+        Calculate the linear and angular velocities required to reach a given point.
+        This method calculates the linear and angular velocities required to reach the given 
+        point (x, y) from the robot's current position. It uses the current position and 
+        orientation of the robot to determine the required velocities.
+        Args:
+            x (float): The x-coordinate of the target point.
+            y (float): The y-coordinate of the target point.
+            poi_index (int): The index of the point of interest.
+        Returns:
+            tuple: A tuple containing the linear and angular velocities required to reach the 
+            target point.
+        """
+        # Calculate the angle between the robot's current orientation and the target point
+        angle = math.atan2(y - self._y, x - self._x)
+        # Calculate the angle difference between the robot's orientation and the target angle
+        angle_diff = angle - self._theta
+        # Normalize the angle difference to be between -pi and pi
+        angle_diff = (angle_diff + math.pi) % (2 * math.pi) - math.pi
+
+        # print(x, y, self._x, self._y, angle, angle_diff)
+
+        # If angle diff is different than almost 0, only rotate
+        if abs(angle_diff) > 0.003:
+            return 0, self.automation['angular'] * (angle_diff * 2.0)
+        # Otherwise, move forward
+        else:
+            distance = math.hypot(
+                self.automation['points'][self.pois_index]['x'] - self._x,
+                self.automation['points'][self.pois_index]['y'] - self._y
+            )
+            linear_velocity = min(self.automation['linear'], distance * 3.0)
+            return linear_velocity, 0
+
     def simulation_thread(self):
         """
         Runs the simulation thread for the robot.
@@ -677,9 +724,13 @@ class Robot:
         self.logger.warning("Started %s simulation thread", self.name)
         t = time.time()
 
+        has_target = False
+        reverse_mode = False
+        logging_counter = 0
+        self.pois_index = -1
         self.dispatch_pose_local()
         while self.stopped is False:
-            if self.motion_controller is not None:
+            if self.motion_controller is not None or self.automation is not None:
                 # update time interval
                 dt = time.time() - t
                 t = time.time()
@@ -688,8 +739,44 @@ class Robot:
                 prev_y = self._y
                 prev_th = self._theta
 
-                lin_ = self.motion_controller.get_linear()
-                ang_ = self.motion_controller.get_angular()
+                # Mock mode here
+                if self.automation is not None:
+                    if has_target is False:
+                        if self.pois_index == len(self.automation['points']) - 1:
+                            self.logger.warning("Reached the last POI")
+                            if self.automation['reverse'] is True and reverse_mode is False:
+                                self.automation['points'].reverse()
+                                self.logger.critical("Reversed POIs %s", self.automation['points'])
+                                self.pois_index = 0
+                                has_target = True
+                                reverse_mode = True
+                            elif self.automation['reverse'] is True and reverse_mode is True:
+                                if self.automation['loop'] is True:
+                                    self.automation['points'].reverse()
+                                    self.logger.critical("In loop: Reversed POIs %s", self.automation['points'])
+                                    self.pois_index = 0
+                                    has_target = True
+                                    reverse_mode = False
+                                else:
+                                    self.stopped = True
+                            elif self.automation['reverse'] is False and self.automation['loop'] is True:
+                                self.pois_index = 0
+                                has_target = True
+                            elif self.automation['reverse'] is False and self.automation['loop'] is False:
+                                self.stopped = True
+                        else:
+                            self.pois_index += 1
+                            has_target = True
+
+                    # Calculate velocities based on next POI
+                    lin_, ang_ = self.calculate_velocities_for_point(
+                        self.automation['points'][self.pois_index]['x'],
+                        self.automation['points'][self.pois_index]['y'],
+                    )
+                else:
+                    # Get the velocities from the motion controller
+                    lin_ = self.motion_controller.get_linear()
+                    ang_ = self.motion_controller.get_angular()
 
                 if ang_ == 0:
                     self._x += lin_ * dt * math.cos(self._theta)
@@ -702,12 +789,26 @@ class Robot:
                         arc * math.cos(self._theta + dt * ang_)
                 self._theta += ang_ * dt
 
-                xx = round(float(self._x), 2)
-                yy = round(float(self._y), 2)
-                theta2 = round(float(self._theta), 2)
+                xx = round(float(self._x), 4)
+                yy = round(float(self._y), 4)
+                theta2 = round(float(self._theta), 4)
 
+                # Check if we reached the POI
+                if self.automation is not None:
+                    if abs(xx - self.automation['points'][self.pois_index]['x']) < 0.01 and \
+                        abs(yy - self.automation['points'][self.pois_index]['y']) < 0.01:
+                        self.logger.warning("Reached POI %s", self.pois_index)
+                        self.logger.warning(" >> Current pois list: %s", self.automation['points'])
+                        has_target = False
+
+                # Logging
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
-                    self.logger.info("%s: New pose: %f, %f, %f", self.raw_name, xx, yy, theta2)
+                    logging_counter += 1
+                    if logging_counter % 10 == 0:
+                        self.logger.info("%s: New pose: %f, %f, %f %s", \
+                            self.raw_name, xx, yy, theta2, \
+                            f"[POI {self.pois_index} {self.automation['points'][self.pois_index]}]"\
+                                if self.automation is not None else "")
 
                     # Send internal pose
                     self.dispatch_pose_local()
@@ -724,5 +825,5 @@ class Robot:
 
             time.sleep(self.dt)
 
-        self.logger.warning("Stopped %s simulation thread", self.name)
+        self.logger.critical("Stopped %s simulation thread", self.name)
         self.terminated = True
