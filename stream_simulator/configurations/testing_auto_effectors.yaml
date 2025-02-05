@@ -1,0 +1,71 @@
+simulation:
+  name: "6569d9fd137514fe16b106dc"
+
+map:
+  width:  1000 # in pixels
+  height: 1000 # in pixels
+  resolution: 0.1 # meters per pixel
+  obstacles:
+    lines:
+      - {x1: 900, y1: 10, x2: 900, y2: 990} # in pixels
+
+world:
+  name: "testing_world"
+  places: []
+  properties:
+    temperature: 16
+    humidity: 60
+    luminosity: 10
+    ph: 7.4
+
+env_devices:
+  relays:
+    - pose: {x: 100, y: 100, theta: 0}
+      name: relay_X
+      mode: simulation # mock, simulation, real
+      states: [0, 1, "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"]
+      initial_state: 0
+      place: "office"
+      automation:
+        loop: true
+        reverse: true
+        steps:
+          - {state: 0, duration: 5}
+          - {state: 1, duration: 5}
+          - {state: "10%", duration: 5}
+          - {state: "20%", duration: 5}
+          - {state: "30%", duration: 5}
+          - {state: "40%", duration: 5}
+          - {state: "50%", duration: 5}
+          - {state: "60%", duration: 5}
+          - {state: "70%", duration: 5}
+          - {state: "80%", duration: 5}
+          - {state: "90%", duration: 5}
+          - {state: "100%", duration: 5}
+  # pan_tilt:
+  #   - source: "env_devices/pan_tilt"
+  #   - source: "env_devices/pan_tilt_dist_X"
+  # speakers:
+  #   - source: "env_devices/speaker"
+  # lights:
+  #   - pose: {x: 750, y: 750, theta: 0}
+  #     name: light_X
+  #     range: 100
+  #     luminosity: 0 # %
+  #     mode: simulation # mock, simulation, real
+  #     place: "office"
+  # thermostats:
+  #   - pose: {x: 200, y: 220, theta: 0}
+  #     name: thermostat_env
+  #     mode: simulation # mock, simulation, real
+  #     place: "office"
+  #     temperature: 0
+  #     range: 3.0
+  # humidifiers:
+  #   - pose: {x: 200, y: 120, theta: 0}
+  #     name: hum_X
+  #     mode: simulation # mock, simulation, real
+  #     place: "office"
+  #     humidity: 0
+  #     range: 10.0 # meters
+

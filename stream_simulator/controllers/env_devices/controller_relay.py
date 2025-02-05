@@ -7,6 +7,7 @@ This file contains the controller class for an environmental relay.
 
 import logging
 import time
+import threading
 
 from stream_simulator.base_classes import BaseThing
 
@@ -48,6 +49,8 @@ class EnvRelayController(BaseThing):
 
         super().__init__(conf["name"], auto_start=False)
 
+        print(conf)
+
         _type = "RELAY"
         _category = "actuator"
         _class = "switch"
@@ -64,6 +67,7 @@ class EnvRelayController(BaseThing):
         self.state = info["conf"]["initial_state"]
         self.allowed_states = info["conf"]["states"]
         self.place = info["conf"]["place"]
+        self.automation = info["conf"]["automation"] if "automation" in info["conf"] else None
 
         # tf handling
         tf_package = {
@@ -89,6 +93,49 @@ class EnvRelayController(BaseThing):
         self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
+
+        if self.automation is not None:
+            self.logger.warning("Relay %s is automated", self.name)
+            self.stopped = False
+            self.active = True
+            self.automation_thread = threading.Thread(target = self.automation_thread_loop)
+            self.automation_thread.start()
+
+    def automation_thread_loop(self):
+        self.logger.warning("Relay %s automation starts", self.name)
+        self.stopped = False
+        automation_steps = self.automation["steps"]
+        step_index = -1
+        reverse_mode = False
+        while self.active:
+            step_index += 1
+            if step_index >= len(automation_steps):
+                if self.automation["reverse"] and reverse_mode is False:
+                    automation_steps.reverse()
+                    step_index = 1
+                    reverse_mode = True
+                elif self.automation["reverse"] and reverse_mode is True:
+                    if self.automation["loop"]:
+                        automation_steps.reverse()
+                        step_index = 1
+                        reverse_mode = False
+                    else:
+                        self.active = False
+                        break
+                elif self.automation["reverse "] is False and self.automation["loop"]:
+                    step_index = 0
+                else:
+                    self.active = False
+                    break
+            step = automation_steps[step_index]
+            self.set_value(step['state'])
+            sleep = step['duration']
+            while sleep > 0 and self.active: # to be preemptable
+                time.sleep(0.1)
+                sleep -= 0.1
+
+        self.stopped = True
+        self.logger.warning("Relay %s automation stops", self.name)
 
     def set_communication_layer(self, package):
         """
@@ -138,14 +185,26 @@ class EnvRelayController(BaseThing):
             - Publishes the message to the publisher.
             - Updates the internal state of the relay.
         """
-        state = message["state"]
-        if state not in self.allowed_states:
-            self.logger.critical("Relay %s does not allow %s state", self.name, state)
-            return {"state": self.state}
+        if self.automation is not None:
+            self.logger.info("Relay %s is automated, ignoring set command", self.name)
+            return {"state": "automated"}
 
+        self.set_value(message["state"])
         self.publisher.publish(message)
-        self.state = state
         return {"state": self.state}
+
+    def set_value(self, value):
+        """
+        Sets the relay state to the given value.
+
+        Args:
+            value (str): The value to set the relay state to.
+        """
+        if value not in self.allowed_states:
+            self.logger.critical("Relay %s does not allow %s state", self.name, value)
+        else:
+            self.state = value
+            self.logger.info("Relay %s set to %s", self.name, value)
 
     def start(self):
         """
@@ -173,5 +232,10 @@ class EnvRelayController(BaseThing):
         5. Stops the set RPC server.
         """
         self.info["enabled"] = False
+        # Stopping the thread
+        if self.automation is not None:
+            self.active = False
+            while not self.stopped:
+                time.sleep(0.1)
         self.get_rpc_server.stop()
         self.set_rpc_server.stop()

@@ -436,7 +436,6 @@ class World:
             Warning: Logs a warning if an unsupported operation is encountered.
         """
         self.logger.info("Environmental dynamic properties thread started")
-        print(self.env_parameters)
 
         # Back-compatibility check
         for prop_key, prop in self.env_parameters.items():
