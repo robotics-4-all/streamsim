@@ -71,7 +71,7 @@ class MQTTNotifier:
         )
 
         self.robot_pose_sub = self.local_commlib.create_psubscriber(
-            topic = "streamsim.testinguid.*.pose.internal",
+            topic = "streamsim.*.*.pose.internal",
             on_message = self.robot_pose_callback,
         )
 
