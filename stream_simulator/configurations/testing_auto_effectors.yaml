@@ -66,20 +66,27 @@ env_devices:
       luminosity: 0 # %
       mode: simulation # mock, simulation, real
       place: "office"
+      # automation:
+      #   loop: true 
+      #   reverse: false
+      #   steps:
+      #     - {state: {luminosity: 100, r: 255, g: 0, b: 0}, duration: 5}
+      #     - {state: {luminosity: 100, r: 0, g: 255, b: 0}, duration: 15}
+      #     - {state: {luminosity: 100, r: 255, g: 100, b: 100}, duration: 3}
+  thermostats:
+    - pose: {x: 200, y: 220, theta: 0}
+      name: thermostat_env
+      mode: simulation # mock, simulation, real
+      place: "office"
+      temperature: 0
+      range: 3.0
       automation:
         loop: true 
-        reverse: false
+        reverse: true
         steps:
-          - {state: {luminosity: 100, r: 255, g: 0, b: 0}, duration: 5}
-          - {state: {luminosity: 100, r: 0, g: 255, b: 0}, duration: 15}
-          - {state: {luminosity: 100, r: 255, g: 100, b: 100}, duration: 3}
-  # thermostats:
-  #   - pose: {x: 200, y: 220, theta: 0}
-  #     name: thermostat_env
-  #     mode: simulation # mock, simulation, real
-  #     place: "office"
-  #     temperature: 0
-  #     range: 3.0
+          - {state: 10, duration: 5}
+          - {state: 20, duration: 4}
+          - {state: 30, duration: 3}
   # humidifiers:
   #   - pose: {x: 200, y: 120, theta: 0}
   #     name: hum_X
