@@ -102,6 +102,30 @@ class EnvRelayController(BaseThing):
             self.automation_thread.start()
 
     def automation_thread_loop(self):
+        """
+        Manages the automation loop for the relay device.
+        This method runs in a separate thread and controls the relay based on the 
+        predefined automation steps. It supports reversing the steps and looping 
+        through them based on the configuration.
+        The automation steps are defined in `self.automation["steps"]`, and each step 
+        contains a 'state' to set the relay to and a 'duration' for how long to maintain 
+        that state. The loop continues to run as long as `self.active` is True.
+        The method handles the following configurations:
+        - `self.automation["reverse"]`: If True, the steps will be reversed after 
+          completing a forward pass.
+        - `self.automation["loop"]`: If True, the steps will loop indefinitely.
+        The method is preemptable, meaning it can be interrupted by setting `self.active` 
+        to False.
+        Logs are generated to indicate the start and stop of the automation process.
+        Attributes:
+            self.logger (Logger): Logger instance for logging warnings.
+            self.name (str): Name of the relay.
+            self.stopped (bool): Flag indicating whether the automation has stopped.
+            self.automation (dict): Dictionary containing automation configuration.
+            self.active (bool): Flag indicating whether the automation is active.
+        Raises:
+            KeyError: If the automation configuration is missing required keys.
+        """
         self.logger.warning("Relay %s automation starts", self.name)
         self.stopped = False
         automation_steps = self.automation["steps"]
