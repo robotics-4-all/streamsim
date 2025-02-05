@@ -7,6 +7,7 @@ File that contains the humidifier controller.
 
 import time
 import logging
+import threading
 
 from stream_simulator.base_classes import BaseThing
 
@@ -57,6 +58,7 @@ class EnvHumidifierController(BaseThing):
         self.place = info["conf"]["place"]
         self.humidity = info['conf']['humidity']
         self.range = info['conf']['range']
+        self.automation = info["conf"]["automation"] if "automation" in info["conf"] else None
 
         # tf handling
         tf_package = {
@@ -83,6 +85,55 @@ class EnvHumidifierController(BaseThing):
         self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
+
+        if self.automation is not None:
+            self.logger.warning("Relay %s is automated", self.name)
+            self.stopped = False
+            self.active = True
+            self.automation_thread = threading.Thread(target = self.automation_thread_loop)
+            self.automation_thread.start()
+
+    def automation_thread_loop(self):
+        """
+        Manages the automation loop for the device.
+        This method runs in a separate thread and controls the device based on the 
+        predefined automation steps. It supports reversing the steps and looping 
+        through them based on the configuration.
+        """
+        self.logger.warning("Humidifier %s automation starts", self.name)
+        self.stopped = False
+        automation_steps = self.automation["steps"]
+        step_index = -1
+        reverse_mode = False
+        while self.active:
+            step_index += 1
+            if step_index >= len(automation_steps):
+                if self.automation["reverse"] and reverse_mode is False:
+                    automation_steps.reverse()
+                    step_index = 1
+                    reverse_mode = True
+                elif self.automation["reverse"] and reverse_mode is True:
+                    if self.automation["loop"]:
+                        automation_steps.reverse()
+                        step_index = 1
+                        reverse_mode = False
+                    else:
+                        self.active = False
+                        break
+                elif self.automation["reverse"] is False and self.automation["loop"]:
+                    step_index = 0
+                else:
+                    self.active = False
+                    break
+            step = automation_steps[step_index]
+            self.set_callback({"humidity": step['state']})
+            sleep = step['duration']
+            while sleep > 0 and self.active: # to be preemptable
+                time.sleep(0.1)
+                sleep -= 0.1
+
+        self.stopped = True
+        self.logger.warning("Relay %s automation stops", self.name)
 
     def set_communication_layer(self, package):
         """
@@ -126,6 +177,7 @@ class EnvHumidifierController(BaseThing):
         self.publisher.publish({
             "humidity": self.humidity
         })
+        self.logger.info("Humidifier %s set to %s", self.name, self.humidity)
 
         return {}
 
@@ -155,5 +207,9 @@ class EnvHumidifierController(BaseThing):
         - Stops the set RPC server.
         """
         self.info["enabled"] = False
+        if self.automation is not None:
+            self.active = False
+            while not self.stopped:
+                time.sleep(0.1)
         self.get_rpc_server.stop()
         self.set_rpc_server.stop()

@@ -80,6 +80,20 @@ env_devices:
       place: "office"
       temperature: 0
       range: 3.0
+      # automation:
+      #   loop: true 
+      #   reverse: true
+      #   steps:
+      #     - {state: 10, duration: 5}
+      #     - {state: 20, duration: 4}
+      #     - {state: 30, duration: 3}
+  humidifiers:
+    - pose: {x: 200, y: 120, theta: 0}
+      name: hum_X
+      mode: simulation # mock, simulation, real
+      place: "office"
+      humidity: 0
+      range: 10.0 # meters
       automation:
         loop: true 
         reverse: true
@@ -87,11 +101,4 @@ env_devices:
           - {state: 10, duration: 5}
           - {state: 20, duration: 4}
           - {state: 30, duration: 3}
-  # humidifiers:
-  #   - pose: {x: 200, y: 120, theta: 0}
-  #     name: hum_X
-  #     mode: simulation # mock, simulation, real
-  #     place: "office"
-  #     humidity: 0
-  #     range: 10.0 # meters
 
