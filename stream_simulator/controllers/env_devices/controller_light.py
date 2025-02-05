@@ -7,6 +7,7 @@ File that contains the light controller.
 
 import time
 import logging
+import threading
 
 from stream_simulator.base_classes import BaseThing
 
@@ -71,6 +72,7 @@ class EnvLightController(BaseThing):
             'a': self.luminosity * 255.0 / 100
         }
         self.range = info["conf"]["range"]
+        self.automation = info["conf"]["automation"] if "automation" in info["conf"] else None
 
         # tf handling
         tf_package = {
@@ -101,6 +103,55 @@ class EnvLightController(BaseThing):
         self.commlib_factory.run()
 
         self.tf_declare_rpc.call(tf_package)
+
+        if self.automation is not None:
+            self.logger.warning("Relay %s is automated", self.name)
+            self.stopped = False
+            self.active = True
+            self.automation_thread = threading.Thread(target = self.automation_thread_loop)
+            self.automation_thread.start()
+
+    def automation_thread_loop(self):
+        """
+        Manages the automation loop for the relay device.
+        This method runs in a separate thread and controls the relay based on the 
+        predefined automation steps. It supports reversing the steps and looping 
+        through them based on the configuration.
+        """
+        self.logger.warning("Relay %s automation starts", self.name)
+        self.stopped = False
+        automation_steps = self.automation["steps"]
+        step_index = -1
+        reverse_mode = False
+        while self.active:
+            step_index += 1
+            if step_index >= len(automation_steps):
+                if self.automation["reverse"] and reverse_mode is False:
+                    automation_steps.reverse()
+                    step_index = 1
+                    reverse_mode = True
+                elif self.automation["reverse"] and reverse_mode is True:
+                    if self.automation["loop"]:
+                        automation_steps.reverse()
+                        step_index = 1
+                        reverse_mode = False
+                    else:
+                        self.active = False
+                        break
+                elif self.automation["reverse"] is False and self.automation["loop"]:
+                    step_index = 0
+                else:
+                    self.active = False
+                    break
+            step = automation_steps[step_index]
+            self.set_callback(step['state'])
+            sleep = step['duration']
+            while sleep > 0 and self.active: # to be preemptable
+                time.sleep(0.1)
+                sleep -= 0.1
+
+        self.stopped = True
+        self.logger.warning("Light %s automation stops", self.name)
 
     def set_communication_layer(self, package):
         """
@@ -195,5 +246,9 @@ class EnvLightController(BaseThing):
         5. Stops the RPC server responsible for setting the light status.
         """
         self.info["enabled"] = False
+        if self.automation is not None:
+            self.active = False
+            while not self.stopped:
+                time.sleep(0.1)
         self.get_rpc_server.stop()
         self.set_rpc_server.stop()

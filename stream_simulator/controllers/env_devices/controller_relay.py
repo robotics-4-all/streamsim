@@ -126,7 +126,7 @@ class EnvRelayController(BaseThing):
                     else:
                         self.active = False
                         break
-                elif self.automation["reverse "] is False and self.automation["loop"]:
+                elif self.automation["reverse"] is False and self.automation["loop"]:
                     step_index = 0
                 else:
                     self.active = False

@@ -131,7 +131,7 @@ class EnvSpeakerController(BaseThing):
                     else:
                         self.active = False
                         break
-                elif self.automation["reverse "] is False and self.automation["loop"]:
+                elif self.automation["reverse"] is False and self.automation["loop"]:
                     step_index = 0
                 else:
                     self.active = False
@@ -143,7 +143,8 @@ class EnvSpeakerController(BaseThing):
                 "language": automation_steps[step_index]['state']['language'],
                 "speaker": self.name
             })
-            self.logger.info("Speaker %s says: %s", self.name, automation_steps[step_index]['state']['text'])
+            self.logger.info("Speaker %s says: %s", self.name, \
+                automation_steps[step_index]['state']['text'])
             sleep = step['duration']
             while sleep > 0 and self.active: # to be preemptable
                 time.sleep(0.1)
@@ -207,6 +208,10 @@ class EnvSpeakerController(BaseThing):
         - Stops the goal, cancel, and result RPCs for both the play and speak action servers.
         """
         self.info["enabled"] = False
+        if self.automation is not None:
+            self.active = False
+            while not self.stopped:
+                time.sleep(0.1)
         self.play_action_server.stop()
 
     def on_goal_play(self, goalh):
