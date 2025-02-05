@@ -45,8 +45,20 @@ env_devices:
   # pan_tilt:
   #   - source: "env_devices/pan_tilt"
   #   - source: "env_devices/pan_tilt_dist_X"
-  # speakers:
-  #   - source: "env_devices/speaker"
+  speakers:
+    - pose: {x: 100, y: 100, theta: 0}
+      name: speaker_X
+      place: office
+      mode: simulation # mock, simulation, real
+      automation:
+        loop: true
+        reverse: true
+        steps:
+          - {state: {text: "Hey there", volume: 100, language: "EN"}, duration: 5}
+          - {state: {text: "How are you?", volume: 100, language: "EN"}, duration: 5}
+          - {state: {text: "I am fine", volume: 50, language: "EN"}, duration: 5}
+          - {state: {text: "Thank you", volume: 50, language: "EN"}, duration: 5}
+  
   # lights:
   #   - pose: {x: 750, y: 750, theta: 0}
   #     name: light_X
