@@ -66,6 +66,10 @@ class EnvRelayController(BaseThing):
         self.allowed_states = info["conf"]["states"]
         self.place = info["conf"]["place"]
         self.automation = info["conf"]["automation"] if "automation" in info["conf"] else None
+        self.proximity_mode = info["conf"]["proximity_mode"] \
+            if "proximity_mode" in info["conf"] else False
+        self.proximity_distance = info["conf"]["proximity_distance"] \
+            if "proximity_distance" in info["conf"] and self.proximity_mode else 0
 
         # tf handling
         tf_package = {
@@ -157,6 +161,7 @@ class EnvRelayController(BaseThing):
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
+        self.set_tf_distance_calculator_rpc(package)
         self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
         self.set_data_publisher(self.base_topic)
 
@@ -192,6 +197,20 @@ class EnvRelayController(BaseThing):
         if self.automation is not None:
             self.logger.info("Relay %s is automated, ignoring set command", self.name)
             return {"state": "automated"}
+        if self.proximity_mode:
+            # Check if we have an initiator in the message
+            allowed_distance = self.proximity_distance
+            if self.proximity_distance == 0:
+                allowed_distance = 0.5
+            if "initiator" in message:
+                # Check his pose
+                real_dist = self.tf_distance_calculator_rpc.call(
+                    {"initiator": message["initiator"], "target": self.name}
+                )
+                print(real_dist)
+                if real_dist['distance'] is None or real_dist['distance'] > allowed_distance:
+                    self.logger.info("Relay %s is too far from %s", self.name, message["initiator"])
+                    return {"state": self.state}
 
         self.set_value(message["state"])
         self.publisher.publish(message)

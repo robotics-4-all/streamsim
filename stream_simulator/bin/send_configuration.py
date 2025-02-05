@@ -100,7 +100,6 @@ class SimulatorStartup:
             yaml.YAMLError: If there is an error while parsing the YAML file.
         """
         try:
-            print(yaml_file)
             with open(yaml_file, 'r', encoding='utf-8') as stream:
                 conf = yaml.safe_load(stream)
         except yaml.YAMLError:

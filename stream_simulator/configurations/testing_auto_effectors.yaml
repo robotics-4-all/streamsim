@@ -26,6 +26,7 @@ env_devices:
       states: [0, 1, "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"]
       initial_state: 0
       place: "office"
+      proximity_mode: true
       automation:
         loop: true
         reverse: true

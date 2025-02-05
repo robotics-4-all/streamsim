@@ -299,6 +299,7 @@ class World:
             "logger": None,
             "namespace": self.configuration["simulation"]["name"],
             'tf_declare_rpc_topic': self.tf_base + '.declare',
+            'tf_distance_calculator_rpc_topic': self.tf_base + '.distance_calculator',
             'tf_affection_rpc_topic': self.tf_base + '.get_affections',
             'tf_detect_rpc_topic': self.tf_base + '.simulated_detection',
             'env': self.env_properties,
@@ -357,6 +358,7 @@ class World:
         p = {
             "logger": None,
             'tf_declare_rpc_topic': self.tf_base + '.declare',
+            'tf_distance_calculator_rpc_topic': self.tf_base + '.distance_calculator',
             'tf_affection_rpc_topic': self.tf_base + '.get_affections',
             'resolution': self.resolution,
         }

@@ -33,6 +33,7 @@ class TfController:
         self.get_affectability_rpc_server = None
         self.get_sim_detection_rpc_server = None
         self.get_luminosity_rpc_server = None
+        self.distance_calculator_rpc_server = None
         self.detections_publisher = None
         self.get_devices_rpc = None
         self.pan_tilts_rpc = None
@@ -182,6 +183,12 @@ class TfController:
             auto_run = False,
         )
 
+        self.distance_calculator_rpc_server = self.commlib_factory.get_rpc_service(
+            callback = self.distance_calculator_callback,
+            rpc_name = self.base_topic + ".distance_calculator",
+            auto_run = False,
+        )
+
         self.get_devices_rpc = self.commlib_factory.get_rpc_client(
             rpc_name = self.base + ".get_device_groups",
             auto_run = False,
@@ -272,6 +279,30 @@ class TfController:
                 'water': [],
             }
         }
+
+    def distance_calculator_callback(self, message):
+        """
+        Callback function to calculate the distance between two points.
+
+        Args:
+            message (dict): A dictionary containing 'initiator' and 'target' keys, 
+                            which represent the identifiers of the two points.
+
+        Returns:
+            dict: A dictionary containing the calculated distance with the key 'distance'.
+                  If either the initiator or target is not found in `self.places_absolute`, 
+                  returns {"distance": None}.
+        """
+        initiator = message['initiator']
+        target = message['target']
+        # find absolute positions
+        if initiator not in self.places_absolute or target not in self.places_absolute:
+            return {"distance": None}
+        distance = calc_distance(
+            [self.places_absolute[initiator]['x'], self.places_absolute[initiator]['y']],
+            [self.places_absolute[target]['x'], self.places_absolute[target]['y']]
+        )
+        return {"distance": distance}
 
     def print_tf_tree(self):
         """

@@ -36,6 +36,7 @@ class BaseThing:
         self.namespace = None
         self.tf_declare_rpc = None
         self.tf_affection_rpc = None
+        self.tf_distance_calculator_rpc = None
         self.publisher = None
         self.publisher_triggers = None
         self.set_rpc_server = None
@@ -146,6 +147,23 @@ class BaseThing:
 
         self.tf_affection_rpc = self.commlib_factory.get_rpc_client(
             rpc_name=package["tf_affection_rpc_topic"]
+        )
+
+    def set_tf_distance_calculator_rpc(self, package):
+        """
+        Sets the TensorFlow distance calculator RPC client.
+
+        This method initializes the RPC client for the TensorFlow distance calculator
+        using the provided package information. The RPC client is created using the
+        communication library factory.
+
+        Args:
+            package (dict): A dictionary containing the configuration for the RPC client.
+                            It must include the key "tf_distance_calculator_rpc_topic" which
+                            specifies the topic name for the RPC client.
+        """
+        self.tf_distance_calculator_rpc = self.commlib_factory.get_rpc_client(
+            rpc_name=package["tf_distance_calculator_rpc_topic"]
         )
 
     def set_data_publisher(self, base_topic):

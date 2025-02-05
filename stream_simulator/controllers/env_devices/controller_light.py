@@ -73,6 +73,10 @@ class EnvLightController(BaseThing):
         }
         self.range = info["conf"]["range"]
         self.automation = info["conf"]["automation"] if "automation" in info["conf"] else None
+        self.proximity_mode = info["conf"]["proximity_mode"] \
+            if "proximity_mode" in info["conf"] else False
+        self.proximity_distance = info["conf"]["proximity_distance"] \
+            if "proximity_distance" in info["conf"] and self.proximity_mode else 0
 
         # tf handling
         tf_package = {
@@ -205,6 +209,21 @@ class EnvLightController(BaseThing):
         Returns:
             dict: An empty dictionary.
         """
+        if self.proximity_mode:
+            # Check if we have an initiator in the message
+            allowed_distance = self.proximity_distance
+            if self.proximity_distance == 0:
+                allowed_distance = 0.5
+            if "initiator" in message:
+                # Check his pose
+                real_dist = self.tf_distance_calculator_rpc.call(
+                    {"initiator": message["initiator"], "target": self.name}
+                )
+                print(real_dist)
+                if real_dist['distance'] is None or real_dist['distance'] > allowed_distance:
+                    self.logger.info("Light %s is too far from %s", self.name, message["initiator"])
+                    return {}
+
         if "r" in message:
             self.color['r'] = message["r"]
         if "g" in message:
