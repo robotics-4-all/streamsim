@@ -156,6 +156,7 @@ class Robot:
 
         self.raw_name = self.configuration["name"]
         self.name = self.namespace + "." + self.configuration["name"]
+        self.pure_name = self.configuration["name"]
         self.dt = tick
 
         # intial robot pose - remains remains constant throughout streamsim launch
@@ -172,6 +173,7 @@ class Robot:
         self.stopped = False
         self.terminated = False
         self.error_log_msg = ""
+        self.crashed_with_other_robot = False
 
         self.detection_threshold = 1
 
@@ -248,6 +250,11 @@ class Robot:
             topic=f"{self.name}.crash",
             msg_type=PoseMsg
         )
+
+        self.other_robots_pose_sub = self.commlib_factory.create_psubscriber(
+            topic = "streamsim.*.*.pose.internal",
+            on_message = self.others_robot_pose_callback,
+        )
         # print("IN ROBOT: ", self.name, self.name + ".pose.internal")
 
         # SIMULATOR ------------------------------------------------------------
@@ -291,6 +298,51 @@ class Robot:
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
         self.logger.info("Device %s set-up", self.name)
+
+    def others_robot_pose_callback(self, message, _):
+        """
+        Callback function to handle the pose of other robots.
+
+        This function processes the incoming message containing the pose information
+        of other robots and checks if the current robot has crashed with another robot
+        based on their proximity.
+
+        Args:
+            message (dict): A dictionary containing the pose information of another robot.
+                The dictionary should have the following keys:
+                - 'x' (float): The x-coordinate of the robot.
+                - 'y' (float): The y-coordinate of the robot.
+                - 'theta' (float): The orientation (theta) of the robot.
+                - 'resolution' (float): The resolution of the robot's position.
+                - 'raw_name' (str): The name of the robot.
+            _ (Any): Unused parameter.
+
+        Returns:
+            None
+
+        Side Effects:
+            - Updates the `crashed_with_other_robot` attribute to True if a crash is detected.
+            - Logs an error message if a crash is detected.
+            - Publishes a crash message if a crash is detected.
+        """
+        payload = {
+            'x': message['x'],
+            'y': message['y'],
+            'theta': message['theta'],
+            'resolution': message['resolution'],
+            'name': message['raw_name'],
+        }
+        if self.pure_name == payload['name']:
+            return
+        # If the robot is in proximity of 0.5 meters, it crashes
+        if math.hypot(self._x - payload['x'], self._y - payload['y']) < 0.5:
+            self.crashed_with_other_robot = True
+            self.logger.error("Crashed with %s", payload['name'])
+            pose = PoseMsg(
+                position=PositionMsg(x=self._x, y=self._y, z=0.0),
+                orientation=RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
+            )
+            self.crash_pub.publish(pose)
 
     def register_controller(self, c):
         """
@@ -519,6 +571,7 @@ class Robot:
         for c, controller in self.controllers.items():
             self.logger.warning("Trying to stop controller %s", c)
             controller.stop()
+            self.logger.warning("Controller %s stopped", c)
             del controller
 
         # Stopping the motion controller
@@ -527,11 +580,11 @@ class Robot:
         #     self.motion_controller.stop()
         del self.motion_controller
 
-        self.logger.warning("Trying to stop robot thread")
+        self.logger.warning("%s Trying to stop robot thread", self.raw_name)
         self.stopped = True
         while not self.terminated:
             time.sleep(0.1)
-        self.logger.warning("Robot thread stopped")
+        self.logger.warning("%s Robot thread stopped", self.raw_name)
         self.commlib_factory.stop()
         del self.commlib_factory
 
@@ -859,7 +912,7 @@ class Robot:
                     # Send internal pose
                     self.dispatch_pose_local()
 
-                if self.check_ok(self._x, self._y, prev_x, prev_y):
+                if self.check_ok(self._x, self._y, prev_x, prev_y) or self.crashed_with_other_robot:
                     self._x = prev_x
                     self._y = prev_y
                     self._theta = prev_th
@@ -868,11 +921,11 @@ class Robot:
                     self.mqtt_notifier.dispatch_log(
                         f"Robot: {self.raw_name} {self.error_log_msg}"
                     )
-
-                    self.crash_pub.publish({
-                        "position": PositionMsg(x=self._x, y=self._y, z=0.0),
-                        "orientation": RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
-                    })
+                    pose = PoseMsg(
+                        position=PositionMsg(x=self._x, y=self._y, z=0.0),
+                        orientation=RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
+                    )
+                    self.crash_pub.publish(pose)
 
             time.sleep(self.dt)
 

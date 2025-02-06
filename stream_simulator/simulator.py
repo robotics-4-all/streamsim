@@ -149,10 +149,11 @@ class Simulator:
         self.logger.warning("Resetting simulation...")
         # Cleaning robots
         if self.robots is not None:
-            for i, robot in enumerate(self.robots):
+            for _, robot in enumerate(self.robots):
                 self.logger.info("[simulator] Stopping robot %s", robot.name)
                 robot.stop()
-                del self.robots[i]
+                self.logger.info("[simulator] Robot %s stopped", robot.name)
+                del robot
         del self.robots
         del self.robot_names
         self.logger.info("Robots cleaned")
@@ -289,8 +290,11 @@ class Simulator:
         the communication library factory, and logs a warning message indicating that the 
         simulation has been stopped.
         """
+        self.logger.critical("Stopping simulation...")
         for r in self.robots:
+            self.logger.critical("Stopping robot %s", r.raw_name)
             r.stop()
+            self.logger.critical("Robot %s stopped", r.raw_name)
         self.world.stop()
         self.tf.stop()
         self.commlib_factory.stop()

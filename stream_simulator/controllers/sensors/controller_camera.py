@@ -192,7 +192,7 @@ class CameraController(BaseThing):
         The function sends a request to the tf_detection_rpc_client with the detection type 
         and the name of the current instance. The response from the client is printed.
         """
-        self.logger.critical("CameraController: Detection callback: %s", message)
+        # self.logger.critical("CameraController: Detection callback: %s", message)
         detection_type = message['detection'] # to be detected
         return self.tf_detection_rpc_client.call({
             'name': self.name,
@@ -242,7 +242,7 @@ class CameraController(BaseThing):
         commlib_factory instance.
         """
         self.info["enabled"] = False
-        while not self.stopped:
+        while not self.stopped and self.sensor_read_thread is not None:
             time.sleep(0.1)
         self.logger.warning("Sensor %s stopped", self.name)
         self.commlib_factory.stop()
@@ -380,3 +380,4 @@ class CameraController(BaseThing):
                     # print(f"CameraController: Published image {cl_type}")
 
         self.stopped = True
+        self.logger.info("camera %s sensor read thread stopped", self.info["id"])

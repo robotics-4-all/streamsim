@@ -1268,7 +1268,7 @@ class TfController:
             for f in self.per_type['actor']['human']:
                 print(f"Checking {f}")
                 r = self.handle_affection_arced(name, f, 'human')
-                print(r)
+                # print(r)
                 if r is not None:
                     ret[f] = r
             # - actor qr
@@ -1291,7 +1291,7 @@ class TfController:
                 r = self.handle_affection_ranged(x_y, f, 'light')
                 if r is not None:
                     th_t = self.effectors_get_rpcs[f].call({})
-                    print(th_t)
+                    # print(th_t)
                     new_r = r
                     new_r['info'] = th_t
                     ret[f] = new_r
@@ -1303,9 +1303,9 @@ class TfController:
 
             # check all robots
             if with_robots:
-                print("Checking robots")
+                # print("Checking robots")
                 for rob in self.robots:
-                    print(rob)
+                    # print(rob)
                     r = self.handle_affection_arced(name, rob, 'robot')
                     if r is not None:
                         ret[rob] = r
@@ -1586,7 +1586,7 @@ class TfController:
             }
 
         id_ = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 6))
-        print(f"Detection request for {name} with id {id}")
+        # print(f"Detection request for {name} with id {id}")
         self.detections_publisher.publish({
             "name": name,
             "device_type": decl['subtype']['subclass'][0],
@@ -1623,8 +1623,8 @@ class TfController:
 
             ret = self.check_affectability(name)
             frm = ret
-            print(message)
-            print("===============", ret)
+            # print(message)
+            # print("===============", ret)
 
             if type_ == "sound":
                 if ret is not None:
