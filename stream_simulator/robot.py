@@ -200,7 +200,7 @@ class Robot:
 
         self.automation = None
         self.pois_index = None
-        if "automation" in self.configuration and self.configuration["mode"] == "mock":
+        if "automation" in self.configuration:
             self.logger.critical("Robot %s is in mock mode and has automation", self.name)
             self.automation = self.configuration["automation"]
             self.pois_index = 0
@@ -783,6 +783,7 @@ class Robot:
 
                 # Mock mode here
                 if self.automation is not None:
+                    
                     if has_target is False:
                         if self.pois_index == len(self.automation['points']) - 1:
                             self.logger.warning("Reached the last POI")

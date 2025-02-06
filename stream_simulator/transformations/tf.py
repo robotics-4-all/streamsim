@@ -1303,7 +1303,9 @@ class TfController:
 
             # check all robots
             if with_robots:
+                print("Checking robots")
                 for rob in self.robots:
+                    print(rob)
                     r = self.handle_affection_arced(name, rob, 'robot')
                     if r is not None:
                         ret[rob] = r
@@ -1714,7 +1716,7 @@ class TfController:
                 self.logger.warning("Camera detection: too dark")
                 decision = False
 
-            print(ret.items())
+            # print(ret.items())
             if type_ == "face":
                 for x, item in ret.items():
                     if item['type'] == 'human': # gets the last one
@@ -1791,7 +1793,7 @@ class TfController:
             pass
 
         self.logger.info("Detection result for %s with id %s: %s, %s",\
-            name, id_, final_detection, frm)
+            name, id_, final_detection[type_], frm)
 
         # NOTE: Is this needed?
         self.detections_publisher.publish({
