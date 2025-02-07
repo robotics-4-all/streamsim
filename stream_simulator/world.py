@@ -396,19 +396,27 @@ class World:
         processes are properly terminated.
         """
         # Clean actors
+        self.logger.critical("World: Cleaning actors")
         for _, c in self.actors_controllers.items():
             c.stop()
             del c
+        self.logger.critical("World: Actors cleaned")
 
         # Clean devices
+        self.logger.critical("World: Cleaning devices")
         for _, c in self.controllers.items():
+            self.logger.critical("World: Cleaning device %s", c.name)
             c.stop()
+            self.logger.critical("World: Device %s cleaned", c.name)
             del c
+        self.logger.critical("World: Devices cleaned")
 
         # Stopping the thread
+        self.logger.warning("World: Stopping the dynamic properties thread")
         self.active = False
         while not self.stopped:
             time.sleep(0.1)
+        self.logger.warning("World: Dynamic properties thread stopped")
 
         self.commlib_factory.stop()
 
@@ -462,7 +470,6 @@ class World:
 
         while self.active:
             time.sleep(1.0)
-
             for prop_key, prop in self.env_parameters.items():
                 if prop['operation'] == "constant":
                     val = prop['operation_parameters']['constant']['value']

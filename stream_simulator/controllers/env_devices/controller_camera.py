@@ -85,6 +85,7 @@ class EnvCameraController(BaseThing):
         self.range = 80 if 'range' not in conf else conf['range']
         self.fov = 60 if 'fov' not in conf else conf['fov']
         self.env_properties = package['env']
+        self.generating_images = False
 
         tf_package = {
             "type": "env",
@@ -345,6 +346,7 @@ class EnvCameraController(BaseThing):
         self.logger.info("Sensor %s started", self.name)
 
         if self.info["enabled"] and "generate_images" in self.info and self.info["generate_images"]:
+            self.generating_images = True
             self.sensor_read_thread = threading.Thread(target = self.sensor_read)
             self.sensor_read_thread.start()
 
@@ -357,6 +359,7 @@ class EnvCameraController(BaseThing):
         It also stops the RPC servers responsible for enabling and disabling the camera.
         """
         self.info["enabled"] = False
-        while not self.stopped:
+        self.logger.warning("Sensor %s stopping", self.name)
+        while not self.stopped and self.generating_images:
             time.sleep(0.1)
         self.logger.warning("Sensor %s stopped", self.name)

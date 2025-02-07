@@ -160,7 +160,9 @@ class Simulator:
 
         # Cleaning world
         if self.world is not None:
+            self.logger.critical("Stopping world")
             self.world.stop()
+            self.logger.critical("World stopped")
         del self.world
         del self.world_name
         self.logger.info("World cleaned")
