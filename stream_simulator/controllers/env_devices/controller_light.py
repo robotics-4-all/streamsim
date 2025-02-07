@@ -171,6 +171,7 @@ class EnvLightController(BaseThing):
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
+        self.set_tf_distance_calculator_rpc(package)
         self.set_data_publisher(self.base_topic)
         self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
 

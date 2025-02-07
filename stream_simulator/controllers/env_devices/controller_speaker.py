@@ -167,6 +167,7 @@ class EnvSpeakerController(BaseThing):
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
+        self.set_tf_distance_calculator_rpc(package)
 
         self.play_action_server = self.commlib_factory.get_action_server(
             callback = self.on_goal_play,
