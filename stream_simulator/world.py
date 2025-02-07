@@ -459,7 +459,7 @@ class World:
                     }
                 }
 
-        # Dynamic parameters    
+        # Dynamic parameters
         prev = {propkey : None for propkey, _ in self.env_parameters.items()}
         way = {propkey : 1 for propkey, _ in self.env_parameters.items()}
         for prop_key, prop in self.env_parameters.items():
