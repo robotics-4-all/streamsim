@@ -820,10 +820,11 @@ class Robot:
         angle_diff = angle - self._theta
         # Normalize the angle difference to be between -pi and pi
         angle_diff = (angle_diff + math.pi) % (2 * math.pi) - math.pi
+        sign = 1 if angle_diff > 0 else -1
         # If angle diff is different than almost 0, only rotate
         if abs(angle_diff) > 0.002: # one degree
             angular_velocity = min(self.velocities_for_target['angular'], abs(angle_diff) * 2.0)
-            return 0, angular_velocity
+            return 0, angular_velocity * sign
         # Otherwise, move forward
         else:
             distance = math.hypot(x - self._x, y - self._y)
