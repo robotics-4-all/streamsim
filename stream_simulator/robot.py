@@ -988,8 +988,8 @@ class Robot:
                             f"[POI {self.pois_index} {self.automation['points'][self.pois_index]}]"\
                                 if self.automation is not None else "")
 
-                    # Send internal pose
-                    self.dispatch_pose_local()
+                # Send internal pose
+                self.dispatch_pose_local()
 
                 if self.check_ok(self._x, self._y, prev_x, prev_y) or self.crashed_with_other_robot:
                     self._x = prev_x
