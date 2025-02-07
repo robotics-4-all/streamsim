@@ -1811,7 +1811,7 @@ class TfController:
             "type": type_,
             "id": id_,
             "state": "end",
-            "result": final_detection,
+            "result": {k: v for k, v in final_detection.items() if v['result'] is True},
             "frm": frm
         })
 

@@ -136,7 +136,9 @@ class Robot:
 
         self.env_properties = world.env_properties
         world = world.configuration
-
+        self.pois = {}
+        if 'pois' in world['world']:
+            self.pois = {p['name']: p['pose'] for p in world['world']['pois']}
         self.configuration = configuration
         self.logger = logging.getLogger(__name__)
         self.namespace = namespace
@@ -174,6 +176,9 @@ class Robot:
         self.terminated = False
         self.error_log_msg = ""
         self.crashed_with_other_robot = False
+        self.next_poi_from_callback = None
+        self.target_to_reach = None
+        self.velocities_for_target = {'linear': 0, 'angular': 0}
 
         self.detection_threshold = 1
 
@@ -205,6 +210,10 @@ class Robot:
         if "automation" in self.configuration:
             self.logger.critical("Robot %s is in mock mode and has automation", self.name)
             self.automation = self.configuration["automation"]
+            self.velocities_for_target = {
+                'linear': self.automation['linear'],
+                'angular': self.automation['angular']
+            }
             self.pois_index = 0
             for p in self.automation['points']:
                 p['x'] *= self.resolution
@@ -249,6 +258,10 @@ class Robot:
         self.crash_pub = self.commlib_factory.get_publisher(
             topic=f"{self.name}.crash",
             msg_type=PoseMsg
+        )
+        self.motion_poi_sub = self.commlib_factory.get_rpc_service(
+            rpc_name = f"{self.name}.move.poi",
+            callback = self.move_to_poi_callback
         )
 
         self.other_robots_pose_sub = self.commlib_factory.create_psubscriber(
@@ -298,6 +311,37 @@ class Robot:
         self.simulator_thread = threading.Thread(target = self.simulation_thread)
 
         self.logger.info("Device %s set-up", self.name)
+
+    def move_to_poi_callback(self, message):
+        """
+        Callback function to handle the movement to a point of interest (POI).
+
+        Args:
+            message (dict): A dictionary containing the POI information. 
+                            Expected to have a key 'poi' with the POI value.
+
+        Logs:
+            Logs the POI to which the robot is moving.
+        """
+        # Find the poi with the same name
+        poi_name = message['poi']
+        print("###", message['poi'])
+        print("###", self.pois)
+        self.next_poi_from_callback = self.pois[poi_name]
+        self.target_to_reach = {
+            'x': self.next_poi_from_callback['x'],
+            'y': self.next_poi_from_callback['y']
+        }
+        self.logger.info("Moving to POI %s [%s]", message, self.target_to_reach)
+        self.velocities_for_target = {
+            'linear': message['linear'],
+            'angular': message['angular']
+        }
+        while self.next_poi_from_callback is not None and \
+            self.stopped is not True and self.terminated is not True:
+            time.sleep(0.1)
+        self.target_to_reach = None
+        return {}
 
     def others_robot_pose_callback(self, message, _):
         """
@@ -776,20 +820,32 @@ class Robot:
         angle_diff = angle - self._theta
         # Normalize the angle difference to be between -pi and pi
         angle_diff = (angle_diff + math.pi) % (2 * math.pi) - math.pi
-
-        # print(x, y, self._x, self._y, angle, angle_diff)
-
         # If angle diff is different than almost 0, only rotate
-        if abs(angle_diff) > 0.003:
-            return 0, self.automation['angular'] * (angle_diff * 2.0)
+        if abs(angle_diff) > 0.002: # one degree
+            angular_velocity = min(self.velocities_for_target['angular'], abs(angle_diff) * 2.0)
+            return 0, angular_velocity
         # Otherwise, move forward
         else:
-            distance = math.hypot(
-                self.automation['points'][self.pois_index]['x'] - self._x,
-                self.automation['points'][self.pois_index]['y'] - self._y
-            )
-            linear_velocity = min(self.automation['linear'], distance * 3.0)
+            distance = math.hypot(x - self._x, y - self._y)
+            linear_velocity = min(self.velocities_for_target['linear'], distance * 3.0)
             return linear_velocity, 0
+
+    def calculate_velocities_for_target(self):
+        """
+        Calculate the velocities required to reach the target.
+
+        This method calculates the velocities needed to move towards the target
+        specified by the 'target_to_reach' attribute. It uses the 
+        'calculate_velocities_for_point' method to determine the velocities based 
+        on the target's x and y coordinates.
+
+        Returns:
+            tuple: A tuple containing the calculated velocities.
+        """
+        return self.calculate_velocities_for_point(
+            self.target_to_reach['x'],
+            self.target_to_reach['y']
+        )
 
     def simulation_thread(self):
         """
@@ -836,7 +892,6 @@ class Robot:
 
                 # Mock mode here
                 if self.automation is not None:
-                    
                     if has_target is False:
                         if self.pois_index == len(self.automation['points']) - 1:
                             self.logger.warning("Reached the last POI")
@@ -844,6 +899,10 @@ class Robot:
                                 self.automation['points'].reverse()
                                 self.logger.critical("Reversed POIs %s", self.automation['points'])
                                 self.pois_index = 0
+                                self.target_to_reach = {
+                                    'x': self.automation['points'][self.pois_index]['x'],
+                                    'y': self.automation['points'][self.pois_index]['y']
+                                }
                                 has_target = True
                                 reverse_mode = True
                             elif self.automation['reverse'] is True and reverse_mode is True:
@@ -852,6 +911,10 @@ class Robot:
                                     self.logger.critical("In loop: Reversed POIs %s", \
                                         self.automation['points'])
                                     self.pois_index = 0
+                                    self.target_to_reach = {
+                                        'x': self.automation['points'][self.pois_index]['x'],
+                                        'y': self.automation['points'][self.pois_index]['y']
+                                    }
                                     has_target = True
                                     reverse_mode = False
                                 else:
@@ -859,19 +922,27 @@ class Robot:
                             elif self.automation['reverse'] is False and \
                                 self.automation['loop'] is True:
                                 self.pois_index = 0
+                                self.target_to_reach = {
+                                    'x': self.automation['points'][self.pois_index]['x'],
+                                    'y': self.automation['points'][self.pois_index]['y']
+                                }
                                 has_target = True
                             elif self.automation['reverse'] is False and \
                                 self.automation['loop'] is False:
                                 self.stopped = True
                         else:
                             self.pois_index += 1
+                            self.target_to_reach = {
+                                'x': self.automation['points'][self.pois_index]['x'],
+                                'y': self.automation['points'][self.pois_index]['y']
+                            }
                             has_target = True
 
                     # Calculate velocities based on next POI
-                    lin_, ang_ = self.calculate_velocities_for_point(
-                        self.automation['points'][self.pois_index]['x'],
-                        self.automation['points'][self.pois_index]['y'],
-                    )
+                    lin_, ang_ = self.calculate_velocities_for_target()
+                elif self.next_poi_from_callback is not None:
+                    # Calculate velocities based on next POI
+                    lin_, ang_ = self.calculate_velocities_for_target()
                 else:
                     # Get the velocities from the motion controller
                     lin_ = self.motion_controller.get_linear()
@@ -894,11 +965,18 @@ class Robot:
 
                 # Check if we reached the POI
                 if self.automation is not None:
-                    if abs(xx - self.automation['points'][self.pois_index]['x']) < 0.01 and \
-                        abs(yy - self.automation['points'][self.pois_index]['y']) < 0.01:
+                    if math.hypot(\
+                        xx - self.target_to_reach['x'], \
+                            yy - self.target_to_reach['y']) < 0.01:
                         self.logger.warning("Reached POI %s", self.pois_index)
                         self.logger.warning(" >> Current pois list: %s", self.automation['points'])
                         has_target = False
+                if self.next_poi_from_callback is not None:
+                    if math.hypot(\
+                        xx - self.target_to_reach['x'], \
+                            yy - self.target_to_reach['y']) < 0.01:
+                        self.logger.warning("Reached POI %s", self.pois_index)
+                        self.next_poi_from_callback = None
 
                 # Logging
                 if self._x != prev_x or self._y != prev_y or self._theta != prev_th:

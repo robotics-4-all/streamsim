@@ -245,6 +245,12 @@ class Simulator:
         self.world.load_environment(configuration = self.configuration)
         self.world_name = self.world.name
 
+        # Fix pois coordinates
+        if 'pois' in self.world.configuration['world']:
+            for poi in self.world.configuration['world']['pois']:
+                poi['pose']['x'] = poi['pose']['x'] * resolution
+                poi['pose']['y'] = poi['pose']['y'] * resolution
+
         # Initializing robots
         self.robots = []
         self.robot_names = []
