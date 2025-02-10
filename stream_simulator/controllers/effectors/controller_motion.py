@@ -121,16 +121,16 @@ class MotionController(BaseThing):
             topic = self.base_topic + ".set",
             callback = self.cmd_vel
         )
-        self.motion_duration_sub = self.commlib_factory.get_rpc_service(
-            rpc_name = self.base_topic + ".move.duration",
+        self.motion_duration_sub = self.commlib_factory.get_action_server(
+            action_name = self.base_topic + ".move.duration",
             callback = self.move_duration_callback
         )
-        self.motion_distance_sub = self.commlib_factory.get_rpc_service(
-            rpc_name = self.base_topic + ".move.distance",
+        self.motion_distance_sub = self.commlib_factory.get_action_server(
+            action_name = self.base_topic + ".move.distance",
             callback = self.move_distance_callback
         )
-        self.turn_sub = self.commlib_factory.get_rpc_service(
-            rpc_name = self.base_topic + ".move.turn",
+        self.turn_sub = self.commlib_factory.get_action_server(
+            action_name = self.base_topic + ".move.turn",
             callback = self.turn_callback
         )
 
@@ -170,7 +170,7 @@ class MotionController(BaseThing):
             time.sleep(1)
         self.logger.info("Sensor %s started", self.name)
 
-    def move_duration_callback(self, message):
+    def move_duration_callback(self, goalh):
         """
         Callback function to handle movement duration messages.
         Args:
@@ -184,7 +184,7 @@ class MotionController(BaseThing):
             Error: If the message is wrongly formatted.
         """
         try:
-            response = message
+            response = goalh.data
 
             # Checks for types
             try:
@@ -202,7 +202,7 @@ class MotionController(BaseThing):
             self._linear = response['linear']
             self._angular = response['angular']
             motion_started = time.time()
-            while True:
+            while True and not goalh.cancel_event.is_set():
                 if time.time() - motion_started >= response["duration"]:
                     self._linear = 0
                     self._angular = 0
@@ -215,7 +215,7 @@ class MotionController(BaseThing):
 
         return {"status": "done"}
 
-    def move_distance_callback(self, message):
+    def move_distance_callback(self, goalh):
         """
         Callback function to handle movement distance messages.
         Args:
@@ -229,7 +229,7 @@ class MotionController(BaseThing):
             ValueError: If 'linear' or 'distance' are not valid float or integer values.
         """
         try:
-            response = message
+            response = goalh.data
             # Checks for types
             print(response)
             try:
@@ -244,7 +244,14 @@ class MotionController(BaseThing):
             self._linear = response['linear']
             self._angular = 0
             # print("time to sleep is: ", response["distance"] / response["linear"])
-            time.sleep(response["distance"] / response["linear"])
+            time_estimate = response["distance"] / response["linear"]
+            motion_started = time.time()
+            while True and not goalh.cancel_event.is_set():
+                if time.time() - motion_started >= time_estimate:
+                    self._linear = 0
+                    self._angular = 0
+                    break
+                time.sleep(0.05)
             self._linear = 0
         except Exception as e: # pylint: disable=broad-exception-caught
             self.logger.error("%s: move_duration is wrongly formatted: %s - %s", \
@@ -253,7 +260,7 @@ class MotionController(BaseThing):
 
         return {"status": "done"}
 
-    def turn_callback(self, message):
+    def turn_callback(self, goalh):
         """
         Callback function to handle turning motion based on the provided message.
         Args:
@@ -267,7 +274,7 @@ class MotionController(BaseThing):
             ValueError: If 'angular' or 'angle' in the message are not valid numbers.
         """
         try:
-            response = message
+            response = goalh.data
 
             # Checks for types
             try:
@@ -282,7 +289,15 @@ class MotionController(BaseThing):
             self._linear = 0
             self._angular = response['angular']
             # print("time to sleep is: ", response["angle"] / response["angular"])
-            time.sleep(response["angle"] / response["angular"])
+            
+            time_estimate = response["angle"] / response["angular"]
+            motion_started = time.time()
+            while True and not goalh.cancel_event.is_set():
+                if time.time() - motion_started >= time_estimate:
+                    self._linear = 0
+                    self._angular = 0
+                    break
+                time.sleep(0.05)
             self._angular = 0
         except Exception as e: # pylint: disable=broad-exception-caught
             self.logger.error("%s: turn is wrongly formatted: %s - %s", \

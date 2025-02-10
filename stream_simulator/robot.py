@@ -259,8 +259,8 @@ class Robot:
             topic=f"{self.name}.crash",
             msg_type=PoseMsg
         )
-        self.motion_poi_sub = self.commlib_factory.get_rpc_service(
-            rpc_name = f"{self.name}.move.poi",
+        self.motion_poi_sub = self.commlib_factory.get_action_server(
+            action_name = f"{self.name}.move.poi",
             callback = self.move_to_poi_callback
         )
 
@@ -312,33 +312,41 @@ class Robot:
 
         self.logger.info("Device %s set-up", self.name)
 
-    def move_to_poi_callback(self, message):
+    def move_to_poi_callback(self, goalh): # message is the goalhandle
         """
-        Callback function to handle the movement to a point of interest (POI).
+        Callback function to move the robot to a point of interest (POI).
 
         Args:
-            message (dict): A dictionary containing the POI information. 
-                            Expected to have a key 'poi' with the POI value.
+            goalh (GoalHandle): The goal handle containing the target POI and movement parameters.
 
-        Logs:
-            Logs the POI to which the robot is moving.
+        Attributes:
+            poi_name (str): The name of the point of interest to move to.
+            linear (float): The linear velocity for the movement.
+            angular (float): The angular velocity for the movement.
+            next_poi_from_callback (dict): The coordinates of the next POI.
+            target_to_reach (dict): The target coordinates to reach.
+            velocities_for_target (dict): The velocities for the movement.
+        
+        Returns:
+            dict: An empty dictionary upon completion.
         """
         # Find the poi with the same name
-        poi_name = message['poi']
-        print("###", message['poi'])
-        print("###", self.pois)
+        poi_name = goalh.data['poi']
+        linear = goalh.data['linear']
+        angular = goalh.data['angular']
         self.next_poi_from_callback = self.pois[poi_name]
         self.target_to_reach = {
             'x': self.next_poi_from_callback['x'],
             'y': self.next_poi_from_callback['y']
         }
-        self.logger.info("Moving to POI %s [%s]", message, self.target_to_reach)
+        self.logger.info("Moving to POI %s [%s]", goalh, self.target_to_reach)
         self.velocities_for_target = {
-            'linear': message['linear'],
-            'angular': message['angular']
+            'linear': linear,
+            'angular': angular
         }
         while self.next_poi_from_callback is not None and \
-            self.stopped is not True and self.terminated is not True:
+            self.stopped is not True and self.terminated is not True \
+                and not goalh.cancel_event.is_set():
             time.sleep(0.1)
         self.target_to_reach = None
         return {}
