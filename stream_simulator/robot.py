@@ -626,17 +626,14 @@ class Robot:
             self.logger.warning("Controller %s stopped", c)
             del controller
 
-        # Stopping the motion controller
-        # if self.motion_controller is not None:
-        #     self.logger.warning("Trying to stop motion controller")
-        #     self.motion_controller.stop()
-        del self.motion_controller
-
         self.logger.warning("%s Trying to stop robot thread", self.raw_name)
         self.stopped = True
         while not self.terminated:
             time.sleep(0.1)
         self.logger.warning("%s Robot thread stopped", self.raw_name)
+
+        del self.motion_controller
+        
         self.commlib_factory.stop()
         del self.commlib_factory
 

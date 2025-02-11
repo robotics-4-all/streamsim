@@ -172,24 +172,10 @@ class EnvLightController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
-        self.set_data_publisher(self.base_topic)
-        self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
 
-    def get_callback(self, _):
-        """
-        Returns a dictionary containing the current color and luminosity of the light.
-
-        Args:
-            _ (Any): Unused parameter.
-
-        Returns:
-            dict: A dictionary with keys "color" and "luminosity" representing the current state 
-            of the light.
-        """
-        return {
-            "color": self.color,
-            "luminosity": self.luminosity
-        }
+        # Since it is an effector, we need to set the command subscriber
+        self.set_command_subscriber(self.base_topic, self.set_callback)
+        self.set_state_publisher(self.base_topic)
 
     def set_callback(self, message):
         """
@@ -220,10 +206,14 @@ class EnvLightController(BaseThing):
                 real_dist = self.tf_distance_calculator_rpc.call(
                     {"initiator": message["initiator"], "target": self.name}
                 )
-                print(real_dist)
                 if real_dist['distance'] is None or real_dist['distance'] > allowed_distance:
                     self.logger.info("Light %s is too far from %s", self.name, message["initiator"])
-                    return {}
+                    return {'state': {
+                        "r": self.color['r'],
+                        "g": self.color['g'],
+                        "b": self.color['b'],
+                        "luminosity": self.luminosity
+                    }}
 
         if "r" in message:
             self.color['r'] = message["r"]
@@ -235,7 +225,7 @@ class EnvLightController(BaseThing):
             self.luminosity = message["luminosity"]
             self.color['a'] = self.luminosity * 255.0 / 100.0
 
-        self.publisher.publish(message)
+        self.state_publisher.publish({'state': message})
         self.logger.info("{%s: New lights command: %s", self.name, message)
 
         return {}

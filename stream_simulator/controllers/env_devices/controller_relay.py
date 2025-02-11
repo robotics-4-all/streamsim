@@ -167,18 +167,6 @@ class EnvRelayController(BaseThing):
         self.set_command_subscriber(self.base_topic, self.set_callback)
         self.set_state_publisher(self.base_topic)
 
-    def get_callback(self, _):
-        """
-        Callback function that returns the current state of the relay.
-
-        Args:
-            _ (Any): Placeholder argument, not used in the function.
-
-        Returns:
-            dict: A dictionary containing the current state of the relay with the key 'state'.
-        """
-        return {"state": self.state}
-
     def set_callback(self, message):
         """
         Sets the callback for handling relay state changes.
