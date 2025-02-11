@@ -22,7 +22,6 @@ class PanTiltController(BaseThing):
         _yaw (float): Current yaw angle.
         _pitch (float): Current pitch angle.
         pan_tilt_set_sub (Subscriber): Subscriber for setting pan-tilt angles.
-        pan_tilt_get_rpc_server (RPCService): RPC server for getting pan-tilt angles.
         enable_rpc_server (RPCService): RPC server for enabling the mechanism.
         disable_rpc_server (RPCService): RPC server for disabling the mechanism.
         data_publisher (Publisher): Publisher for pan-tilt data.
@@ -31,7 +30,6 @@ class PanTiltController(BaseThing):
         disable_callback(message): Disables the pan-tilt mechanism.
         start(): Starts the pan-tilt controller.
         stop(): Stops the pan-tilt controller.
-        get_pan_tilt_callback(message): Returns the current pan and tilt angles.
         pan_tilt_set_callback(message): Sets the pan and tilt angles based on the message.
     """
     def __init__(self, conf = None, package = None):
@@ -111,12 +109,11 @@ class PanTiltController(BaseThing):
             topic = self.base_topic + ".set",
             callback = self.pan_tilt_set_callback
         )
-        self.pan_tilt_get_rpc_server = self.commlib_factory.get_rpc_service(
-            callback = self.get_pan_tilt_callback,
-            rpc_name = self.base_topic + ".get"
-        )
         self.data_publisher = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".data"
+        )
+        self.state_publisher = self.commlib_factory.get_publisher(
+            topic=self.base_topic + ".state"
         )
 
         self.commlib_factory.run()
@@ -145,21 +142,6 @@ class PanTiltController(BaseThing):
         """
         self.commlib_factory.stop()
 
-    def get_pan_tilt_callback(self, _):
-        """
-        Callback function to get the current pan and tilt values.
-
-        Args:
-            _ (Any): Unused argument.
-
-        Returns:
-            dict: A dictionary containing the current 'pan' (yaw) and 'tilt' (pitch) values.
-        """
-        return {
-            "pan": self._yaw,
-            "tilt": self._pitch
-        }
-
     def pan_tilt_set_callback(self, message):
         """
         Callback function to handle incoming pan and tilt commands.
@@ -187,6 +169,13 @@ class PanTiltController(BaseThing):
                 'pan': self._yaw,
                 'tilt': self._pitch,
                 'name': self.name
+            })
+            self.state_publisher.publish({
+                'state': {
+                    'pan': self._yaw,
+                    'tilt': self._pitch,
+                    'name': self.name
+                }
             })
 
             self.logger.info("%s: New pan tilt command: %s, %s", self.name, self._yaw, self._pitch)

@@ -136,8 +136,11 @@ class EnvPanTiltController(BaseThing):
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
-        self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
-        self.set_data_publisher(self.base_topic)
+
+        # Since it is an effector, we need to set the command subscriber
+        self.set_command_subscriber(self.base_topic, self.set_callback)
+        self.set_state_publisher(self.base_topic)
+        self.set_data_publisher(self.base_topic) # For internal notification
 
     # Only for mock mode
     def thread_fun(self):
@@ -171,21 +174,6 @@ class EnvPanTiltController(BaseThing):
                 'name': self.name
             })
 
-    def get_callback(self, _):
-        """
-        Retrieves the current pan and tilt values.
-
-        Args:
-            _ (Any): Placeholder argument, not used in the function.
-
-        Returns:
-            dict: A dictionary containing the current 'pan' and 'tilt' values.
-        """
-        return {
-            'pan': self.pan,
-            'tilt': self.tilt
-        }
-
     def set_callback(self, message):
         """
         Sets the pan and tilt values from the given message and publishes the updated values.
@@ -199,7 +187,12 @@ class EnvPanTiltController(BaseThing):
         """
         self.pan = message['pan']
         self.tilt = message['tilt']
-        self.publisher.publish({
+        self.state_publisher.publish({"state": {
+            "pan": self.pan,
+            "tilt": self.tilt,
+            "name": self.name
+        }})
+        self.publisher.publish({ # this is for the internal communication
             'pan': self.pan,
             'tilt': self.tilt,
             'name': self.name
@@ -245,5 +238,3 @@ class EnvPanTiltController(BaseThing):
         5. Stops the set RPC server.
         """
         self.info["enabled"] = False
-        self.get_rpc_server.stop()
-        self.set_rpc_server.stop()

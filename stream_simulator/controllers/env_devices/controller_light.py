@@ -172,10 +172,27 @@ class EnvLightController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
+        self.set_effector_set_get_rpcs(self.base_topic, None, self.get_callback)
 
         # Since it is an effector, we need to set the command subscriber
         self.set_command_subscriber(self.base_topic, self.set_callback)
         self.set_state_publisher(self.base_topic)
+
+    def get_callback(self, _):
+        """
+        Returns a dictionary containing the current color and luminosity of the light.
+
+        Args:
+            _ (Any): Unused parameter.
+
+        Returns:
+            dict: A dictionary with keys "color" and "luminosity" representing the current state 
+            of the light.
+        """
+        return {
+            "color": self.color,
+            "luminosity": self.luminosity
+        }
 
     def set_callback(self, message):
         """

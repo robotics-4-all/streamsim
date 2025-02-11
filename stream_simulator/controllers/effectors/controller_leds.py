@@ -118,10 +118,14 @@ class LedsController(BaseThing):
             topic = self.info['device_name'] + ".leds"
         )
 
-        self.set_rpc_server = self.commlib_factory.get_rpc_service(
+        self.set_subscriber = self.commlib_factory.get_subscriber(
             callback = self.leds_set_callback,
-            rpc_name = self.base_topic + ".set"
+            topic = self.base_topic + ".set"
         )
+        self.state_publisher = self.commlib_factory.get_publisher(
+            topic=self.base_topic + ".state"
+        )
+
         self.get_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.leds_get_callback,
             rpc_name = self.base_topic + ".get"
@@ -151,23 +155,6 @@ class LedsController(BaseThing):
         for managing the communication with the LED controllers.
         """
         self.commlib_factory.stop()
-
-    def leds_get_callback(self, _):
-        """
-        Callback function to retrieve the current state of the LEDs.
-
-        Args:
-            _ (Any): Unused argument.
-
-        Returns:
-            dict: A dictionary containing the current color and luminosity of the LEDs.
-                - "color" (str): The current color of the LEDs.
-                - "luminosity" (float): The current luminosity of the LEDs.
-        """
-        return {
-            "color": self._color,
-            "luminosity": self._luminosity
-        }
 
     def leds_set_callback(self, message):
         """
@@ -207,9 +194,35 @@ class LedsController(BaseThing):
                 self._luminosity = intensity
 
             self.logger.info("{%s: New leds command: %s", self.name, message)
+            self.state_publisher.publish({
+                'state': {
+                    'luminosity': intensity,
+                    'r': r,
+                    'g': g,
+                    'b': b,
+                    'name': self.name
+                }
+            })
 
         except Exception as e: # pylint: disable=broad-except
             self.logger.error("%s: leds_set is wrongly formatted: %s - %s", \
                 self.name, str(e.__class__), str(e))
 
         return {}
+
+    def leds_get_callback(self, _):
+        """
+        Callback function to retrieve the current state of the LEDs.
+
+        Args:
+            _ (Any): Unused argument.
+
+        Returns:
+            dict: A dictionary containing the current color and luminosity of the LEDs.
+                - "color" (str): The current color of the LEDs.
+                - "luminosity" (float): The current luminosity of the LEDs.
+        """
+        return {
+            "color": self._color,
+            "luminosity": self._luminosity
+        }

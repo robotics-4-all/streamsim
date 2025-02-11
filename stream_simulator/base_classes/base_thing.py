@@ -222,14 +222,16 @@ class BaseThing:
             set_cb (callable): The callback function for setting the effector attributes.
             get_cb (callable): The callback function for getting the effector attributes.
         """
-        self.set_rpc_server = self.commlib_factory.get_rpc_service(
-            callback=set_cb,
-            rpc_name=base_topic + ".set"
-        )
-        self.get_rpc_server = self.commlib_factory.get_rpc_service(
-            callback=get_cb,
-            rpc_name=base_topic + ".get"
-        )
+        if set_cb is not None:
+            self.set_rpc_server = self.commlib_factory.get_rpc_service(
+                callback=set_cb,
+                rpc_name=base_topic + ".set"
+            )
+        if get_cb is not None:
+            self.get_rpc_server = self.commlib_factory.get_rpc_service(
+                callback=get_cb,
+                rpc_name=base_topic + ".get"
+            )
 
     def stop(self):
         """

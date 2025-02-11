@@ -1315,6 +1315,7 @@ class TfController:
             # pylint: disable=broad-exception-raised
             raise Exception(str(e)) from e
 
+        print("Result: ", ret)
         return ret
 
     # Affected by rfid_tags
@@ -1586,15 +1587,15 @@ class TfController:
             }
 
         id_ = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 6))
-        # print(f"Detection request for {name} with id {id}")
-        self.detections_publisher.publish({
-            "name": name,
-            "device_type": decl['subtype']['subclass'][0],
-            "type": type_,
-            "id": id_,
-            "state": "start",
-            "result": None
-        })
+        print(f"Detection request for {name} with id {id_}")
+        # self.detections_publisher.publish({
+        #     "name": name,
+        #     "device_type": decl['subtype']['subclass'][0],
+        #     "type": type_,
+        #     "id": id_,
+        #     "state": "start",
+        #     "result": None
+        # })
 
         frm = None
 
@@ -1664,9 +1665,11 @@ class TfController:
         elif decl['subtype']['subclass'][0] == "camera":
             # possible types: face, qr, barcode, gender, age, motion, color, emotion
             ret = self.handle_sensor_camera(name, with_robots = True)
+            # print("Camera: ", ret)
 
             # gt luminosity
             lum = self.compute_luminosity(name, print_debug = False)
+            print("Luminosity: ", lum)
 
             final_detection = {
                 "face": {
@@ -1715,6 +1718,8 @@ class TfController:
             if math.pow(roulette, 2) > lum:
                 self.logger.warning("Camera detection: too dark")
                 decision = False
+
+            print("Decision: ", decision)
 
             # print(ret.items())
             if type_ == "face":
@@ -1796,15 +1801,15 @@ class TfController:
             name, id_, final_detection[type_], frm)
 
         # NOTE: Is this needed?
-        self.detections_publisher.publish({
-            "name": name,
-            "device_type": decl['subtype']['subclass'][0],
-            "type": type_,
-            "id": id_,
-            "state": "end",
-            "result": final_detection
-        })
-
+        # self.detections_publisher.publish({
+        #     "name": name,
+        #     "device_type": decl['subtype']['subclass'][0],
+        #     "type": type_,
+        #     "id": id_,
+        #     "state": "end",
+        #     "result": final_detection
+        # })
+        print("Sending mqtt detection", {k: v for k, v in final_detection.items() if v['result'] is True})
         self.mqtt_notifier.dispatch_detection({
             "name": name,
             "device_type": decl['subtype']['subclass'][0],
