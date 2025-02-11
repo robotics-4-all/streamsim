@@ -162,8 +162,10 @@ class EnvRelayController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
-        self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
-        self.set_data_publisher(self.base_topic)
+
+        # Since it is an effector, we need to set the command subscriber
+        self.set_command_subscriber(self.base_topic, self.set_callback)
+        self.set_state_publisher(self.base_topic)
 
     def get_callback(self, _):
         """
@@ -207,13 +209,15 @@ class EnvRelayController(BaseThing):
                 real_dist = self.tf_distance_calculator_rpc.call(
                     {"initiator": message["initiator"], "target": self.name}
                 )
-                print(real_dist)
                 if real_dist['distance'] is None or real_dist['distance'] > allowed_distance:
                     self.logger.info("Relay %s is too far from %s", self.name, message["initiator"])
+                    self.state_publisher.publish({"state": self.state})
                     return {"state": self.state}
 
+        self.logger.info("Relay %s set to %s", self.name, message["state"])
         self.set_value(message["state"])
-        self.publisher.publish(message)
+        self.state_publisher.publish({"state": self.state})
+        self.logger.info("Relay %s state published", self.name)
         return {"state": self.state}
 
     def set_value(self, value):
@@ -260,5 +264,4 @@ class EnvRelayController(BaseThing):
             self.active = False
             while not self.stopped:
                 time.sleep(0.1)
-        self.get_rpc_server.stop()
-        self.set_rpc_server.stop()
+        self.logger.info("Relay %s stopped", self.name)

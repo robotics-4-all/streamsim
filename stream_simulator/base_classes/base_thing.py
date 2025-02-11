@@ -39,6 +39,8 @@ class BaseThing:
         self.tf_distance_calculator_rpc = None
         self.publisher = None
         self.publisher_triggers = None
+        self.command_subscriber = None
+        self.state_publisher = None
         self.set_rpc_server = None
         self.get_rpc_server = None
         self.simulation_started_sub = None
@@ -175,6 +177,29 @@ class BaseThing:
         """
         self.publisher = self.commlib_factory.get_publisher(
             topic=base_topic + ".data"
+        )
+
+    def set_state_publisher(self, base_topic):
+        """
+        Sets up the data publisher for the thing.
+
+        Args:
+            base_topic (str): The base topic for the data publisher.
+        """
+        self.state_publisher = self.commlib_factory.get_publisher(
+            topic=base_topic + ".state"
+        )
+
+    def set_command_subscriber(self, base_topic, callback):
+        """
+        Sets up the data publisher for the thing.
+
+        Args:
+            base_topic (str): The base topic for the data publisher.
+        """
+        self.command_subscriber = self.commlib_factory.get_subscriber(
+            topic=base_topic + ".set",
+            callback=callback
         )
 
     def set_triggers_publisher(self, base_topic):
