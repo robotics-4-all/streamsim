@@ -1588,14 +1588,6 @@ class TfController:
 
         id_ = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 6))
         print(f"Detection request for {name} with id {id_}")
-        # self.detections_publisher.publish({
-        #     "name": name,
-        #     "device_type": decl['subtype']['subclass'][0],
-        #     "type": type_,
-        #     "id": id_,
-        #     "state": "start",
-        #     "result": None
-        # })
 
         frm = None
 
@@ -1800,15 +1792,6 @@ class TfController:
         self.logger.info("Detection result for %s with id %s: %s, %s",\
             name, id_, final_detection[type_], frm)
 
-        # NOTE: Is this needed?
-        # self.detections_publisher.publish({
-        #     "name": name,
-        #     "device_type": decl['subtype']['subclass'][0],
-        #     "type": type_,
-        #     "id": id_,
-        #     "state": "end",
-        #     "result": final_detection
-        # })
         print("Sending mqtt detection", {k: v for k, v in final_detection.items() if v['result'] is True})
         self.mqtt_notifier.dispatch_detection({
             "name": name,

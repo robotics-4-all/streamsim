@@ -95,11 +95,12 @@ class EnvMicrophoneController(BaseThing):
 
         self.set_communication_layer(package)
 
-        self.detection_rpc = self.commlib_factory.get_rpc_service(
-            broker = "redis",
-            rpc_name = self.base_topic + ".detect",
+        self.detection_subscriber = self.commlib_factory.get_subscriber(
+            topic = self.base_topic + ".detect",
             callback = self.detection_callback,
-            auto_run = False,
+        )
+        self.state_publisher = self.commlib_factory.get_publisher(
+            topic=self.base_topic + ".detection"
         )
 
         self.tf_detection_rpc_client = self.commlib_factory.get_rpc_client(
@@ -127,10 +128,12 @@ class EnvMicrophoneController(BaseThing):
         and the name of the current instance. The response from the client is printed.
         """
         detection_type = message['detection'] # to be detected
-        return self.tf_detection_rpc_client.call({
+        detection_result = self.tf_detection_rpc_client.call({
             'name': self.name,
+            # face, gender, age, emotion, motion, qr, barcode, text, color, robot
             'type': detection_type,
         })
+        self.state_publisher.publish(detection_result)
 
     def set_communication_layer(self, package):
         """

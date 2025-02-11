@@ -152,7 +152,6 @@ class CameraController(BaseThing):
             topic = self.base_topic + ".detect",
             callback = self.detection_callback,
         )
-        print("detection topic: ", self.base_topic + ".detect")
         self.state_publisher = self.commlib_factory.get_publisher(
             topic=self.base_topic + ".detection"
         )
