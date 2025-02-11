@@ -155,20 +155,10 @@ class EnvHumidifierController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
-        self.set_data_publisher(self.base_topic)
-        self.set_effector_set_get_rpcs(self.base_topic, self.set_callback, self.get_callback)
 
-    def get_callback(self, _):
-        """
-        Callback function to retrieve the current humidity level.
-
-        Args:
-            _ (Any): Placeholder argument, not used in the function.
-
-        Returns:
-            dict: A dictionary containing the current humidity level with the key 'humidity'.
-        """
-        return {"humidity": self.humidity}
+        # Since it is an effector, we need to set the command subscriber
+        self.set_command_subscriber(self.base_topic, self.set_callback)
+        self.set_state_publisher(self.base_topic)
 
     def set_callback(self, message):
         """
@@ -192,12 +182,11 @@ class EnvHumidifierController(BaseThing):
                 if real_dist['distance'] is None or real_dist['distance'] > allowed_distance:
                     self.logger.info("Humidifier %s is too far from %s", \
                         self.name, message["initiator"])
+                    self.state_publisher.publish({"state": self.humidity})
                     return {}
 
         self.humidity = message["humidity"]
-        self.publisher.publish({
-            "humidity": self.humidity
-        })
+        self.state_publisher.publish({"state": self.humidity})
         self.logger.info("Humidifier %s set to %s", self.name, self.humidity)
 
         return {}
@@ -232,5 +221,3 @@ class EnvHumidifierController(BaseThing):
             self.active = False
             while not self.stopped:
                 time.sleep(0.1)
-        self.get_rpc_server.stop()
-        self.set_rpc_server.stop()
