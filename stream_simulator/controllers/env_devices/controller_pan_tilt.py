@@ -136,6 +136,7 @@ class EnvPanTiltController(BaseThing):
         """
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
+        self.set_state_publisher_internal(package["namespace"])
 
         # Since it is an effector, we need to set the command subscriber
         self.set_command_subscriber(self.base_topic, self.set_callback)
@@ -196,6 +197,13 @@ class EnvPanTiltController(BaseThing):
             'pan': self.pan,
             'tilt': self.tilt,
             'name': self.name
+        })
+        self.state_publisher_internal.publish({
+            "state": {
+                "pan": self.pan,
+                "tilt": self.tilt,
+            },
+            'origin': self.name
         })
         print("Set: ", self.pan, self.tilt)
         return {}

@@ -162,6 +162,7 @@ class EnvRelayController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
+        self.set_state_publisher_internal(package["namespace"])
 
         # Since it is an effector, we need to set the command subscriber
         self.set_command_subscriber(self.base_topic, self.set_callback)
@@ -205,6 +206,7 @@ class EnvRelayController(BaseThing):
         self.logger.info("Relay %s set to %s", self.name, message["state"])
         self.set_value(message["state"])
         self.state_publisher.publish({"state": self.state})
+        self.state_publisher_internal.publish({"state": self.state, 'origin': self.name})
         self.logger.info("Relay %s state published", self.name)
         return {"state": self.state}
 

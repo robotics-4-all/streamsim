@@ -115,6 +115,9 @@ class PanTiltController(BaseThing):
         self.state_publisher = self.commlib_factory.get_publisher(
             topic=self.base_topic + ".state"
         )
+        self.state_publisher_internal = self.commlib_factory.get_publisher(
+            topic= _namespace + ".state.internal"
+        )
 
         self.commlib_factory.run()
 
@@ -175,6 +178,13 @@ class PanTiltController(BaseThing):
                     'pan': self._yaw,
                     'tilt': self._pitch,
                     'name': self.name
+                }
+            })
+            self.state_publisher_internal.publish({
+                'origin': self.name,
+                'state': {
+                    'pan': self._yaw,
+                    'tilt': self._pitch,
                 }
             })
 

@@ -147,7 +147,7 @@ class RfidReaderController(BaseThing):
                 if random.uniform(0, 10) < 3:
                     tags["RF432423"] = "lorem_ipsum"
             elif self.info["mode"] == "simulation":
-                # Ask tf for proximity sound sources or humans
+                # Ask tf for proximity
                 res = self.tf_affection_rpc.call({
                     'name': self.name
                 })

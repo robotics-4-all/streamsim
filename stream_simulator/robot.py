@@ -176,6 +176,7 @@ class Robot:
         self.terminated = False
         self.error_log_msg = ""
         self.crashed_with_other_robot = False
+        self.crashed = False
         self.next_poi_from_callback = None
         self.target_to_reach = None
         self.velocities_for_target = {'linear': 0, 'angular': 0}
@@ -1009,7 +1010,11 @@ class Robot:
                         position=PositionMsg(x=self._x, y=self._y, z=0.0),
                         orientation=RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
                     )
-                    self.crash_pub.publish(pose)
+                    if self.crashed is False:
+                        self.crash_pub.publish(pose)
+                    self.crashed = True
+                else:
+                    self.crashed = False
 
             time.sleep(self.dt)
 

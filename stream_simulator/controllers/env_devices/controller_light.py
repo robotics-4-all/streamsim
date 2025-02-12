@@ -173,7 +173,7 @@ class EnvLightController(BaseThing):
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
         self.set_effector_set_get_rpcs(self.base_topic, None, self.get_callback)
-
+        self.set_state_publisher_internal(package["namespace"])
         # Since it is an effector, we need to set the command subscriber
         self.set_command_subscriber(self.base_topic, self.set_callback)
         self.set_state_publisher(self.base_topic)
@@ -243,6 +243,7 @@ class EnvLightController(BaseThing):
             self.color['a'] = self.luminosity * 255.0 / 100.0
 
         self.state_publisher.publish({'state': message})
+        self.state_publisher_internal.publish({"state": message, 'origin': self.name})
         self.logger.info("{%s: New lights command: %s", self.name, message)
 
         return {}

@@ -75,6 +75,11 @@ class MQTTNotifier:
             on_message = self.robot_pose_callback,
         )
 
+        self.robot_crash_sub = self.local_commlib.create_psubscriber(
+            topic = "streamsim.*.*.crash",
+            on_message = self.robot_crash_callback,
+        )
+
         self.linear_alarms_sub = self.local_commlib.create_psubscriber(
             topic = "streamsim.*.world.*.sensor.alarm.linear_alarm.*.triggers",
             on_message = self.linear_alarm_triggers_callback,
@@ -90,11 +95,52 @@ class MQTTNotifier:
             on_message = self.rfid_reader_callback,
         )
 
+        self.effector_state_change_sub = self.local_commlib.create_psubscriber(
+            topic = f"streamsim.{uid}.state.internal",
+            on_message = self.effector_state_change_callback,
+        )
+
         # Start the CommlibFactory
         self.commlib_factory.run()
         self.local_commlib.run()
 
         self.logger.info("MQTT Notifier started")
+
+    def robot_crash_callback(self, message, origin):
+        """
+        Callback function to handle robot crash messages.
+
+        This function is triggered when a robot crash message is received.
+        It publishes the message to the notify_pub topic and logs the information.
+
+        Args:
+            message (dict): The message containing the robot crash data.
+        """
+        origin = origin.split(".")[2]
+        self.notify_pub.publish({
+            'type': "robot_crash",
+            'data': {
+                'message': message,
+                'origin': origin,
+            }
+        })
+
+    def effector_state_change_callback(self, message, _):
+        """
+        Callback function to handle effector state change messages.
+
+        This function is triggered when an effector state change message is received.
+        It publishes the message to the notify_pub topic and logs the information.
+
+        Args:
+            message (dict): The message containing the effector state change data.
+        """
+        self.notify_pub.publish({
+            'type': "effector_state_change",
+            'data': message,
+        })
+        if self.prints:
+            self.logger.info("UI inform %s: %s", "effector_state_change", message)
 
     def linear_alarm_triggers_callback(self, message, _):
         """

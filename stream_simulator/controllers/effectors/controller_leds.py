@@ -125,6 +125,9 @@ class LedsController(BaseThing):
         self.state_publisher = self.commlib_factory.get_publisher(
             topic=self.base_topic + ".state"
         )
+        self.state_publisher_internal = self.commlib_factory.get_publisher(
+            topic= _namespace + ".state.internal"
+        )
 
         self.get_rpc_server = self.commlib_factory.get_rpc_service(
             callback = self.leds_get_callback,
@@ -201,6 +204,15 @@ class LedsController(BaseThing):
                     'g': g,
                     'b': b,
                     'name': self.name
+                }
+            })
+            self.state_publisher_internal.publish({
+                'origin': self.name,
+                'state': {
+                    'luminosity': intensity,
+                    'r': r,
+                    'g': g,
+                    'b': b,
                 }
             })
 

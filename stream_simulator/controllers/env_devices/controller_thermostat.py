@@ -159,6 +159,7 @@ class EnvThermostatController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
+        self.set_state_publisher_internal(package["namespace"])
 
         # Since it is an effector, we need to set the command subscriber
         self.set_command_subscriber(self.base_topic, self.set_callback)
@@ -195,6 +196,7 @@ class EnvThermostatController(BaseThing):
 
         self.temperature = message["temperature"]
         self.state_publisher.publish({"state": self.temperature})
+        self.state_publisher_internal.publish({"state": self.temperature, 'origin': self.name})
         self.logger.info("Thermostat %s set to %s", self.name, self.temperature)
         return {}
 

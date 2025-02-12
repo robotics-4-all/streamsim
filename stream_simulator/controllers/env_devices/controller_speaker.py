@@ -168,6 +168,7 @@ class EnvSpeakerController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
+        self.set_state_publisher_internal(package["namespace"])
 
         self.play_action_server = self.commlib_factory.get_action_server(
             callback = self.on_goal_play,
@@ -317,7 +318,15 @@ class EnvSpeakerController(BaseThing):
             "language": language,
             "speaker": self.name
         })
-
+        self.state_publisher_internal.publish({
+            "state": {
+                "text": texts,
+                "volume": volume,
+                "language": language,
+            },
+            'origin': self.name
+        })
+        
         if self.info["mode"] in ["mock", "simulation"]:
             now = time.time()
             self.logger.info("Speaking...")

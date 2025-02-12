@@ -125,6 +125,9 @@ class SpeakerController(BaseThing):
         self.speak_pub = self.commlib_factory.get_publisher(
             topic = self.base_topic + ".speak.notify"
         )
+        self.state_publisher_internal = self.commlib_factory.get_publisher(
+            topic= _namespace + ".state.internal"
+        )
 
         self.commlib_factory.run()
 
@@ -171,6 +174,15 @@ class SpeakerController(BaseThing):
             "volume": volume,
             "language": language,
             "speaker": self.name
+        })
+
+        self.state_publisher_internal.publish({
+            'origin': self.name,
+            'state': {
+                "text": texts,
+                "volume": volume,
+                "language": language,
+            }
         })
 
         timestamp = time.time()

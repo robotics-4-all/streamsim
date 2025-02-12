@@ -155,7 +155,7 @@ class EnvHumidifierController(BaseThing):
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
-
+        self.set_state_publisher_internal(package["namespace"])
         # Since it is an effector, we need to set the command subscriber
         self.set_command_subscriber(self.base_topic, self.set_callback)
         self.set_state_publisher(self.base_topic)
@@ -187,6 +187,7 @@ class EnvHumidifierController(BaseThing):
 
         self.humidity = message["humidity"]
         self.state_publisher.publish({"state": self.humidity})
+        self.state_publisher_internal.publish({"state": self.humidity, 'origin': self.name})
         self.logger.info("Humidifier %s set to %s", self.name, self.humidity)
 
         return {}

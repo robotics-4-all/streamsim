@@ -40,6 +40,7 @@ class BaseThing:
         self.publisher = None
         self.publisher_triggers = None
         self.command_subscriber = None
+        self.state_publisher_internal = None
         self.state_publisher = None
         self.set_rpc_server = None
         self.get_rpc_server = None
@@ -200,6 +201,17 @@ class BaseThing:
         self.command_subscriber = self.commlib_factory.get_subscriber(
             topic=base_topic + ".set",
             callback=callback
+        )
+
+    def set_state_publisher_internal(self, namespace):
+        """
+        Sets up the internal state publisher for the thing.
+
+        Args:
+            namespace (str): The namespace for the internal state publisher.
+        """
+        self.state_publisher_internal = self.commlib_factory.get_publisher(
+            topic=namespace + ".state.internal"
         )
 
     def set_triggers_publisher(self, base_topic):
