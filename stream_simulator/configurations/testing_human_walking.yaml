@@ -1,0 +1,42 @@
+simulation:
+  name: "6569d9fd137514fe16b106dc"
+
+map:
+  width:  1000 # in pixels
+  height: 1000 # in pixels
+  resolution: 0.1 # meters per pixel
+  obstacles:
+    lines:
+      - {x1: 900, y1: 10, x2: 900, y2: 990} # in pixels
+
+world:
+  name: "testing_world"
+  places: []
+  properties:
+    temperature: 16
+    humidity: 60
+    luminosity: 10
+    ph: 7.4
+
+actors: # all x, y are in pixels
+  humans:
+    - id: 1
+      x: 510
+      y: 500
+      move: 1
+      sound: 1
+      lang: EN
+      range: 80
+      speech: Hey there
+      emotion: angry
+      gender: male
+      age: 56
+      automation:
+        loop: true
+        reverse: true
+        linear: 0.2
+        angular: 0.2
+        points:
+          - {x: 500, y: 500, theta: 0}
+          - {x: 510, y: 510, theta: 0}
+          - {x: 520, y: 520, theta: 0}  

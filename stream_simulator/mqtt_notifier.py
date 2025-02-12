@@ -75,6 +75,11 @@ class MQTTNotifier:
             on_message = self.robot_pose_callback,
         )
 
+        self.actor_pose_sub = self.local_commlib.create_psubscriber(
+            topic = "streamsim.*.actor.*.*.pose.internal",
+            on_message = self.actor_pose_callback,
+        )
+
         self.robot_crash_sub = self.local_commlib.create_psubscriber(
             topic = "streamsim.*.*.crash",
             on_message = self.robot_crash_callback,
@@ -105,6 +110,39 @@ class MQTTNotifier:
         self.local_commlib.run()
 
         self.logger.info("MQTT Notifier started")
+
+    def actor_pose_callback(self, message, _):
+        """
+        Callback function to handle actor pose messages.
+
+        This function is triggered when a new actor pose message is received. It extracts
+        relevant information from the message, constructs a payload, and publishes it to
+        the notify_pub topic. Additionally, it logs the information for debugging purposes.
+
+        Args:
+            message (dict): A dictionary containing the actor pose information with keys:
+                - 'x' (float): The x-coordinate of the actor's position.
+                - 'y' (float): The y-coordinate of the actor's position.
+                - 'theta' (float): The orientation of the actor in radians.
+                - 'resolution' (float): The resolution of the actor's position data.
+                - 'name' (str): The name associated with the actor's pose data.
+
+        Returns:
+            None
+        """
+        payload = {
+            'x': message['x'],
+            'y': message['y'],
+            'theta': message['theta'],
+            'resolution': message['resolution'],
+            'name': message['raw_name'],
+        }
+        self.notify_pub.publish({
+            'type': "actor_pose",
+            'data': payload,
+        })
+        if self.prints:
+            self.logger.info("UI inform %s: %s", "actor_pose", payload)
 
     def robot_crash_callback(self, message, origin):
         """
@@ -258,7 +296,7 @@ class MQTTNotifier:
         if self.prints:
             self.logger.info("UI inform %s: %s", "detection", message)
 
-    def robot_pose_callback(self, message, _):
+    def robot_pose_callback(self, message, topic):
         """
         Callback function to handle robot pose messages.
 
@@ -277,6 +315,9 @@ class MQTTNotifier:
         Returns:
             None
         """
+        if "actor" in topic:
+            return
+
         payload = {
             'x': message['x'],
             'y': message['y'],
