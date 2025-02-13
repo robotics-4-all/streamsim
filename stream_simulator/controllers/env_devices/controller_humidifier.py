@@ -187,7 +187,7 @@ class EnvHumidifierController(BaseThing):
 
         self.humidity = message["humidity"]
         self.state_publisher.publish({"state": self.humidity})
-        self.state_publisher_internal.publish({"state": self.humidity, 'origin': self.name})
+        self.state_publisher_internal.publish({"state": {"humidity": self.humidity}, 'origin': self.name})
         self.logger.info("Humidifier %s set to %s", self.name, self.humidity)
 
         return {}

@@ -196,7 +196,7 @@ class EnvThermostatController(BaseThing):
 
         self.temperature = message["temperature"]
         self.state_publisher.publish({"state": self.temperature})
-        self.state_publisher_internal.publish({"state": self.temperature, 'origin': self.name})
+        self.state_publisher_internal.publish({"state": {"temperature": self.temperature}, 'origin': self.name})
         self.logger.info("Thermostat %s set to %s", self.name, self.temperature)
         return {}
 
