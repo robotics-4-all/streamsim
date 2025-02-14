@@ -11,3 +11,4 @@ from __future__ import absolute_import
 
 from .base_thing import BaseThing
 from .basic_sensor import BasicSensor
+from .base_actor import BaseActor

@@ -39,7 +39,8 @@ class TfController:
         self.pan_tilts_rpc = None
         self.declare_rpc_input = [
             'type', 'subtype', 'name', 'pose', 'base_topic', 'range', 'fov', \
-            'host', 'host_type', 'properties', 'id', 'namespace'
+            'host', 'host_type', 'properties', 'id', 'namespace', 'automation_motion', \
+            'automation_state'
         ]
 
         self.declarations = []
@@ -542,6 +543,51 @@ class TfController:
                         'language': message['language']
                     })
 
+    def actor_pose_callback(self, message):
+        """
+        Callback function to update the absolute pose of an actor.
+
+        Args:
+            message (dict): A dictionary containing the actor's pose information.
+                - 'raw_name' (str): The name of the actor.
+                - 'x' (float): The x-coordinate of the actor's position.
+                - 'y' (float): The y-coordinate of the actor's position.
+                - 'theta' (float): The orientation of the actor in radians.
+
+        Updates:
+            self.places_absolute (dict): Updates the actor's position and orientation
+            in the places_absolute dictionary.
+
+        Prints:
+            A message indicating that the absolute pose has changed for the actor.
+        """
+        nm = message['raw_name']
+        if nm not in self.places_absolute:
+            self.places_absolute[nm] = {'x': 0, 'y': 0, 'theta': 0}
+        self.places_absolute[nm]['x'] = message['x']
+        self.places_absolute[nm]['y'] = message['y']
+        self.places_absolute[nm]['theta'] = message['theta']
+
+    def actor_properties_callback(self, message):
+        """
+        Callback function to update actor properties.
+
+        Args:
+            message (dict): A dictionary containing actor property information. 
+                            It must include a 'raw_name' key which is used to 
+                            identify the actor and update its properties.
+
+        Updates:
+            self.declarations_info[message['raw_name']]["properties"]: Updates the 
+            properties of the actor identified by 'raw_name' with the provided message.
+
+        Logs:
+            Logs an info message indicating that the properties for the specified 
+            actor have been updated.
+        """
+        self.declarations_info[message['raw_name']]["properties"] = message
+        self.logger.info("Updated properties for %s", message['raw_name'])
+
     def robot_pose_callback(self, message):
         """
         Callback function to handle updates to the robot's pose.
@@ -745,6 +791,20 @@ class TfController:
 
         if type_ == 'actor':
             self.per_type[type_][sub].append(d['name'])
+            if d['automation_motion'] is True:
+                self.subs[d['name']] = self.commlib_factory.get_subscriber(
+                    topic = f"{d['namespace']}.actor.{d['subtype']}.{d['name']}.pose.internal",
+                    callback = self.actor_pose_callback,
+                    old_way = True,
+                )
+                self.subs[d['name']].run()
+            if d['automation_state'] is True:
+                self.subs[d['name']] = self.commlib_factory.get_subscriber(
+                    topic = f"{d['namespace']}.actor.{d['subtype']}.{d['name']}.properties",
+                    callback = self.actor_properties_callback,
+                    old_way = True,
+                )
+                self.subs[d['name']].run()
             return
 
         if type_ == "env":

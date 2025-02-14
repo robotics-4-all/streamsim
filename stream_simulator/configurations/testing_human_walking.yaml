@@ -39,4 +39,8 @@ actors: # all x, y are in pixels
         points:
           - {x: 500, y: 500, theta: 0}
           - {x: 510, y: 510, theta: 0}
-          - {x: 520, y: 520, theta: 0}  
+          - {x: 520, y: 520, theta: 0}
+        steps:
+          - {state: {speech: "Hello"}, duration: 2}
+          - {state: {speech: "How are you?"}, duration: 2}
+          - {state: {emotion: "happy"}, duration: 5}
