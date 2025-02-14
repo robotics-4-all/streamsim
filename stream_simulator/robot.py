@@ -387,7 +387,6 @@ class Robot:
         """
         Callback function to handle the pose of human actors.
         """
-        print(message)
         payload = {
             'x': message['x'],
             'y': message['y'],

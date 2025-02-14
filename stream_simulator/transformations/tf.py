@@ -610,6 +610,12 @@ class TfController:
         nm = message['raw_name']
         if nm not in self.places_absolute:
             self.places_absolute[nm] = {'x': 0, 'y': 0, 'theta': 0}
+        else:
+            if message['x'] == self.places_absolute[nm]['x'] and \
+                    message['y'] == self.places_absolute[nm]['y'] and \
+                    message['theta'] == self.places_absolute[nm]['theta']:
+                return # To avoid unnecessary updates
+
         self.places_absolute[nm]['x'] = message['x']
         self.places_absolute[nm]['y'] = message['y']
         self.places_absolute[nm]['theta'] = message['theta']
@@ -663,7 +669,7 @@ class TfController:
         if self.items_hosts_dict[pt_name] is not None:
             base_th = self.places_absolute[self.items_hosts_dict[pt_name]]['theta']
 
-        # self.logger.info(f"Updated {pt_name}: {self.places_absolute[pt_name]} / {pan}")
+        self.logger.info(f"Updated {pt_name}: {self.places_absolute[pt_name]} / {pan}")
 
         abs_pt_theta = self.places_relative[pt_name]['theta'] + pan + base_th
         if pt_name in self.tree: # if pan-tilt has anything on it
@@ -680,6 +686,8 @@ class TfController:
                         "theta": self.places_absolute[i]['theta'],
                         "resolution": self.resolution
                     })
+
+                    self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
 
     def pan_tilt_callback(self, message):
         """
@@ -1327,14 +1335,16 @@ class TfController:
         try:
             # - actor human
             for f in self.per_type['actor']['human']:
-                print(f"Checking {f}")
+                # print(f"Checking {f}")
                 r = self.handle_affection_arced(name, f, 'human')
                 # print(r)
                 if r is not None:
                     ret[f] = r
             # - actor qr
             for f in self.per_type['actor']['qr']:
+                # print(f"Checking {f}")
                 r = self.handle_affection_arced(name, f, 'qr')
+                print(r)
                 if r is not None:
                     ret[f] = r
             # - actor barcode
