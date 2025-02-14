@@ -111,10 +111,12 @@ class EnvLinearAlarmController(BaseThing):
             package (dict): A dictionary containing configuration parameters. Expected keys:
                 - "namespace": The namespace for simulation communication.
         """
+        self.set_tf_distance_calculator_rpc(package)
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
         self.set_triggers_publisher(self.base_topic)
+        self.set_sensor_state_interfaces(self.base_topic)
 
     def sensor_read(self):
         """
@@ -138,6 +140,9 @@ class EnvLinearAlarmController(BaseThing):
         triggers = 0
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
+
+            if self.state is None or self.state == "off":
+                continue
 
             val = None
             if self.mode == "mock":

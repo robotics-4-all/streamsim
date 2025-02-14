@@ -117,10 +117,12 @@ class EnvAreaAlarmController(BaseThing):
                             include a "namespace" key for setting up the simulation 
                             communication.
         """
+        self.set_tf_distance_calculator_rpc(package)
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
         self.set_triggers_publisher(self.base_topic)
+        self.set_sensor_state_interfaces(self.base_topic)
         self.logger.info("Communication done")
 
     def sensor_read(self):
@@ -152,6 +154,9 @@ class EnvAreaAlarmController(BaseThing):
 
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
+
+            if self.state is None or self.state == "off":
+                continue
 
             val = None
             if self.mode == "mock":

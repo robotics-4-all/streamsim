@@ -103,6 +103,7 @@ class EnvAmbientLightController(BaseThing):
             # No other host type is available for env_devices
             tf_package['host_type'] = 'pan_tilt'
 
+
         self.tf_declare_rpc.call(tf_package)
 
         if self.operation == "triangle":
@@ -129,9 +130,11 @@ class EnvAmbientLightController(BaseThing):
             package (Any): The communication package to be used for setting 
             up the communication layer.
         """
+        self.set_tf_distance_calculator_rpc(package)
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
+        self.set_sensor_state_interfaces(self.base_topic)
 
         self.tf_luminosity_rpc = self.commlib_factory.get_rpc_client(
             rpc_name = f"{package['namespace']}.tf.get_luminosity",
@@ -190,6 +193,9 @@ class EnvAmbientLightController(BaseThing):
         val = None
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
+
+            if self.state is None or self.state == "off":
+                continue
 
             if self.mode in ["mock"]:
                 if self.operation == "constant":

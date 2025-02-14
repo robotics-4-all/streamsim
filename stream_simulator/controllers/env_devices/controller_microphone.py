@@ -127,6 +127,9 @@ class EnvMicrophoneController(BaseThing):
         The function sends a request to the tf_detection_rpc_client with the detection type 
         and the name of the current instance. The response from the client is printed.
         """
+        if self.state is None or self.state == "off":
+            return
+
         detection_type = message['detection'] # to be detected
         detection_result = self.tf_detection_rpc_client.call({
             'name': self.name,
@@ -148,8 +151,10 @@ class EnvMicrophoneController(BaseThing):
                             setting up the communication layer. Expected keys are:
                             - "namespace": The namespace for the simulation communication.
         """
+        self.set_tf_distance_calculator_rpc(package)
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
+        self.set_sensor_state_interfaces(self.base_topic)
 
         self.record_action_server = self.commlib_factory.get_action_server(
             callback = self.on_goal_record,
@@ -232,6 +237,9 @@ class EnvMicrophoneController(BaseThing):
         """
         self.logger.info("%s recording started", self.name)
         if self.info["enabled"] is False:
+            return {}
+
+        if self.state is None or self.state == "off":
             return {}
 
         # Concurrent speaker calls handling

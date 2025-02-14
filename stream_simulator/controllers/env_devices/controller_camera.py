@@ -157,7 +157,11 @@ class EnvCameraController(BaseThing):
         The function sends a request to the tf_detection_rpc_client with the detection type 
         and the name of the current instance. The response from the client is printed.
         """
-         # self.logger.critical("CameraController: Detection callback: %s", message)
+        if self.state is None or self.state == "off":
+            self.logger.warning("CameraController: Detection callback: Camera is off")
+            return
+
+        # self.logger.critical("CameraController: Detection callback: %s", message)
         detection_type = message['detection'] # to be detected
         detection_result = self.tf_detection_rpc_client.call({
             'name': self.name,
@@ -180,9 +184,11 @@ class EnvCameraController(BaseThing):
                             Expected keys include:
                             - "namespace": The namespace for simulation communication.
         """
+        self.set_tf_distance_calculator_rpc(package)
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
+        self.set_sensor_state_interfaces(self.base_topic)
 
     def sensor_read(self):
         """
@@ -217,6 +223,10 @@ class EnvCameraController(BaseThing):
 
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
+
+            if self.state is None or self.state == "off":
+                continue
+            
             dirname = os.path.dirname(__file__) + "/../.."
             data = None
 

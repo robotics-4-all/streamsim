@@ -71,10 +71,12 @@ class BasicSensor(BaseThing):
             self.logger = package["logger"]
 
         super().__init__(conf["name"], auto_start=False)
+        super().set_conf(conf)
 
         self.set_tf_communication(package)
         self.set_simulation_communication(package["namespace"])
-
+        self.set_tf_distance_calculator_rpc(package)
+        
         _simname = package["namespace"]
         _name = conf["name"]
         _pack = package["base"]
@@ -97,6 +99,8 @@ class BasicSensor(BaseThing):
                 "name": _name
             }
         }
+
+        self.set_sensor_state_interfaces(info["base_topic"])
 
         self.info = info
         self.name = info["name"]
@@ -231,6 +235,9 @@ class BasicSensor(BaseThing):
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
 
+            if self.state is None or self.state == "off":
+                continue
+
             val = None
             if self.mode in ["mock"]:
                 if self.operation == "constant":
@@ -261,8 +268,6 @@ class BasicSensor(BaseThing):
             elif self.mode == "simulation":
                 val = self.get_simulation_value()
 
-            # Publishing value:
-            # self.logger.info("%s - %s}", self.name, val)
             self.publisher.publish({
                 "value": val,
                 "timestamp": time.time()

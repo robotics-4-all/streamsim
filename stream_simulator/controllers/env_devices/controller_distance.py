@@ -155,9 +155,11 @@ class EnvDistanceController(BaseThing):
             - set_mode_get_set_rpcs(base_topic, set_mode_callback, get_mode_callback):
             Configures the mode get/set RPCs.
         """
+        self.set_tf_distance_calculator_rpc(package)
         self.set_simulation_communication(package["namespace"])
         self.set_tf_communication(package)
         self.set_data_publisher(self.base_topic)
+        self.set_sensor_state_interfaces(self.base_topic)
 
     def robot_pose_callback(self, message):
         """
@@ -240,6 +242,9 @@ class EnvDistanceController(BaseThing):
 
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
+
+            if self.state is None or self.state == "off":
+                continue
 
             val = None
             if self.mode in ["mock"]:

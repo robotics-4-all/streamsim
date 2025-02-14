@@ -4,6 +4,8 @@ File that contains the BaseThing class.
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import logging
+
 from stream_simulator.connectivity import CommlibFactory
 
 class BaseThing:
@@ -46,6 +48,13 @@ class BaseThing:
         self.get_rpc_server = None
         self.simulation_started_sub = None
         self.simulator_started = False
+        self.sensor_state_publisher = None
+        self.sensor_state_subscriber = None
+
+        self.conf = None
+        self.state = 'on' # by default on
+        self.proximity_mode = False
+        self.proximity_distance = 0
 
         # Define self attributes
         self.mock_parameters = {
@@ -67,6 +76,77 @@ class BaseThing:
         self.commlib_factory = CommlibFactory(node_name=self.name)
         if auto_start:
             self.commlib_factory.run()
+
+        self.logger = logging.getLogger(self.name + "_base_thing")
+
+    def set_conf(self, conf):
+        """
+        Sets the configuration for the thing.
+
+        Args:
+            conf (dict): The configuration dictionary.
+        """
+        self.conf = conf
+        if 'state' in conf:
+            self.state = conf['state']
+            self.logger.info("[%s] Setting state to %s", self.name, self.state)
+
+        self.proximity_mode = conf["proximity_mode"] \
+            if "proximity_mode" in conf else False
+        self.proximity_distance = conf["proximity_distance"] \
+            if "proximity_distance" in conf and self.proximity_mode else 0
+
+    def set_sensor_state_interfaces(self, base_topic):
+        """
+        Sets up the sensor state interfaces by initializing the publisher and subscriber
+        for the sensor state.
+
+        Args:
+            base_topic (str): The base topic for the sensor state interfaces. The publisher
+                              will publish to '<base_topic>.state' and the subscriber will
+                              subscribe to '<base_topic>.set'.
+
+        Returns:
+            None
+        """
+        self.sensor_state_publisher = self.commlib_factory.get_publisher(
+            topic=base_topic + ".state"
+        )
+        self.sensor_state_subscriber = self.commlib_factory.get_subscriber(
+            topic=base_topic + ".state.set",
+            callback=self.sensor_state_cb
+        )
+
+    def sensor_state_cb(self, msg):
+        """
+        Callback function to update the sensor state.
+
+        Args:
+            msg (dict): A dictionary containing the sensor state information. 
+                        It must have a key 'state' whose value will be assigned 
+                        to the instance's state attribute.
+        """
+        self.state = msg['state']
+        initiator = msg['initiator']
+        self.logger.critical("[%s] Setting state to %s by %s", self.name, self.state, initiator)
+        if self.proximity_mode:
+            # Check if we have an initiator in the message
+            allowed_distance = self.proximity_distance
+            if self.proximity_distance == 0:
+                allowed_distance = 0.5
+            if initiator is not None:
+                dist = self.tf_distance_calculator_rpc.call(
+                    {"initiator": initiator, "target": self.name}
+                )
+                if dist['distance'] is None or dist['distance'] > allowed_distance:
+                    self.logger.info("[%s] %s is too far from %s", self.name, self.name, initiator)
+                    return
+                self.logger.info("[%s] %s is close enough to %s", self.name, self.name, initiator)
+            else: # no initiator
+                self.logger.warning("[%s] %s has no initiator", self.name, self.name)
+                return
+
+        self.sensor_state_publisher.publish({"state": self.state})
 
     def generate_info(self, conf, package, _type, _category, _class, _subclass):
         """
