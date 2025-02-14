@@ -31,18 +31,9 @@ env_devices:
         loop: true
         reverse: true
         steps:
-          - {state: 0, duration: 5}
-          - {state: 1, duration: 5}
-          - {state: "10%", duration: 5}
-          - {state: "20%", duration: 5}
-          - {state: "30%", duration: 5}
-          - {state: "40%", duration: 5}
-          - {state: "50%", duration: 5}
-          - {state: "60%", duration: 5}
-          - {state: "70%", duration: 5}
-          - {state: "80%", duration: 5}
-          - {state: "90%", duration: 5}
-          - {state: "100%", duration: 5}
+          - {state: {"state": 0}, duration: 5}
+          - {state: {"state": 1}, duration: 5}
+          - {state: {"state": "10%"}, duration: 5}
   # pan_tilt:
   #   - source: "env_devices/pan_tilt"
   #   - source: "env_devices/pan_tilt_dist_X"
@@ -85,9 +76,9 @@ env_devices:
         loop: true 
         reverse: true
         steps:
-          - {state: 10, duration: 5}
-          - {state: 20, duration: 4}
-          - {state: 30, duration: 3}
+          - {state: {'temperature': 10}, duration: 5}
+          - {state: {'temperature': 20}, duration: 4}
+          - {state: {'temperature': 30}, duration: 3}
   humidifiers:
     - pose: {x: 200, y: 120, theta: 0}
       name: hum_X
@@ -99,7 +90,7 @@ env_devices:
         loop: true 
         reverse: true
         steps:
-          - {state: 10, duration: 5}
-          - {state: 20, duration: 4}
-          - {state: 30, duration: 3}
+          - {state: {'humidity': 10}, duration: 5}
+          - {state: {'humidity': 20}, duration: 4}
+          - {state: {'humidity': 30}, duration: 3}
 

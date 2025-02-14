@@ -130,7 +130,7 @@ class EnvHumidifierController(BaseThing):
                     self.active = False
                     break
             step = automation_steps[step_index]
-            self.set_callback({"humidity": step['state']})
+            self.set_callback({"humidity": step['state']['humidity']})
             sleep = step['duration']
             while sleep > 0 and self.active: # to be preemptable
                 time.sleep(0.1)

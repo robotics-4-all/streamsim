@@ -136,7 +136,7 @@ class EnvRelayController(BaseThing):
                     self.active = False
                     break
             step = automation_steps[step_index]
-            self.set_value(step['state'])
+            self.set_value(step['state']['state'])
             sleep = step['duration']
             while sleep > 0 and self.active: # to be preemptable
                 time.sleep(0.1)
@@ -203,7 +203,7 @@ class EnvRelayController(BaseThing):
                     self.state_publisher.publish({"state": self.state})
                     return {"state": self.state}
 
-        self.logger.info("Relay %s set to %s", self.name, message["state"])
+        self.logger.info("Relay %s set to %s", self.name, message["state"]["state"])
         self.set_value(message["state"])
         self.state_publisher.publish({"state": self.state})
         self.state_publisher_internal.publish({"state": {"state": self.state}, 'origin': self.name})
