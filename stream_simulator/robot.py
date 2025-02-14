@@ -269,6 +269,10 @@ class Robot:
             topic = "streamsim.*.*.pose.internal",
             on_message = self.others_robot_pose_callback,
         )
+        self.other_humans_pose_sub = self.commlib_factory.create_psubscriber(
+            topic = "streamsim.*.actor.human.*.pose.internal",
+            on_message = self.humans_pose_callback,
+        )
         # print("IN ROBOT: ", self.name, self.name + ".pose.internal")
 
         # SIMULATOR ------------------------------------------------------------
@@ -359,24 +363,6 @@ class Robot:
         This function processes the incoming message containing the pose information
         of other robots and checks if the current robot has crashed with another robot
         based on their proximity.
-
-        Args:
-            message (dict): A dictionary containing the pose information of another robot.
-                The dictionary should have the following keys:
-                - 'x' (float): The x-coordinate of the robot.
-                - 'y' (float): The y-coordinate of the robot.
-                - 'theta' (float): The orientation (theta) of the robot.
-                - 'resolution' (float): The resolution of the robot's position.
-                - 'raw_name' (str): The name of the robot.
-            _ (Any): Unused parameter.
-
-        Returns:
-            None
-
-        Side Effects:
-            - Updates the `crashed_with_other_robot` attribute to True if a crash is detected.
-            - Logs an error message if a crash is detected.
-            - Publishes a crash message if a crash is detected.
         """
         payload = {
             'x': message['x'],
@@ -387,6 +373,28 @@ class Robot:
         }
         if self.pure_name == payload['name']:
             return
+        # If the robot is in proximity of 0.5 meters, it crashes
+        if math.hypot(self._x - payload['x'], self._y - payload['y']) < 0.5:
+            self.crashed_with_other_robot = True
+            self.logger.error("Crashed with %s", payload['name'])
+            pose = PoseMsg(
+                position=PositionMsg(x=self._x, y=self._y, z=0.0),
+                orientation=RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
+            )
+            self.crash_pub.publish(pose)
+
+    def humans_pose_callback(self, message, _):
+        """
+        Callback function to handle the pose of human actors.
+        """
+        print(message)
+        payload = {
+            'x': message['x'],
+            'y': message['y'],
+            'theta': message['theta'],
+            'resolution': message['resolution'],
+            'name': message['raw_name'],
+        }
         # If the robot is in proximity of 0.5 meters, it crashes
         if math.hypot(self._x - payload['x'], self._y - payload['y']) < 0.5:
             self.crashed_with_other_robot = True

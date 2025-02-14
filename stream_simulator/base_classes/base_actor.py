@@ -48,23 +48,24 @@ class BaseActor(BaseThing):
             'theta': None
         }
         self.resolution = package['resolution']
+        self._x = self.pose['x'] * self.resolution
+        self._y = self.pose['y'] * self.resolution
+        self._theta = self.pose['theta']
 
         self.set_tf_communication(package)
 
         # Class variables
         self.automation = None
-        self.stopped = None
+        self.stopped = False
         self.active = None
         self.terminated = True
         self.state_automation_terminated = True
+        self.pose_publishing_terminated = True
         self.automation_thread = None
         self.state_automation_thread = None
         self.velocities_for_target = None
         self.pois_index = None
         self.resolution = package['resolution']
-        self._x = None
-        self._y = None
-        self._theta = None
         self.dt = None
         self.target_to_reach = None
         self.internal_pose_pub = None
@@ -139,6 +140,22 @@ class BaseActor(BaseThing):
                 self.state_automation_thread = \
                     threading.Thread(target = self.state_automation_thread_loop)
                 self.state_automation_thread.start()
+        else:
+            # Create a thread that dispatches the pose every 1 second
+            self.pose_publishing_terminated = False
+            self.automation_thread = threading.Thread(target = self.dispatch_pose_local_thread)
+            self.automation_thread.start()
+
+    def dispatch_pose_local_thread(self):
+        """
+        Dispatches the robot's pose every second.
+        This method runs in a loop until the robot is stopped and dispatches the robot's pose to the internal_pose_pub topic every second.
+        """
+        while self.stopped is False:
+            self.dispatch_pose_local()
+            time.sleep(1)
+
+        self.pose_publishing_terminated = True
 
     def get_logger(self):
         """
@@ -404,7 +421,8 @@ class BaseActor(BaseThing):
         """
         self.logger.warning("%s Trying to stop thread", self.name)
         self.stopped = True
-        while not self.terminated and not self.state_automation_terminated:
+        self.active = False
+        while not self.terminated and not self.state_automation_terminated and not self.pose_publishing_terminated:
             time.sleep(0.1)
         self.logger.warning("%s Human thread stopped", self.name)
         # Commlib factory is stopped from base_thing

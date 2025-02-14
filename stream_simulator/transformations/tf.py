@@ -567,6 +567,7 @@ class TfController:
         self.places_absolute[nm]['x'] = message['x']
         self.places_absolute[nm]['y'] = message['y']
         self.places_absolute[nm]['theta'] = message['theta']
+        print(f"Updated {nm}: {self.places_absolute[nm]}")
 
     def actor_properties_callback(self, message):
         """
