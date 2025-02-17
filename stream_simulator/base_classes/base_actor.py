@@ -36,7 +36,7 @@ class BaseActor(BaseThing):
             "type": _type,
             "conf": conf,
             "id": id_,
-            "name": _type.lower() + "_" + str(conf["id"])
+            "name": conf['name']
         }
 
         self.info = info

@@ -31,7 +31,7 @@ class HumanActor(BaseActor):
     """
     def __init__(self, conf = None, package = None):
         # State dict for automation
-        raw_name = "human_" + str(conf["id"])
+        raw_name = conf['name']
         self.properties = {
             'motion': conf['move'],
             'sound': conf['sound'],
@@ -41,7 +41,7 @@ class HumanActor(BaseActor):
             'emotion': "neutral" if 'emotion' not in conf else conf['emotion'],
             'gender': "none" if 'gender' not in conf else conf['gender'],
             'age': "-1" if 'age' not in conf else conf['age'],
-            'raw_name': "human_" + str(conf["id"]),
+            'raw_name': conf['name'],
         }
 
         super().__init__(

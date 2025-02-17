@@ -27,11 +27,11 @@ class FireActor(BaseThing):
     """
     def __init__(self, conf = None, package = None):
         if package["logger"] is None:
-            self.logger = logging.getLogger("fire_" + str(conf["id"]))
+            self.logger = logging.getLogger(conf['name'])
         else:
             self.logger = package["logger"]
 
-        super().__init__("fire_" + str(conf["id"]), auto_start=False)
+        super().__init__(conf['name'], auto_start=False)
         id_ = BaseThing.id
 
         self.set_tf_communication(package)
@@ -40,7 +40,7 @@ class FireActor(BaseThing):
             "type": "FIRE",
             "conf": conf,
             "id": id_,
-            "name": "fire_" + str(conf["id"])
+            "name": conf['name']
         }
 
         self.info = info

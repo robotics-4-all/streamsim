@@ -48,11 +48,11 @@ class BarcodeActor(BaseThing):
             host (str, optional): Host information for the barcode.
         """
         if package["logger"] is None:
-            self.logger = logging.getLogger("barcode_" + str(conf["id"]))
+            self.logger = logging.getLogger(conf['name'])
         else:
             self.logger = package["logger"]
 
-        super().__init__("barcode_" + str(conf["id"]), auto_start=False)
+        super().__init__(conf['name'], auto_start=False)
         id_ = BaseThing.id
 
         self.set_tf_communication(package)
@@ -61,7 +61,7 @@ class BarcodeActor(BaseThing):
             "type": "BARCODE",
             "conf": conf,
             "id": id_,
-            "name": "barcode_" + str(conf["id"])
+            "name": conf['name']
         }
 
         self.info = info
