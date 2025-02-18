@@ -134,7 +134,7 @@ class BaseActor(BaseThing):
                 self.terminated = False
                 self.automation_thread = threading.Thread(target = self.automation_thread_loop)
                 self.automation_thread.start()
-            if 'steps' in self.automation: # we have state machine
+            if 'steps' in self.automation and len(self.automation['steps']) > 0: # we have state machine
                 self.logger.critical("Human %s is automated with state machine", self.name)
                 self.state_automation_terminated = False
                 self.state_automation_thread = \
