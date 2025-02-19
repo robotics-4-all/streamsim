@@ -142,6 +142,7 @@ class EnvCameraController(BaseThing):
 
         self.sensor_read_thread = None
         self.stopped = False
+        self.state = conf['state'] if 'state' in conf else 'on'
 
     def detection_callback(self, message):
         """

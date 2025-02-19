@@ -103,6 +103,8 @@ class EnvAreaAlarmController(BaseThing):
         self.sensor_read_thread = None
         self.stopped = False
 
+        self.state = conf['state'] if 'state' in conf else 'on'
+
     def set_communication_layer(self, package):
         """
         Configures the communication layer for the controller area alarm.

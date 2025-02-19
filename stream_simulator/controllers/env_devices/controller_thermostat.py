@@ -160,10 +160,25 @@ class EnvThermostatController(BaseThing):
         self.set_tf_communication(package)
         self.set_tf_distance_calculator_rpc(package)
         self.set_state_publisher_internal(package["namespace"])
+        self.set_effector_set_get_rpcs(self.base_topic, None, self.get_callback)
 
         # Since it is an effector, we need to set the command subscriber
         self.set_command_subscriber(self.base_topic, self.set_callback)
         self.set_state_publisher(self.base_topic)
+
+    def get_callback(self, _):
+        """
+        Callback function to retrieve the current temperature.
+
+        Args:
+            _ (Any): Placeholder argument, not used.
+
+        Returns:
+            dict: A dictionary containing the current temperature with the key 'temperature'.
+        """
+        return {
+            "temperature": self.temperature,
+        }
 
     def set_callback(self, message):
         """

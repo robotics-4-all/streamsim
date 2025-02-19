@@ -136,7 +136,7 @@ class BasicSensor(BaseThing):
 
         self.sensor_read_thread = None
         self.stopped = False
-        self.state = None
+        self.state = conf['state'] if 'state' in conf else 'on'
 
         self.commlib_factory.run()
 
@@ -234,6 +234,7 @@ class BasicSensor(BaseThing):
 
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
+            print("Sensor read", self.state)
 
             if self.state is None or self.state == "off":
                 continue

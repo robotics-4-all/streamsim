@@ -72,6 +72,8 @@ class EnvMicrophoneController(BaseThing):
         self.place = info["conf"]["place"]
         self.pose = info["conf"]["pose"]
 
+        self.state = conf['state'] if 'state' in conf else 'on'
+
         # tf handling
         tf_package = {
             "type": "env",

@@ -112,5 +112,7 @@ class EnvTemperatureSensorController(BasicSensor):
             self.dynamic_value = final_value
         else:
             self.dynamic_value += (final_value - self.dynamic_value)/6
+
+        print(f"Temperature: {self.dynamic_value}")
         return self.dynamic_value + random.uniform(-0.1, 0.1)
  
