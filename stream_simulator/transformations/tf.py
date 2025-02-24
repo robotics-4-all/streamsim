@@ -1841,10 +1841,18 @@ class TfController:
                 for x, item in ret.items():
                     if item['type'] == 'color':
                         final_detection['color']['result'] = True and decision
+                        item['info']['r'] = item['info']['color']['r']
+                        item['info']['g'] = item['info']['color']['g']
+                        item['info']['b'] = item['info']['color']['b']
+                        item['info']['a'] = item['info']['color']['a']
                         final_detection['color']['value'] = item['info']
                         frm = item
                     if item['type'] == 'light':
                         final_detection['color']['result'] = True and decision
+                        item['info']['r'] = item['info']['color']['r']
+                        item['info']['g'] = item['info']['color']['g']
+                        item['info']['b'] = item['info']['color']['b']
+                        item['info']['a'] = item['info']['color']['a']
                         final_detection['color']['value'] = item['info']
                         frm = item
             elif type_ == "robot":
