@@ -1845,6 +1845,7 @@ class TfController:
                         item['info']['g'] = item['info']['color']['g']
                         item['info']['b'] = item['info']['color']['b']
                         item['info']['a'] = item['info']['color']['a']
+                        del item['info']['color']
                         final_detection['color']['value'] = item['info']
                         frm = item
                     if item['type'] == 'light':
@@ -1853,6 +1854,7 @@ class TfController:
                         item['info']['g'] = item['info']['color']['g']
                         item['info']['b'] = item['info']['color']['b']
                         item['info']['a'] = item['info']['color']['a']
+                        del item['info']['color']
                         final_detection['color']['value'] = item['info']
                         frm = item
             elif type_ == "robot":
