@@ -9,8 +9,47 @@ import threading
 import time
 import abc
 import math
+from commlib.msg import PubSubMessage
 
 from stream_simulator.base_classes import BaseThing
+
+class PositionMsg(PubSubMessage):
+    """
+    PositionMsg is a message class used for publishing and subscribing to position data.
+
+    Attributes:
+        x (float): The x-coordinate of the position.
+        y (float): The y-coordinate of the position.
+        z (float): The z-coordinate of the position.
+    """
+    x: float
+    y: float
+    z: float
+
+class RPYOrientationMsg(PubSubMessage):
+    """
+    RPYOrientationMsg is a message class for representing roll, pitch, and yaw orientation.
+
+    Attributes:
+        roll (float): The roll angle in radians.
+        pitch (float): The pitch angle in radians.
+        yaw (float): The yaw angle in radians.
+    """
+    roll: float
+    pitch: float
+    yaw: float
+
+class PoseMsg(PubSubMessage):
+    """
+    PoseMsg is a message class used for publishing and subscribing to pose information.
+
+    Attributes:
+        position (PositionMsg): The position component of the pose message.
+        orientation (RPYOrientationMsg): The orientation component of the pose message, 
+        represented in roll, pitch, and yaw.
+    """
+    position: PositionMsg
+    orientation: RPYOrientationMsg
 
 class BaseActor(BaseThing):
     """
@@ -95,6 +134,11 @@ class BaseActor(BaseThing):
             topic = topic
         )
         self.logger.warning("%s %s publisher is initialized: %s", _type, self.name, topic)
+        topic = namespace + f".actor.{_type.lower()}." + self.name + ".pose"
+        self.pose_pub = self.commlib_factory.get_publisher(
+            topic=topic,
+            msg_type=PoseMsg
+        )
         # Properties publishers
         topic = namespace + f".actor.{_type.lower()}." + self.name + ".properties"
         self.internal_properties_pub = self.commlib_factory.get_publisher(
@@ -360,6 +404,13 @@ class BaseActor(BaseThing):
             "raw_name": self.name,
         }
         self.internal_pose_pub.publish(msg)
+
+        # Publish a more generic PoseMessage
+        pose = PoseMsg(
+            position=PositionMsg(x=self._x, y=self._y, z=0.0),
+            orientation=RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
+        )
+        self.pose_pub.publish(pose)
 
     def calculate_velocities_for_target(self):
         """
