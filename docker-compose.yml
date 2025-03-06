@@ -1,0 +1,14 @@
+services:
+  streamsim:
+    image: streamsim
+    # command: ["python", "stream_simulator/bin/main.py", "${UID:-123}"]
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    network_mode: host
+    environment:
+      - BROKER_HOST=localhost
+      - BROKER_PORT=1883
+      - BROKER_SSL=0
+      - BROKER_USERNAME=guest
+      - BROKER_PASSWORD=guest
+      - USE_REDIS=1
+      - UID=12345

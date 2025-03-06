@@ -104,7 +104,7 @@ class CommlibFactory(Node):
             if self.use_redis == "False" or self.interface == "mqtt":
                 broker_host = os.getenv('BROKER_HOST', 'broker.emqx.io')
                 broker_port = int(os.getenv('BROKER_PORT', "8883"))
-                broker_ssl = bool(os.getenv('BROKER_SSL', "True"))
+                broker_ssl = bool(os.getenv('BROKER_SSL', "True") in ('True', 'true'))
                 broker_username = os.getenv('BROKER_USERNAME', '')
                 broker_password = os.getenv('BROKER_PASSWORD', '')
 
