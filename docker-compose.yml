@@ -1,0 +1,8 @@
+services:
+  streamsim:
+    image: streamsim
+    # command: ["python", "stream_simulator/bin/main.py", "${UID:-123}"]
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    network_mode: host
+    env_file:
+      - ./.env
