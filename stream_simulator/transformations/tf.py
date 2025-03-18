@@ -822,6 +822,7 @@ class TfController:
             self.per_type[type_][category][subclass].append(d['name'])
 
             if subclass in ["thermostat", "humidifier", "leds"]:
+                print(d)
                 self.effectors_get_rpcs[d['name']] = self.commlib_factory.get_rpc_client(
                     rpc_name = d['base_topic'] + ".get"
                 )
@@ -945,12 +946,14 @@ class TfController:
             dict or None: A dictionary with affection details if the point is within range, 
             otherwise None.
         """
+        print("handle_affection_ranged", f)
         dd = self.check_distance(xy, f)
         d = dd['distance']
         # print(self.declarations_info[f])
         if d < self.declarations_info[f]['range']: # range is fire's
             if self.declarations_info[f]["properties"] is None:
                 self.declarations_info[f]["properties"] = {}
+                print("No properties for", f)
             return {
                 'type': type_,
                 'info': self.declarations_info[f]["properties"],
@@ -1096,7 +1099,6 @@ class TfController:
             ret = {}
             pl = self.places_absolute[name]
             x_y = [pl['x'], pl['y']]
-
             for f in self.per_type['env']['actuator']['humidifier']:
                 r = self.handle_affection_ranged(x_y, f, 'humidifier')
                 if r is not None:

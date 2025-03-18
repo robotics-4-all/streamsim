@@ -172,7 +172,7 @@ class EnvHumidifierController(BaseThing):
             dict: A dictionary containing the current humidity level with the key 'temperature'.
         """
         return {
-            "temperature": self.humidity,
+            "humidity": self.humidity,
         }
 
     def set_callback(self, message):
@@ -202,7 +202,8 @@ class EnvHumidifierController(BaseThing):
 
         self.humidity = message["humidity"]
         self.state_publisher.publish({"state": self.humidity})
-        self.state_publisher_internal.publish({"state": {"humidity": self.humidity}, 'origin': self.name})
+        self.state_publisher_internal.publish({"state": {"humidity": self.humidity}, \
+            'origin': self.name})
         self.logger.info("Humidifier %s set to %s", self.name, self.humidity)
 
         return {}
@@ -234,6 +235,7 @@ class EnvHumidifierController(BaseThing):
         """
         self.info["enabled"] = False
         if self.automation is not None:
+            print("Stopping automation for thermostat --------------------------->")
             self.active = False
             while not self.stopped:
                 time.sleep(0.1)
