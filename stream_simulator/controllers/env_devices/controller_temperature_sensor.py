@@ -104,10 +104,11 @@ class EnvTemperatureSensorController(BasicSensor):
             temps.append(r)
 
         mms = 0
+        temps.append(amb)
         if len(temps) > 0:
             mms = statistics.mean(temps)
 
-        final_value = amb + mms
+        final_value = mms
         if self.dynamic_value is None:
             self.dynamic_value = final_value
         else:

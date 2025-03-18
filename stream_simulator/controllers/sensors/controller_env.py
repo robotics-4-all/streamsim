@@ -176,9 +176,10 @@ class EnvController(BaseThing):
                     r = (1 - tem_aff[a]['distance'] / tem_aff[a]['range']) * \
                         tem_aff[a]['info']['temperature']
                     temps.append(r)
+                temps.append(amb)
                 final_temp = amb
                 if len(temps) != 0:
-                    final_temp = amb + statistics.mean(temps)
+                    final_temp = statistics.mean(temps)
                 if self.dynamic_value['temperature'] is None:
                     self.dynamic_value['temperature'] = final_temp
                 else:
