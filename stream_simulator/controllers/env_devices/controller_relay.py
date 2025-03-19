@@ -203,8 +203,8 @@ class EnvRelayController(BaseThing):
                     self.state_publisher.publish({"state": self.state})
                     return {"state": self.state}
 
-        self.logger.info("Relay %s set to %s", self.name, message["state"]["state"])
-        self.set_value(message["state"])
+        self.logger.info("Relay %s set to %s", self.name, message["state"])
+        self.set_value(str(message["state"]))
         self.state_publisher.publish({"state": self.state})
         self.state_publisher_internal.publish({"state": {"state": self.state}, 'origin': self.name})
         self.logger.info("Relay %s state published", self.name)
