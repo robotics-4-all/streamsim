@@ -5,7 +5,6 @@ File that contains the humidity sensor controller.
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import statistics
 import random
 
 from stream_simulator.base_classes import BasicSensor
@@ -89,14 +88,9 @@ class EnvHumiditySensorController(BasicSensor):
         for a in affections:
             vs.append((1 - affections[a]['distance'] / affections[a]['range']) * \
                 affections[a]['info']['humidity'])
-        affections = statistics.mean(vs)
+        affections = max(vs)
 
-        if ambient > affections:
-            ambient += affections * 0.1
-        else:
-            ambient = affections - (affections - ambient) * 0.1
-
-        final_value = ambient
+        final_value = ambient if affections < ambient else affections
         if self.dynamic_value is None:
             self.dynamic_value = final_value
         else:

@@ -5,7 +5,6 @@ This file contains the controller class for an environmental temperature sensor.
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import statistics
 import random
 from stream_simulator.base_classes import BasicSensor
 
@@ -98,17 +97,18 @@ class EnvTemperatureSensorController(BasicSensor):
         if affections is None:
             return amb
 
+        print(affections)
         for a in affections:
             r = (1 - affections[a]['distance'] / affections[a]['range']) * \
                 affections[a]['info']['temperature']
             temps.append(r)
 
         mms = 0
-        temps.append(amb)
+        print(temps)
         if len(temps) > 0:
-            mms = statistics.mean(temps)
+            mms = max(temps)
 
-        final_value = mms
+        final_value = mms if mms > amb else amb
         if self.dynamic_value is None:
             self.dynamic_value = final_value
         else:

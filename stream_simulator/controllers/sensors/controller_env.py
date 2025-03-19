@@ -9,7 +9,6 @@ import time
 import logging
 import threading
 import random
-import statistics
 
 from stream_simulator.base_classes import BaseThing
 
@@ -176,10 +175,10 @@ class EnvController(BaseThing):
                     r = (1 - tem_aff[a]['distance'] / tem_aff[a]['range']) * \
                         tem_aff[a]['info']['temperature']
                     temps.append(r)
-                temps.append(amb)
-                final_temp = amb
+
                 if len(temps) != 0:
-                    final_temp = statistics.mean(temps)
+                    final_temp = max(temps)
+                final_temp = amb if amb > final_temp else final_temp
                 if self.dynamic_value['temperature'] is None:
                     self.dynamic_value['temperature'] = final_temp
                 else:
@@ -192,17 +191,14 @@ class EnvController(BaseThing):
                 if len(hum_aff) == 0:
                     val["humidity"] = ambient + random.uniform(-0.5, 0.5)
                 vs = []
+                affections = 0
                 for a in hum_aff:
                     vs.append((1 - hum_aff[a]['distance'] / hum_aff[a]['range']) * \
                         hum_aff[a]['info']['humidity'])
                 if len(vs) > 0:
-                    affections = statistics.mean(vs)
-                    if ambient > affections:
-                        ambient += affections * 0.1
-                    else:
-                        ambient = affections - (affections - ambient) * 0.1
+                    affections = max(vs)
 
-                final_hum = ambient
+                final_hum = ambient if ambient > affections else affections
                 if self.dynamic_value['humidity'] is None:
                     self.dynamic_value['humidity'] = final_hum
                 else:
