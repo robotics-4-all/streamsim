@@ -266,6 +266,8 @@ class BasicSensor(BaseThing):
                 else:
                     self.logger.warning("Unsupported operation: %s", self.operation)
 
+                # Add noise:
+                val += random.gauss(0, 0.1)
             elif self.mode == "simulation":
                 val = self.get_simulation_value()
 
