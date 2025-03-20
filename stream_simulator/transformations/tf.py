@@ -567,7 +567,7 @@ class TfController:
         self.places_absolute[nm]['x'] = message['x']
         self.places_absolute[nm]['y'] = message['y']
         self.places_absolute[nm]['theta'] = message['theta']
-        print(f"Updated {nm}: {self.places_absolute[nm]}")
+        self.logger.info("Updated %s: %s", nm, self.places_absolute[nm])
 
     def actor_properties_callback(self, message):
         """
@@ -822,7 +822,6 @@ class TfController:
             self.per_type[type_][category][subclass].append(d['name'])
 
             if subclass in ["thermostat", "humidifier", "leds"]:
-                print(d)
                 self.effectors_get_rpcs[d['name']] = self.commlib_factory.get_rpc_client(
                     rpc_name = d['base_topic'] + ".get"
                 )
@@ -946,14 +945,14 @@ class TfController:
             dict or None: A dictionary with affection details if the point is within range, 
             otherwise None.
         """
-        print("handle_affection_ranged", f)
+        self.logger.info("handle_affection_ranged %s", f)
         dd = self.check_distance(xy, f)
         d = dd['distance']
         # print(self.declarations_info[f])
         if d < self.declarations_info[f]['range']: # range is fire's
             if self.declarations_info[f]["properties"] is None:
                 self.declarations_info[f]["properties"] = {}
-                print("No properties for", f)
+                self.logger.warning("No properties for %s", f)
             return {
                 'type': type_,
                 'info': self.declarations_info[f]["properties"],
@@ -995,9 +994,8 @@ class TfController:
         d = math.sqrt((p_d['x'] - p_f['x'])**2 + (p_d['y'] - p_f['y'])**2)
 
         if type_ == "human":
-            print(p_d)
-            print(p_f)
-            print(d)
+            self.logger.info("In handle affection arced. Sensor pose %s, human pose %s, dist %s",\
+                p_d, p_f, d)
 
         # print(name, p_d, p_f, d)
         if d < self.declarations_info[name]['range']: # range of arced sensor
@@ -1216,7 +1214,7 @@ class TfController:
         lum = 0
 
         if print_debug:
-            print(f"Computing luminosity for {name}")
+            self.logger.info("Computing luminosity for %s", name)
 
         # - env light
         for f in self.per_type['env']['actuator']['leds']:
@@ -1228,7 +1226,7 @@ class TfController:
                 rel_range = 1 - new_r['distance'] / new_r['range']
                 lum += rel_range * new_r['info']['luminosity']
                 if print_debug:
-                    print(f"\t{f} - {new_r['info']['luminosity']}")
+                    self.logger.info("\t%s - %s", f, new_r['info']['luminosity'])
         # - robot leds
         for f in self.per_type['robot']['actuator']['leds']:
             r = self.handle_affection_ranged(x_y, f, 'light')
@@ -1239,7 +1237,7 @@ class TfController:
                 rel_range = 1 - new_r['distance'] / new_r['range']
                 lum += rel_range * new_r['info']['luminosity']
                 if print_debug:
-                    print(f"\t{f} - {new_r['info']['luminosity']}")
+                    self.logger.info("\t%s - %s", f, new_r['info']['luminosity'])
         # - actor fire
         for f in self.per_type['actor']['fire']:
             r = self.handle_affection_ranged(x_y, f, 'fire')
@@ -1247,11 +1245,11 @@ class TfController:
                 rel_range = 1 - r['distance'] / r['range']
                 lum += 100 * rel_range
                 if print_debug:
-                    print(f"\t{f} - 100")
+                    self.logger.info("\t%s - 100", f)
 
         env_luminosity = self.env_properties['luminosity']
         if print_debug:
-            print(f"Env luminosity: {env_luminosity}")
+            self.logger.info("\tEnv luminosity: %s", env_luminosity)
 
         if lum < env_luminosity:
             lum = lum * 0.1 + env_luminosity
@@ -1264,7 +1262,7 @@ class TfController:
             lum = 0
 
         if print_debug:
-            print(f"Computed luminosity: {lum}")
+            self.logger.info("\tComputed luminosity: %s", lum)
 
         return lum + random.uniform(-0.25, 0.25)
 
@@ -1337,16 +1335,12 @@ class TfController:
         try:
             # - actor human
             for f in self.per_type['actor']['human']:
-                # print(f"Checking {f}")
                 r = self.handle_affection_arced(name, f, 'human')
-                # print(r)
                 if r is not None:
                     ret[f] = r
             # - actor qr
             for f in self.per_type['actor']['qr']:
-                # print(f"Checking {f}")
                 r = self.handle_affection_arced(name, f, 'qr')
-                print(r)
                 if r is not None:
                     ret[f] = r
             # - actor barcode
@@ -1364,7 +1358,6 @@ class TfController:
                 r = self.handle_affection_ranged(x_y, f, 'light')
                 if r is not None:
                     th_t = self.effectors_get_rpcs[f].call({})
-                    # print(th_t)
                     new_r = r
                     new_r['info'] = th_t
                     ret[f] = new_r
@@ -1376,9 +1369,7 @@ class TfController:
 
             # check all robots
             if with_robots:
-                # print("Checking robots")
                 for rob in self.robots:
-                    # print(rob)
                     r = self.handle_affection_arced(name, rob, 'robot')
                     if r is not None:
                         ret[rob] = r
@@ -1388,7 +1379,7 @@ class TfController:
             # pylint: disable=broad-exception-raised
             raise Exception(str(e)) from e
 
-        print("Result: ", ret)
+        self.logger.info("Result: %s", ret)
         return ret
 
     # Affected by rfid_tags
@@ -1660,7 +1651,7 @@ class TfController:
             }
 
         id_ = ''.join(random.choices(string.ascii_uppercase + string.digits, k = 6))
-        print(f"Detection request for {name} with id {id_}")
+        self.logger.info("Detection request for %s with id %s", name, id_)
 
         frm = None
 
@@ -1689,8 +1680,6 @@ class TfController:
 
             ret = self.check_affectability(name)
             frm = ret
-            # print(message)
-            # print("===============", ret)
 
             if type_ == "sound":
                 if ret is not None:
@@ -1730,11 +1719,10 @@ class TfController:
         elif decl['subtype']['subclass'][0] == "camera":
             # possible types: face, qr, barcode, gender, age, motion, color, emotion
             ret = self.handle_sensor_camera(name, with_robots = True)
-            # print("Camera: ", ret)
 
             # gt luminosity
             lum = self.compute_luminosity(name, print_debug = False)
-            print("Luminosity: ", lum)
+            self.logger.info("Luminosity: %s", lum)
 
             final_detection = {
                 "face": {
@@ -1784,9 +1772,9 @@ class TfController:
                 self.logger.warning("Camera detection: too dark")
                 decision = False
 
-            print("Decision: ", decision)
+            self.logger.info("Decision: %s", decision)
+            self.logger.info("Ret is %s", ret)
 
-            # print(ret.items())
             if type_ == "face":
                 for x, item in ret.items():
                     if item['type'] == 'human': # gets the last one
@@ -1806,7 +1794,7 @@ class TfController:
                         final_detection['age']['value'] = item['info']['age']
                         frm = item
             elif type_ == "emotion":
-                for x, item in ret:
+                for x, item in ret.items():
                     if item['type'] == 'human': # gets the last one
                         final_detection['emotion']['result'] = True and decision
                         final_detection['emotion']['value'] = item['info']['emotion']
@@ -1872,11 +1860,11 @@ class TfController:
         else: # possible types: face, qr, barcode, gender, age, color, motion, emotion
             pass
 
+        self.logger.info("Detection result %s", final_detection)
         self.logger.info("Detection result for %s with id %s: %s, %s",\
             name, id_, final_detection[type_], frm)
 
-        print("Sending mqtt detection", {k: v for k, v in final_detection.items() if v['result'] is True})
-        self.mqtt_notifier.dispatch_detection({
+        payload = {
             "name": name,
             "device_type": decl['subtype']['subclass'][0],
             "type": type_,
@@ -1884,7 +1872,9 @@ class TfController:
             "state": "end",
             "result": {k: v for k, v in final_detection.items() if v['result'] is True},
             "frm": frm
-        })
+        }
+        self.logger.info("Dispatching detection: %s", payload)
+        self.mqtt_notifier.dispatch_detection(payload)
 
         return {
             "detection": final_detection,
