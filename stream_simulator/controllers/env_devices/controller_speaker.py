@@ -215,6 +215,7 @@ class EnvSpeakerController(BaseThing):
             while not self.stopped:
                 time.sleep(0.1)
         self.play_action_server.stop()
+        self.commlib_factory.stop()
 
     def on_goal_play(self, goalh):
         """

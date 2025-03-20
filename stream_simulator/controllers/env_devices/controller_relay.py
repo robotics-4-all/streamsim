@@ -254,4 +254,5 @@ class EnvRelayController(BaseThing):
             self.active = False
             while not self.stopped:
                 time.sleep(0.1)
+        self.commlib_factory.stop()
         self.logger.info("Relay %s stopped", self.name)

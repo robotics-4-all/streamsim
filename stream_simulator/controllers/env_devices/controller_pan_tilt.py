@@ -246,3 +246,4 @@ class EnvPanTiltController(BaseThing):
         5. Stops the set RPC server.
         """
         self.info["enabled"] = False
+        self.commlib_factory.stop()
