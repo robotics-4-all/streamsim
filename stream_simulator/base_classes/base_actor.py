@@ -84,7 +84,7 @@ class BaseActor(BaseThing):
         self.pose = {
             'x': conf['x'],
             'y': conf['y'],
-            'theta': None
+            'theta': 0
         }
         self.resolution = package['resolution']
         self._x = self.pose['x'] * self.resolution
