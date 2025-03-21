@@ -1527,25 +1527,28 @@ class TfController:
             ]
             ret = {}
 
+            if name not in self.lin_alarms_robots:
+                self.lin_alarms_robots[name] = {}
+
             # Check all robots
             for r in self.robots:
                 pl_aff = self.places_absolute[r]
                 xyt = [pl_aff['x'], pl_aff['y']]
 
-                if r not in self.lin_alarms_robots:
-                    self.lin_alarms_robots[r] = {
+                if r not in self.lin_alarms_robots[name]:
+                    self.lin_alarms_robots[name][r] = {
                         "prev": xyt,
                         "curr": xyt
                     }
 
-                self.lin_alarms_robots[r]["prev"] = \
-                    self.lin_alarms_robots[r]["curr"]
+                self.lin_alarms_robots[name][r]["prev"] = \
+                    self.lin_alarms_robots[name][r]["curr"]
 
-                self.lin_alarms_robots[r]["curr"] = xyt
+                self.lin_alarms_robots[name][r]["curr"] = xyt
 
                 intersection = check_lines_intersection(sta, end, \
-                    self.lin_alarms_robots[r]["curr"],
-                    self.lin_alarms_robots[r]["prev"]
+                    self.lin_alarms_robots[name][r]["curr"],
+                    self.lin_alarms_robots[name][r]["prev"]
                 )
 
                 if intersection is True:
