@@ -198,7 +198,8 @@ class Robot:
             pose = self.configuration['starting_pose']
             self._init_x = pose['x'] * self.resolution
             self._init_y = pose['y'] * self.resolution
-            self._init_theta = pose['theta'] / 180.0 * math.pi
+            # typecasting to handle negative values passed as strings
+            self._init_theta = int(pose['theta']) / 180.0 * math.pi
             self.logger.info("Robot %s pose set: %s, %s, %s",
                 self.name, self._x, self._y, self._theta)
 
