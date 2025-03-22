@@ -2,7 +2,7 @@ FROM python:3.10
 
 WORKDIR /streamsim
 
-RUN apt-get update && apt upgrade && apt-get install ffmpeg libsm6 libxext6  -y
+RUN apt update && apt upgrade -y && apt install ffmpeg libsm6 libxext6  -y
 
 COPY ./requirements.txt /app/requirements.txt
 
