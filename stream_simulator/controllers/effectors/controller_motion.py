@@ -275,11 +275,14 @@ class MotionController(BaseThing):
         """
         try:
             response = goalh.data
+            self.logger.info("Turn callback: %s", response)
 
             # Checks for types
+            _angular = response['angular']
+            _angle = response['angle']
             try:
-                float(response['angular'])
-                float(response['angle'])
+                _angular = float(response['angular'])
+                _angle = float(response['angle'])
             except Exception as exe: # pylint: disable=broad-exception-caught
                 if not response['angular'].isdigit():
                     raise ValueError("Angular is no integer nor float") from exe
@@ -287,10 +290,12 @@ class MotionController(BaseThing):
                     raise ValueError("Angle is no integer nor float") from exe
 
             self._linear = 0
-            self._angular = response['angular']
+            self._angular = _angular * _angle / abs(_angle) # Trick to get the sign
+            self.logger.info("Angular speed is: %s", _angular)
             # print("time to sleep is: ", response["angle"] / response["angular"])
             
-            time_estimate = response["angle"] / response["angular"]
+            time_estimate = abs(_angle) / abs(_angular)
+            self.logger.info("Time estimate: %s", time_estimate)
             motion_started = time.time()
             while True and not goalh.cancel_event.is_set():
                 if time.time() - motion_started >= time_estimate:
