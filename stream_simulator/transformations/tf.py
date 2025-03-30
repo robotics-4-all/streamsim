@@ -299,10 +299,28 @@ class TfController:
         # find absolute positions
         if initiator not in self.places_absolute or target not in self.places_absolute:
             return {"distance": None}
-        distance = calc_distance(
-            [self.places_absolute[initiator]['x'], self.places_absolute[initiator]['y']],
-            [self.places_absolute[target]['x'], self.places_absolute[target]['y']]
-        )
+        print(f"Calculating distance between {initiator} and {target}")
+        print(self.places_absolute[initiator], self.places_absolute[target])
+        if "start" not in self.places_absolute[target]:
+            distance = calc_distance(
+                [self.places_absolute[initiator]['x'], self.places_absolute[initiator]['y']],
+                [self.places_absolute[target]['x'], self.places_absolute[target]['y']]
+            )
+        else:
+            distance = calc_distance(
+                [self.places_absolute[initiator]['x'], self.places_absolute[initiator]['y']],
+                [self.places_absolute[target]['start']['x'], \
+                    self.places_absolute[target]['start']['y']]
+            )
+
+            d2 = calc_distance(
+                [self.places_absolute[initiator]['x'], self.places_absolute[initiator]['y']],
+                [self.places_absolute[target]['end']['x'], self.places_absolute[target]['end']['y']]
+            )
+
+            if d2 < distance:
+                distance = d2
+        print(f"Distance: {distance}")
         return {"distance": distance}
 
     def print_tf_tree(self):

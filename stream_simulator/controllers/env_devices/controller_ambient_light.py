@@ -58,6 +58,7 @@ class EnvAmbientLightController(BaseThing):
             self.logger = package["logger"]
 
         super().__init__(conf["name"], auto_start=False)
+        super().set_conf(conf)
 
         _type = "AMBIENT_LIGHT"
         _category = "sensor"

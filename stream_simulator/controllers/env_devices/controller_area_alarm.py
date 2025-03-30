@@ -55,6 +55,7 @@ class EnvAreaAlarmController(BaseThing):
             self.logger = package["logger"]
 
         super().__init__(conf["name"], auto_start=False)
+        super().set_conf(conf)
 
         # self.sensor_read_thread = None
 

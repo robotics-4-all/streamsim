@@ -62,6 +62,7 @@ class EnvDistanceController(BaseThing):
             self.logger = package["logger"]
 
         super().__init__(conf["name"], auto_start=False)
+        super().set_conf(conf)
 
         _type = "DISTANCE"
         _category = "sensor"

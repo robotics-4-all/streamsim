@@ -129,6 +129,7 @@ class BaseThing:
         self.state = msg['state']
         initiator = msg['initiator']
         self.logger.critical("[%s] Setting state to %s by %s", self.name, self.state, initiator)
+        print(self.proximity_mode)
         if self.proximity_mode:
             # Check if we have an initiator in the message
             allowed_distance = self.proximity_distance

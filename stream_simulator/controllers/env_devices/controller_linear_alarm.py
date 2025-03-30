@@ -54,6 +54,7 @@ class EnvLinearAlarmController(BaseThing):
             self.logger = package["logger"]
 
         super().__init__(conf["name"], auto_start=False)
+        super().set_conf(conf)
 
         _type = "LINEAR_ALARM"
         _category = "sensor"
@@ -153,6 +154,9 @@ class EnvLinearAlarmController(BaseThing):
                     'name': self.name
                 })
                 val = [x for x in res['affections']]
+
+            if val is not None and val != []:
+                print(f">>>>>>>>>>>>>>>>>>>>>>>>> Sensor {self.name} value: {val}")
 
             # Publishing value:
             self.publisher.publish({
