@@ -126,10 +126,9 @@ class BaseThing:
                         It must have a key 'state' whose value will be assigned 
                         to the instance's state attribute.
         """
-        self.state = msg['state']
+
         initiator = msg['initiator']
-        self.logger.critical("[%s] Setting state to %s by %s", self.name, self.state, initiator)
-        print(self.proximity_mode)
+        self.logger.critical("[%s] Setting state to %s by %s", self.name, msg['state'], initiator)
         if self.proximity_mode:
             # Check if we have an initiator in the message
             allowed_distance = self.proximity_distance
@@ -147,6 +146,7 @@ class BaseThing:
                 self.logger.warning("[%s] %s has no initiator", self.name, self.name)
                 return
 
+        self.state = msg['state'] # if it is ok, change the state
         self.sensor_state_publisher.publish({"state": self.state})
 
     def generate_info(self, conf, package, _type, _category, _class, _subclass):
