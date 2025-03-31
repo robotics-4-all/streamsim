@@ -176,6 +176,7 @@ class EnvController(BaseThing):
                         tem_aff[a]['info']['temperature']
                     temps.append(r)
 
+                final_temp = amb
                 if len(temps) != 0:
                     final_temp = max(temps)
                 final_temp = amb if amb > final_temp else final_temp

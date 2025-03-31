@@ -234,7 +234,7 @@ class BasicSensor(BaseThing):
 
         while self.info["enabled"]:
             time.sleep(1.0 / self.hz)
-            print("Sensor read", self.state)
+            # print("Sensor read", self.state)
 
             if self.state is None or self.state == "off":
                 continue
@@ -353,6 +353,7 @@ class BasicSensor(BaseThing):
         - get_mode_rpc_server
         - set_mode_rpc_server
         """
+        self.logger.warning("Stopping sensor %s", self.name)
         self.info["enabled"] = False
         while not self.stopped:
             time.sleep(0.1)

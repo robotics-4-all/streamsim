@@ -97,14 +97,14 @@ class EnvTemperatureSensorController(BasicSensor):
         if affections is None:
             return amb
 
-        print(affections)
+        # print(affections)
         for a in affections:
             r = (1 - affections[a]['distance'] / affections[a]['range']) * \
                 affections[a]['info']['temperature']
             temps.append(r)
 
         mms = 0
-        print(temps)
+        # print(temps)
         if len(temps) > 0:
             mms = max(temps)
 
@@ -114,6 +114,6 @@ class EnvTemperatureSensorController(BasicSensor):
         else:
             self.dynamic_value += (final_value - self.dynamic_value)/6
 
-        print(f"Temperature: {self.dynamic_value}")
+        # print(f"Temperature: {self.dynamic_value}")
         return self.dynamic_value + random.uniform(-0.1, 0.1)
  
