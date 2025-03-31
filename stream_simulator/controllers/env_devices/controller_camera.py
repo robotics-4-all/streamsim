@@ -377,4 +377,5 @@ class EnvCameraController(BaseThing):
         self.logger.warning("Sensor %s stopping", self.name)
         while not self.stopped and self.generating_images:
             time.sleep(0.1)
+        super().stop()
         self.logger.warning("Sensor %s stopped", self.name)

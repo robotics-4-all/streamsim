@@ -216,6 +216,7 @@ class EnvMicrophoneController(BaseThing):
         self.info["enabled"] = False
 
         self.record_action_server.stop()
+        super().stop()
 
     def on_goal_record(self, goalh):
         """

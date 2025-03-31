@@ -370,4 +370,5 @@ class EnvDistanceController(BaseThing):
         self.info["enabled"] = False
         while not self.stopped:
             time.sleep(0.1)
+        super().stop()
         self.logger.warning("Sensor %s stopped", self.name)
