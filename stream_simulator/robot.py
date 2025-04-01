@@ -982,14 +982,14 @@ class Robot:
                 if self.automation is not None:
                     if math.hypot(\
                         xx - self.target_to_reach['x'], \
-                            yy - self.target_to_reach['y']) < 0.01:
+                            yy - self.target_to_reach['y']) < 0.05:
                         self.logger.warning("Reached POI %s", self.pois_index)
                         self.logger.warning(" >> Current pois list: %s", self.automation['points'])
                         has_target = False
                 if self.next_poi_from_callback is not None:
                     if math.hypot(\
                         xx - self.target_to_reach['x'], \
-                            yy - self.target_to_reach['y']) < 0.01:
+                            yy - self.target_to_reach['y']) < 0.05:
                         self.logger.warning("Reached POI %s", self.pois_index)
                         self.next_poi_from_callback = None
 
