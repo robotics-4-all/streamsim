@@ -23,6 +23,7 @@ Logging:
 import time
 import logging
 import sys
+import os
 
 from stream_simulator import Simulator
 
@@ -55,6 +56,10 @@ else:
         format='%(levelname)s : %(name)s : %(message)s',
         level=logging.DEBUG
     )
+
+ZERO_LOGS = int(os.getenv("STREAMSIM_ZERO_LOGS", 0))
+
+if ZERO_LOGS: logging.disable()
 
 s = Simulator(uid = uid)
 
