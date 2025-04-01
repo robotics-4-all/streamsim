@@ -23,6 +23,7 @@ Logging:
 import time
 import logging
 import sys
+import os
 
 from stream_simulator import Simulator
 
@@ -47,14 +48,18 @@ if COLAB:
 
     logging.basicConfig(
         format='%(levelname)s : %(name)s : %(message)s',
-        level=logging.DEBUG,
         force=True
     )
 else:
     logging.basicConfig(
         format='%(levelname)s : %(name)s : %(message)s',
-        level=logging.DEBUG
     )
+
+ZERO_LOGS = int(os.getenv("STREAMSIM_ZERO_LOGS", 0))
+LOG_LEVEL = os.getenv("STREAMSIM_LOG_LEVEL", "INFO")
+
+if ZERO_LOGS: logging.disable()
+else: logging.getLogger().setLevel(LOG_LEVEL)
 
 s = Simulator(uid = uid)
 
