@@ -119,7 +119,12 @@ class CommlibFactory(Node):
                 )
                 self._logger.info("Using MQTT connection parameters")
             else:
-                self.conn_params = RedisConnectionParameters()
+                self.conn_params = RedisConnectionParameters(
+                    host=os.getenv('REDIS_HOST', 'localhost'),
+                    port=os.getenv('REDIS_PORT', '6379'),
+                    username=os.getenv('REDIS_USERNAME', ''),
+                    password=os.getenv('REDIS_PASSWORD', ''),
+                )
                 self._logger.info("Using Redis connection parameters")
 
             super().__init__(
