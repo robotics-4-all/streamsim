@@ -132,7 +132,8 @@ class Robot:
                  map_ = None,
                  tick = 0.1,
                  namespace = "_default_",
-                 mqtt_notifier = None):
+                 mqtt_notifier = None,
+                 precision_mode = False):
 
         self.env_properties = world.env_properties
         world = world.configuration
@@ -159,7 +160,8 @@ class Robot:
         self.raw_name = self.configuration["name"]
         self.name = self.namespace + "." + self.configuration["name"]
         self.pure_name = self.configuration["name"]
-        self.dt = tick
+        self.precision_mode = precision_mode
+        self.dt = tick if precision_mode is False else 0.001
 
         # intial robot pose - remains remains constant throughout streamsim launch
         self._init_x = 0
@@ -994,13 +996,15 @@ class Robot:
                         self.next_poi_from_callback = None
 
                 # Logging
-                if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
-                    logging_counter += 1
-                    if logging_counter % 10 == 0:
-                        self.logger.info("%s: New pose: %f, %f, %f %s", \
-                            self.raw_name, xx, yy, theta2, \
-                            f"[POI {self.pois_index} {self.automation['points'][self.pois_index]}]"\
-                                if self.automation is not None else "")
+                if self.precision_mode is True:
+                    if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
+                        logging_counter += 1
+                        if logging_counter % 10 == 0:
+                            self.logger.info("%s: New pose: %f, %f, %f %s", \
+                                self.raw_name, xx, yy, theta2, \
+                                f"[POI {self.pois_index} \
+                                    {self.automation['points'][self.pois_index]}]"\
+                                    if self.automation is not None else "")
 
                 # Send internal pose
                 self.dispatch_pose_local()

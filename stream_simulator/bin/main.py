@@ -40,6 +40,9 @@ if len(sys.argv) < 2:
     exit(0)
 
 uid = sys.argv[1]
+_precision_mode = sys.argv[2] if len(sys.argv) > 2 else False
+if _precision_mode:
+    print(">> Precision mode enabled.")
 
 if COLAB:
     # Clear any existing logging handlers
@@ -61,7 +64,7 @@ LOG_LEVEL = os.getenv("STREAMSIM_LOG_LEVEL", "INFO")
 if ZERO_LOGS: logging.disable()
 else: logging.getLogger().setLevel(LOG_LEVEL)
 
-s = Simulator(uid = uid)
+s = Simulator(uid = uid, precision_mode=_precision_mode)
 
 # While keyboard interrupt is not received, keep the simulator running
 try:

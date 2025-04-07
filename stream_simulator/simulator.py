@@ -64,12 +64,15 @@ class Simulator:
     """
     def __init__(self,
                  tick = 0.1,
-                 uid = None
+                 uid = None,
+                 precision_mode = False,
                  ):
 
         self.tick = tick
         self.logger = logging.getLogger(__name__)
         self.mqtt_notifier = None
+        self.precision_mode = precision_mode
+        print("Precision mode:", self.precision_mode)
 
         characters = string.ascii_lowercase + string.digits
         self.uid = uid
@@ -266,6 +269,7 @@ class Simulator:
                         tick = self.tick,
                         namespace = self.name,
                         mqtt_notifier = self.mqtt_notifier,
+                        precision_mode = self.precision_mode,
                     )
                 )
                 self.robot_names.append(r["name"])
