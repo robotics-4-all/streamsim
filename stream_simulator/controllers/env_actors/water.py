@@ -26,7 +26,7 @@ class WaterActor(BaseThing):
         __init__(conf=None, package=None): Initializes the WaterActor instance with 
             the given configuration and package.
     """
-    def __init__(self, conf = None, package = None):
+    def __init__(self, conf = None, package = None, precision_mode = False):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf['name'])
         else:

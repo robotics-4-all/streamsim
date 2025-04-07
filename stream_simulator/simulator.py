@@ -246,7 +246,8 @@ class Simulator:
         )
 
         # Initializing world
-        self.world = World(uid=self.uid, mqtt_notifier=self.mqtt_notifier, tf=self.tf)
+        self.world = World(uid=self.uid, mqtt_notifier=self.mqtt_notifier, tf=self.tf, 
+                           precision_mode=self.precision_mode)
         self.world.load_environment(configuration = self.configuration)
         self.world_name = self.world.name
 

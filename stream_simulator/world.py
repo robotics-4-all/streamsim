@@ -60,9 +60,10 @@ class World:
         stop():
             Stops the communication library factory.
     """
-    def __init__(self, uid, mqtt_notifier = None, tf = None):
+    def __init__(self, uid, mqtt_notifier = None, tf = None, precision_mode = False):
         self.commlib_factory = CommlibFactory(node_name = "World")
         self.logger = logging.getLogger(__name__)
+        self.precision_mode = precision_mode
         self.uid = uid
         self.configuration = None
         self.tf_base = None
@@ -379,7 +380,7 @@ class World:
         for type_ in self.actors:
             actors = self.actors[type_]
             for act in actors:
-                c = mapping[type_](conf = act, package = p)
+                c = mapping[type_](conf = act, package = p, precision_mode = self.precision_mode)
                 if c.name in self.actors:
                     self.logger.error("Device %s declared twice", c.name)
                 else:

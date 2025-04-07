@@ -55,7 +55,7 @@ class BaseActor(BaseThing):
     """
     BaseActor is a class that represents an actor in a simulation environment. It inherits from the BaseThing class and provides functionality for automating the actor's behavior based on predefined configurations.
     """
-    def __init__(self, _name, package, conf, _type=None, _range=None, _properties=None, auto_start=True):
+    def __init__(self, _name, package, conf, _type=None, _range=None, _properties=None, auto_start=True, precision_mode=False):
         """
         Initializes a new instance of the BaseThing class.
 
@@ -68,6 +68,7 @@ class BaseActor(BaseThing):
             self.logger = package["logger"]
 
         super().__init__(_name, auto_start=False)
+        self.precision_mode = precision_mode
 
         id_ = BaseThing.id
 
@@ -172,7 +173,7 @@ class BaseActor(BaseThing):
                 self._x = self.pose['x'] * self.resolution
                 self._y = self.pose['y'] * self.resolution
                 self._theta = 0
-                self.dt = 0.5
+                self.dt = 0.5 if self.precision_mode is False else 0.01
                 self.target_to_reach = None
 
                 self.terminated = False
@@ -197,7 +198,7 @@ class BaseActor(BaseThing):
         """
         while self.stopped is False:
             self.dispatch_pose_local()
-            time.sleep(1)
+            time.sleep(1 if self.precision_mode is False else 0.01)
 
         self.pose_publishing_terminated = True
 
@@ -364,13 +365,14 @@ class BaseActor(BaseThing):
                 has_target = False
 
             # Logging
-            if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
-                logging_counter += 1
-                if logging_counter % 10 == 0:
-                    self.logger.info("%s: New pose: %f, %f, %f %s", \
-                        self.name, xx, yy, theta2, \
-                        f"[POI {self.pois_index} {self.automation['points'][self.pois_index]}]"\
-                            if self.automation is not None else "")
+            if not self.precision_mode:
+                if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
+                    logging_counter += 1
+                    if logging_counter % 10 == 0:
+                        self.logger.info("%s: New pose: %f, %f, %f %s", \
+                            self.name, xx, yy, theta2, \
+                            f"[POI {self.pois_index} {self.automation['points'][self.pois_index]}]"\
+                                if self.automation is not None else "")
 
             # Send internal pose
             if self._x != prev_x or self._y != prev_y:

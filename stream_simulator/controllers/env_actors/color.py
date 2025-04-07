@@ -32,7 +32,7 @@ class ColorActor(BaseThing):
         package (dict, optional): Package dictionary containing additional information 
             such as logger.
     """
-    def __init__(self, conf = None, package = None):
+    def __init__(self, conf = None, package = None, precision_mode = False):
         if package["logger"] is None:
             self.logger = logging.getLogger(conf['name'])
         else:

@@ -161,7 +161,7 @@ class Robot:
         self.name = self.namespace + "." + self.configuration["name"]
         self.pure_name = self.configuration["name"]
         self.precision_mode = precision_mode
-        self.dt = tick if precision_mode is False else 0.001
+        self.dt = tick if precision_mode is False else 0.01
 
         # intial robot pose - remains remains constant throughout streamsim launch
         self._init_x = 0

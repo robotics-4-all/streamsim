@@ -585,7 +585,7 @@ class TfController:
         self.places_absolute[nm]['x'] = message['x']
         self.places_absolute[nm]['y'] = message['y']
         self.places_absolute[nm]['theta'] = message['theta']
-        self.logger.info("Updated %s: %s", nm, self.places_absolute[nm])
+        # self.logger.info("Updated %s: %s", nm, self.places_absolute[nm])
 
     def actor_properties_callback(self, message):
         """
@@ -687,7 +687,7 @@ class TfController:
         if self.items_hosts_dict[pt_name] is not None:
             base_th = self.places_absolute[self.items_hosts_dict[pt_name]]['theta']
 
-        self.logger.info(f"Updated {pt_name}: {self.places_absolute[pt_name]} / {pan}")
+        # self.logger.info(f"Updated {pt_name}: {self.places_absolute[pt_name]} / {pan}")
 
         abs_pt_theta = self.places_relative[pt_name]['theta'] + pan + base_th
         if pt_name in self.tree: # if pan-tilt has anything on it
@@ -705,7 +705,7 @@ class TfController:
                         "resolution": self.resolution
                     })
 
-                    self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
+                    # self.logger.info(f"Updated {i}: {self.places_absolute[i]}")
 
     def pan_tilt_callback(self, message):
         """

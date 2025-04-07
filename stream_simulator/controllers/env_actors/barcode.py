@@ -25,7 +25,7 @@ class BarcodeActor(BaseThing):
         set_tf_communication(package): Sets up the communication for the barcode actor.
     """
 
-    def __init__(self, conf = None, package = None):
+    def __init__(self, conf = None, package = None, precision_mode = False):
         """
         Initializes the Barcode actor with the given configuration and package.
         Args:
