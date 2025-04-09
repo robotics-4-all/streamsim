@@ -379,6 +379,9 @@ class World:
         }
         for type_ in self.actors:
             actors = self.actors[type_]
+            if type_ not in mapping:
+                self.logger.error("Actor type %s does not exist", type_)
+                continue
             for act in actors:
                 c = mapping[type_](conf = act, package = p, precision_mode = self.precision_mode)
                 if c.name in self.actors:
