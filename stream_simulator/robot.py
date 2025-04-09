@@ -133,7 +133,8 @@ class Robot:
                  tick = 0.1,
                  namespace = "_default_",
                  mqtt_notifier = None,
-                 precision_mode = False):
+                 precision_mode = False,
+                 blocking_crash = False):
 
         self.env_properties = world.env_properties
         world = world.configuration
@@ -144,6 +145,7 @@ class Robot:
         self.logger = logging.getLogger(__name__)
         self.namespace = namespace
         self.mqtt_notifier = mqtt_notifier
+        self.blocking_crash = blocking_crash
 
         # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = self.configuration["name"])
@@ -1010,9 +1012,10 @@ class Robot:
                 self.dispatch_pose_local()
 
                 if self.check_ok(self._x, self._y, prev_x, prev_y) or self.crashed_with_other_robot:
-                    self._x = prev_x
-                    self._y = prev_y
-                    self._theta = prev_th
+                    if self.blocking_crash:
+                        self._x = prev_x
+                        self._y = prev_y
+                        self._theta = prev_th
 
                     # notify mqtt about the error in robot's position
                     self.mqtt_notifier.dispatch_log(
