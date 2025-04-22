@@ -270,15 +270,16 @@ class Robot:
             callback = self.move_to_poi_callback
         )
 
-        self.other_robots_pose_sub = self.commlib_factory.create_psubscriber(
-            topic = "streamsim.*.*.pose.internal",
-            on_message = self.others_robot_pose_callback,
-        )
-        self.other_humans_pose_sub = self.commlib_factory.create_psubscriber(
-            topic = "streamsim.*.actor.human.*.pose.internal",
-            on_message = self.humans_pose_callback,
-        )
-        # print("IN ROBOT: ", self.name, self.name + ".pose.internal")
+        if self.automation is None:
+            self.other_robots_pose_sub = self.commlib_factory.create_psubscriber(
+                topic = "streamsim.*.*.pose.internal",
+                on_message = self.others_robot_pose_callback,
+            )
+            self.other_humans_pose_sub = self.commlib_factory.create_psubscriber(
+                topic = "streamsim.*.actor.human.*.pose.internal",
+                on_message = self.humans_pose_callback,
+            )
+            # print("IN ROBOT: ", self.name, self.name + ".pose.internal")
 
         # SIMULATOR ------------------------------------------------------------
         if self.configuration['remote_inform'] is True:
@@ -369,6 +370,7 @@ class Robot:
         of other robots and checks if the current robot has crashed with another robot
         based on their proximity.
         """
+
         payload = {
             'x': message['x'],
             'y': message['y'],
