@@ -915,10 +915,12 @@ class Robot:
                 if self.automation is not None:
                     if has_target is False:
                         if self.pois_index == len(self.automation['points']) - 1:
-                            self.logger.warning("Reached the last POI")
+                            if self.automation is None:
+                                self.logger.warning("Reached the last POI")
                             if self.automation['reverse'] is True and reverse_mode is False:
                                 self.automation['points'].reverse()
-                                self.logger.critical("Reversed POIs %s", self.automation['points'])
+                                if self.automation is None:
+                                    self.logger.critical("Reversed POIs %s", self.automation['points'])
                                 self.pois_index = 0
                                 self.target_to_reach = {
                                     'x': self.automation['points'][self.pois_index]['x'],
@@ -929,8 +931,9 @@ class Robot:
                             elif self.automation['reverse'] is True and reverse_mode is True:
                                 if self.automation['loop'] is True:
                                     self.automation['points'].reverse()
-                                    self.logger.critical("In loop: Reversed POIs %s", \
-                                        self.automation['points'])
+                                    if self.automation is None:
+                                        self.logger.critical("In loop: Reversed POIs %s", \
+                                            self.automation['points'])
                                     self.pois_index = 0
                                     self.target_to_reach = {
                                         'x': self.automation['points'][self.pois_index]['x'],
@@ -989,18 +992,20 @@ class Robot:
                     if math.hypot(\
                         xx - self.target_to_reach['x'], \
                             yy - self.target_to_reach['y']) < 0.05:
-                        self.logger.warning("Reached POI %s", self.pois_index)
-                        self.logger.warning(" >> Current pois list: %s", self.automation['points'])
+                        if self.automation is None:
+                            self.logger.warning("Reached POI %s", self.pois_index)
+                            self.logger.warning(" >> Current pois list: %s", self.automation['points'])
                         has_target = False
                 if self.next_poi_from_callback is not None:
                     if math.hypot(\
                         xx - self.target_to_reach['x'], \
                             yy - self.target_to_reach['y']) < 0.05:
-                        self.logger.warning("Reached POI %s", self.pois_index)
+                        if self.automation is None:
+                            self.logger.warning("Reached POI %s", self.pois_index)
                         self.next_poi_from_callback = None
 
                 # Logging
-                if self.precision_mode is True:
+                if self.precision_mode is True and self.automation is None:
                     if self._x != prev_x or self._y != prev_y or self._theta != prev_th:
                         logging_counter += 1
                         if logging_counter % 10 == 0:

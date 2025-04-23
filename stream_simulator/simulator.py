@@ -66,6 +66,7 @@ class Simulator:
                  tick = 0.1,
                  uid = None,
                  precision_mode = False,
+                 message = None,
                  ):
 
         self.tick = tick
@@ -98,19 +99,19 @@ class Simulator:
             rpc_name = self.name + '.get_device_groups'
         )
 
-        self.devices_rpc_server = self.commlib_factory.get_rpc_service(
-            callback = self.reset,
-            rpc_name = self.name + '.reset'
-        )
+        # self.devices_rpc_server = self.commlib_factory.get_rpc_service(
+        #     callback = self.reset,
+        #     rpc_name = self.name + '.reset'
+        # )
 
         self.simulation_start_pub = self.commlib_factory.get_publisher(
             topic = f"{self.name}.simulation_started"
         )
 
-        self.configuration_rpc_server = self.commlib_factory.get_rpc_service(
-            callback = self.configuration_callback,
-            rpc_name = self.name + '.set_configuration_local'
-        )
+        # self.configuration_rpc_server = self.commlib_factory.get_rpc_service(
+        #     callback = self.configuration_callback,
+        #     rpc_name = self.name + '.set_configuration_local'
+        # )
 
         # MQTT Connection for Locsys
         self.mqtt_commlib_factory = CommlibFactory(node_name = "SimulatorMQTT", interface = "mqtt")
@@ -136,58 +137,61 @@ class Simulator:
         self.robot_names = None
         self.logger.info("Simulator created. Waiting for configuration...")
 
-    def reset(self, _):
-        """
-        Callback function to reset the simulation environment.
-        This function stops the simulation and resets the transformation controller (tf),
-        the world, and the robots. It also starts the robots and publishes a simulation 
-        start message.
+        if message is not None:
+            self.configuration_callback(message)
 
-        Args:
-            _ (Any): Placeholder argument, not used in the function.
+    # def reset(self, _):
+    #     """
+    #     Callback function to reset the simulation environment.
+    #     This function stops the simulation and resets the transformation controller (tf),
+    #     the world, and the robots. It also starts the robots and publishes a simulation 
+    #     start message.
 
-        Returns:
-            dict: A dictionary indicating the success of the reset with a key "success" set to True.
-        """
-        self.logger.warning("Resetting simulation...")
-        # Cleaning robots
-        if self.robots is not None:
-            for _, robot in enumerate(self.robots):
-                self.logger.info("[simulator] Stopping robot %s", robot.name)
-                robot.stop()
-                self.logger.info("[simulator] Robot %s stopped", robot.name)
-                del robot
-        del self.robots
-        del self.robot_names
-        self.logger.info("Robots cleaned")
+    #     Args:
+    #         _ (Any): Placeholder argument, not used in the function.
 
-        # Cleaning world
-        if self.world is not None:
-            self.logger.critical("Stopping world")
-            self.world.stop()
-            self.logger.critical("World stopped")
-        del self.world
-        del self.world_name
-        self.logger.info("World cleaned")
+    #     Returns:
+    #         dict: A dictionary indicating the success of the reset with a key "success" set to True.
+    #     """
+    #     self.logger.warning("Resetting simulation...")
+    #     # Cleaning robots
+    #     if self.robots is not None:
+    #         for _, robot in enumerate(self.robots):
+    #             self.logger.info("[simulator] Stopping robot %s", robot.name)
+    #             robot.stop()
+    #             self.logger.info("[simulator] Robot %s stopped", robot.name)
+    #             del robot
+    #     del self.robots
+    #     del self.robot_names
+    #     self.logger.info("Robots cleaned")
 
-        # Cleaning tf
-        try:
-            if self.tf is not None:
-                self.tf.stop()
-                self.logger.info("Tf cleaned")
-        except Exception as e: # pylint: disable=broad-except
-            self.logger.error("Error cleaning tf: %s", e)
+    #     # Cleaning world
+    #     if self.world is not None:
+    #         self.logger.critical("Stopping world")
+    #         self.world.stop()
+    #         self.logger.critical("World stopped")
+    #     del self.world
+    #     del self.world_name
+    #     self.logger.info("World cleaned")
 
-        # Reinitializing variables
-        self.world = None
-        self.world_name = None
-        self.robots = None
-        self.robot_names = None
-        self.logger.info("Simulation reset")
+    #     # Cleaning tf
+    #     try:
+    #         if self.tf is not None:
+    #             self.tf.stop()
+    #             self.logger.info("Tf cleaned")
+    #     except Exception as e: # pylint: disable=broad-except
+    #         self.logger.error("Error cleaning tf: %s", e)
 
-        return {
-            "success": True
-        }
+    #     # Reinitializing variables
+    #     self.world = None
+    #     self.world_name = None
+    #     self.robots = None
+    #     self.robot_names = None
+    #     self.logger.info("Simulation reset")
+
+    #     return {
+    #         "success": True
+    #     }
 
     def devices_callback(self, _):
         """
