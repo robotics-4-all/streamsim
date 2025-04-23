@@ -146,6 +146,7 @@ class Robot:
         self.namespace = namespace
         self.mqtt_notifier = mqtt_notifier
         self.blocking_crash = blocking_crash
+        self.other_robots_poses = {}
 
         # Create the CommlibFactory
         self.commlib_factory = CommlibFactory(node_name = self.configuration["name"])
@@ -362,6 +363,24 @@ class Robot:
         self.target_to_reach = None
         return {}
 
+    def check_collision_with_other_robots(self):
+        """
+        Check for collisions with other robots in the simulation.
+
+        This function checks if the robot has crashed with another robot based on their proximity.
+        If a collision is detected, it sets the `crashed_with_other_robot` attribute to True and
+        publishes a crash message containing the robot's current pose.
+        """
+        for name, pose in self.other_robots_poses.items():
+            if math.hypot(self._x - pose['x'], self._y - pose['y']) < 0.5:
+                self.crashed_with_other_robot = True
+                self.logger.error("Crashed with %s", name)
+                pose = PoseMsg(
+                    position=PositionMsg(x=self._x, y=self._y, z=0.0),
+                    orientation=RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
+                )
+                self.crash_pub.publish(pose)
+
     def others_robot_pose_callback(self, message, _):
         """
         Callback function to handle the pose of other robots.
@@ -380,15 +399,10 @@ class Robot:
         }
         if self.pure_name == payload['name']:
             return
-        # If the robot is in proximity of 0.5 meters, it crashes
-        if math.hypot(self._x - payload['x'], self._y - payload['y']) < 0.5:
-            self.crashed_with_other_robot = True
-            self.logger.error("Crashed with %s", payload['name'])
-            pose = PoseMsg(
-                position=PositionMsg(x=self._x, y=self._y, z=0.0),
-                orientation=RPYOrientationMsg(roll=0.0, pitch=0.0, yaw=self._theta)
-            )
-            self.crash_pub.publish(pose)
+
+        self.other_robots_poses[payload['name']] = payload
+
+        self.check_collision_with_other_robots()
 
     def humans_pose_callback(self, message, _):
         """
@@ -1014,6 +1028,8 @@ class Robot:
                                 f"[POI {self.pois_index} \
                                     {self.automation['points'][self.pois_index]}]"\
                                     if self.automation is not None else "")
+                            # Check for collision with other robots\
+                            self.check_collision_with_other_robots()
 
                 # Send internal pose
                 self.dispatch_pose_local()
