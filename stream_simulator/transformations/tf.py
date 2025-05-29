@@ -43,6 +43,32 @@ class TfController:
             'automation_state'
         ]
 
+        self.declarations = None
+        self.declarations_info = None
+        self.names = None
+        self.effectors_get_rpcs = None
+        self.robots_get_devices_rpcs = None
+        self.subs = None
+        self.places_relative = None
+        self.places_absolute = None
+        self.tree = None
+        self.items_hosts_dict = None
+        self.existing_hosts = None
+        self.pantilts = None
+        self.robots = None
+        self.speaker_subs = None
+        self.microphone_pubs = None
+
+        self.initialize_structures()
+
+    def initialize_structures(self):
+        """
+        Initializes various data structures used in the system.
+        This method sets up empty containers and dictionaries to store information
+        about declarations, devices, robots, sensors, actuators, and other entities
+        in the system. It also organizes these entities by type and category for
+        efficient access and manipulation.
+        """
         self.declarations = []
         self.declarations_info = {}
         self.names = []
@@ -203,83 +229,7 @@ class TfController:
         # Start the CommlibFactory
         self.commlib_factory.run()
 
-        self.declarations = []
-        self.declarations_info = {}
-        self.names = []
-
-        self.effectors_get_rpcs = {}
-        self.robots_get_devices_rpcs = {}
-
-        self.subs = {} # Filled
-        self.places_relative = {}
-        self.places_absolute = {}
-        self.tree = {} # filled
-        self.items_hosts_dict = {}
-        self.existing_hosts = []
-        self.pantilts = {}
-        self.robots = []
-
-        self.speaker_subs = {}
-        self.microphone_pubs = {}
-
-        self.per_type = {
-            'robot': {
-                'sensor': {
-                    'microphone': [],
-                    'sonar': [],
-                    'ir': [],
-                    'tof': [],
-                    'imu': [],
-                    'camera': [],
-                    'button': [],
-                    'env': [],
-                    'encoder': [],
-                    'line_follow': [],
-                    'rfid_reader': [],
-                },
-                'actuator': {
-                    'speaker': [],
-                    'leds': [],
-                    'pan_tilt': [],
-                    'screen': [],
-                    'twist': [],
-                }
-            },
-            'env': {
-                'sensor': {
-                    'ph': [],
-                    'temperature': [],
-                    'humidity': [],
-                    'gas': [],
-                    'camera': [],
-                    'sonar': [],
-                    'linear_alarm': [],
-                    'area_alarm': [],
-                    'light_sensor': [],
-                    'microphone': [],
-                },
-                'actuator': {
-                    'thermostat': [],
-                    'relay': [],
-                    'pan_tilt': [],
-                    'speaker': [],
-                    'leds': [],
-                    'humidifier': [],
-                }
-            },
-            'actor': {
-                'human': [],
-                'superman': [],
-                'sound_source': [],
-                'qr': [],
-                'barcode': [],
-                'color': [],
-                'text': [],
-                'rfid_tag': [],
-                'fire': [],
-                'water': [],
-            }
-        }
+        self.initialize_structures()
 
     def distance_calculator_callback(self, message):
         """
@@ -1909,83 +1859,7 @@ class TfController:
         This method calls the stop method on the commlib_factory instance to 
         terminate any ongoing communication processes.
         """
-        self.declarations = []
-        self.declarations_info = {}
-        self.names = []
-
-        self.effectors_get_rpcs = {}
-        self.robots_get_devices_rpcs = {}
-
-        self.subs = {} # Filled
-        self.places_relative = {}
-        self.places_absolute = {}
-        self.tree = {} # filled
-        self.items_hosts_dict = {}
-        self.existing_hosts = []
-        self.pantilts = {}
-        self.robots = []
-
-        self.speaker_subs = {}
-        self.microphone_pubs = {}
-
-        self.per_type = {
-            'robot': {
-                'sensor': {
-                    'microphone': [],
-                    'sonar': [],
-                    'ir': [],
-                    'tof': [],
-                    'imu': [],
-                    'camera': [],
-                    'button': [],
-                    'env': [],
-                    'encoder': [],
-                    'line_follow': [],
-                    'rfid_reader': [],
-                },
-                'actuator': {
-                    'speaker': [],
-                    'leds': [],
-                    'pan_tilt': [],
-                    'screen': [],
-                    'twist': [],
-                }
-            },
-            'env': {
-                'sensor': {
-                    'ph': [],
-                    'temperature': [],
-                    'humidity': [],
-                    'gas': [],
-                    'camera': [],
-                    'sonar': [],
-                    'linear_alarm': [],
-                    'area_alarm': [],
-                    'light_sensor': [],
-                    'microphone': [],
-                },
-                'actuator': {
-                    'thermostat': [],
-                    'relay': [],
-                    'pan_tilt': [],
-                    'speaker': [],
-                    'leds': [],
-                    'humidifier': [],
-                }
-            },
-            'actor': {
-                'human': [],
-                'superman': [],
-                'sound_source': [],
-                'qr': [],
-                'barcode': [],
-                'color': [],
-                'text': [],
-                'rfid_tag': [],
-                'fire': [],
-                'water': [],
-            }
-        }
+        self.initialize_structures()
 
         if self.commlib_factory is not None:
             self.commlib_factory.stop()
