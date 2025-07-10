@@ -8,7 +8,7 @@ File that contains the microphone controller.
 import time
 import logging
 import base64
-import wave
+# import wave
 from pathlib import Path
 
 from stream_simulator.base_classes import BaseThing
@@ -216,15 +216,17 @@ class MicrophoneController(BaseThing):
         dirname = Path(__file__).resolve().parent
         fil = str(dirname) + '/../../resources/' + path
         self.logger.info("Reading sound from %s", fil)
-        f = wave.open(fil, 'rb')
-        data = bytearray()
-        sample = f.readframes(256)
-        while sample:
-            for s in sample:
-                data.append(s)
-            sample = f.readframes(256)
-        f.close()
-        source = base64.b64encode(data).decode("ascii")
+        # NOTE: Wave is broken
+        # f = wave.open(fil, 'rb')
+        # data = bytearray()
+        # sample = f.readframes(256)
+        # while sample:
+        #     for s in sample:
+        #         data.append(s)
+        #     sample = f.readframes(256)
+        # f.close()
+        # source = base64.b64encode(data).decode("ascii")
+        source = ""
         return source
 
     def on_goal(self, goalh):
