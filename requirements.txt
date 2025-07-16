@@ -2,7 +2,7 @@
 redis
 pyyaml
 numpy
-wave
+# wave
 qrcode[pil]
 opencv-python
 python-dotenv
