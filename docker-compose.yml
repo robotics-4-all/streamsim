@@ -1,8 +1,13 @@
 services:
   streamsim:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: streamsim
-    # command: ["python", "stream_simulator/bin/main.py", "${UID:-123}"]
-    entrypoint: ["/bin/sh", "/entrypoint.sh"]
-    network_mode: host
+    container_name: streamsim
+    restart: unless-stopped
     env_file:
       - ./.env
+    environment:
+      STREAMSIM_UID: ${STREAMSIM_UID:-streamsim}
+    command: ["/entrypoint.sh"]

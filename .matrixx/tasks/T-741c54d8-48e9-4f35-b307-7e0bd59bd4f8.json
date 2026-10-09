@@ -1,0 +1,11 @@
+{
+  "id": "T-741c54d8-48e9-4f35-b307-7e0bd59bd4f8",
+  "subject": "Make USE_REDIS honor MQTT config in CommlibFactory",
+  "description": "Robust boolean parsing; fall back to MQTT when REDIS_HOST unset so .env broker creds are used.",
+  "status": "completed",
+  "activeForm": "Fixing CommlibFactory transport selection",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_edf435f75ffeMMgVpzgUM70Ydn",
+  "projectRoot": "/home/ankel/Desktop/Issel/nako/streamsim"
+}

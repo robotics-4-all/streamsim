@@ -1,0 +1,11 @@
+{
+  "id": "T-17a2f139-13b9-495d-adac-49117e78c9a0",
+  "subject": "Fix Dockerfile for stream simulator",
+  "description": "Install commlib with mqtt/redis extras, apt deps, editable install so yaml/resources resolve, exec-form entrypoint.",
+  "status": "completed",
+  "activeForm": "Fixing Dockerfile",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_edf435f75ffeMMgVpzgUM70Ydn",
+  "projectRoot": "/home/ankel/Desktop/Issel/nako/streamsim"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "T-2658c781-1162-4af3-9b71-0e995bc93d23",
+  "subject": "Fix entrypoint.sh UID handling",
+  "description": "Replace bash-only $UID with STREAMSIM_UID env var, add exec, optional config bootstrap.",
+  "status": "completed",
+  "activeForm": "Fixing entrypoint",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_edf435f75ffeMMgVpzgUM70Ydn",
+  "projectRoot": "/home/ankel/Desktop/Issel/nako/streamsim"
+}

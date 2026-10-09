@@ -1,0 +1,11 @@
+{
+  "id": "T-58f20816-bfc1-40d2-9429-d465a1503681",
+  "subject": "Add .dockerignore",
+  "description": "Exclude .git, .env, __pycache__, venv to avoid baking credentials into image.",
+  "status": "completed",
+  "activeForm": "Adding .dockerignore",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_edf435f75ffeMMgVpzgUM70Ydn",
+  "projectRoot": "/home/ankel/Desktop/Issel/nako/streamsim"
+}

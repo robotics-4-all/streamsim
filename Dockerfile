@@ -2,27 +2,38 @@ FROM python:3.10
 
 WORKDIR /streamsim
 
-RUN apt update && apt upgrade -y && apt install ffmpeg libsm6 libxext6  -y
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ffmpeg \
+        libsm6 \
+        libxext6 \
+        libgl1 \
+        libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY ./requirements.txt /app/requirements.txt
 
-RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r /app/requirements.txt
 
-RUN pip install https://github.com/robotics-4-all/commlib-py/archive/devel.zip -U
+# The mqtt and redis transports are commlib optional extras but are imported at
+# module level by stream_simulator/connectivity/commlib_factory.py.
+RUN pip install --no-cache-dir -U \
+        "commlib-py[mqtt,redis] @ https://github.com/robotics-4-all/commlib-py/archive/devel.zip"
 
 COPY ./ /streamsim
 
-RUN pip install .
+# Editable install so configurations/*.yaml and resources/ resolve from the
+# source tree instead of a package copy without package_data.
+RUN pip install --no-cache-dir --no-deps -e .
 
 WORKDIR /
 
 COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-ENV BROKER_HOST=0.0.0.0
-ENV BROKER_PORT=1883
-ENV BROKER_SSL=False
-ENV BROKER_USERNAME=
-ENV BROKER_PASSWORD=
-ENV USE_REDIS=True
+ENV PYTHONUNBUFFERED=1 \
+    STREAMSIM_UID=streamsim
 
-CMD ["python", "/streamsim/stream_simulator/bin/main.py", "test"]
+EXPOSE 1883 8883
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -1,5 +1,10 @@
 # commlib-py==0.11.5
-redis
+# NOTE: commlib-py ships its transports as optional extras. The mqtt and redis
+# backends are imported at module level by
+# stream_simulator/connectivity/commlib_factory.py, so they must be installed or
+# the simulator dies on startup with an ImportError.
+paho-mqtt>=1.6.1,<2.0.0
+redis[hiredis]>=5.0.1
 pyyaml
 numpy
 # wave

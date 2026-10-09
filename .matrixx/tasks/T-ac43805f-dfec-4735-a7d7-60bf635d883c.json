@@ -1,0 +1,11 @@
+{
+  "id": "T-ac43805f-dfec-4735-a7d7-60bf635d883c",
+  "subject": "Build image and verify runtime",
+  "description": "docker compose build, then run and confirm broker connection with .env credentials.",
+  "status": "completed",
+  "activeForm": "Building and verifying",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_edf435f75ffeMMgVpzgUM70Ydn",
+  "projectRoot": "/home/ankel/Desktop/Issel/nako/streamsim"
+}

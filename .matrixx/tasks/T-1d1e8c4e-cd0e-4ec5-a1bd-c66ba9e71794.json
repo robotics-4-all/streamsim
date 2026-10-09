@@ -1,0 +1,11 @@
+{
+  "id": "T-1d1e8c4e-cd0e-4ec5-a1bd-c66ba9e71794",
+  "subject": "Fix docker-compose.yml networking and build",
+  "description": "Add build context, drop network_mode host, pass env from .env, add restart policy.",
+  "status": "completed",
+  "activeForm": "Fixing compose file",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_edf435f75ffeMMgVpzgUM70Ydn",
+  "projectRoot": "/home/ankel/Desktop/Issel/nako/streamsim"
+}

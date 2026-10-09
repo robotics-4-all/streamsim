@@ -100,8 +100,15 @@ class CommlibFactory(Node):
                         os.getenv('BROKER_PORT', '8883'),
                         os.getenv('BROKER_SSL', 'True'))
         self.use_redis = os.getenv('USE_REDIS', "False")
+        use_redis = str(self.use_redis).strip().lower() in ('true', '1', 'yes', 'on')
+        redis_host = os.getenv('REDIS_HOST', '')
+        if use_redis and not redis_host:
+            self._logger.warning(
+                "USE_REDIS=%s but REDIS_HOST is unset; falling back to the MQTT broker",
+                self.use_redis)
+            use_redis = False
         try:
-            if self.use_redis == "False" or self.interface == "mqtt":
+            if not use_redis or self.interface == "mqtt":
                 broker_host = os.getenv('BROKER_HOST', 'broker.emqx.io')
                 broker_port = int(os.getenv('BROKER_PORT', "8883"))
                 broker_ssl = bool(os.getenv('BROKER_SSL', "True") in ('True', 'true'))
@@ -119,13 +126,31 @@ class CommlibFactory(Node):
                 )
                 self._logger.info("Using MQTT connection parameters")
             else:
+                # redis-py sends AUTH only when a username or a password is set,
+                # and sends AUTH <password> when only a password is given. A
+                # username without a password is rejected by the server, so it
+                # is dropped and the connection is attempted unauthenticated.
+                redis_username = os.getenv('REDIS_USERNAME', '').strip()
+                redis_password = os.getenv('REDIS_PASSWORD', '')
+                if redis_username and not redis_password:
+                    self._logger.warning(
+                        "REDIS_USERNAME is set but REDIS_PASSWORD is empty; "
+                        "connecting without authentication")
+                    redis_username = ''
+
                 self.conn_params = RedisConnectionParameters(
-                    host=os.getenv('REDIS_HOST', 'localhost'),
-                    port=os.getenv('REDIS_PORT', '6379'),
-                    username=os.getenv('REDIS_USERNAME', ''),
-                    password=os.getenv('REDIS_PASSWORD', ''),
+                    host=redis_host,
+                    port=int(os.getenv('REDIS_PORT', '6379')),
+                    username=redis_username,
+                    password=redis_password,
                 )
-                self._logger.info("Using Redis connection parameters")
+                if redis_password:
+                    self._logger.info(
+                        "Using Redis connection parameters (authenticated as %s)",
+                        redis_username or "default user")
+                else:
+                    self._logger.info(
+                        "Using Redis connection parameters (no authentication)")
 
             super().__init__(
                 connection_params=self.conn_params,
