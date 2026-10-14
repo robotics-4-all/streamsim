@@ -1,14 +1,30 @@
-# commlib-py==0.11.5
-# NOTE: commlib-py ships its transports as optional extras. The mqtt and redis
-# backends are imported at module level by
-# stream_simulator/connectivity/commlib_factory.py, so they must be installed or
-# the simulator dies on startup with an ImportError.
-paho-mqtt>=1.6.1,<2.0.0
-redis[hiredis]>=5.0.1
-pyyaml
-numpy
-# wave
-qrcode[pil]
-opencv-python
-python-dotenv
-pytest
+annotated-types==0.8.0
+certifi==2026.7.22
+charset-normalizer==3.5.2
+commlib-py==0.13.2
+hiredis==3.4.2
+idna==3.20
+iniconfig==2.3.1
+markdown-it-py==4.2.0
+mdurl==0.1.2
+numpy==2.5.4
+opencv-python==5.0.0.93
+packaging==26.3
+paho-mqtt==1.6.1
+pillow==12.3.0
+pluggy==1.6.0
+pydantic==2.14.1
+pydantic_core==2.50.1
+Pygments==2.21.0
+pytest==9.1.1
+python-dotenv==1.2.4
+PyYAML==6.0.3
+qrcode==8.2
+redis==8.1.0
+requests==2.34.2
+rich==15.0.0
+typing-inspection==0.4.4
+typing_extensions==4.16.0
+ujson==6.0.0
+urllib3==2.8.0
+wheel==0.48.0

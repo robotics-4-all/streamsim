@@ -143,6 +143,7 @@ class CommlibFactory(Node):
                     port=int(os.getenv('REDIS_PORT', '6379')),
                     username=redis_username,
                     password=redis_password,
+                    db=int(os.getenv('REDIS_DB', '0')),
                 )
                 if redis_password:
                     self._logger.info(

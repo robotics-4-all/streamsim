@@ -20,6 +20,8 @@ import sys
 import os
 from multiprocessing import Process, Event
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+
 from stream_simulator import Simulator
 from stream_simulator.connectivity import CommlibFactory
 

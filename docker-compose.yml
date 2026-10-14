@@ -1,4 +1,14 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: streamsim-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - streamsim-redis-data:/data
+
   streamsim:
     build:
       context: .
@@ -6,8 +16,24 @@ services:
     image: streamsim
     container_name: streamsim
     restart: unless-stopped
+    depends_on:
+      - redis
     env_file:
       - ./.env
     environment:
       STREAMSIM_UID: ${STREAMSIM_UID:-streamsim}
+      # Point the simulator at the shared Redis so the appmaker-executor
+      # RPCs (streamsim.<UID>.set_configuration_local / .reset) reach it.
+      # Compose `environment` wins over `env_file`, so these override .env
+      # only when explicitly set in the shell.
+      # Hardcoded to the service name (see appexecutor compose): a stray
+      # REDIS_HOST=localhost exported in the shell must not leak in here.
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_USERNAME: ${REDIS_USERNAME:-}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
     command: ["/entrypoint.sh"]
+
+volumes:
+  streamsim-redis-data:
